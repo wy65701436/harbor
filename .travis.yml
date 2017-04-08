@@ -102,7 +102,8 @@ script:
   - docker ps
   - ls -la ./tests
   - ./tests/notarytest.sh
-  - sudo ./tests/swaggercheck.sh
+  - sudo chmod 777 ./test/swaggercheck.sh
+  - ./tests/swaggercheck.sh
   - ./tests/startuptest.sh
   - ./tests/userlogintest.sh ${HARBOR_ADMIN} ${HARBOR_ADMIN_PASSWD}
 
