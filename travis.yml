@@ -82,19 +82,20 @@ script:
   - ps -ef
   - sudo ./tests/testprepare.sh 
   - sudo docker-compose -f ./make/docker-compose.test.yml up -d
+  - docker ps
   - docker logs make_mysql_1
   - go list ./... | grep -v -E 'vendor|tests' | xargs -L1 fgt golint
   - go list ./... | grep -v -E 'vendor|tests' | xargs -L1 go vet
   - export MYSQL_HOST=$IP
   - export REGISTRY_URL=$IP:5000
   - echo $REGISTRY_URL
-  - ./tests/pushimage.sh
+#  - ./tests/pushimage.sh
   - cd tests
   - sudo ./ldapprepare.sh 
   - cd .. 
   - go test -i ./src/ui ./src/adminserver ./src/jobservice
-  - sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
-  - goveralls -coverprofile=profile.cov -service=travis-ci
+#  - sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
+#  - goveralls -coverprofile=profile.cov -service=travis-ci
 
 #  - docker-compose -f make/docker-compose.test.yml down
 #  - sudo rm -rf /data/config/*  
