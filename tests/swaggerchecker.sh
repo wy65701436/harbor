@@ -2,6 +2,9 @@
 
 set +e
 
+echo $TRAVIS_PULL_REQUEST_SLUG
+echo $TRAVIS_PULL_REQUEST_SHA
+
 if [ -z "$1" ]; then
 	echo '* Required input `git repo name` not provided!'
 	exit 1
@@ -15,7 +18,6 @@ fi
 SWAGGER_ONLINE_VALIDATOR="http://online.swagger.io/validator"
 HARBOR_SWAGGER_FILE="https://raw.githubusercontent.com/$1/$2/docs/swagger.yaml"
 HARBOR_SWAGGER_VALIDATOR_URL="$SWAGGER_ONLINE_VALIDATOR/debug?url=$HARBOR_SWAGGER_FILE"
-echo $HARBOR_SWAGGER_FILE
 echo $HARBOR_SWAGGER_VALIDATOR_URL
 
 # Now try to ping swagger online validator, then to use it to do the validation.
