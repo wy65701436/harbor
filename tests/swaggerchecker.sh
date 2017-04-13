@@ -2,21 +2,18 @@
 
 set +e
 
-echo $TRAVIS_PULL_REQUEST_SLUG
-echo $TRAVIS_PULL_REQUEST_SHA
-
-if [ -z "$1" ]; then
-	echo '* Required input `git repo name` not provided!'
-	exit 1
-fi
-
-if [ -z "$2" ]; then
-	echo '* Required input `git commit id` not provided!'
-	exit 1
-fi
+echo $TRAVIS_BUILD_ID
+echo $TRAVIS_JOB_ID
 
 SWAGGER_ONLINE_VALIDATOR="http://online.swagger.io/validator"
-HARBOR_SWAGGER_FILE="https://raw.githubusercontent.com/$1/$2/docs/swagger.yaml"
+if [ $TRAVIS_EVENT_TYPE = "push" ]; then
+	HARBOR_SWAGGER_FILE="https://raw.githubusercontent.com/$TRAVIS_COMMIT/$TRAVIS_REPO_SLUG/docs/swagger.yaml"
+elif [ $TRAVIS_EVENT_TYPE = "pull_request" ]; then
+	HARBOR_SWAGGER_FILE="https://raw.githubusercontent.com/$TRAVIS_PULL_REQUEST_SLUG/$TRAVIS_PULL_REQUEST_SHA/docs/swagger.yaml"
+else
+	echo "* don't support this kinds of action ($TRAVIS_EVENT_TYPE), but don't fail the travis CI."
+	exit 0
+fi
 HARBOR_SWAGGER_VALIDATOR_URL="$SWAGGER_ONLINE_VALIDATOR/debug?url=$HARBOR_SWAGGER_FILE"
 echo $HARBOR_SWAGGER_VALIDATOR_URL
 
