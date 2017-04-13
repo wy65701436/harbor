@@ -102,6 +102,8 @@ script:
 #  - docker ps
   - echo $TRAVIS_PULL_REQUEST_SLUG
   - echo $TRAVIS_REPO_SLUG
+  - echo $TRAVIS_PULL_REQUEST_SHA
+  - echo $TRAVIS_PULL_REQUEST
   - ./tests/notarytest.sh
   - ./tests/swaggerchecker.sh $TRAVIS_COMMIT
   - ./tests/startuptest.sh
