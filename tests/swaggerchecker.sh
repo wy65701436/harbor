@@ -2,12 +2,9 @@
 
 set +e
 
-echo $TRAVIS_BUILD_ID
-echo $TRAVIS_JOB_ID
-
 SWAGGER_ONLINE_VALIDATOR="http://online.swagger.io/validator"
 if [ $TRAVIS_EVENT_TYPE = "push" ]; then
-	HARBOR_SWAGGER_FILE="https://raw.githubusercontent.com/$TRAVIS_COMMIT/$TRAVIS_REPO_SLUG/docs/swagger.yaml"
+	HARBOR_SWAGGER_FILE="https://raw.githubusercontent.com/$TRAVIS_REPO_SLUG/$TRAVIS_COMMIT/docs/swagger.yaml"
 elif [ $TRAVIS_EVENT_TYPE = "pull_request" ]; then
 	HARBOR_SWAGGER_FILE="https://raw.githubusercontent.com/$TRAVIS_PULL_REQUEST_SLUG/$TRAVIS_PULL_REQUEST_SHA/docs/swagger.yaml"
 else

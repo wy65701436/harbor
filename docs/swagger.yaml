@@ -13,10 +13,9 @@ produces:
   - application/json
   - text/plain
 consumes:
-  - text/sd
-!@#!@#QDQDQDQDQssDQ
+  - text/plain
   - application/json
-paths:wsd
+paths:
   /search:
     get:
       summary: Search for projects and repositories
