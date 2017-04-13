@@ -47,7 +47,7 @@ paths:
       description: |
         This endpoint returns all projects created by Harbor, and can be filtered by project name.
       parameters:
-        - name: project_name 
+        - name: project_name
           in: query
           description: Project name for filtering results.
           required: false
@@ -198,7 +198,7 @@ paths:
           description: Selected project ID.
         - name: project
           in: body
-          required: true 
+          required: true
           schema:
             $ref: '#/definitions/Project'
           description: Updates of project.
@@ -336,7 +336,7 @@ paths:
     get:
       summary: Return role members accompany with relevant project and user.
       description: |
-        This endpoint is for user to get role members accompany with relevant project and user. 
+        This endpoint is for user to get role members accompany with relevant project and user.
       parameters:
         - name: project_id
           in: path
@@ -405,7 +405,7 @@ paths:
         404:
           description: Project ID does not exist.
         500:
-          description: Unexpected internal errors.      
+          description: Unexpected internal errors.
     delete:
       summary: Delete project role members accompany with relevant project and user.
       description: |
@@ -536,7 +536,7 @@ paths:
           description: Only email, realname and comment can be modified.
           required: true
           schema:
-            $ref: '#/definitions/UserProfile' 
+            $ref: '#/definitions/UserProfile'
       tags:
         - Products
       responses:
@@ -596,7 +596,7 @@ paths:
           description: Password to be updated.
           required: true
           schema:
-            $ref: '#/definitions/Password'          
+            $ref: '#/definitions/Password'
       tags:
         - Products
       responses:
@@ -838,7 +838,7 @@ paths:
               $ref: '#/definitions/RepoSignature'
         500:
           description: Server side error.
-      
+
   /repositories/top:
     get:
       summary: Get public repositories which are accessed most.
@@ -873,7 +873,7 @@ paths:
     get:
       summary: Get recent logs of the projects which the user is a member of
       description: |
-        This endpoint let user see the recent operation logs of the projects which he is member of 
+        This endpoint let user see the recent operation logs of the projects which he is member of
       parameters:
         - name: lines
           in: query
@@ -927,7 +927,7 @@ paths:
           type: integer
           format: int32
           required: false
-          description: The return list length number. 
+          description: The return list length number.
         - name: end_time
           in: query
           type: integer
@@ -1224,7 +1224,7 @@ paths:
           description: Replication target name already exists.
         500:
           description: Unexpected internal errors.
-  /targets/ping:    
+  /targets/ping:
     post:
       summary: Ping validates target.
       description: |
@@ -1237,7 +1237,7 @@ paths:
           schema:
             $ref: '#/definitions/PingTarget'
       tags:
-        - Products  
+        - Products
       responses:
         200:
           description: Ping target successfully.
@@ -1249,7 +1249,7 @@ paths:
           description: Target not found.
         500:
           description: Unexpected internal errors.
-  /targets/{id}/ping: 
+  /targets/{id}/ping:
     post:
       summary: Ping target.
       description: |
@@ -1274,7 +1274,7 @@ paths:
           description: Target ID does not exist.
         500:
           description: Unexpected internal errors.
-  /targets/{id}: 
+  /targets/{id}:
     put:
       summary: Update replication's target.
       description: |
@@ -1288,7 +1288,7 @@ paths:
           description: The replication's target ID.
         - name: repo_target
           in: body
-          required: true 
+          required: true
           schema:
             $ref: '#/definitions/PutTarget'
           description: Updates of replication's target.
@@ -1340,7 +1340,7 @@ paths:
           type: integer
           format: int64
           required: true
-          description: The replication's target ID.  
+          description: The replication's target ID.
       tags:
         - Products
       responses:
@@ -1365,9 +1365,9 @@ paths:
           type: integer
           format: int64
           required: true
-          description: The replication's target ID.  
+          description: The replication's target ID.
       tags:
-        - Products  
+        - Products
       responses:
         200:
           description: Get relevant policies successfully.
@@ -1381,13 +1381,13 @@ paths:
           description: Replication's target not found
         500:
           description: Unexpected internal errors.
-  /internal/syncregistry:    
+  /internal/syncregistry:
     post:
-      summary: Sync repositories from registry to DB. 
+      summary: Sync repositories from registry to DB.
       description: |
-        This endpoint is for syncing all repositories of registry with database. 
+        This endpoint is for syncing all repositories of registry with database.
       tags:
-        - Products  
+        - Products
       responses:
         200:
           description: Sync repositories successfully.
@@ -1396,7 +1396,7 @@ paths:
         403:
           description: User does not have permission of admin role.
         500:
-          description: Unexpected internal errors. 
+          description: Unexpected internal errors.
   /systeminfo:
     get:
       summary: Get general system info
@@ -1455,7 +1455,7 @@ paths:
     post:
       summary: Ping available ldap service.
       description: |
-        This endpoint ping the available ldap service for test related configuration parameters. 
+        This endpoint ping the available ldap service for test related configuration parameters.
       parameters:
         - name: ldapconf
           in: body
@@ -1475,7 +1475,7 @@ paths:
         403:
           description: Only admin has this authority.
         500:
-          description: Unexpected internal errors.        
+          description: Unexpected internal errors.
   /ldap/users/search:
     post:
       summary: Search available ldap users.
@@ -1489,7 +1489,7 @@ paths:
           description: Registered user ID
         - name: ldap_conf
           in: body
-          description: ldap search configuration. ldapconf field can input ldap service configuration. If this item are blank, will load default configuration will load current configuration from the system. 
+          description: ldap search configuration. ldapconf field can input ldap service configuration. If this item are blank, will load default configuration will load current configuration from the system.
           required: false
           schema:
             $ref: '#/definitions/LdapConf'
@@ -1509,12 +1509,12 @@ paths:
         403:
           description: Only admin has this authority.
         500:
-          description: Unexpected internal errors. 
+          description: Unexpected internal errors.
   /ldap/users/import:
     post:
       summary: Import selected available ldap users.
       description: |
-        This endpoint adds the selected available ldap users to harbor based on related configuration parameters from the system. System will try to guess the user email address and realname, add to harbor user information. 
+        This endpoint adds the selected available ldap users to harbor based on related configuration parameters from the system. System will try to guess the user email address and realname, add to harbor user information.
         If have errors when import user, will return the list of importing failed uid and the failed reason.
       parameters:
         - name: uid_list
@@ -1533,7 +1533,7 @@ paths:
         403:
           description: Only admin has this authority.
         500:
-          description: Failed import some users. 
+          description: Failed import some users.
           schema:
             type: array
             items:
@@ -1565,7 +1565,7 @@ paths:
       parameters:
         - name: configurations
           in: body
-          required: true 
+          required: true
           schema:
             type: object
           description: The configurations map need to be modified, the following are keys "auth_mode", "email_from", "email_host", "email_identity", "email_password", "email_port", "email_ssl", "email_username", "ldap_base_dn", "ldap_filter", "ldap_scope", "ldap_search_dn", "ldap_search_password", "ldap_timeout", "ldap_uid", "ldap_url", "project_creation_restriction", "self_registration", "verify_remote_cert".
@@ -1598,7 +1598,7 @@ paths:
     post:
       summary: Test connection and authentication with email server.
       description: |
-        Test connection and authentication with email server. 
+        Test connection and authentication with email server.
       parameters:
         - name: settings
           in: body
@@ -1618,7 +1618,7 @@ paths:
         403:
           description: Only admin has this authority.
         500:
-          description: Unexpected internal errors.        
+          description: Unexpected internal errors.
 definitions:
   Search:
     type: object
@@ -1653,7 +1653,7 @@ definitions:
         description: The count how many times the repository is pulled
       tags_count:
         type: integer
-        description: The count of tags in the repository		
+        description: The count of tags in the repository
   ProjectReq:
     type: object
     properties:
@@ -1796,11 +1796,11 @@ definitions:
   Role:
     type: object
     properties:
-      role_id: 
+      role_id:
         type: integer
         format: int32
         description: ID in table.
-      role_code: 
+      role_code:
         type: string
         description: Description of permissions for the role.
       role_name:
@@ -1814,7 +1814,7 @@ definitions:
       roles:
         type: array
         items:
-          type: integer  
+          type: integer
           format: int32
         description: Role ID for updating project role member.
       username:
@@ -1823,9 +1823,9 @@ definitions:
   TopRepo:
     type: object
     properties:
-      name: 
+      name:
         type: string
-        description: The name of the repo 
+        description: The name of the repo
       count:
         type: integer
         format: int
@@ -1833,27 +1833,27 @@ definitions:
   StatisticMap:
     type: object
     properties:
-      my_project_count: 
+      my_project_count:
         type: integer
         format: int32
         description: The count of the projects which the user is a member of.
-      my_repo_count: 
+      my_repo_count:
         type: integer
         format: int32
         description: The count of the repositories belonging to the projects which the user is a member of.
-      public_project_count: 
+      public_project_count:
         type: integer
         format: int32
         description: The count of the public projects.
-      public_repo_count: 
+      public_repo_count:
         type: integer
         format: int32
         description: The count of the public repositories belonging to the public projects which the user is a member of.
-      total_project_count: 
+      total_project_count:
         type: integer
         format: int32
         description: The count of the total projects, only be seen when the is admin.
-      total_repo_count: 
+      total_repo_count:
         type: integer
         format: int32
         description: The count of the total repositories, only be seen when the user is admin.
@@ -1864,17 +1864,17 @@ definitions:
         type: integer
         format: int64
         description: The job ID.
-      status: 
+      status:
         type: string
         description: The status of the job.
-      repository: 
+      repository:
         type: string
         description: The repository handled by the job.
       policy_id:
         type: integer
         format: int64
         description: The ID of the policy that triggered this job.
-      operation: 
+      operation:
         type: string
         description: The operation of the job.
       tags:
@@ -1887,7 +1887,7 @@ definitions:
         description: The creation time of the job.
       update_time:
         type: string
-        description: The update time of the job.   
+        description: The update time of the job.
   Tags:
     type: object
     properties:
@@ -1901,25 +1901,25 @@ definitions:
         type: integer
         format: int64
         description: The policy ID.
-      project_id: 
+      project_id:
         type: integer
         format: int64
         description: The project ID.
-      project_name: 
+      project_name:
         type: string
         description: The project name.
-      target_id: 
+      target_id:
         type: integer
         format: int64
         description: The target ID.
-      name: 
+      name:
         type: string
         description: The policy name.
       enabled:
         type: integer
         format: int
         description: The policy's enabled status.
-      description: 
+      description:
         type: string
         description: The description of the policy.
       cron_str:
@@ -1942,32 +1942,32 @@ definitions:
   RepPolicyPost:
     type: object
     properties:
-      project_id: 
+      project_id:
         type: integer
         format: int64
         description: The project ID.
-      target_id: 
+      target_id:
         type: integer
         format: int64
         description: The target ID.
-      name: 
+      name:
         type: string
         description: The policy name.
   RepPolicyUpdate:
     type: object
     properties:
-      target_id: 
+      target_id:
         type: integer
         format: int64
         description: The target ID.
-      name: 
+      name:
         type: string
         description: The policy name.
       enabled:
         type: integer
         format: int
         description: The policy's enabled status.
-      description: 
+      description:
         type: string
         description: The description of the policy.
       cron_str:
@@ -1976,27 +1976,27 @@ definitions:
   RepPolicyEnablementReq:
     type: object
     properties:
-      enabled: 
+      enabled:
         type: integer
         format: int
         description: The policy enablement flag.
   RepTarget:
     type: object
     properties:
-      id: 
+      id:
         type: integer
         format: int64
         description: The target ID.
       endpoint:
         type: string
         description: The target address URL string.
-      name: 
+      name:
         type: string
         description: The target name.
-      username: 
+      username:
         type: string
         description: The target server username.
-      password: 
+      password:
         type: string
         description: The target server password.
       type:
@@ -2015,13 +2015,13 @@ definitions:
       endpoint:
         type: string
         description: The target address URL string.
-      name: 
+      name:
         type: string
         description: The target name.
-      username: 
+      username:
         type: string
         description: The target server username.
-      password: 
+      password:
         type: string
         description: The target server password.
   PingTarget:
@@ -2030,31 +2030,31 @@ definitions:
       endpoint:
         type: string
         description: The target address URL string.
-      username: 
+      username:
         type: string
         description: The target server username.
-      password: 
+      password:
         type: string
         description: The target server password.
   PutTarget:
     type: object
     properties:
-      name: 
+      name:
         type: string
         description: The target name.
       endpoint:
         type: string
         description: The target address URL string.
-      username: 
+      username:
         type: string
         description: The target server username.
-      password: 
+      password:
         type: string
         description: The target server password.
   HasAdminRole:
     type: object
     properties:
-      has_admin_role: 
+      has_admin_role:
         type: integer
         description: 1-has admin, 0-not.
   UserProfile:
@@ -2072,7 +2072,7 @@ definitions:
   Storage:
     type: object
     properties:
-      total: 
+      total:
         type: integer
         format: int64
         description: Total volume size.
@@ -2106,11 +2106,11 @@ definitions:
         description: Indicate whether there is a ca root cert file ready for download in the file system.
       harbor_version:
         type: string
-        description: The build version of Harbor.		
+        description: The build version of Harbor.
   SystemInfo:
     type: object
     properties:
-      storage: 
+      storage:
         type: array
         description: The storage of system.
         items:
@@ -2118,7 +2118,7 @@ definitions:
   LdapConf:
     type: object
     properties:
-      ldap_url: 
+      ldap_url:
         type: string
         description: The url of ldap service.
       ldap_search_dn:
@@ -2147,7 +2147,7 @@ definitions:
   LdapUsers:
     type: object
     properties:
-      ldap_username: 
+      ldap_username:
         type: string
         description: search ldap user name based on ldapconf.
       ldap_realname:
@@ -2176,7 +2176,7 @@ definitions:
   EmailServerSetting:
     type: object
     properties:
-      email_host: 
+      email_host:
         type: string
         description: The host of email server.
       email_port:
