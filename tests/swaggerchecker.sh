@@ -16,7 +16,7 @@ SWAGGER_ONLINE_VALIDATOR="http://online.swagger.io/validator"
 HARBOR_SWAGGER_FILE="https://raw.githubusercontent.com/$1/$2/docs/swagger.yaml"
 HARBOR_SWAGGER_VALIDATOR_URL="$SWAGGER_ONLINE_VALIDATOR/debug?url=$HARBOR_SWAGGER_FILE"
 echo $HARBOR_SWAGGER_FILE
-echo $https://raw.githubusercontent.com/wy65701436/harbor/898bed7284fb47436e52c408cd8e2e310a4aa1e4/docs/swagger.yaml
+echo $HARBOR_SWAGGER_VALIDATOR_URL
 
 # Now try to ping swagger online validator, then to use it to do the validation.
 eval curl -f -I $SWAGGER_ONLINE_VALIDATOR
