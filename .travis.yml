@@ -80,26 +80,28 @@ script:
   - sudo mv ./VERSION /harbor/VERSION
   - sudo service mysql stop
   - sudo ./tests/testprepare.sh 
-  - sudo docker-compose -f ./make/docker-compose.test.yml up -d
-  - go list ./... | grep -v -E 'vendor|tests' | xargs -L1 fgt golint
-  - go list ./... | grep -v -E 'vendor|tests' | xargs -L1 go vet
-  - export MYSQL_HOST=$IP
-  - export REGISTRY_URL=$IP:5000
-  - echo $REGISTRY_URL
-  - ./tests/pushimage.sh
-  - cd tests
-  - sudo ./ldapprepare.sh 
-  - cd .. 
-  - go test -i ./src/ui ./src/adminserver ./src/jobservice
-  - sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
-  - goveralls -coverprofile=profile.cov -service=travis-ci
+#  - sudo docker-compose -f ./make/docker-compose.test.yml up -d
+#  - go list ./... | grep -v -E 'vendor|tests' | xargs -L1 fgt golint
+#  - go list ./... | grep -v -E 'vendor|tests' | xargs -L1 go vet
+#  - export MYSQL_HOST=$IP
+#  - export REGISTRY_URL=$IP:5000
+#  - echo $REGISTRY_URL
+#  - ./tests/pushimage.sh
+#  - cd tests
+#  - sudo ./ldapprepare.sh 
+#  - cd .. 
+#  - go test -i ./src/ui ./src/adminserver ./src/jobservice
+#  - sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
+#  - goveralls -coverprofile=profile.cov -service=travis-ci
 
-  - docker-compose -f make/docker-compose.test.yml down
-  - sudo rm -rf /data/config/*  
-  - ls /data/cert
-  - sudo make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMAGE=vmware/harbor-clarity-ui-builder:0.8.4 NOTARYFLAG=true
+#  - docker-compose -f make/docker-compose.test.yml down
+#  - sudo rm -rf /data/config/*  
+#  - ls /data/cert
+#  - sudo make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMAGE=vmware/harbor-clarity-ui-builder:0.8.4 NOTARYFLAG=true
   
-  - docker ps
+#  - docker ps
+  - echo $TRAVIS_PULL_REQUEST_SLUG
+  - echo $TRAVIS_REPO_SLUG
   - ./tests/notarytest.sh
   - ./tests/swaggerchecker.sh $TRAVIS_COMMIT
   - ./tests/startuptest.sh
