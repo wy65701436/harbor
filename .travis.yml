@@ -101,6 +101,9 @@ script:
   
   - docker ps
   - ./tests/notarytest.sh
+  - echo $TRAVIS_COMMIT
+  - echo $TRAVIS_PULL_REQUEST
+  - echo $TRAVIS_PULL_REQUEST_SHA
   - ./tests/swaggerchecker.sh $TRAVIS_BRANCH
   - ./tests/startuptest.sh
   - ./tests/userlogintest.sh ${HARBOR_ADMIN} ${HARBOR_ADMIN_PASSWD}
