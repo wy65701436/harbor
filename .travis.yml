@@ -100,6 +100,7 @@ script:
   - sudo make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMAGE=vmware/harbor-clarity-ui-builder:0.8.4 NOTARYFLAG=true
   
   - docker ps
+  - ./test/swaggerchecker.sh $TRAVIS_BRANCH
   - ./tests/notarytest.sh
   - ./tests/startuptest.sh
   - ./tests/userlogintest.sh ${HARBOR_ADMIN} ${HARBOR_ADMIN_PASSWD}
