@@ -111,7 +111,7 @@ func TestEnvPolicyChecker(t *testing.T) {
 }
 
 func TestPMSPolicyChecker(t *testing.T) {
-	c = client.NewClient(adminServer.URL, nil)
+	c := client.NewClient(adminServer.URL, nil)
 
 	cfgs := map[string]interface{}{
 		common.AdmiralEndpoint: admiralEndpoint,
