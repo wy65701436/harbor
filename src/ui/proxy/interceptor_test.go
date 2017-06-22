@@ -105,7 +105,7 @@ func TestEnvPolicyChecker(t *testing.T) {
 	vulFlag, sev := getPolicyChecker().vulnerablePolicy("whatever")
 	assert.True(contentTrustFlag)
 	assert.True(vulFlag)
-	assert.Equal(sev, "medium")
+	assert.Equal(sev, models.SevMedium)
 }
 
 func TestPMSPolicyChecker(t *testing.T) {
@@ -130,7 +130,7 @@ func TestPMSPolicyChecker(t *testing.T) {
 	assert.True(t, contentTrustFlag)
 	projectVulnerableEnabled, projectVulnerableSeverity := getPolicyChecker().vulnerablePolicy("project_for_test_get_true")
 	assert.True(t, projectVulnerableEnabled)
-	assert.Equal(t, projectVulnerableSeverity, "negligible")
+	assert.Equal(t, projectVulnerableSeverity, models.SevUnknown)
 }
 
 func TestMatchNotaryDigest(t *testing.T) {
@@ -138,14 +138,18 @@ func TestMatchNotaryDigest(t *testing.T) {
 	//The data from common/utils/notary/helper_test.go
 	img1 := imageInfo{"notary-demo/busybox", "1.0", "notary-demo", "sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a7"}
 	img2 := imageInfo{"notary-demo/busybox", "2.0", "notary-demo", "sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a8"}
+	img3 := imageInfo{"test", "1.0", "test", "sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a9"}
+
 	res1, err := matchNotaryDigest(img1)
 	assert.Nil(err, "Unexpected error: %v, image: %#v", err, img1)
 	assert.True(res1)
-	res2, err := matchNotaryDigest(img1)
-	assert.Nil(err, "Unexpected error: %v, image: %#v, take 2", err, img1)
-	assert.False(res2)
-	res3, err := matchNotaryDigest(img2)
-	assert.Nil(err, "Unexpected error: %v, image: %#v", err, img2)
+
+	res2, err := matchNotaryDigest(img2)
+	assert.Nil(err, "Unexpected error: %v, image: %#v, take 2", err, img2)
+	assert.True(res2)
+
+	res3, err := matchNotaryDigest(img3)
+	assert.Nil(err, "Unexpected error: %v, image: %#v", err, img3)
 	assert.False(res3)
 }
 
