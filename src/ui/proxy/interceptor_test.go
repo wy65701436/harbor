@@ -3,6 +3,7 @@ package proxy
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/vmware/harbor/src/adminserver/client"
 	"github.com/vmware/harbor/src/common"
 	"github.com/vmware/harbor/src/common/models"
 	notarytest "github.com/vmware/harbor/src/common/utils/notary/test"
@@ -45,7 +46,7 @@ func TestMain(m *testing.M) {
 	if err := config.Init(); err != nil {
 		panic(err)
 	}
-	c = NewClient(adminServer.URL, nil)
+	c = client.NewClient(adminServer.URL, nil)
 	result := m.Run()
 	if result != 0 {
 		os.Exit(result)

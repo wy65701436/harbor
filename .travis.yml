@@ -79,8 +79,8 @@ script:
   - sudo mkdir -p /harbor
   - sudo mv ./VERSION /harbor/VERSION
   - sudo service mysql stop
-  - sudo make run_clarity_ut CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.1.2
-  - cat ./src/ui_ng/lib/npm-ut-test-results
+#  - sudo make run_clarity_ut CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.1.2
+#  - cat ./src/ui_ng/lib/npm-ut-test-results
   - sudo ./tests/testprepare.sh 
   - sudo docker-compose -f ./make/docker-compose.test.yml up -d
   - go list ./... | grep -v -E 'vendor|tests' | xargs -L1 fgt golint
@@ -88,7 +88,7 @@ script:
   - export MYSQL_HOST=$IP
   - export REGISTRY_URL=$IP:5000
   - echo $REGISTRY_URL
-  - ./tests/pushimage.sh
+#  - ./tests/pushimage.sh
   - cd tests
   - sudo ./ldapprepare.sh 
   - sudo ./admiral.sh 
