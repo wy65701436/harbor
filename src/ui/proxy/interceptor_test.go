@@ -23,6 +23,8 @@ var adminServer *httptest.Server
 var admiralEndpoint = "http://127.0.0.1:8282"
 var token = ""
 
+var c Client
+
 func TestMain(m *testing.M) {
 	notaryServer = notarytest.NewNotaryServer(endpoint)
 	defer notaryServer.Close()
@@ -43,6 +45,7 @@ func TestMain(m *testing.M) {
 	if err := config.Init(); err != nil {
 		panic(err)
 	}
+	c = NewClient(adminServer.URL, nil)
 	result := m.Run()
 	if result != 0 {
 		os.Exit(result)
@@ -98,17 +101,24 @@ func TestEnvPolicyChecker(t *testing.T) {
 	if err2 := os.Setenv("PROJECT_VULNERABBLE", "1"); err2 != nil {
 		t.Fatalf("Failed to set env variable: %v", err2)
 	}
-	if err3 := os.Setenv("PROJECT_SEVERITY", "negligible"); err3 != nil {
+	if err3 := os.Setenv("PROJECT_SEVERITY", "medium"); err3 != nil {
 		t.Fatalf("Failed to set env variable: %v", err3)
 	}
 	contentTrustFlag := getPolicyChecker().contentTrustEnabled("whatever")
 	vulFlag, sev := getPolicyChecker().vulnerablePolicy("whatever")
 	assert.True(contentTrustFlag)
 	assert.True(vulFlag)
-	assert.Equal(sev, models.SevUnknown)
+	assert.Equal(sev, models.SevMedium)
 }
 
 func TestPMSPolicyChecker(t *testing.T) {
+	cfgs := map[string]interface{}{
+		common.AdmiralEndpoint: admiralEndpoint,
+	}
+	err := c.UpdateCfgs(cfgs)
+	if !assert.Nil(t, err, "unexpected error") {
+		return
+	}
 	pm := pms.NewProjectManager(admiralEndpoint, token)
 	name := "project_for_test_get_true"
 	id, err := pm.Create(&models.Project{
