@@ -24,8 +24,6 @@ var adminServer *httptest.Server
 var admiralEndpoint = "http://127.0.0.1:8282"
 var token = ""
 
-var c Client
-
 func TestMain(m *testing.M) {
 	notaryServer = notarytest.NewNotaryServer(endpoint)
 	defer notaryServer.Close()
@@ -113,6 +111,8 @@ func TestEnvPolicyChecker(t *testing.T) {
 }
 
 func TestPMSPolicyChecker(t *testing.T) {
+	c = client.NewClient(adminServer.URL, nil)
+
 	cfgs := map[string]interface{}{
 		common.AdmiralEndpoint: admiralEndpoint,
 	}
