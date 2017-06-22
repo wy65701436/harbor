@@ -98,14 +98,14 @@ func TestEnvPolicyChecker(t *testing.T) {
 	if err2 := os.Setenv("PROJECT_VULNERABBLE", "1"); err2 != nil {
 		t.Fatalf("Failed to set env variable: %v", err2)
 	}
-	if err3 := os.Setenv("PROJECT_SEVERITY", "medium"); err3 != nil {
+	if err3 := os.Setenv("PROJECT_SEVERITY", "negligible"); err3 != nil {
 		t.Fatalf("Failed to set env variable: %v", err3)
 	}
 	contentTrustFlag := getPolicyChecker().contentTrustEnabled("whatever")
 	vulFlag, sev := getPolicyChecker().vulnerablePolicy("whatever")
 	assert.True(contentTrustFlag)
 	assert.True(vulFlag)
-	assert.Equal(sev, models.SevMedium)
+	assert.Equal(sev, models.SevUnknown)
 }
 
 func TestPMSPolicyChecker(t *testing.T) {
@@ -146,7 +146,7 @@ func TestMatchNotaryDigest(t *testing.T) {
 
 	res2, err := matchNotaryDigest(img2)
 	assert.Nil(err, "Unexpected error: %v, image: %#v, take 2", err, img2)
-	assert.True(res2)
+	assert.False(res2)
 
 	res3, err := matchNotaryDigest(img3)
 	assert.Nil(err, "Unexpected error: %v, image: %#v", err, img3)
