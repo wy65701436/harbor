@@ -95,18 +95,27 @@ func TestEnvPolicyChecker(t *testing.T) {
 	if err := os.Setenv("PROJECT_CONTENT_TRUST", "1"); err != nil {
 		t.Fatalf("Failed to set env variable: %v", err)
 	}
+	if err2 := os.Setenv("PROJECT_VULNERABBLE", "1"); err2 != nil {
+		t.Fatalf("Failed to set env variable: %v", err2)
+	}
+	if err3 := os.Setenv("PROJECT_SEVERITY", "medium"); err3 != nil {
+		t.Fatalf("Failed to set env variable: %v", err3)
+	}
 	contentTrustFlag := getPolicyChecker().contentTrustEnabled("whatever")
-	vulFlag := getPolicyChecker().vulnerableEnabled("whatever")
+	vulFlag, sev := getPolicyChecker().vulnerablePolicy("whatever")
 	assert.True(contentTrustFlag)
-	assert.False(vulFlag)
+	assert.True(vulFlag)
+	assert.Equal(sev, "medium")
 }
 
 func TestPMSPolicyChecker(t *testing.T) {
 	pm := pms.NewProjectManager(admiralEndpoint, token)
 	name := "project_for_test_get_true"
 	id, err := pm.Create(&models.Project{
-		Name:               name,
-		EnableContentTrust: true,
+		Name:                                       name,
+		EnableContentTrust:                         true,
+		PreventVulnerableImagesFromRunning:         true,
+		PreventVulnerableImagesFromRunningSeverity: "negligible",
 	})
 	require.Nil(t, err)
 	defer func(id int64) {
@@ -117,27 +126,25 @@ func TestPMSPolicyChecker(t *testing.T) {
 	project, err := pm.Get(id)
 	assert.Nil(t, err)
 	assert.Equal(t, id, project.ProjectID)
-	server, err2 := utilstest.NewAdminserver(nil)
-	if err2 != nil {
-		t.Fatalf("failed to create a mock admin server: %v", err2)
-	}
-	defer server.Close()
 	contentTrustFlag := getPolicyChecker().contentTrustEnabled("project_for_test_get_true")
 	assert.True(t, contentTrustFlag)
+	projectVulnerableEnabled, projectVulnerableSeverity := getPolicyChecker().vulnerablePolicy("project_for_test_get_true")
+	assert.True(t, projectVulnerableEnabled)
+	assert.Equal(t, projectVulnerableSeverity, "negligible")
 }
 
 func TestMatchNotaryDigest(t *testing.T) {
 	assert := assert.New(t)
 	//The data from common/utils/notary/helper_test.go
-	img1 := imageInfo{"notary-demo/busybox", "1.0", "notary-demo"}
-	img2 := imageInfo{"notary-demo/busybox", "2.0", "notary-demo"}
-	res1, err := matchNotaryDigest(img1, "sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a7")
+	img1 := imageInfo{"notary-demo/busybox", "1.0", "notary-demo", "sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a7"}
+	img2 := imageInfo{"notary-demo/busybox", "2.0", "notary-demo", "sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a8"}
+	res1, err := matchNotaryDigest(img1)
 	assert.Nil(err, "Unexpected error: %v, image: %#v", err, img1)
 	assert.True(res1)
-	res2, err := matchNotaryDigest(img1, "sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a8")
+	res2, err := matchNotaryDigest(img1)
 	assert.Nil(err, "Unexpected error: %v, image: %#v, take 2", err, img1)
 	assert.False(res2)
-	res3, err := matchNotaryDigest(img2, "sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a7")
+	res3, err := matchNotaryDigest(img2)
 	assert.Nil(err, "Unexpected error: %v, image: %#v", err, img2)
 	assert.False(res3)
 }
