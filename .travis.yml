@@ -88,7 +88,7 @@ script:
   - export MYSQL_HOST=$IP
   - export REGISTRY_URL=$IP:5000
   - echo $REGISTRY_URL
-#  - ./tests/pushimage.sh
+  - ./tests/pushimage.sh
   - cd tests
   - sudo ./ldapprepare.sh 
   - sudo ./admiral.sh 
