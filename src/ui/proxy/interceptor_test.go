@@ -45,7 +45,7 @@ func TestMain(m *testing.M) {
 	if err := config.Init(); err != nil {
 		panic(err)
 	}
-	//	adminserverClient = client.NewClient(adminServerURL, nil)
+	adminserverClient = client.NewClient(adminServerURL, nil)
 	result := m.Run()
 	if result != 0 {
 		os.Exit(result)
@@ -113,13 +113,13 @@ func TestEnvPolicyChecker(t *testing.T) {
 
 func TestPMSPolicyChecker(t *testing.T) {
 
-	//	cfgs := map[string]interface{}{
-	//		common.AdmiralEndpoint: admiralEndpoint,
-	//	}
-	//	err := adminserverClient.UpdateCfgs(cfgs)
-	//	if !assert.Nil(t, err, "unexpected error") {
-	//		return
-	//	}
+	cfgs := map[string]interface{}{
+		common.AdmiralEndpoint: admiralEndpoint,
+	}
+	err := adminserverClient.UpdateCfgs(cfgs)
+	if !assert.Nil(t, err, "unexpected error") {
+		return
+	}
 	pm := pms.NewProjectManager(admiralEndpoint, token)
 	name := "project_for_test_get_true"
 	id, err := pm.Create(&models.Project{
