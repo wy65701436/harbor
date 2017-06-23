@@ -45,7 +45,7 @@ func TestMain(m *testing.M) {
 	if err := config.Init(); err != nil {
 		panic(err)
 	}
-	adminserverClient = client.NewClient(adminServerURL, nil)
+	adminserverClient = client.NewClient(adminServer.URL, nil)
 	result := m.Run()
 	if result != 0 {
 		os.Exit(result)
