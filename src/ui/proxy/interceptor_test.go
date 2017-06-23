@@ -20,6 +20,7 @@ import (
 var endpoint = "10.117.4.142"
 var notaryServer *httptest.Server
 var adminServer *httptest.Server
+var adminserverClient client.Client
 
 var admiralEndpoint = "http://127.0.0.1:8282"
 var token = ""
@@ -44,7 +45,7 @@ func TestMain(m *testing.M) {
 	if err := config.Init(); err != nil {
 		panic(err)
 	}
-	c = client.NewClient(adminServer.URL, nil)
+	adminserverClient = client.NewClient(adminServerURL, nil)
 	result := m.Run()
 	if result != 0 {
 		os.Exit(result)
@@ -111,12 +112,11 @@ func TestEnvPolicyChecker(t *testing.T) {
 }
 
 func TestPMSPolicyChecker(t *testing.T) {
-	c := client.NewClient(adminServer.URL, nil)
 
 	cfgs := map[string]interface{}{
 		common.AdmiralEndpoint: admiralEndpoint,
 	}
-	err := c.UpdateCfgs(cfgs)
+	err := adminserverClient.UpdateCfgs(cfgs)
 	if !assert.Nil(t, err, "unexpected error") {
 		return
 	}
