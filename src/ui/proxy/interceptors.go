@@ -65,7 +65,6 @@ func (ec envPolicyChecker) contentTrustEnabled(name string) bool {
 	return os.Getenv("PROJECT_CONTENT_TRUST") == "1"
 }
 func (ec envPolicyChecker) vulnerablePolicy(name string) (bool, models.Severity) {
-	// TODO: May need get more information in vulnerable policies.
 	return os.Getenv("PROJECT_VULNERABBLE") == "1", clair.ParseClairSev(os.Getenv("PROJECT_SEVERITY"))
 }
 
@@ -189,6 +188,7 @@ func (cth contentTrustHandler) ServeHTTP(rw http.ResponseWriter, req *http.Reque
 		copyResp(rec, rw)
 		return
 	}
+
 	match, err := matchNotaryDigest(img)
 	if err != nil {
 		http.Error(rw, "Failed in communication with Notary please check the log", http.StatusInternalServerError)
@@ -219,15 +219,20 @@ func (vh vulnerableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 		vh.next.ServeHTTP(rw, req)
 		return
 	}
-	imgScanOverview, err := dao.GetImgScanOverview(img.digest)
+	overview, err := dao.GetImgScanOverview(img.digest)
 	if err != nil {
 		log.Errorf("failed to get ImgScanOverview %s: %v", img.digest, err)
 		http.Error(rw, "Failed to get ImgScanOverview.", http.StatusPreconditionFailed)
 		return
 	}
-	imageSev := imgScanOverview.Sev
+	if overview == nil {
+		log.Debugf("cannot get the image scan overview info, failing the response.")
+		http.Error(rw, "Cannot get the image scan overview info.", http.StatusPreconditionFailed)
+		return
+	}
+	imageSev := overview.Sev
 	if imageSev > int(projectVulnerableSeverity) {
-		log.Debugf("the image severity is lower then project setting, failing the response.")
+		log.Debugf("the image severity is higher then project setting, failing the response.")
 		http.Error(rw, "The image scan result doesn't pass the project setting.", http.StatusPreconditionFailed)
 	}
 	vh.next.ServeHTTP(rw, req)
