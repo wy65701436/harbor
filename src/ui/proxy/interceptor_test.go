@@ -120,12 +120,30 @@ func TestPMSPolicyChecker(t *testing.T) {
 	if !assert.Nil(t, err, "unexpected error") {
 		return
 	}
+	input, err := ioutil.ReadFile("/data/config/config.json")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	lines := strings.Split(string(input), "\n")
+
+	for i, line := range lines {
+		if strings.Contains(line, "admiral_url") {
+			lines[i] = "\"admiral_url\": \"" + admiralEndpoint + "\","
+		}
+	}
+	output := strings.Join(lines, "\n")
+	err = ioutil.WriteFile("/data/config/config.json", []byte(output), 0644)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	pm := pms.NewProjectManager(admiralEndpoint, token)
 	name := "project_for_test_get_true"
 	id, err := pm.Create(&models.Project{
-		Name:                               name,
-		EnableContentTrust:                 true,
-		PreventVulnerableImagesFromRunning: true,
+		Name:                                       name,
+		EnableContentTrust:                         true,
+		PreventVulnerableImagesFromRunning:         true,
+		PreventVulnerableImagesFromRunningSeverity: "low",
 	})
 	require.Nil(t, err)
 	defer func(id int64) {
@@ -140,7 +158,7 @@ func TestPMSPolicyChecker(t *testing.T) {
 	assert.True(t, contentTrustFlag)
 	projectVulnerableEnabled, projectVulnerableSeverity := getPolicyChecker().vulnerablePolicy("project_for_test_get_true")
 	assert.True(t, projectVulnerableEnabled)
-	assert.Equal(t, projectVulnerableSeverity, models.SevNone)
+	assert.Equal(t, projectVulnerableSeverity, models.SevLow)
 }
 
 func TestMatchNotaryDigest(t *testing.T) {
