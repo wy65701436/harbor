@@ -123,10 +123,9 @@ func TestPMSPolicyChecker(t *testing.T) {
 	pm := pms.NewProjectManager(admiralEndpoint, token)
 	name := "project_for_test_get_true"
 	id, err := pm.Create(&models.Project{
-		Name:                                       name,
-		EnableContentTrust:                         true,
-		PreventVulnerableImagesFromRunning:         true,
-		PreventVulnerableImagesFromRunningSeverity: "low",
+		Name:                               name,
+		EnableContentTrust:                 true,
+		PreventVulnerableImagesFromRunning: true,
 	})
 	require.Nil(t, err)
 	defer func(id int64) {
@@ -141,7 +140,7 @@ func TestPMSPolicyChecker(t *testing.T) {
 	assert.True(t, contentTrustFlag)
 	projectVulnerableEnabled, projectVulnerableSeverity := getPolicyChecker().vulnerablePolicy("project_for_test_get_true")
 	assert.True(t, projectVulnerableEnabled)
-	assert.Equal(t, projectVulnerableSeverity, models.SevLow)
+	assert.Equal(t, projectVulnerableSeverity, models.SevNone)
 }
 
 func TestMatchNotaryDigest(t *testing.T) {
