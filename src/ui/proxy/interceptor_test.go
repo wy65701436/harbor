@@ -11,11 +11,9 @@ import (
 	"github.com/vmware/harbor/src/ui/config"
 	"github.com/vmware/harbor/src/ui/projectmanager/pms"
 
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -114,26 +112,32 @@ func TestEnvPolicyChecker(t *testing.T) {
 }
 
 func TestPMSPolicyChecker(t *testing.T) {
-	input, err := ioutil.ReadFile("/data/config/config.json")
-	require.Nil(t, err)
-	lines := strings.Split(string(input), "\n")
 
-	for i, line := range lines {
-		if strings.Contains(line, "admiral_url") {
-			lines[i] = "\"admiral_url\": \"" + admiralEndpoint + "\","
-		}
+	var defaultConfigAdmiral = map[string]interface{}{
+		common.ExtEndpoint:     "https://" + endpoint,
+		common.WithNotary:      true,
+		common.CfgExpiration:   5,
+		common.AdmiralEndpoint: admiralEndpoint,
 	}
-	output := strings.Join(lines, "\n")
-	err = ioutil.WriteFile("/data/config/config.json", []byte(output), 0644)
-	require.Nil(t, err)
+	adminServer, err := utilstest.NewAdminserver(defaultConfigAdmiral)
+	if err != nil {
+		panic(err)
+	}
+	defer adminServer.Close()
+	if err := os.Setenv("ADMIN_SERVER_URL", adminServer.URL); err != nil {
+		panic(err)
+	}
+	if err := config.Init(); err != nil {
+		panic(err)
+	}
 
 	pm := pms.NewProjectManager(admiralEndpoint, token)
-	name := "project_for_test_get_true"
+	name := "project_for_test_get_sev_low"
 	id, err := pm.Create(&models.Project{
 		Name:                                       name,
 		EnableContentTrust:                         true,
-		PreventVulnerableImagesFromRunning:         true,
-		PreventVulnerableImagesFromRunningSeverity: "negligible",
+		PreventVulnerableImagesFromRunning:         false,
+		PreventVulnerableImagesFromRunningSeverity: "low",
 	})
 	require.Nil(t, err)
 	defer func(id int64) {
@@ -144,11 +148,12 @@ func TestPMSPolicyChecker(t *testing.T) {
 	project, err := pm.Get(id)
 	assert.Nil(t, err)
 	assert.Equal(t, id, project.ProjectID)
-	contentTrustFlag := getPolicyChecker().contentTrustEnabled("project_for_test_get_true")
+
+	contentTrustFlag := getPolicyChecker().contentTrustEnabled("project_for_test_get_sev_low")
 	assert.True(t, contentTrustFlag)
-	projectVulnerableEnabled, projectVulnerableSeverity := getPolicyChecker().vulnerablePolicy("project_for_test_get_true")
-	assert.True(t, projectVulnerableEnabled)
-	assert.Equal(t, projectVulnerableSeverity, models.SevNone)
+	projectVulnerableEnabled, projectVulnerableSeverity := getPolicyChecker().vulnerablePolicy("project_for_test_get_sev_low")
+	assert.False(t, projectVulnerableEnabled)
+	assert.Equal(t, projectVulnerableSeverity, models.SevLow)
 }
 
 func TestMatchNotaryDigest(t *testing.T) {
