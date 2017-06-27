@@ -11,9 +11,11 @@ import (
 	"github.com/vmware/harbor/src/ui/config"
 	"github.com/vmware/harbor/src/ui/projectmanager/pms"
 
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -112,19 +114,8 @@ func TestEnvPolicyChecker(t *testing.T) {
 }
 
 func TestPMSPolicyChecker(t *testing.T) {
-
-	cfgs := map[string]interface{}{
-		common.AdmiralEndpoint: admiralEndpoint,
-	}
-	err := adminserverClient.UpdateCfgs(cfgs)
-	if !assert.Nil(t, err, "unexpected error") {
-		return
-	}
 	input, err := ioutil.ReadFile("/data/config/config.json")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
+	require.Nil(t, err)
 	lines := strings.Split(string(input), "\n")
 
 	for i, line := range lines {
@@ -134,9 +125,8 @@ func TestPMSPolicyChecker(t *testing.T) {
 	}
 	output := strings.Join(lines, "\n")
 	err = ioutil.WriteFile("/data/config/config.json", []byte(output), 0644)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	require.Nil(t, err)
+
 	pm := pms.NewProjectManager(admiralEndpoint, token)
 	name := "project_for_test_get_true"
 	id, err := pm.Create(&models.Project{
