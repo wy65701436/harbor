@@ -133,7 +133,7 @@ func TestPMSPolicyChecker(t *testing.T) {
 		Name:                                       name,
 		EnableContentTrust:                         true,
 		PreventVulnerableImagesFromRunning:         true,
-		PreventVulnerableImagesFromRunningSeverity: "low",
+		PreventVulnerableImagesFromRunningSeverity: "negligible",
 	})
 	require.Nil(t, err)
 	defer func(id int64) {
@@ -148,7 +148,7 @@ func TestPMSPolicyChecker(t *testing.T) {
 	assert.True(t, contentTrustFlag)
 	projectVulnerableEnabled, projectVulnerableSeverity := getPolicyChecker().vulnerablePolicy("project_for_test_get_true")
 	assert.True(t, projectVulnerableEnabled)
-	assert.Equal(t, projectVulnerableSeverity, models.SevLow)
+	assert.Equal(t, projectVulnerableSeverity, models.SevNone)
 }
 
 func TestMatchNotaryDigest(t *testing.T) {
