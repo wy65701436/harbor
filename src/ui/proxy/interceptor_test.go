@@ -211,63 +211,6 @@ func TestMarshalError(t *testing.T) {
 	assert.Equal("{\"code\":404,\"message\":\"Not Found\",\"details\":\"Not Found\"}", js)
 }
 
-func TestListRepoHandler(t *testing.T) {
-
-	server := test.NewServer(
-		&test.RequestHandlerMapping{
-			Method:  "GET",
-			Pattern: "/v2/_catalog",
-			Handler: handler,
-		})
-	defer server.Close()
-
-	client, err := newRegistryClient(server.URL)
-	if err != nil {
-		t.Fatalf("failed to create client for registry: %v", err)
-	}
-
-	repoRecord1 := models.RepoRecord{
-		Name:        "testrepo1",
-		ProjectID:   1,
-		Description: "testing repo",
-		PullCount:   0,
-		StarCount:   0,
-	}
-
-	repoRecord2 := models.RepoRecord{
-		Name:        "testrepo2",
-		ProjectID:   1,
-		Description: "testing repo",
-		PullCount:   0,
-		StarCount:   0,
-	}
-
-	err := dao.AddRepository(repoRecord1)
-	if err != nil {
-		t.Errorf("Error occurred in AddRepository: %v", err)
-	}
-
-	err := dao.AddRepository(repoRecord2)
-	if err != nil {
-		t.Errorf("Error occurred in AddRepository: %v", err)
-	}
-
-	repos1, err := client.Catalog()
-	if err != nil {
-		t.Fatalf("failed to catalog repositories: %v", err)
-	}
-
-	err := dao.DeleteRepository("testrepo1")
-	if err != nil {
-		t.Errorf("Error occurred in DeleteRepository: %v", err)
-	}
-
-	repos2, err := client.Catalog()
-	if err != nil {
-		t.Fatalf("failed to catalog repositories: %v", err)
-	}
-
-	if len(repos1) == len(repos2)+1 {
-		t.Errorf("unexpected length of repositories: %d != %d", len(repos), len(repositories))
-	}
+func newRegistryClient(url string) (*Registry, error) {
+	return NewRegistry(url, &http.Client{})
 }
