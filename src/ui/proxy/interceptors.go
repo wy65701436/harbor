@@ -8,7 +8,6 @@ import (
 	"github.com/vmware/harbor/src/common/utils/clair"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/common/utils/notary"
-	//	"github.com/vmware/harbor/src/ui/api"
 	"github.com/vmware/harbor/src/ui/config"
 	"github.com/vmware/harbor/src/ui/projectmanager"
 	uiutils "github.com/vmware/harbor/src/ui/utils"
@@ -17,7 +16,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	//	"net/http/httputil"
 	"os"
 	"regexp"
 	"strconv"
@@ -58,7 +56,7 @@ func MatchPullManifest(req *http.Request) (bool, string, string) {
 	return false, "", ""
 }
 
-// MatchPullCatalog checks if the request looks like a request to list repositories.
+// MatchListRepos checks if the request looks like a request to list repositories.
 func MatchListRepos(req *http.Request) bool {
 	if req.Method != http.MethodGet {
 		return false
@@ -212,19 +210,19 @@ func (lrh listReposHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 			Repositories []string `json:"repositories"`
 		}
 		resp := &Repos{Repositories: entries}
-		respJson, err := json.Marshal(resp)
+		respJSON, err := json.Marshal(resp)
 		if err != nil {
 			log.Errorf("Encode repositories error: %v", err)
 			copyResp(rec, rw)
 			return
 		}
 		clen, _ := strconv.Atoi(rw.Header().Get(http.CanonicalHeaderKey("Content-Length")))
-		clen += len(respJson)
+		clen += len(respJSON)
 		for k, v := range rec.Header() {
 			rw.Header()[k] = v
 		}
 		rw.Header().Set(http.CanonicalHeaderKey("Content-Length"), strconv.Itoa(clen))
-		rw.Write(respJson.Bytes())
+		rw.Write(respJSON)
 		return
 	}
 	lrh.next.ServeHTTP(rw, req)
