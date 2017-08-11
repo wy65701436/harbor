@@ -209,3 +209,9 @@ func TestMarshalError(t *testing.T) {
 	js := marshalError("Not Found", 404)
 	assert.Equal("{\"code\":404,\"message\":\"Not Found\",\"details\":\"Not Found\"}", js)
 }
+
+func TestIsDigest(t *testing.T) {
+	assert := assert.New(t)
+	assert.False(isDigest("latest"))
+	assert.True(isDigest("sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a7"))
+}

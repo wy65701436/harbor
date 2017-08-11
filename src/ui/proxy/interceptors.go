@@ -115,7 +115,6 @@ func newPMSPolicyChecker(pm projectmanager.ProjectManager) policyChecker {
 	}
 }
 
-// TODO: Get project manager with PM factory.
 func getPolicyChecker() policyChecker {
 	if config.WithAdmiral() {
 		return newPMSPolicyChecker(config.GlobalProjectMgr)
@@ -125,7 +124,7 @@ func getPolicyChecker() policyChecker {
 
 type imageInfo struct {
 	repository  string
-	tag         string
+	reference   string
 	projectName string
 	digest      string
 }
@@ -137,7 +136,7 @@ type urlHandler struct {
 func (uh urlHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	log.Debugf("in url handler, path: %s", req.URL.Path)
 	req.URL.Path = strings.TrimPrefix(req.URL.Path, RegistryProxyPrefix)
-	flag, repository, tag := MatchPullManifest(req)
+	flag, repository, reference := MatchPullManifest(req)
 	if flag {
 		components := strings.SplitN(repository, "/", 2)
 		if len(components) < 2 {
@@ -151,19 +150,16 @@ func (uh urlHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			http.Error(rw, marshalError(fmt.Sprintf("Failed due to internal Error: %v", err), http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
-		digest, exist, err := client.ManifestExist(tag)
+		digest, _, err := client.ManifestExist(reference)
 		if err != nil {
-			log.Errorf("Failed to get digest for tag: %s, error: %v", tag, err)
+			log.Errorf("Failed to get digest for reference: %s, error: %v", reference, err)
 			http.Error(rw, marshalError(fmt.Sprintf("Failed due to internal Error: %v", err), http.StatusInternalServerError), http.StatusInternalServerError)
 			return
-		}
-		if !exist {
-			log.Errorf("The repository based on request: %+v does not exist", repository)
 		}
 
 		img := imageInfo{
 			repository:  repository,
-			tag:         tag,
+			reference:   reference,
 			projectName: components[0],
 			digest:      digest,
 		}
@@ -205,7 +201,6 @@ func (lrh listReposHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 				entries = append(entries, ctlg.Repositories[repo])
 			}
 		}
-
 		type Repos struct {
 			Repositories []string `json:"repositories"`
 		}
@@ -216,11 +211,11 @@ func (lrh listReposHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 			copyResp(rec, rw)
 			return
 		}
-		clen, _ := strconv.Atoi(rw.Header().Get(http.CanonicalHeaderKey("Content-Length")))
-		clen += len(respJSON)
+
 		for k, v := range rec.Header() {
 			rw.Header()[k] = v
 		}
+		clen := len(respJSON)
 		rw.Header().Set(http.CanonicalHeaderKey("Content-Length"), strconv.Itoa(clen))
 		rw.Write(respJSON)
 		return
@@ -282,7 +277,7 @@ func (vh vulnerableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 	}
 	overview, err := dao.GetImgScanOverview(img.digest)
 	if err != nil {
-		log.Errorf("failed to get ImgScanOverview with repo: %s, tag: %s, digest: %s. Error: %v", img.repository, img.tag, img.digest, err)
+		log.Errorf("failed to get ImgScanOverview with repo: %s, reference: %s, digest: %s. Error: %v", img.repository, img.reference, img.digest, err)
 		http.Error(rw, marshalError("Failed to get ImgScanOverview.", http.StatusPreconditionFailed), http.StatusPreconditionFailed)
 		return
 	}
@@ -308,10 +303,8 @@ type funnelHandler struct {
 func (fu funnelHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	imgRaw := req.Context().Value(imageInfoCtxKey)
 	if imgRaw != nil {
-		rec = httptest.NewRecorder()
-		fu.next.ServeHTTP(rec, req)
-		copyResp(rec, rw)
 		log.Debugf("Return the original response as no the interceptor takes action.")
+		fu.next.ServeHTTP(rw, req)
 		return
 	}
 	fu.next.ServeHTTP(rw, req)
@@ -323,14 +316,29 @@ func matchNotaryDigest(img imageInfo) (bool, error) {
 		return false, err
 	}
 	for _, t := range targets {
-		d, err := notary.DigestFromTarget(t)
-		if err != nil {
-			return false, err
+		if isDigest(img.reference) {
+			d, err := notary.DigestFromTarget(t)
+			if err != nil {
+				return false, err
+			}
+			return img.digest == d, nil
+		} else {
+			if t.Tag == img.reference {
+				log.Debugf("found reference: %s in notary, try to match digest.", img.reference)
+				d, err := notary.DigestFromTarget(t)
+				if err != nil {
+					return false, err
+				}
+				return img.digest == d, nil
+			}
 		}
-		return img.digest == d, nil
 	}
 	log.Debugf("image: %#v, not found in notary", img)
 	return false, nil
+}
+
+func isDigest(ref string) bool {
+	return strings.HasPrefix(ref, "sha256")
 }
 
 func copyResp(rec *httptest.ResponseRecorder, rw http.ResponseWriter) {
