@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/vmware/harbor/src/adminserver/client"
 	"github.com/vmware/harbor/src/common"
+	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
 	notarytest "github.com/vmware/harbor/src/common/utils/notary/test"
 	utilstest "github.com/vmware/harbor/src/common/utils/test"
@@ -92,6 +93,24 @@ func TestMatchPullManifest(t *testing.T) {
 	assert.True(res7, "%s %v is a request to pull manifest", req7.Method, req7.URL)
 	assert.Equal("myproject", repo7)
 	assert.Equal("sha256:ca4626b691f57d16ce1576231e4a2e2135554d32e13a85dcff380d51fdd13f6a", tag7)
+}
+
+func MatchListRepos(t *testing.T) {
+	assert := assert.New(t)
+	req1, _ := http.NewRequest("POST", "http://127.0.0.1:5000/v2/_catalog", nil)
+	res1, _, _ := MatchPullManifest(req1)
+	assert.False(res1, "%s %v is not a request to list repos", req1.Method, req1.URL)
+
+	req2, _ := http.NewRequest("GET", "http://127.0.0.1:5000/v2/_catalog", nil)
+	res2, repo2, tag2 := MatchPullManifest(req2)
+	assert.True(res2, "%s %v is a request to list repos", req2.Method, req2.URL)
+	assert.Equal("library/ubuntu", repo2)
+	assert.Equal("14.04", tag2)
+
+	req3, _ := http.NewRequest("GET", "https://192.168.0.5:443/v1/_catalog", nil)
+	res3, _, _ := MatchPullManifest(req3)
+	assert.False(res3, "%s %v is not a request to pull manifest", req3.Method, req3.URL)
+
 }
 
 func TestEnvPolicyChecker(t *testing.T) {
@@ -190,4 +209,65 @@ func TestMarshalError(t *testing.T) {
 	assert := assert.New(t)
 	js := marshalError("Not Found", 404)
 	assert.Equal("{\"code\":404,\"message\":\"Not Found\",\"details\":\"Not Found\"}", js)
+}
+
+func TestListRepoHandler(t *testing.T) {
+
+	server := test.NewServer(
+		&test.RequestHandlerMapping{
+			Method:  "GET",
+			Pattern: "/v2/_catalog",
+			Handler: handler,
+		})
+	defer server.Close()
+
+	client, err := newRegistryClient(server.URL)
+	if err != nil {
+		t.Fatalf("failed to create client for registry: %v", err)
+	}
+
+	repoRecord1 := models.RepoRecord{
+		Name:        "testrepo1",
+		ProjectID:   1,
+		Description: "testing repo",
+		PullCount:   0,
+		StarCount:   0,
+	}
+
+	repoRecord2 := models.RepoRecord{
+		Name:        "testrepo2",
+		ProjectID:   1,
+		Description: "testing repo",
+		PullCount:   0,
+		StarCount:   0,
+	}
+
+	err := dao.AddRepository(repoRecord1)
+	if err != nil {
+		t.Errorf("Error occurred in AddRepository: %v", err)
+	}
+
+	err := dao.AddRepository(repoRecord2)
+	if err != nil {
+		t.Errorf("Error occurred in AddRepository: %v", err)
+	}
+
+	repos1, err := client.Catalog()
+	if err != nil {
+		t.Fatalf("failed to catalog repositories: %v", err)
+	}
+
+	err := dao.DeleteRepository("testrepo1")
+	if err != nil {
+		t.Errorf("Error occurred in DeleteRepository: %v", err)
+	}
+
+	repos2, err := client.Catalog()
+	if err != nil {
+		t.Fatalf("failed to catalog repositories: %v", err)
+	}
+
+	if len(repos1) == len(repos2)+1 {
+		t.Errorf("unexpected length of repositories: %d != %d", len(repos), len(repositories))
+	}
 }
