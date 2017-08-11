@@ -97,17 +97,15 @@ func TestMatchPullManifest(t *testing.T) {
 func TestMatchListRepos(t *testing.T) {
 	assert := assert.New(t)
 	req1, _ := http.NewRequest("POST", "http://127.0.0.1:5000/v2/_catalog", nil)
-	res1, _, _ := MatchPullManifest(req1)
+	res1 := MatchListRepos(req1)
 	assert.False(res1, "%s %v is not a request to list repos", req1.Method, req1.URL)
 
 	req2, _ := http.NewRequest("GET", "http://127.0.0.1:5000/v2/_catalog", nil)
-	res2, repo2, tag2 := MatchPullManifest(req2)
+	res2 := MatchListRepos(req2)
 	assert.True(res2, "%s %v is a request to list repos", req2.Method, req2.URL)
-	assert.Equal("library/ubuntu", repo2)
-	assert.Equal("14.04", tag2)
 
 	req3, _ := http.NewRequest("GET", "https://192.168.0.5:443/v1/_catalog", nil)
-	res3, _, _ := MatchPullManifest(req3)
+	res3 := MatchListRepos(req3)
 	assert.False(res3, "%s %v is not a request to pull manifest", req3.Method, req3.URL)
 
 }
