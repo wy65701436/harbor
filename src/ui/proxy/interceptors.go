@@ -321,7 +321,9 @@ func matchNotaryDigest(img imageInfo) (bool, error) {
 			if err != nil {
 				return false, err
 			}
-			return img.digest == d, nil
+			if img.digest == d {
+				return true, nil
+			}
 		} else {
 			if t.Tag == img.reference {
 				log.Debugf("found reference: %s in notary, try to match digest.", img.reference)
@@ -329,7 +331,9 @@ func matchNotaryDigest(img imageInfo) (bool, error) {
 				if err != nil {
 					return false, err
 				}
-				return img.digest == d, nil
+				if img.digest == d {
+					return true, nil
+				}
 			}
 		}
 	}
