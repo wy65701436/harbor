@@ -5,7 +5,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/vmware/harbor/src/adminserver/client"
 	"github.com/vmware/harbor/src/common"
-	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
 	notarytest "github.com/vmware/harbor/src/common/utils/notary/test"
 	utilstest "github.com/vmware/harbor/src/common/utils/test"
@@ -95,7 +94,7 @@ func TestMatchPullManifest(t *testing.T) {
 	assert.Equal("sha256:ca4626b691f57d16ce1576231e4a2e2135554d32e13a85dcff380d51fdd13f6a", tag7)
 }
 
-func MatchListRepos(t *testing.T) {
+func TestMatchListRepos(t *testing.T) {
 	assert := assert.New(t)
 	req1, _ := http.NewRequest("POST", "http://127.0.0.1:5000/v2/_catalog", nil)
 	res1, _, _ := MatchPullManifest(req1)
