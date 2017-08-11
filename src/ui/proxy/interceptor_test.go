@@ -210,7 +210,3 @@ func TestMarshalError(t *testing.T) {
 	js := marshalError("Not Found", 404)
 	assert.Equal("{\"code\":404,\"message\":\"Not Found\",\"details\":\"Not Found\"}", js)
 }
-
-func newRegistryClient(url string) (*Registry, error) {
-	return NewRegistry(url, &http.Client{})
-}
