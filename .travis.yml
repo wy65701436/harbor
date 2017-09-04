@@ -79,8 +79,8 @@ script:
   - sudo mkdir -p /harbor
   - sudo mv ./VERSION /harbor/VERSION
   - sudo service mysql stop
-  - sudo make run_clarity_ut CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.2.7
-  - cat ./src/ui_ng/lib/npm-ut-test-results
+  # - sudo make run_clarity_ut CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.2.7
+  # - cat ./src/ui_ng/lib/npm-ut-test-results
   - sudo ./tests/testprepare.sh 
   - sudo docker-compose -f ./make/docker-compose.test.yml up -d
   - go list ./... | grep -v -E 'vendor|tests' | xargs -L1 fgt golint
@@ -93,13 +93,13 @@ script:
   - sudo ./ldapprepare.sh 
   - sudo ./admiral.sh 
   - cd .. 
-  - go test -i ./src/ui ./src/adminserver ./src/jobservice
-  - sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
-  - goveralls -coverprofile=profile.cov -service=travis-ci
+  # - go test -i ./src/ui ./src/adminserver ./src/jobservice
+  # - sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
+  # - goveralls -coverprofile=profile.cov -service=travis-ci
 
   - docker-compose -f make/docker-compose.test.yml down
-  - sudo rm -rf /data/config/*  
-  - ls /data/cert
+  - sudo rm -rf /data
+  - sudo ./generateCerts.sh
   - sudo make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.2.7 NOTARYFLAG=true CLAIRFLAG=true
   
   - docker ps 
