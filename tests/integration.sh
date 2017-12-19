@@ -119,23 +119,42 @@ if [ $upload_build == true ] && [ $rc -eq 0 ]; then
   fi 
   if [[ $DRONE_BRANCH == *"refs/tags"* || $DRONE_BRANCH == "release-"* ]]; then
     cp $harbor_build_bundle harbor-offline-installer-latest-release.tgz
-	uploader harbor-offline-installer-latest-release.tgz $harbor_ci_pipeline_store_bucket
+	  uploader harbor-offline-installer-latest-release.tgz $harbor_ci_pipeline_store_bucket
   fi 
 fi
 
-## --------------------------------------------- Upload Harbor Latest Build File ---------------------------------
+## --------------------------------------------- Generate Harbor Latest Build File ---------------------------------
 if [ $upload_latest_build == true ] && [ $rc -eq 0 ]; then
   echo "update latest build file."
   harbor_build_bundle=$(basename harbor-offline-installer-*.tgz)
   echo $harbor_build_bundle 
   if [[ $DRONE_BRANCH == "master" ]] && [[ $DRONE_BUILD_EVENT == "push" || $DRONE_BUILD_EVENT == "tag" ]]; then
       echo 'https://storage.googleapis.com/harbor-builds/'$harbor_build_bundle > $latest_build_file
-      uploader $latest_build_file $harbor_builds_bucket	
   fi
   if [[ $DRONE_BRANCH == *"refs/tags"* || $DRONE_BRANCH == "release-"* ]] && [[ $DRONE_BUILD_EVENT == "push" || $DRONE_BUILD_EVENT == "tag" ]]; then
       echo 'https://storage.googleapis.com/harbor-releases/'$harbor_build_bundle > $latest_build_file
-	  uploader $latest_build_file $harbor_releases_bucket
   fi    
+fi
+
+## --------------------------------------------- Prepare Bundle for Upload ---------------------------------
+##     when:
+##          repo: vmware/harbor
+##          event: [ push, tag ]
+##          branch: [ master, release-*, pks-*, refs/tags/* ]
+
+if [[ $DRONE_BRANCH == "master" || $DRONE_BRANCH == *"refs/tags"* || $DRONE_BRANCH == "release-"* $DRONE_BRANCH == "pks-"* ]] && [[ $DRONE_BUILD_EVENT == "push" || $DRONE_BUILD_EVENT == "tag" ]]; then
+  mkdir -p bundle
+  mkdir -p pks-bundle
+  echo $(git describe --tags) > pks-bundle/version 
+  cp harbor-offline-installer-*.tgz bundle
+  cp latest.build bundle
+  if [ $DRONE_BRANCH == "master" ]; then
+    cp harbor-offline-installer-*.tgz pks-bundle/harbor-offline-installer-latest-master.tgz;
+    uploader harbor-offline-installer-latest-master.tgz $harbor_ci_pipeline_store_bucket
+  fi
+  if ( echo ${DRONE_BRANCH} | grep "pks*" ); then 
+    cp harbor-offline-installer-*.tgz pks-bundle/harbor-offline-installer-latest-pks.tgz; 
+  fi
 fi
 
 ## ------------------------------------- Build & Publish NPM Package for VIC ------------------------------------

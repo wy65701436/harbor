@@ -51,6 +51,7 @@ pipeline:
       - mkdir -p pks-bundle
       - echo $(git describe --tags) > pks-bundle/version 
       - cp harbor-offline-installer-*.tgz bundle
+      - cp latest.build bundle
       - if [ ${DRONE_BRANCH} = "master" ]; then cp harbor-offline-installer-*.tgz pks-bundle/harbor-offline-installer-latest-master.tgz; fi
       - if ( echo ${DRONE_BRANCH} | grep "pks*" ); then cp harbor-offline-installer-*.tgz pks-bundle/harbor-offline-installer-latest-pks.tgz; fi
       - ls -la bundle
@@ -85,7 +86,7 @@ pipeline:
       event: [ push, tag ]
       branch: [ master, release-* ]
       status: success
-
+      
   publish-gcs-releases:
     image: maplain/drone-gcs:latest
     pull: true
