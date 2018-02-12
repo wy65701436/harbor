@@ -34,7 +34,7 @@ func GetUser(query models.User) (*models.User, error) {
 
 	sql := `select user_id, username, email, realname, comment, reset_uuid, salt,
 		sysadmin_flag, creation_time, update_time
-		from user u
+		from harbor_user u
 		where deleted = 0 `
 	queryParam := make([]interface{}, 1)
 	if query.UserID != 0 {
@@ -79,7 +79,7 @@ func LoginByDb(auth models.AuthModel) (*models.User, error) {
 	o := GetOrmer()
 
 	var users []models.User
-	n, err := o.Raw(`select * from user where (username = ? or email = ?) and deleted = 0`,
+	n, err := o.Raw(`select * from harbor_user where (username = ? or email = ?) and deleted = 0`,
 		auth.Principal, auth.Principal).QueryRows(&users)
 	if err != nil {
 		return nil, err
