@@ -58,5 +58,5 @@ Collect Logs
     SSHLibrary.Get File  /var/log/harbor/notary-db.log
     SSHLibrary.Get File  /var/log/harbor/notary-server.log
     SSHLibrary.Get File  /var/log/harbor/notary-signer.log
-    Run  for f in *.log; do mv "$f" "${f}_${ip}"; done
+    Run  rename 's/^/${ip}/' *.log
     Close All Connections
