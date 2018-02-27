@@ -25,14 +25,6 @@ ${SSH_USER}  root
 ${HARBOR_ADMIN}  admin
 
 *** Test Cases ***
-Test Case - Sign With Admin
-    Init Chrome Driver
-    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
-    Close Browser
-    Init Chrome Driver
-    Sign In Harbor  https://${ip1}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
-    Close Browser   
-
 Test Case - Create An New User
     Init Chrome Driver    
     ${d}=    Get Current Date    result_format=%m%s
