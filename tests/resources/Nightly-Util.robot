@@ -21,9 +21,12 @@ ${SSH_USER}  root
 
 *** Keywords ***
 Nightly Test Setup
-    [Arguments]  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}
+    [Arguments]  ${ip}  ${ip1}  ${SSH_PWD}  ${HARBOR_PASSWORD}
     Run Keyword  CA setup  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}
+    Run Keyword And Ignore Error  '${ip1}' != 'Null'  Run  rm harbor_ca.crt 
+    Run Keyword If  '${ip1}' != 'Null'  CA setup  ${ip1}  ${SSH_PWD}  ${HARBOR_PASSWORD}
     Run Keyword  Prepare Docker Cert  ${ip}
+    Run Keyword If  '${ip1}' != 'Null'  Prepare Docker Cert  ${ip1}
     Run Keyword  Start Docker Daemon Locally
 
 CA Setup
@@ -36,6 +39,11 @@ CA Setup
     Generate Certificate Authority For Chrome  ${HARBOR_PASSWORD}	
 
 Collect Nightly Logs
+    [Arguments]  ${ip}  ${ip1}  ${SSH_PWD}
+    Run Keyword  Collect Logs  ${ip}  ${SSH_PWD}
+    Run Keyword If  '${ip1}' != 'Null'  Collect Logs  ${ip1}  ${SSH_PWD}
+
+Collect Logs
     [Arguments]  ${ip}  ${SSH_PWD}
     Open Connection    ${ip}
     Login    ${SSH_USER}    ${SSH_PWD}
@@ -50,4 +58,5 @@ Collect Nightly Logs
     SSHLibrary.Get File  /var/log/harbor/notary-db.log
     SSHLibrary.Get File  /var/log/harbor/notary-server.log
     SSHLibrary.Get File  /var/log/harbor/notary-signer.log
+    Run  for f in *.log; do mv "$f" "${f}_${ip}"; done
     Close All Connections

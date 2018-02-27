@@ -15,8 +15,8 @@
 *** Settings ***
 Documentation  Harbor BATs
 Resource  ../../resources/Util.robot
-Suite Setup  Nightly Test Setup  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}
-Suite Teardown  Collect Nightly Logs  ${ip}  ${SSH_PWD}
+Suite Setup  Nightly Test Setup  ${ip}  ${ip1}  ${SSH_PWD}  ${HARBOR_PASSWORD}
+Suite Teardown  Collect Nightly Logs  ${ip}  ${ip1}  ${SSH_PWD}
 Default Tags  Nightly
 
 *** Variables ***
