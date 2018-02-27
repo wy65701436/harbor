@@ -15,8 +15,10 @@
 *** Settings ***
 Documentation  Harbor BATs
 Resource  ../../resources/Util.robot
-Suite Setup  Nightly Test Setup  ${ip}  ${ip1}  ${SSH_PWD}  ${HARBOR_PASSWORD}
-Suite Teardown  Collect Nightly Logs  ${ip}  ${ip1}  ${SSH_PWD}
+Suite Setup  Run Keyword If  '${ip1}' == '${EMPTY}'  Nightly Test Setup  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}
+    ...  ELSE  Nightly Test Setup  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}  ${ip1}
+Suite Teardown  Run Keyword If  '${ip1}' == '${EMPTY}'  Collect Nightly Logs  ${ip}  ${SSH_PWD}
+    ...  ELSE  Collect Nightly Logs  ${ip}  ${SSH_PWD}  ${ip1}
 Default Tags  Nightly
 
 *** Variables ***

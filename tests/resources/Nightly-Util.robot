@@ -21,12 +21,12 @@ ${SSH_USER}  root
 
 *** Keywords ***
 Nightly Test Setup
-    [Arguments]  ${ip}  ${ip1}  ${SSH_PWD}  ${HARBOR_PASSWORD}
+    [Arguments]  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}  ${ip1}==${EMPTY}
     Run Keyword  CA setup  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}
-    Run Keyword And Ignore Error  '${ip1}' != 'Null'  Run  rm harbor_ca.crt 
-    Run Keyword If  '${ip1}' != 'Null'  CA setup  ${ip1}  ${SSH_PWD}  ${HARBOR_PASSWORD}
+    Run Keyword And Ignore Error  Run  rm harbor_ca.crt 
+    Run Keyword If  '${ip1}' != '${EMPTY}'  CA setup  ${ip1}  ${SSH_PWD}  ${HARBOR_PASSWORD}
     Run Keyword  Prepare Docker Cert  ${ip}
-    Run Keyword If  '${ip1}' != 'Null'  Prepare Docker Cert  ${ip1}
+    Run Keyword If  '${ip1}' != '${EMPTY}'  Prepare Docker Cert  ${ip1}
     Run Keyword  Start Docker Daemon Locally
 
 CA Setup
@@ -39,9 +39,9 @@ CA Setup
     Generate Certificate Authority For Chrome  ${HARBOR_PASSWORD}	
 
 Collect Nightly Logs
-    [Arguments]  ${ip}  ${ip1}  ${SSH_PWD}
+    [Arguments]  ${ip}  ${SSH_PWD}  ${ip1}==${EMPTY}
     Run Keyword  Collect Logs  ${ip}  ${SSH_PWD}
-    Run Keyword If  '${ip1}' != 'Null'  Collect Logs  ${ip1}  ${SSH_PWD}
+    Run Keyword If  '${ip1}' != '${EMPTY}'  Collect Logs  ${ip1}  ${SSH_PWD}
 
 Collect Logs
     [Arguments]  ${ip}  ${SSH_PWD}
