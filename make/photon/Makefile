@@ -171,7 +171,7 @@ define _get_binary
 	$(WGET) --timeout 30 --no-check-certificate $1 -O $2
 endef
 
-build: _build_postgresql _build_db _build_adminiserver _build_ui _build_jobservice _build_log _build_nginx _build_registry _build_notary _build_clair
+build: _build_postgresql _build_db _build_mariadb _build_adminiserver _build_ui _build_jobservice _build_log _build_nginx _build_registry _build_notary _build_clair
 
 cleanimage:
 	@echo "cleaning image for photon..."

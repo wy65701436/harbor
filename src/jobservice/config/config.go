@@ -82,6 +82,7 @@ func Database() (*models.Database, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Infof("key path: %s", cfg)
 	database := &models.Database{}
 	database.Type = cfg[common.DatabaseType].(string)
 	mysql := &models.MySQL{}
@@ -92,6 +93,7 @@ func Database() (*models.Database, error) {
 	mysql.Database = cfg[common.MySQLDatabase].(string)
 	database.MySQL = mysql
 
+	log.Infof("mysql pass.....")
 	postgresql := &models.PostGreSQL{}
 	postgresql.Host = cfg[common.PostGreSQLHOST].(string)
 	postgresql.Port = int(cfg[common.PostGreSQLPort].(float64))

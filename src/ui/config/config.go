@@ -338,7 +338,6 @@ func Database() (*models.Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Info("cfg .... %s", cfg)
 
 	database := &models.Database{}
 	database.Type = cfg[common.DatabaseType].(string)

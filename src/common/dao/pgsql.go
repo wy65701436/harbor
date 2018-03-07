@@ -42,7 +42,7 @@ func (pm pgsqlSSLMode) String() string {
 
 // Name returns the name of PostgreSQL
 func (p *pgsql) Name() string {
-	return "PostgreSQL"
+	return "Postgres"
 }
 
 // String ...
@@ -51,7 +51,7 @@ func (p *pgsql) String() string {
 		p.Name(), p.host, p.port, p.database, pgsqlSSLMode(p.sslmode))
 }
 
-// NewMySQL returns an instance of mysql
+// NewPQSQL returns an instance of postgres
 func NewPQSQL(host string, port string, usr string, pwd string, database string, sslmode bool) Database {
 	return &pgsql{
 		host:     host,

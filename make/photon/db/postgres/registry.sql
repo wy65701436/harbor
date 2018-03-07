@@ -1,3 +1,9 @@
+/*
+CREATE DATABASE registry ENCODING 'UTF8';
+
+\c registry;
+*/
+
 create table access (
  access_id SERIAL PRIMARY KEY NOT NULL,
  access_code char(1),
@@ -94,8 +100,8 @@ CREATE FUNCTION update_update_time_at_column() RETURNS trigger
 $$;
 CREATE TRIGGER project_metadata_update_time_at_modtime BEFORE UPDATE ON project_metadata FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
 
-insert into project_metadata (id, project_id, name, value, creation_time, update_time, deleted) values
-(1, 1, 'public', 'true', NOW(), NOW(), 0);
+insert into project_metadata (project_id, name, value, creation_time, update_time, deleted) values
+(1, 'public', 'true', NOW(), NOW(), 0);
 
 create table access_log (
  log_id SERIAL NOT NULL,
@@ -125,6 +131,25 @@ create table repository (
 );
 
 CREATE TRIGGER repository_update_time_at_modtime BEFORE UPDATE ON repository FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
+
+create table replication_policy (
+ id SERIAL NOT NULL,
+ name varchar(256),
+ project_id int NOT NULL,
+ target_id int NOT NULL,
+ enabled SMALLINT NOT NULL DEFAULT 1,
+ description text,
+ deleted SMALLINT DEFAULT 0 NOT NULL,
+ cron_str varchar(256),
+ filters varchar(1024),
+ replicate_deletion SMALLINT DEFAULT 0 NOT NULL,
+ start_time timestamp NULL,
+ creation_time timestamp default 'now'::timestamp,
+ update_time timestamp default 'now'::timestamp,
+ PRIMARY KEY (id)
+ );
+
+CREATE TRIGGER replication_policy_update_time_at_modtime BEFORE UPDATE ON replication_policy FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
 
 create table replication_target (
  id SERIAL NOT NULL,

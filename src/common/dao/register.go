@@ -20,7 +20,6 @@ import (
 
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/utils"
-	"github.com/vmware/harbor/src/common/utils/log"
 )
 
 // Register is used for user to register, the password is encrypted before the record is inserted into database.
@@ -38,45 +37,8 @@ func Register(user models.User) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	log.Info("registr user: %s", userID)
 	return userID, nil
 
-	// o := GetOrmer()
-
-	// var userID int64
-	// now := time.Now()
-	// salt := utils.GenerateRandomString()
-
-	// sql := fmt.Sprintf("insert into harbor_user (username, password, realname, email, comment, salt, sysadmin_flag, creation_time, update_time) values ('%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s') RETURNING user_id;", user.Username, utils.Encrypt(user.Password, salt), user.Realname, user.Email, user.Comment, salt, user.HasAdminRole, now, now)
-	// err := o.Raw(sql).QueryRow(&userID)
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// log.Info("registr user: %s", userID)
-
-	// return userID, nil
-
-	// o := GetOrmer()
-	// p, err := o.Raw("insert into user (username, password, realname, email, comment, salt, sysadmin_flag, creation_time, update_time) values (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING user_id;").Prepare()
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// defer p.Close()
-
-	// salt := utils.GenerateRandomString()
-
-	// now := time.Now()
-	// r, err := p.Exec(user.Username, utils.Encrypt(user.Password, salt), user.Realname, user.Email, user.Comment, salt, user.HasAdminRole, now, now)
-
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// userID, err := r.LastInsertId()
-	// if err != nil {
-	// 	return 0, err
-	// }
-
-	// return userID, nil
 }
 
 // UserExists returns whether a user exists according username or Email.

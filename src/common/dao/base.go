@@ -96,7 +96,6 @@ func getDatabase(database *models.Database) (db Database, err error) {
 	case "sqlite":
 		db = NewSQLite(database.SQLite.File)
 	case "postgres":
-		log.Info("database info ... %s", database.PostGreSQL)
 		db = NewPQSQL(database.PostGreSQL.Host,
 			strconv.Itoa(database.PostGreSQL.Port),
 			database.PostGreSQL.Username,

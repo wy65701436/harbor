@@ -36,7 +36,7 @@ services:
     container_name: harbor-db
     restart: always
     volumes:
-      - /data/database::/var/lib/postgresql/data:z      
+      - /data/database:/var/lib/postgresql/data:z      
     networks:
       - harbor
     env_file:

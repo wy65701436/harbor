@@ -137,7 +137,7 @@ func userQueryConditions(query *models.UserQuery) orm.QuerySeter {
 func ToggleUserAdminRole(userID, hasAdmin int) error {
 	o := GetOrmer()
 	queryParams := make([]interface{}, 1)
-	sql := `update user set sysadmin_flag = ? where user_id = ?`
+	sql := `update harbor_user set sysadmin_flag = ? where user_id = ?`
 	queryParams = append(queryParams, hasAdmin)
 	queryParams = append(queryParams, userID)
 	r, err := o.Raw(sql, queryParams).Exec()
@@ -164,9 +164,9 @@ func ChangeUserPassword(u models.User, oldPassword ...string) (err error) {
 	salt := utils.GenerateRandomString()
 	if len(oldPassword) == 0 {
 		//In some cases, it may no need to check old password, just as Linux change password policies.
-		r, err = o.Raw(`update user set password=?, salt=? where user_id=?`, utils.Encrypt(u.Password, salt), salt, u.UserID).Exec()
+		r, err = o.Raw(`update harbor_user set password=?, salt=? where user_id=?`, utils.Encrypt(u.Password, salt), salt, u.UserID).Exec()
 	} else {
-		r, err = o.Raw(`update user set password=?, salt=? where user_id=? and password = ?`, utils.Encrypt(u.Password, salt), salt, u.UserID, utils.Encrypt(oldPassword[0], u.Salt)).Exec()
+		r, err = o.Raw(`update harbor_user set password=?, salt=? where user_id=? and password = ?`, utils.Encrypt(u.Password, salt), salt, u.UserID, utils.Encrypt(oldPassword[0], u.Salt)).Exec()
 	}
 
 	if err != nil {
@@ -186,7 +186,7 @@ func ChangeUserPassword(u models.User, oldPassword ...string) (err error) {
 // ResetUserPassword ...
 func ResetUserPassword(u models.User) error {
 	o := GetOrmer()
-	r, err := o.Raw(`update user set password=?, reset_uuid=? where reset_uuid=?`, utils.Encrypt(u.Password, u.Salt), "", u.ResetUUID).Exec()
+	r, err := o.Raw(`update harbor_user set password=?, reset_uuid=? where reset_uuid=?`, utils.Encrypt(u.Password, u.Salt), "", u.ResetUUID).Exec()
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func ResetUserPassword(u models.User) error {
 // UpdateUserResetUUID ...
 func UpdateUserResetUUID(u models.User) error {
 	o := GetOrmer()
-	_, err := o.Raw(`update user set reset_uuid=? where email=?`, u.ResetUUID, u.Email).Exec()
+	_, err := o.Raw(`update harbor_user set reset_uuid=? where email=?`, u.ResetUUID, u.Email).Exec()
 	return err
 }
 
@@ -218,7 +218,7 @@ func CheckUserPassword(query models.User) (*models.User, error) {
 		return nil, nil
 	}
 
-	sql := `select user_id, username, salt from user where deleted = 0 and username = ? and password = ?`
+	sql := `select user_id, username, salt from harbor_user where deleted = 0 and username = ? and password = ?`
 	queryParam := make([]interface{}, 1)
 	queryParam = append(queryParam, currentUser.Username)
 	queryParam = append(queryParam, utils.Encrypt(query.Password, currentUser.Salt))
@@ -251,7 +251,7 @@ func DeleteUser(userID int) error {
 	name := fmt.Sprintf("%s#%d", user.Username, user.UserID)
 	email := fmt.Sprintf("%s#%d", user.Email, user.UserID)
 
-	_, err = o.Raw(`update user 
+	_, err = o.Raw(`update harbor_user 
 		set deleted = 1, username = ?, email = ?
 		where user_id = ?`, name, email, userID).Exec()
 	return err
