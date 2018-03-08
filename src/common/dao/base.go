@@ -47,7 +47,7 @@ func InitClairDB(clairDB *models.PostGreSQL) error {
 	//Except for password other information will not be configurable, so keep it hard coded for 1.2.0.
 	p := &pgsql{
 		host:     clairDB.Host,
-		port:     clairDB.Port,
+		port:     strconv.Itoa(clairDB.Port),
 		usr:      clairDB.Username,
 		pwd:      clairDB.Password,
 		database: clairDB.Database,
@@ -95,6 +95,13 @@ func getDatabase(database *models.Database) (db Database, err error) {
 			database.MySQL.Database)
 	case "sqlite":
 		db = NewSQLite(database.SQLite.File)
+	case "postgres":
+		db = NewPQSQL(database.PostGreSQL.Host,
+			strconv.Itoa(database.PostGreSQL.Port),
+			database.PostGreSQL.Username,
+			database.PostGreSQL.Password,
+			database.PostGreSQL.Database,
+			false)
 	default:
 		err = fmt.Errorf("invalid database: %s", database.Type)
 	}

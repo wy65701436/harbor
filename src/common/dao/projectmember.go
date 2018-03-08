@@ -72,23 +72,27 @@ func DeleteProjectMember(projectID int64, userID int, entityType string) error {
 }
 
 // GetUserByProject gets all members of the project.
-func GetUserByProject(projectID int64, queryUser models.User) ([]*models.UserMember, error) {
+func GetUserByProject(projectID int64, queryUser models.User) ([]*models.Member, error) {
 	o := GetOrmer()
-	sql := `select pm.id as id, u.user_id, u.username, u.creation_time, u.update_time, r.name as rolename, 
-		r.role_id as role, pm.entity_type as entity_type from user u join project_member pm 
-		on pm.project_id = ? and u.user_id = pm.entity_id 
-		join role r on pm.role = r.role_id where u.deleted = 0 and pm.entity_type = 'u' `
+	sql := `select u.user_id, u.username, u.creation_time, u.update_time, r.name as rolename, 
+			r.role_id as role
+		from harbor_user u 
+		join project_member pm 
+		on pm.project_id = ? and u.user_id = pm.user_id 
+		join role r
+		on pm.role = r.role_id
+		where u.deleted = 0`
 
 	queryParam := make([]interface{}, 1)
 	queryParam = append(queryParam, projectID)
 
-	if len(queryUser.Username) != 0 {
-		sql += ` and u.username like ? `
-		queryParam = append(queryParam, `%`+Escape(queryUser.Username)+`%`)
+	if queryUser.Username != "" {
+		sql += " and u.username like ? "
+		queryParam = append(queryParam, "%"+Escape(queryUser.Username)+"%")
 	}
 	sql += ` order by u.username `
 
-	members := []*models.UserMember{}
+	members := []*models.Member{}
 	_, err := o.Raw(sql, queryParam).QueryRows(&members)
 
 	return members, err

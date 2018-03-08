@@ -80,6 +80,46 @@ func PrepareTestForSQLite() {
 	initDatabaseForTest(database)
 }
 
+// PrepareTestForPostgresSQL is for test only.
+func PrepareTestForPostgresSQL() {
+	dbHost := os.Getenv("POSTGRES_HOST")
+	if len(dbHost) == 0 {
+		log.Fatalf("environment variable POSTGRES_HOST is not set")
+	}
+	dbUser := os.Getenv("POSTGRES_USR")
+	if len(dbUser) == 0 {
+		log.Fatalf("environment variable POSTGRES_USR is not set")
+	}
+	dbPortStr := os.Getenv("POSTGRES_PORT")
+	if len(dbPortStr) == 0 {
+		log.Fatalf("environment variable POSTGRES_PORT is not set")
+	}
+	dbPort, err := strconv.Atoi(dbPortStr)
+	if err != nil {
+		log.Fatalf("invalid POSTGRES_PORT: %v", err)
+	}
+
+	dbPassword := os.Getenv("POSTGRES_PWD")
+	dbDatabase := os.Getenv("POSTGRES_DATABASE")
+	if len(dbDatabase) == 0 {
+		log.Fatalf("environment variable POSTGRES_DATABASE is not set")
+	}
+
+	database := &models.Database{
+		Type: "postgres",
+		PostGreSQL: &models.PostGreSQL{
+			Host:     dbHost,
+			Port:     dbPort,
+			Username: dbUser,
+			Password: dbPassword,
+			Database: dbDatabase,
+		},
+	}
+
+	log.Infof("POSTGRES_HOST: %s, POSTGRES_USR: %s, POSTGRES_PORT: %d, POSTGRES_PWD: %s\n", dbHost, dbUser, dbPort, dbPassword)
+	initDatabaseForTest(database)
+}
+
 func initDatabaseForTest(db *models.Database) {
 	database, err := getDatabase(db)
 	if err != nil {

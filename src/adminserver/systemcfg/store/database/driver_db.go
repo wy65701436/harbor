@@ -39,6 +39,7 @@ var (
 		common.MaxJobWorkers:   true,
 		common.CfgExpiration:   true,
 		common.ClairDBPort:     true,
+		common.PostGreSQLPort:  true,
 	}
 	boolKeys = map[string]bool{
 		common.WithClair:        true,
