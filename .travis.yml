@@ -106,9 +106,11 @@ script:
   - sudo rm -rf /data/database/*
   - ls /data/cert
   - cat ./make/harbor.cfg
+  - docker ps
   - sudo make install GOBUILDIMAGE=golang:1.9.2 COMPILETAG=compile_golangimage CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.3.0 NOTARYFLAG=true CLAIRFLAG=true
   - sleep 20  
   - docker ps
+  - cat /var/log/harbor/ui.log
   - curl --insecure -s -o /dev/null -w '%{http_code}' https://localhost/ 
   - curl --insecure -s -o /dev/null -w '%{http_code}' https://127.0.0.1/ 
   - ./tests/validatecontainers.sh
