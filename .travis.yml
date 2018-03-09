@@ -94,22 +94,21 @@ script:
   #- export REGISTRY_URL=$IP:5000
   #- echo $REGISTRY_URL
   #- ./tests/pushimage.sh
-  - cd tests
-  - sudo ./ldapprepare.sh 
-  - sudo ./admiral.sh 
-  - cd .. 
+  #- cd tests
+  #- sudo ./ldapprepare.sh 
+  #- sudo ./admiral.sh 
+  #- cd .. 
   #- go test -race -i ./src/ui ./src/adminserver ./src/jobservice
   #- sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
   #- goveralls -coverprofile=profile.cov -service=travis-ci
   - docker-compose -f make/docker-compose.test.yml down
   - sudo rm -rf ./common/config/adminserver/env
+  - ls -la /data
   - sudo rm -rf /data/config/*
   - sudo rm -rf /data/database/*
   - ls /data/cert
   - cat ./make/harbor.cfg
   - docker ps
-  - echo $POSTGRESQL_HOST
-  - export POSTGRESQL_HOST=postgresql  
   - sudo make install GOBUILDIMAGE=golang:1.9.2 COMPILETAG=compile_golangimage CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.3.0 NOTARYFLAG=true CLAIRFLAG=true
   - sleep 20  
   - docker ps
@@ -117,11 +116,6 @@ script:
   - sudo cat /var/log/harbor/ui.log
   - sudo cat /var/log/harbor/postgresql.log
   - sudo cat ./make/common/config/adminserver/env
-  - curl --insecure -s -o /dev/null -w '%{http_code}' https://localhost/ 
-  - curl --insecure -s -o /dev/null -w '%{http_code}' https://127.0.0.1/ 
-  - ./tests/validatecontainers.sh
-  - ./tests/notarytest.sh
-  - ./tests/swaggerchecker.sh
   - ./tests/startuptest.sh
   - ./tests/userlogintest.sh ${HARBOR_ADMIN} ${HARBOR_ADMIN_PASSWD}
 
