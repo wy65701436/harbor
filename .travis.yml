@@ -102,6 +102,7 @@ script:
   #- sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
   #- goveralls -coverprofile=profile.cov -service=travis-ci
   - docker-compose -f make/docker-compose.test.yml down
+  - sudo rm -rf ./common/config/adminserver/env
   - sudo rm -rf /data/config/*
   - sudo rm -rf /data/database/*
   - ls /data/cert
@@ -111,6 +112,7 @@ script:
   - sleep 20  
   - docker ps
   - sudo cat /var/log/harbor/ui.log
+  - sudo cat /var/log/harbor/postgresql.log
   - sudo cat ./make/common/config/adminserver/env
   - curl --insecure -s -o /dev/null -w '%{http_code}' https://localhost/ 
   - curl --insecure -s -o /dev/null -w '%{http_code}' https://127.0.0.1/ 
