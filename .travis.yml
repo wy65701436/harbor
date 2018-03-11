@@ -90,17 +90,17 @@ script:
   - sudo docker-compose -f ./make/docker-compose.test.yml up -d
   - go list ./... | grep -v -E 'vendor|tests|test' | xargs -L1 fgt golint
 #  - go list ./... | grep -v -E 'vendor|tests|test' | xargs -L1 go vet
-#  - export POSTGRESQL_HOST=$IP
-#  - export REGISTRY_URL=$IP:5000
-#  - echo $REGISTRY_URL
-  #- ./tests/pushimage.sh
-  #- cd tests
-  #- sudo ./ldapprepare.sh 
-  #- sudo ./admiral.sh 
-  #- cd .. 
-  #- go test -race -i ./src/ui ./src/adminserver ./src/jobservice
-  #- sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
-  #- goveralls -coverprofile=profile.cov -service=travis-ci
+  - export POSTGRESQL_HOST=$IP
+  - export REGISTRY_URL=$IP:5000
+  - echo $REGISTRY_URL
+  - ./tests/pushimage.sh
+  - cd tests
+  - sudo ./ldapprepare.sh 
+  - sudo ./admiral.sh 
+  - cd .. 
+  - go test -race -i ./src/ui ./src/adminserver ./src/jobservice
+  - sudo -E env "PATH=$PATH" ./tests/coverage4gotest.sh
+  - goveralls -coverprofile=profile.cov -service=travis-ci
   - docker-compose -f make/docker-compose.test.yml down
   - sudo rm -rf ./common/config/adminserver/env
   - ls -la /data
