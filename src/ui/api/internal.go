@@ -15,11 +15,13 @@
 package api
 
 import (
+	"os"
 	"github.com/vmware/harbor/src/common"
 	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"net/http"
+	"strconv"
 )
 
 // InternalAPI handles request of harbor admin...
@@ -64,4 +66,20 @@ func (ia *InternalAPI) RenameAdmin() {
 	}
 	log.Debugf("The super user has been renamed to: %s", newName)
 	ia.DestroySession()
+}
+
+// EnterReadOnly ...
+func (ia *InternalAPI) EnterReadOnly() {
+	if !dao.IsSuperUser(ia.SecurityCtx.GetUsername()) {
+		log.Errorf("User %s is not super user, not allow to set read only.", ia.SecurityCtx.GetUsername())
+		ia.CustomAbort(http.StatusForbidden, "")
+	}
+	readOnly := os.Getenv("READ_ONLY")
+	isReadOnly, err := strconv.ParseBool(readOnly)
+	if err != nil {
+		log.Errorf("Failed to parse read only in env, error: %v", err)
+	}
+	if isReadOnly {
+
+	}
 }
