@@ -17,13 +17,13 @@ package filter
 import (
 	"net/http"
 
-	beegoctx "github.com/astaxie/beego/context"
+	"github.com/astaxie/beego/context"
 	"github.com/vmware/harbor/src/ui/config"
 )
 
 //ReadonlyFilter filters the POST/PUT request and returns 503.
-func ReadonlyFilter() func(*beegoctx.Context) {
-	return func(ctx *beegoctx.Context) {
+func ReadonlyFilter() func(ctx *context.Context) {
+	return func(ctx *context.Context) {
 		filter(ctx.Request, ctx.ResponseWriter)
 	}
 }
