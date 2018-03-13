@@ -59,7 +59,7 @@ type testapi struct {
 	basePath string
 }
 
-func newHarborAPI() *testapi {
+func NewHarborAPI() *testapi {
 	return &testapi{
 		basePath: "",
 	}

@@ -15,23 +15,12 @@
 package filter
 
 import (
-	"net/http"
-
-	"github.com/astaxie/beego/context"
-	"github.com/vmware/harbor/src/ui/config"
+	"testing"
 )
 
-//ReadonlyFilter filters the POST/PUT request and returns 503.
-func ReadonlyFilter(ctx *context.Context) {
-	filter(ctx.Request, ctx.ResponseWriter)
-}
-
-func filter(req *http.Request, resp http.ResponseWriter) {
-	if !config.IsReadOnly() {
-		return
-	}
-	// Any data updates will be blocked.
-	if req.Method == http.MethodPost || req.Method == http.MethodPut {
-		resp.WriteHeader(http.StatusServiceUnavailable)
-	}
+func TestReadonlyFilter(t *testing.T) {
+	// assert := assert.New(t)
+	// httptest.NewRequest(http.MethodGet, "/api/users", nil)
+	// rec := httptest.NewRecorder()
+	// assert.Equal(http.StatusOK, rec.Code)
 }

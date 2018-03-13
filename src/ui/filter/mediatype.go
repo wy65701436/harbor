@@ -15,9 +15,10 @@
 package filter
 
 import (
-	beegoctx "github.com/astaxie/beego/context"
 	"net/http"
 	"strings"
+
+	beegoctx "github.com/astaxie/beego/context"
 )
 
 //MediaTypeFilter filters the POST request, it returns 415 if the content type of the request
