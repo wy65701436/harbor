@@ -36,5 +36,4 @@ func filter(req *http.Request, resp http.ResponseWriter) {
 	if req.Method == http.MethodPost || req.Method == http.MethodPut {
 		resp.WriteHeader(http.StatusServiceUnavailable)
 	}
-	return
 }
