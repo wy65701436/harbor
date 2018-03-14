@@ -25,6 +25,7 @@ import (
 
 const (
 	toggleReadOnlyURLPattern = `/internal/togglereadonly`
+	loginURLPattern          = `/login`
 )
 
 //ReadonlyFilter filters the POST/PUT request and returns 503.
@@ -41,9 +42,11 @@ func filter(req *http.Request, resp http.ResponseWriter) {
 		resp.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
-	// Request to update readonly needs to be filterout.
 	if req.Method == http.MethodPost {
 		if !matchToggleReadonly(req) {
+			resp.WriteHeader(http.StatusServiceUnavailable)
+		}
+		if !matchLogin(req, resp) {
 			resp.WriteHeader(http.StatusServiceUnavailable)
 		}
 	}
@@ -56,4 +59,21 @@ func matchToggleReadonly(req *http.Request) bool {
 		return true
 	}
 	return false
+}
+
+func matchLogin(req *http.Request, resp http.ResponseWriter) bool {
+	re := regexp.MustCompile(loginURLPattern)
+	s := re.FindStringSubmatch(req.URL.Path)
+	if len(s) != 1 {
+		return false
+	}
+	sc, err := GetSecurityContext(req)
+	if err != nil {
+		log.Errorf("failed to get security context: %v", err)
+		resp.WriteHeader(http.StatusServiceUnavailable)
+	}
+	if !sc.IsSysAdmin() {
+		return false
+	}
+	return true
 }
