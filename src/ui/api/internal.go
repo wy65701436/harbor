@@ -22,7 +22,6 @@ import (
 	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/ui/config"
 )
 
 // InternalAPI handles request of harbor admin...
@@ -69,10 +68,13 @@ func (ia *InternalAPI) RenameAdmin() {
 	ia.DestroySession()
 }
 
+type ReadOnly struct {
+	Indentifier string `json:"read_only"`
+}
+
 // ToggleReadOnly is to enable read only mode
 func (ia *InternalAPI) ToggleReadOnly() {
-	if config.IsReadOnly() {
-		return
-	}
-	os.Setenv("READ_ONLY", "true")
+	readonly := ReadOnly{}
+	ia.DecodeJSONReq(&readonly)
+	os.Setenv("READ_ONLY", readonly.Indentifier)
 }
