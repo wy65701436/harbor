@@ -61,16 +61,21 @@ func matchToggleReadonly(req *http.Request) bool {
 func matchLogin(req *http.Request, resp http.ResponseWriter) bool {
 	re := regexp.MustCompile(loginURLPattern)
 	s := re.FindStringSubmatch(req.URL.Path)
+	log.Info("fatch login: %v", s)
 	if len(s) != 1 {
+		log.Info("11111111")
 		return false
 	}
 	sc, err := GetSecurityContext(req)
 	if err != nil {
+		log.Info("222222")
 		log.Errorf("failed to get security context: %v", err)
 		resp.WriteHeader(http.StatusServiceUnavailable)
 	}
 	if !sc.IsSysAdmin() {
+		log.Info("333333")
 		return false
 	}
+	log.Info("444444")
 	return true
 }
