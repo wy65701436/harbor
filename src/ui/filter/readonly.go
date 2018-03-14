@@ -18,6 +18,7 @@ import (
 	"net/http"
 
 	"github.com/astaxie/beego/context"
+	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/ui/config"
 )
 
@@ -31,6 +32,7 @@ func filter(req *http.Request, resp http.ResponseWriter) {
 		return
 	}
 	// Any data updates will be blocked.
+	log.Info("the url is:", req.URL)
 	if req.Method == http.MethodPost || req.Method == http.MethodPut {
 		resp.WriteHeader(http.StatusServiceUnavailable)
 	}
