@@ -43,10 +43,7 @@ func filter(req *http.Request, resp http.ResponseWriter) {
 		return
 	}
 	if req.Method == http.MethodPost {
-		if !matchToggleReadonly(req) {
-			resp.WriteHeader(http.StatusServiceUnavailable)
-		}
-		if !matchLogin(req, resp) {
+		if !matchToggleReadonly(req) || !matchLogin(req, resp) {
 			resp.WriteHeader(http.StatusServiceUnavailable)
 		}
 	}
