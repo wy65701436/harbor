@@ -16,10 +16,15 @@ package filter
 
 import (
 	"net/http"
+	"regexp"
 
 	"github.com/astaxie/beego/context"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/ui/config"
+)
+
+const (
+	toggleReadOnlyURLPattern = `/internal/togglereadonly`
 )
 
 //ReadonlyFilter filters the POST/PUT request and returns 503.
@@ -31,9 +36,24 @@ func filter(req *http.Request, resp http.ResponseWriter) {
 	if !config.IsReadOnly() {
 		return
 	}
-	// Any data updates will be blocked.
 	log.Info("the url is:", req.URL)
-	if req.Method == http.MethodPost || req.Method == http.MethodPut {
+	if req.Method == http.MethodPut {
 		resp.WriteHeader(http.StatusServiceUnavailable)
+		return
 	}
+	// Request to update readonly needs to be filterout.
+	if req.Method == http.MethodPost {
+		if !matchToggleReadonly(req) {
+			resp.WriteHeader(http.StatusServiceUnavailable)
+		}
+	}
+}
+
+func matchToggleReadonly(req *http.Request) bool {
+	re := regexp.MustCompile(toggleReadOnlyURLPattern)
+	s := re.FindStringSubmatch(req.URL.Path)
+	if len(s) == 1 {
+		return true
+	}
+	return false
 }
