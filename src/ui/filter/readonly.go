@@ -66,12 +66,14 @@ func matchLogin(req *http.Request, resp http.ResponseWriter) bool {
 		log.Info("11111111")
 		return false
 	}
+	log.Info("login request", req.FormValue("principal"))
 	sc, err := GetSecurityContext(req)
 	if err != nil {
 		log.Info("222222")
 		log.Errorf("failed to get security context: %v", err)
 		resp.WriteHeader(http.StatusServiceUnavailable)
 	}
+	log.Info(sc)
 	if !sc.IsSysAdmin() {
 		log.Info("333333")
 		return false
