@@ -56,6 +56,7 @@ var (
 		common.UAAClientSecret,
 		common.UAAEndpoint,
 		common.UAAVerifyCert,
+		common.ReadOnly,
 	}
 
 	stringKeys = []string{
@@ -89,6 +90,7 @@ var (
 		common.SelfRegistration,
 		common.LDAPVerifyCert,
 		common.UAAVerifyCert,
+		common.ReadOnly,
 	}
 
 	passwordKeys = []string{

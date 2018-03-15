@@ -26,7 +26,9 @@ type contextKey string
 const (
 	manifestURLPattern = `^/v2/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)manifests/([\w][\w.:-]{0,127})`
 	catalogURLPattern  = `/v2/_catalog`
-	imageInfoCtxKey    = contextKey("ImageInfo")
+	//POST /v2/<name>/blobs/uploads/
+	pushURLPattern  = `^/v2/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)blobs/uploads/`
+	imageInfoCtxKey = contextKey("ImageInfo")
 	//TODO: temp solution, remove after vmware/harbor#2242 is resolved.
 	tokenUsername = "harbor-ui"
 )
@@ -63,6 +65,16 @@ func MatchListRepos(req *http.Request) bool {
 		return true
 	}
 	return false
+}
+
+// MatchDockerPush checks if the request looks like a request to push manifest.
+func MatchDockerPush(req *http.Request) bool {
+	if req.Method != http.MethodPost {
+		return false
+	}
+	re := regexp.MustCompile(pushURLPattern)
+	s := re.FindStringSubmatch(req.URL.Path)
+	return len(s) == 2
 }
 
 // policyChecker checks the policy of a project by project name, to determine if it's needed to check the image's status under this project.
@@ -152,6 +164,21 @@ func (uh urlHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		req = req.WithContext(ctx)
 	}
 	uh.next.ServeHTTP(rw, req)
+}
+
+type readonlyHandler struct {
+	next http.Handler
+}
+
+func (rh readonlyHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if config.ReadOnly() {
+		dockerPushFlag := MatchDockerPush(req)
+		if dockerPushFlag {
+			http.Error(rw, "Docker Push is not allowed in read only mode.", http.StatusServiceUnavailable)
+			return
+		}
+	}
+	rh.next.ServeHTTP(rw, req)
 }
 
 type listReposHandler struct {

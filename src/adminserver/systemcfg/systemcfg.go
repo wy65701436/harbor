@@ -145,6 +145,10 @@ var (
 		common.UIURL:                       "UI_URL",
 		common.JobServiceURL:               "JOBSERVICE_URL",
 		common.RegistryStorageProviderName: "REGISTRY_STORAGE_PROVIDER_NAME",
+		common.ReadOnly: &parser{
+			env:   "READ_ONLY",
+			parse: parseStringToBool,
+		},
 	}
 
 	// configurations need read from environment variables
@@ -152,7 +156,7 @@ var (
 	repeatLoadEnvs = map[string]interface{}{
 		common.ExtEndpoint:   "EXT_ENDPOINT",
 		common.MySQLPassword: "MYSQL_PWD",
-        common.MySQLHost:     "MYSQL_HOST",
+		common.MySQLHost:     "MYSQL_HOST",
 		common.MySQLUsername: "MYSQL_USR",
 		common.MySQLDatabase: "MYSQL_DATABASE",
 		common.MySQLPort: &parser{
@@ -179,8 +183,8 @@ var (
 		common.ClairDBPassword: "CLAIR_DB_PASSWORD",
 		common.ClairDBHost:     "CLAIR_DB_HOST",
 		common.ClairDBUsername: "CLAIR_DB_USERNAME",
-		common.ClairDBPort:  &parser{
-			env: "CLAIR_DB_PORT",
+		common.ClairDBPort: &parser{
+			env:   "CLAIR_DB_PORT",
 			parse: parseStringToInt,
 		},
 		common.UAAEndpoint:     "UAA_ENDPOINT",
