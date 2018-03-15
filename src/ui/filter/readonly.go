@@ -19,6 +19,7 @@ import (
 	"regexp"
 
 	"github.com/astaxie/beego/context"
+	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/ui/config"
 )
@@ -63,21 +64,13 @@ func matchLogin(req *http.Request, resp http.ResponseWriter) bool {
 	s := re.FindStringSubmatch(req.URL.Path)
 	log.Info("fatch login: %v", s)
 	if len(s) != 1 {
-		log.Info("11111111")
 		return false
 	}
+	username := req.FormValue("principal")
 	log.Info("login request", req.FormValue("principal"))
-	sc, err := GetSecurityContext(req)
-	if err != nil {
-		log.Info("222222")
-		log.Errorf("failed to get security context: %v", err)
-		resp.WriteHeader(http.StatusServiceUnavailable)
+	if !config.WithAdmiral() {
+		isAdmin, _ := dao.IsAdminRole(username)
+		return isAdmin
 	}
-	log.Info(sc)
-	if !sc.IsSysAdmin() {
-		log.Info("333333")
-		return false
-	}
-	log.Info("444444")
 	return true
 }
