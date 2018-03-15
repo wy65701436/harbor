@@ -62,15 +62,26 @@ func matchToggleReadonly(req *http.Request) bool {
 func matchLogin(req *http.Request, resp http.ResponseWriter) bool {
 	re := regexp.MustCompile(loginURLPattern)
 	s := re.FindStringSubmatch(req.URL.Path)
-	log.Info("fatch login: %v", s)
 	if len(s) != 1 {
 		return false
 	}
-	username := req.FormValue("principal")
-	log.Info("login request", req.FormValue("principal"))
-	if !config.WithAdmiral() {
-		isAdmin, _ := dao.IsAdminRole(username)
-		return isAdmin
+	if config.WithAdmiral() {
+		return false
+	}
+
+	// standalone
+	authMode, err := config.AuthMode()
+	if err != nil {
+		log.Errorf("can't load auth mode from system, error: %v", err)
+		return false
+	}
+	if authMode != "db_auth" {
+		username := req.FormValue("principal")
+		return isSuperUser(username)
 	}
 	return true
+}
+
+func isSuperUser(username string) bool {
+	return dao.IsSuperUser(username)
 }
