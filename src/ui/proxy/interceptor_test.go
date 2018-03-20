@@ -204,3 +204,31 @@ func TestIsDigest(t *testing.T) {
 	assert.False(isDigest("latest"))
 	assert.True(isDigest("sha256:1359608115b94599e5641638bac5aef1ddfaa79bb96057ebf41ebc8d33acf8a7"))
 }
+
+func TestMatchDockerPush(t *testing.T) {
+	assert := assert.New(t)
+	req1, _ := http.NewRequest("POST", "http://127.0.0.1:5000/v2/library/ubuntu/14.04/blobs/uploads/", nil)
+	res1 := MatchDockerPush(req1)
+	assert.True(res1, "%s %v is a request to docker push", req1.Method, req1.URL)
+
+	req2, _ := http.NewRequest("GET", "http://192.168.0.3:80/v2/library/ubuntu/14.04/blobs/uploads/", nil)
+	res2 := MatchDockerPush(req2)
+	assert.False(res2, "%s %v is not a request to docker push", req2.Method, req2.URL)
+
+	req3, _ := http.NewRequest("POST", "http://127.0.0.1:5000/v2/library/ubuntu/blobs/uploads/", nil)
+	res3 := MatchDockerPush(req3)
+	assert.True(res3, "%s %v is not a request to docker push", req3.Method, req3.URL)
+
+	req4, _ := http.NewRequest("POST", "https://192.168.0.5/v2/library/ubuntu/14.04/blobs/uploads/", nil)
+	res4 := MatchDockerPush(req4)
+	assert.True(res4, "%s %v is a request to docker push", req4.Method, req4.URL)
+
+	req5, _ := http.NewRequest("POST", "https://myregistry.com/v2/path1/path2/golang/1.6.2/blobs/uploads/", nil)
+	res5 := MatchDockerPush(req5)
+	assert.True(res5, "%s %v is a request to docker push", req5.Method, req5.URL)
+
+	req6, _ := http.NewRequest("POST", "https://myregistry.com/v2/library/hello-world/latest/blobs/uploads/", nil)
+	res6 := MatchDockerPush(req6)
+	assert.True(res6, "%s %v is a request to docker push", req6.Method, req6.URL)
+
+}
