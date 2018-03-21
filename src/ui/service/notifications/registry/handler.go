@@ -78,18 +78,21 @@ func (n *NotificationHandler) Post() {
 			continue
 		}
 
-		go func() {
-			if err := dao.AddAccessLog(models.AccessLog{
-				Username:  user,
-				ProjectID: pro.ProjectID,
-				RepoName:  repository,
-				RepoTag:   tag,
-				Operation: action,
-				OpTime:    time.Now(),
-			}); err != nil {
-				log.Errorf("failed to add access log: %v", err)
-			}
-		}()
+		// drop the message in read only mode.
+		if !config.IsReadOnly() {
+			go func() {
+				if err := dao.AddAccessLog(models.AccessLog{
+					Username:  user,
+					ProjectID: pro.ProjectID,
+					RepoName:  repository,
+					RepoTag:   tag,
+					Operation: action,
+					OpTime:    time.Now(),
+				}); err != nil {
+					log.Errorf("failed to add access log: %v", err)
+				}
+			}()
+		}
 
 		if action == "push" {
 			go func() {
@@ -131,12 +134,15 @@ func (n *NotificationHandler) Post() {
 			}
 		}
 		if action == "pull" {
-			go func() {
-				log.Debugf("Increase the repository %s pull count.", repository)
-				if err := dao.IncreasePullCount(repository); err != nil {
-					log.Errorf("Error happens when increasing pull count: %v", repository)
-				}
-			}()
+			// drop the message in read only mode.
+			if !config.IsReadOnly() {
+				go func() {
+					log.Debugf("Increase the repository %s pull count.", repository)
+					if err := dao.IncreasePullCount(repository); err != nil {
+						log.Errorf("Error happens when increasing pull count: %v", repository)
+					}
+				}()
+			}
 		}
 	}
 }
