@@ -23,10 +23,12 @@ import (
 )
 
 const (
-	repoURL = `/api/repositories`
+	repoURL = `/api/repositories/(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)/(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)$`
+	tagURL  = `/api/repositories/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)tags/([\w][\w.-]{0,127})$`
+	//labelURL = `/api/repositories/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)tags/([\w][\w.-]{0,127}/labels/[0-9]+$`
 )
 
-//ReadonlyFilter filters the delete repo request and returns 503.
+//ReadonlyFilter filters the delete repo/tag request and returns 503.
 func ReadonlyFilter(ctx *context.Context) {
 	filter(ctx.Request, ctx.ResponseWriter)
 }
@@ -35,18 +37,27 @@ func filter(req *http.Request, resp http.ResponseWriter) {
 	if !config.ReadOnly() {
 		return
 	}
-	if req.Method == http.MethodDelete {
-		if matchRepoDelete(req) {
-			resp.WriteHeader(http.StatusServiceUnavailable)
-		}
+	if matchRepoTageDelete(req) {
+		resp.WriteHeader(http.StatusServiceUnavailable)
 	}
 }
 
-func matchRepoDelete(req *http.Request) bool {
-	re := regexp.MustCompile(repoURL)
-	s := re.FindStringSubmatch(req.URL.Path)
-	if len(s) != 1 {
+func matchRepoTageDelete(req *http.Request) bool {
+	if req.Method != http.MethodDelete {
 		return false
 	}
-	return true
+
+	re := regexp.MustCompile(repoURL)
+	s := re.FindStringSubmatch(req.URL.Path)
+	if len(s) == 1 {
+		return true
+	}
+
+	re = regexp.MustCompile(tagURL)
+	s = re.FindStringSubmatch(req.URL.Path)
+	if len(s) == 3 {
+		return true
+	}
+
+	return false
 }
