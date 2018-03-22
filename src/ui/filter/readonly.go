@@ -37,12 +37,12 @@ func filter(req *http.Request, resp http.ResponseWriter) {
 	if !config.ReadOnly() {
 		return
 	}
-	if matchRepoTageDelete(req) {
+	if matchRepoTagDelete(req) {
 		resp.WriteHeader(http.StatusServiceUnavailable)
 	}
 }
 
-func matchRepoTageDelete(req *http.Request) bool {
+func matchRepoTagDelete(req *http.Request) bool {
 	if req.Method != http.MethodDelete {
 		return false
 	}
