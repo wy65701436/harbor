@@ -29,6 +29,8 @@ import (
 func TestReadonlyFilter(t *testing.T) {
 
 	var defaultConfig = map[string]interface{}{
+		common.ExtEndpoint:     "host01.com",
+		common.AUTHMode:        "db_auth",
 		common.CfgExpiration:   5,
 		common.TokenExpiration: 30,
 		common.DatabaseType:    "mysql",
