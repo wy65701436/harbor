@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	repoURL = `/api/repositories/(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)/(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)$`
+	repoURL = `/api/repositories/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)(?:[a-z0-9]+(?:[._-][a-z0-9]+)*)$`
 	tagURL  = `/api/repositories/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)tags/([\w][\w.-]{0,127})$`
 	//labelURL = `/api/repositories/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)tags/([\w][\w.-]{0,127}/labels/[0-9]+$`
 )
