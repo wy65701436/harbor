@@ -75,4 +75,8 @@ func TestReadonlyFilter(t *testing.T) {
 	filter(req4, rec)
 	assert.Equal(http.StatusServiceUnavailable, rec.Code)
 
+	req5, _ := http.NewRequest("DELETE", "http://127.0.0.1:5000/api/repositories/library/hello-world/tags/latest", nil)
+	rec = httptest.NewRecorder()
+	filter(req5, rec)
+	assert.Equal(http.StatusServiceUnavailable, rec.Code)
 }
