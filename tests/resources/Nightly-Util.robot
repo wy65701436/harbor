@@ -17,7 +17,7 @@ Documentation  This resource provides any keywords related to the Harbor private
 Resource  Util.robot
 
 *** Variables ***
-${SSH_USER}  root
+${SSH_USER}  steven
 
 *** Keywords ***
 Nightly Test Setup
