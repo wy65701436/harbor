@@ -21,7 +21,7 @@ Default Tags  Nightly
 
 *** Variables ***
 ${HARBOR_URL}  https://${ip}
-${SSH_USER}  root
+${SSH_USER}  steven
 ${HARBOR_ADMIN}  admin
 
 *** Test Cases ***
