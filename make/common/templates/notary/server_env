@@ -1,2 +1,2 @@
-MIGRATIONS_PATH=migrations/signer/postgresql
-DB_URL=postgres://signer@postgresql:5432/notarysigner?sslmode=disable
+MIGRATIONS_PATH: migrations/server/postgresql
+DB_URL: postgres://server:password@postgresql:5432/notaryserver?sslmode=disable
