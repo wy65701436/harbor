@@ -23,7 +23,7 @@ services:
     env_file:
       - ./common/config/notary/server_env
     depends_on:
-      - harbor-db
+      - postgresql
       - notary-signer
     logging:
       driver: "syslog"
@@ -36,7 +36,7 @@ services:
     restart: always
     networks:
       notary-sig:
-      harbor-notary
+      harbor-notary:
         aliases:
           - notarysigner
     volumes:
@@ -44,7 +44,7 @@ services:
     env_file:
       - ./common/config/notary/signer_env
     depends_on:
-      - harbor-db
+      - postgresql
     logging:
       driver: "syslog"
       options:  
