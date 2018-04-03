@@ -475,9 +475,9 @@ if args.notary_mode:
     notary_config_dir = prep_conf_dir(config_dir, "notary")
     notary_temp_dir = os.path.join(templates_dir, "notary") 
     print("Copying sql file for notary DB")
-    if os.path.exists(os.path.join(notary_config_dir, "postgresql-initdb.d")):
-        shutil.rmtree(os.path.join(notary_config_dir, "postgresql-initdb.d"))
-    shutil.copytree(os.path.join(notary_temp_dir, "postgresql-initdb.d"), os.path.join(notary_config_dir, "postgresql-initdb.d")) 
+    # if os.path.exists(os.path.join(notary_config_dir, "postgresql-initdb.d")):
+    #     shutil.rmtree(os.path.join(notary_config_dir, "postgresql-initdb.d"))
+    # shutil.copytree(os.path.join(notary_temp_dir, "postgresql-initdb.d"), os.path.join(notary_config_dir, "postgresql-initdb.d")) 
     if customize_crt == 'on' and openssl_installed():
         try:
             temp_cert_dir = os.path.join(base_dir, "cert_tmp")
