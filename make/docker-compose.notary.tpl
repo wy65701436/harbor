@@ -35,6 +35,7 @@ services:
     container_name: notary-signer
     restart: always
     networks:
+      harbor-notary
       notary-sig:
         aliases:
           - notarysigner
