@@ -1,11 +1,12 @@
 export const REPOSITORY_TEMPLATE = `
 <section class="overview-section">
   <div class="title-wrapper">
-    <div class="title-block arrow-block">
-      <clr-icon class="rotate-90 arrow-back" shape="arrow" size="36" (click)="goBack()"></clr-icon>
+    <div class="arrow-block">
+      <a (click)="goProBack()">< {{'SIDE_NAV.PROJECTS'| translate}}</a>
+      <a (click)="goRepBack()">< {{'SIDE_NAV.SYSTEM_MGMT.REGISTRY'| translate}}</a>
     </div>
-    <div class="title-block">
-      <h2 sub-header-title>{{repoName}}</h2>
+    <div>
+      <h2 sub-header-title class="custom-h2">{{repoName}}</h2>
     </div>
   </div>
 </section>
@@ -46,7 +47,7 @@ export const REPOSITORY_TEMPLATE = `
     </section>
     <section id="image" role="tabpanel" aria-labelledby="repo-image" [hidden]='!isCurrentTabContent("image")'>
       <div id=images-container>
-        <hbr-tag ngProjectAs="clr-dg-row-detail" (tagClickEvent)="watchTagClickEvt($event)" (signatureOutput)="saveSignatures($event)" class="sub-grid-custom" [repoName]="repoName" [registryUrl]="registryUrl" [withNotary]="withNotary" [withClair]="withClair" [hasSignedIn]="hasSignedIn" [hasProjectAdminRole]="hasProjectAdminRole" [projectId]="projectId"></hbr-tag>
+        <hbr-tag ngProjectAs="clr-dg-row-detail" (tagClickEvent)="watchTagClickEvt($event)" (signatureOutput)="saveSignatures($event)" class="sub-grid-custom" [repoName]="repoName" [registryUrl]="registryUrl" [withNotary]="withNotary" [withClair]="withClair" [withAdmiral]="withAdmiral" [hasSignedIn]="hasSignedIn" [hasProjectAdminRole]="hasProjectAdminRole" [isGuest]="isGuest" [projectId]="projectId"></hbr-tag>
       </div>
     </section>
   </div>

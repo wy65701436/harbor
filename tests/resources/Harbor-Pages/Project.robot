@@ -44,11 +44,11 @@ Create An New Project With New User
 
 #It's the log of project.
 Go To Project Log
-    Click Element  xpath=//project-detail//ul/li[3]
+    Click Element  xpath=${project_log_xpath}
     Sleep  2
 
 Switch To Member
-    Click Element  xpath=//project-detail//li[2]
+    Click Element  xpath=${project_member_xpath}
     Sleep  1
 
 Switch To Log
@@ -195,13 +195,6 @@ Expand Repo
     Click Element  //repository//clr-dg-row[contains(.,'${projectname}')]//button/clr-icon
     Sleep  1
 
-Scan Repo
-    [Arguments]  ${tagname}
-    #select one tag
-    Click Element  //clr-dg-row[contains(.,"${tagname}")]//label
-    Click Element  //button[contains(.,'Scan')]
-    Sleep  15
-
 Edit Repo Info
     Click Element  //*[@id="repo-info"]
     Sleep  1
@@ -222,6 +215,20 @@ Edit Repo Info
     Page Should Contain  test_description_info
     Capture Page Screenshot  RepoInfo.png
 
-Summary Chart Should Display
-    [Arguments]  ${tagname}
-    Page Should Contain Element  //clr-dg-row[contains(.,'${tagname}')]//hbr-vulnerability-bar//hbr-vulnerability-summary-chart
+Switch To Project Label
+    Click Element  xpath=//project-detail//a[contains(.,'Labels')]
+    Sleep  1
+
+Switch To Project Repo
+    Click Element  xpath=//project-detail//a[contains(.,'Repositories')]
+    Sleep  1
+
+Add Labels To Tag
+    [Arguments]  ${tagName}  ${labelName}
+    Click Element  xpath=//clr-dg-row[contains(.,"${tagName}")]//label
+    Sleep  1
+    Click Element  xpath=//clr-dg-action-bar//clr-dropdown//button
+    Sleep  1
+    Click Element  xpath=//clr-dropdown//div//label[contains(.,"${labelName}")]
+    Sleep  3
+    Page Should Contain Element  xpath=//clr-dg-row//label[contains(.,"${labelName}")]

@@ -20,7 +20,7 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  ElementRef
+  ElementRef, AfterContentInit, AfterViewInit
 } from "@angular/core";
 
 import { TagService, VulnerabilitySeverity, RequestQueryParams } from "../service/index";
@@ -36,7 +36,7 @@ import { ConfirmationDialogComponent } from "../confirmation-dialog/confirmation
 import { ConfirmationMessage } from "../confirmation-dialog/confirmation-message";
 import { ConfirmationAcknowledgement } from "../confirmation-dialog/confirmation-state-message";
 
-import { Tag, TagClickEvent } from "../service/interface";
+import {Label, Tag, TagClickEvent} from "../service/interface";
 
 import { TAG_TEMPLATE } from "./tag.component.html";
 import { TAG_STYLE } from "./tag.component.css";
@@ -48,7 +48,8 @@ import {
   doFiltering,
   doSorting,
   VULNERABILITY_SCAN_STATUS,
-  DEFAULT_PAGE_SIZE
+  DEFAULT_PAGE_SIZE,
+  clone,
 } from "../utils";
 
 import { TranslateService } from "@ngx-translate/core";
@@ -57,6 +58,8 @@ import { State, Comparator } from "clarity-angular";
 import {CopyInputComponent} from "../push-image/copy-input.component";
 import {BatchInfo, BathInfoChanges} from "../confirmation-dialog/confirmation-batch-message";
 import {Observable} from "rxjs/Observable";
+import {LabelService} from "../service/label.service";
+import {Subject} from "rxjs/Subject";
 
 @Component({
   selector: "hbr-tag",
@@ -64,7 +67,7 @@ import {Observable} from "rxjs/Observable";
   styles: [TAG_STYLE],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TagComponent implements OnInit {
+export class TagComponent implements OnInit, AfterViewInit {
 
   signedCon: {[key: string]: any | string[]} = {};
   @Input() projectId: number;
@@ -73,10 +76,11 @@ export class TagComponent implements OnInit {
 
   @Input() hasSignedIn: boolean;
   @Input() hasProjectAdminRole: boolean;
+  @Input() isGuest: boolean;
   @Input() registryUrl: string;
   @Input() withNotary: boolean;
   @Input() withClair: boolean;
-
+  @Input() withAdmiral: boolean;
   @Output() refreshRepo = new EventEmitter<boolean>();
   @Output() tagClickEvent = new EventEmitter<TagClickEvent>();
   @Output() signatureOutput = new EventEmitter<any>();
@@ -98,7 +102,28 @@ export class TagComponent implements OnInit {
   copyFailed = false;
   selectedRow: Tag[] = [];
 
-  @ViewChild("confirmationDialog")
+  imageLabels: {[key: string]: boolean | Label | any}[] = [];
+  imageStickLabels: {[key: string]: boolean | Label | any}[] = [];
+  imageFilterLabels: {[key: string]: boolean | Label | any}[] = [];
+
+  labelListOpen = false;
+  selectedTag: Tag[];
+  labelNameFilter: Subject<string> = new Subject<string> ();
+  stickLabelNameFilter: Subject<string> = new Subject<string> ();
+  filterOnGoing: boolean;
+  stickName = ''
+  filterName = '';
+  initFilter = {
+    name: '',
+    description: '',
+    color: '',
+    scope: '',
+    project_id: 0,
+  }
+  filterOneLabel: Label = this.initFilter;
+
+
+  @ViewChild('confirmationDialog')
   confirmationDialog: ConfirmationDialogComponent;
 
   @ViewChild("digestTarget") textInput: ElementRef;
@@ -112,6 +137,7 @@ export class TagComponent implements OnInit {
   constructor(
     private errorHandler: ErrorHandler,
     private tagService: TagService,
+    private labelService: LabelService,
     private translateService: TranslateService,
     private ref: ChangeDetectorRef,
     private channel: ChannelService
@@ -128,13 +154,58 @@ export class TagComponent implements OnInit {
     }
 
     this.retrieve();
-    this.lastFilteredTagName = "";
+    this.lastFilteredTagName = '';
+
+    this.labelNameFilter
+        .debounceTime(500)
+        .distinctUntilChanged()
+        .subscribe((name: string) => {
+          if (this.filterName.length) {
+            this.filterOnGoing = true;
+            this.imageFilterLabels = [];
+
+            this.imageLabels.forEach(data => {
+              if (data.label.name.indexOf(this.filterName) !== -1) {
+                this.imageFilterLabels.push(data);
+              }
+            })
+            setTimeout(() => {
+              setInterval(() => this.ref.markForCheck(), 200);
+            }, 1000);
+          }
+        });
+
+    this.stickLabelNameFilter
+        .debounceTime(500)
+        .distinctUntilChanged()
+        .subscribe((name: string) => {
+          if (this.stickName.length) {
+            this.filterOnGoing = true;
+            this.imageStickLabels = [];
+
+            this.imageLabels.forEach(data => {
+              if (data.label.name.indexOf(this.stickName) !== -1) {
+                this.imageStickLabels.push(data);
+              }
+            })
+            setTimeout(() => {
+              setInterval(() => this.ref.markForCheck(), 200);
+            }, 1000);
+          }
+        });
+
   }
 
-  selectedChange(): void {
-    let hnd = setInterval(() => this.ref.markForCheck(), 200);
-    setTimeout(() => clearInterval(hnd), 2000);
+  ngAfterViewInit() {
+    if (!this.withAdmiral) {
+      this.getAllLabels();
+    }
   }
+
+  public get filterLabelPieceWidth() {
+    let len = this.lastFilteredTagName.length ? this.lastFilteredTagName.length * 6 + 60 : 115;
+    return len > 210 ? 210 : len;
+}
 
   doSearchTagNames(tagName: string) {
     this.lastFilteredTagName = tagName;
@@ -147,7 +218,13 @@ export class TagComponent implements OnInit {
     st.page.size = this.pageSize;
     st.page.from = 0;
     st.page.to = this.pageSize - 1;
-    st.filters = [{property: "name", value: this.lastFilteredTagName}];
+    let selectedLab = this.imageFilterLabels.find(label => label.iconsShow === true);
+    if (selectedLab) {
+      st.filters = [{property: 'name', value: this.lastFilteredTagName}, {property: 'labels.name', value: selectedLab.label}];
+    }else {
+      st.filters = [{property: 'name', value: this.lastFilteredTagName}];
+    }
+
     this.clrLoad(st);
   }
 
@@ -191,7 +268,151 @@ export class TagComponent implements OnInit {
     this.doSearchTagNames("");
   }
 
+  getAllLabels(): void {
+    toPromise<Label[]>(this.labelService.getGLabels()).then((res: Label[]) => {
+      if (res.length) {
+        res.forEach(data => {
+          this.imageLabels.push({'iconsShow': false, 'label': data});
+        });
+      }
 
+      toPromise<Label[]>(this.labelService.getPLabels(this.projectId)).then((res1: Label[]) => {
+        if (res1.length) {
+          res1.forEach(data => {
+            this.imageLabels.push({'iconsShow': false, 'label': data});
+          });
+        }
+        this.imageFilterLabels = clone(this.imageLabels);
+        this.imageStickLabels = clone(this.imageLabels);
+      }).catch(error => {
+        this.errorHandler.error(error);
+      });
+    }).catch(error => {
+      this.errorHandler.error(error);
+    });
+  }
+
+  selectedChange(tag?: Tag[]): void {
+    if (tag && tag[0].labels && tag[0].labels.length) {
+      tag[0].labels.forEach((labelInfo: Label) => {
+        this.imageStickLabels.forEach(data => {
+          if (labelInfo.id === data['label'].id) {
+            data.iconsShow = true;
+          }
+        });
+      });
+    }
+  }
+
+  addLabels(tag: Tag[]): void {
+    this.labelListOpen = true;
+    this.selectedTag = tag;
+
+    this.selectedChange(tag);
+  }
+
+  stickLabel(labelInfo: {[key: string]: any | string[]}): void {
+    if (labelInfo && !labelInfo.iconsShow) {
+      this.selectLabel(labelInfo);
+    }
+    if (labelInfo && labelInfo.iconsShow) {
+      this.unSelectLabel(labelInfo);
+    }
+  }
+
+  selectLabel(labelInfo: {[key: string]: any | string[]}): void {
+      let labelId = labelInfo.label.id;
+      this.selectedRow = this.selectedTag;
+      toPromise<any>(this.tagService.addLabelToImages(this.repoName, this.selectedRow[0].name, labelId)).then(res => {
+        this.refresh();
+      }).catch(err => {
+        this.errorHandler.error(err);
+      });
+  }
+
+  unSelectLabel(labelInfo: {[key: string]: any | string[]}): void {
+      let labelId = labelInfo.label.id;
+      this.selectedRow = this.selectedTag;
+      toPromise<any>(this.tagService.deleteLabelToImages(this.repoName, this.selectedRow[0].name, labelId)).then(res => {
+        this.refresh();
+      }).catch(err => {
+        this.errorHandler.error(err);
+      });
+  }
+
+  rightFilterLabel(labelInfo: {[key: string]: any | string[]}): void {
+    if (labelInfo) {
+      if (!labelInfo.iconsShow) {
+        this.filterLabel(labelInfo);
+      } else {
+        this.unFilterLabel(labelInfo);
+      }
+    }
+  }
+
+  filterLabel(labelInfo: {[key: string]: any | string[]}): void {
+      let labelName = labelInfo.label.name;
+      this.imageFilterLabels.filter(data => {
+        if (data.label.name !== labelName) {
+          data.iconsShow = false;
+        }
+      });
+
+     this.filterOneLabel = labelInfo.label;
+
+      // reload datagu
+      this.currentPage = 1;
+      let st: State = this.currentState;
+      if (!st) {
+        st = { page: {} };
+      }
+      st.page.size = this.pageSize;
+      st.page.from = 0;
+      st.page.to = this.pageSize - 1;
+      if (this.lastFilteredTagName) {
+        st.filters = [{property: 'name', value: this.lastFilteredTagName}, {property: 'labels.name', value: labelName}];
+      }else {
+        st.filters = [{property: 'labels.name', value: labelName}];
+      }
+
+      this.clrLoad(st);
+  }
+
+  unFilterLabel(labelInfo: {[key: string]: any | string[]}): void {
+      this.filterOneLabel = this.initFilter;
+
+      // reload datagu
+      this.currentPage = 1;
+      let st: State = this.currentState;
+      if (!st) {
+        st = { page: {} };
+      }
+      st.page.size = this.pageSize;
+      st.page.from = 0;
+      st.page.to = this.pageSize - 1;
+      if (this.lastFilteredTagName) {
+        st.filters = [{property: 'name', value: this.lastFilteredTagName}];
+      }else {
+        st.filters = [];
+      }
+      this.clrLoad(st);
+  }
+
+  handleInputFilter() {
+    if (this.filterName.length) {
+      this.labelNameFilter.next(this.filterName);
+    }else {
+      this.imageFilterLabels = clone(this.imageLabels);
+    }
+  }
+
+  handleStickInputFilter() {
+    if (this.stickName.length) {
+      this.stickLabelNameFilter.next(this.stickName);
+    }else {
+      this.imageStickLabels = clone(this.imageLabels);
+    }
+  }
 
   retrieve() {
     this.tags = [];
@@ -242,7 +463,7 @@ export class TagComponent implements OnInit {
     } else if (Math.pow(1024, 2) <= size && size < Math.pow(1024, 3)) {
       return  (size / Math.pow(1024, 2)).toFixed(2) + "MB";
     } else if (Math.pow(1024, 3) <= size && size < Math.pow(1024, 4)) {
-      return  (size / Math.pow(1024, 3)).toFixed(2) + "MB";
+      return  (size / Math.pow(1024, 3)).toFixed(2) + "GB";
     } else {
       return size + "B";
     }
@@ -312,6 +533,13 @@ export class TagComponent implements OnInit {
                       findedList = BathInfoChanges(findedList, res);
                     });
               }).catch(error => {
+            if (error.status === 503) {
+              Observable.forkJoin(this.translateService.get('BATCH.DELETED_FAILURE'),
+                  this.translateService.get('REPOSITORY.TAGS_NO_DELETE')).subscribe(res => {
+                findedList = BathInfoChanges(findedList, res[0], false, true, res[1]);
+              });
+              return;
+            }
             this.translateService.get("BATCH.DELETED_FAILURE").subscribe(res => {
               findedList = BathInfoChanges(findedList, res, false, true);
             });

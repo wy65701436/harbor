@@ -16,10 +16,13 @@ package config
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/vmware/harbor/src/adminserver/client"
@@ -28,7 +31,6 @@ import (
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/secret"
 	"github.com/vmware/harbor/src/common/utils/log"
-	jobservice_client "github.com/vmware/harbor/src/jobservice/client"
 	"github.com/vmware/harbor/src/ui/promgr"
 	"github.com/vmware/harbor/src/ui/promgr/pmsdriver"
 	"github.com/vmware/harbor/src/ui/promgr/pmsdriver/admiral"
@@ -38,7 +40,6 @@ import (
 const (
 	defaultKeyPath       string = "/etc/ui/key"
 	defaultTokenFilePath string = "/etc/ui/token/tokens.properties"
-	secretCookieName     string = "secret"
 )
 
 var (
@@ -55,8 +56,8 @@ var (
 	AdmiralClient *http.Client
 	// TokenReader is used in integration mode to read token
 	TokenReader admiral.TokenReader
-	// GlobalJobserviceClient is a global client for jobservice
-	GlobalJobserviceClient jobservice_client.Client
+
+	defaultCACertPath = "/etc/ui/ca/ca.crt"
 )
 
 // Init configurations
@@ -65,7 +66,7 @@ func Init() error {
 	initKeyProvider()
 	adminServerURL := os.Getenv("ADMINSERVER_URL")
 	if len(adminServerURL) == 0 {
-		adminServerURL = "http://adminserver"
+		adminServerURL = common.DefaultAdminserverEndpoint
 	}
 
 	return InitByURL(adminServerURL)
@@ -93,12 +94,10 @@ func InitByURL(adminServerURL string) error {
 	initSecretStore()
 
 	// init project manager based on deploy mode
-	initProjectManager()
-
-	GlobalJobserviceClient = jobservice_client.NewDefaultClient(InternalJobServiceURL(),
-		&jobservice_client.Config{
-			Secret: UISecret(),
-		})
+	if err := initProjectManager(); err != nil {
+		log.Errorf("Failed to initialise project manager, error: %v", err)
+		return err
+	}
 
 	return nil
 }
@@ -119,20 +118,28 @@ func initSecretStore() {
 	SecretStore = secret.NewStore(m)
 }
 
-func initProjectManager() {
+func initProjectManager() error {
 	var driver pmsdriver.PMSDriver
 	if WithAdmiral() {
-		// integration with admiral
-		log.Info("initializing the project manager based on PMS...")
-		// TODO read ca/cert file and pass it to the TLS config
+		log.Debugf("Initialising Admiral client with certificate: %s", defaultCACertPath)
+		content, err := ioutil.ReadFile(defaultCACertPath)
+		if err != nil {
+			return err
+		}
+		pool := x509.NewCertPool()
+		if ok := pool.AppendCertsFromPEM(content); !ok {
+			return fmt.Errorf("failed to append cert content into cert pool")
+		}
 		AdmiralClient = &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
+					RootCAs: pool,
 				},
 			},
 		}
 
+		// integration with admiral
+		log.Info("initializing the project manager based on PMS...")
 		path := os.Getenv("SERVICE_TOKEN_FILE_PATH")
 		if len(path) == 0 {
 			path = defaultTokenFilePath
@@ -148,6 +155,7 @@ func initProjectManager() {
 		driver = local.NewDriver()
 	}
 	GlobalProjectMgr = promgr.NewDefaultProjectManager(driver, true)
+	return nil
 
 }
 
@@ -203,6 +211,35 @@ func LDAPConf() (*models.LdapConf, error) {
 	}
 
 	return ldapConf, nil
+}
+
+// LDAPGroupConf returns the setting of ldap group search
+func LDAPGroupConf() (*models.LdapGroupConf, error) {
+
+	cfg, err := mg.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	ldapGroupConf := &models.LdapGroupConf{LdapGroupSearchScope: 2}
+	if _, ok := cfg[common.LDAPGroupBaseDN]; ok {
+		ldapGroupConf.LdapGroupBaseDN = cfg[common.LDAPGroupBaseDN].(string)
+	}
+	if _, ok := cfg[common.LDAPGroupSearchFilter]; ok {
+		ldapGroupConf.LdapGroupFilter = cfg[common.LDAPGroupSearchFilter].(string)
+	}
+	if _, ok := cfg[common.LDAPGroupAttributeName]; ok {
+		ldapGroupConf.LdapGroupNameAttribute = cfg[common.LDAPGroupAttributeName].(string)
+	}
+	if _, ok := cfg[common.LDAPGroupSearchScope]; ok {
+		if scopeStr, ok := cfg[common.LDAPGroupSearchScope].(string); ok {
+			ldapGroupConf.LdapGroupSearchScope, err = strconv.Atoi(scopeStr)
+		}
+		if scopeFloat, ok := cfg[common.LDAPGroupSearchScope].(float64); ok {
+			ldapGroupConf.LdapGroupSearchScope = int(scopeFloat)
+		}
+	}
+	return ldapGroupConf, nil
 }
 
 // TokenExpiration returns the token expiration time (in minute)
@@ -265,33 +302,43 @@ func InternalJobServiceURL() string {
 	cfg, err := mg.Get()
 	if err != nil {
 		log.Warningf("Failed to Get job service URL from backend, error: %v, will return default value.")
-
-		return "http://jobservice"
+		return common.DefaultJobserviceEndpoint
 	}
 
 	if cfg[common.JobServiceURL] == nil {
-		return "http://jobservice"
+		return common.DefaultJobserviceEndpoint
 	}
 	return strings.TrimSuffix(cfg[common.JobServiceURL].(string), "/")
 }
 
-// InternalTokenServiceEndpoint returns token service endpoint for internal communication between Harbor containers
-func InternalTokenServiceEndpoint() string {
-	uiURL := "http://ui"
+// InternalUIURL returns the local ui url
+func InternalUIURL() string {
 	cfg, err := mg.Get()
 	if err != nil {
-		log.Warningf("Failed to Get job service UI URL from backend, error: %v, will use default value.")
-
-	} else {
-		uiURL = cfg[common.UIURL].(string)
+		log.Warningf("Failed to Get job service UI URL from backend, error: %v, will return default value.")
+		return common.DefaultUIEndpoint
 	}
-	return strings.TrimSuffix(uiURL, "/") + "/service/token"
+	return strings.TrimSuffix(cfg[common.UIURL].(string), "/")
+
+}
+
+// InternalTokenServiceEndpoint returns token service endpoint for internal communication between Harbor containers
+func InternalTokenServiceEndpoint() string {
+	return InternalUIURL() + "/service/token"
 }
 
 // InternalNotaryEndpoint returns notary server endpoint for internal communication between Harbor containers
 // This is currently a conventional value and can be unaccessible when Harbor is not deployed with Notary.
 func InternalNotaryEndpoint() string {
-	return "http://notary-server:4443"
+	cfg, err := mg.Get()
+	if err != nil {
+		log.Warningf("Failed to get Notary endpoint from backend, error: %v, will use default value.")
+		return common.DefaultNotaryEndpoint
+	}
+	if cfg[common.NotaryURL] == nil {
+		return common.DefaultNotaryEndpoint
+	}
+	return cfg[common.NotaryURL].(string)
 }
 
 // InitialAdminPassword returns the initial password for administrator
@@ -370,7 +417,7 @@ func JobserviceSecret() string {
 func WithNotary() bool {
 	cfg, err := mg.Get()
 	if err != nil {
-		log.Errorf("Failed to get configuration, will return WithNotary == false")
+		log.Warningf("Failed to get configuration, will return WithNotary == false")
 		return false
 	}
 	return cfg[common.WithNotary].(bool)
@@ -388,7 +435,12 @@ func WithClair() bool {
 
 // ClairEndpoint returns the end point of clair instance, by default it's the one deployed within Harbor.
 func ClairEndpoint() string {
-	return common.DefaultClairEndpoint
+	cfg, err := mg.Get()
+	if err != nil {
+		log.Errorf("Failed to get configuration, use default clair endpoint")
+		return common.DefaultClairEndpoint
+	}
+	return cfg[common.ClairURL].(string)
 }
 
 // ClairDB return Clair db info
@@ -463,4 +515,14 @@ func UAASettings() (*models.UAASettings, error) {
 		VerifyCert:   cfg[common.UAAVerifyCert].(bool),
 	}
 	return us, nil
+}
+
+// ReadOnly returns a bool to indicates if Harbor is in read only mode.
+func ReadOnly() bool {
+	cfg, err := mg.Get()
+	if err != nil {
+		log.Errorf("Failed to get configuration, will return false as read only, error: %v", err)
+		return false
+	}
+	return cfg[common.ReadOnly].(bool)
 }

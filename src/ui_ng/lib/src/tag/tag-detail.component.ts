@@ -6,6 +6,7 @@ import { TAG_DETAIL_HTML } from './tag-detail.component.html';
 import { TagService, Tag, VulnerabilitySeverity } from '../service/index';
 import { toPromise } from '../utils';
 import { ErrorHandler } from '../error-handler/index';
+import {Label} from "../service/interface";
 
 @Component({
     selector: 'hbr-tag-detail',
@@ -19,9 +20,12 @@ export class TagDetailComponent implements OnInit {
     _mediumCount: number = 0;
     _lowCount: number = 0;
     _unknownCount: number = 0;
+    labels: Label;
 
     @Input() tagId: string;
     @Input() repositoryId: string;
+    @Input() withAdmiral: boolean;
+    @Input() withClair: boolean;
     tagDetails: Tag = {
         name: "--",
         size: "--",
@@ -30,10 +34,13 @@ export class TagDetailComponent implements OnInit {
         architecture: "--",
         os: "--",
         docker_version: "--",
-        digest: "--"
+        digest: "--",
+        labels: [],
     };
 
-    @Output() backEvt: EventEmitter<any> = new EventEmitter<any>();
+    @Output() backTagEvt: EventEmitter<any> = new EventEmitter<any>();
+    @Output() backRepEvt: EventEmitter<any> = new EventEmitter<any>();
+    @Output() backProEvt: EventEmitter<any> = new EventEmitter<any>();
 
     constructor(
         private tagService: TagService,
@@ -72,8 +79,14 @@ export class TagDetailComponent implements OnInit {
         }
     }
 
-    onBack(): void {
-        this.backEvt.emit(this.tagId);
+    onBackTag(): void {
+        this.backTagEvt.emit(this.repositoryId);
+    }
+    onBackRep(): void {
+        this.backRepEvt.emit();
+    }
+    onBackPro(): void {
+        this.backProEvt.emit();
     }
 
     getPackageText(count: number): string {

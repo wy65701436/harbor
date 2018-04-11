@@ -89,6 +89,13 @@ var (
 			env:   "LDAP_VERIFY_CERT",
 			parse: parseStringToBool,
 		},
+		common.LDAPGroupBaseDN:        "LDAP_GROUP_BASEDN",
+		common.LDAPGroupSearchFilter:  "LDAP_GROUP_FILTER",
+		common.LDAPGroupAttributeName: "LDAP_GROUP_GID",
+		common.LDAPGroupSearchScope: &parser{
+			env:   "LDAP_GROUP_SCOPE",
+			parse: parseStringToInt,
+		},
 		common.EmailHost: "EMAIL_HOST",
 		common.EmailPort: &parser{
 			env:   "EMAIL_PORT",
@@ -147,13 +154,29 @@ var (
 		},
 		common.UIURL:                       "UI_URL",
 		common.JobServiceURL:               "JOBSERVICE_URL",
+		common.TokenServiceURL:             "TOKEN_SERVICE_URL",
+		common.ClairURL:                    "CLAIR_URL",
+		common.NotaryURL:                   "NOTARY_URL",
 		common.RegistryStorageProviderName: "REGISTRY_STORAGE_PROVIDER_NAME",
+		common.ReadOnly: &parser{
+			env:   "READ_ONLY",
+			parse: parseStringToBool,
+		},
 	}
 
 	// configurations need read from environment variables
 	// every time the system startup
 	repeatLoadEnvs = map[string]interface{}{
-		common.ExtEndpoint: "EXT_ENDPOINT",
+		common.ExtEndpoint:    "EXT_ENDPOINT",
+		common.PostGreSQLHOST: "POSTGRESQL_HOST",
+		common.PostGreSQLPort: &parser{
+			env:   "POSTGRESQL_PORT",
+			parse: parseStringToInt,
+		},
+		common.PostGreSQLUsername: "POSTGRESQL_USERNAME",
+		common.PostGreSQLPassword: "POSTGRESQL_PASSWORD",
+		common.PostGreSQLDatabase: "POSTGRESQL_DATABASE",
+		common.PostGreSQLSSLMode:  "POSTGRESQL_SSLMODE",
 		common.MaxJobWorkers: &parser{
 			env:   "MAX_JOB_WORKERS",
 			parse: parseStringToInt,
@@ -172,6 +195,12 @@ var (
 			parse: parseStringToBool,
 		},
 		common.ClairDBPassword: "CLAIR_DB_PASSWORD",
+		common.ClairDBHost:     "CLAIR_DB_HOST",
+		common.ClairDBUsername: "CLAIR_DB_USERNAME",
+		common.ClairDBPort: &parser{
+			env:   "CLAIR_DB_PORT",
+			parse: parseStringToInt,
+		},
 		common.UAAEndpoint:     "UAA_ENDPOINT",
 		common.UAAClientID:     "UAA_CLIENTID",
 		common.UAAClientSecret: "UAA_CLIENTSECRET",
@@ -180,6 +209,12 @@ var (
 			parse: parseStringToBool,
 		},
 		common.RegistryStorageProviderName: "REGISTRY_STORAGE_PROVIDER_NAME",
+		common.UIURL:                       "UI_URL",
+		common.JobServiceURL:               "JOBSERVICE_URL",
+		common.RegistryURL:                 "REGISTRY_URL",
+		common.TokenServiceURL:             "TOKEN_SERVICE_URL",
+		common.ClairURL:                    "CLAIR_URL",
+		common.NotaryURL:                   "NOTARY_URL",
 	}
 )
 
@@ -381,4 +416,5 @@ func validLdapScope(cfg map[string]interface{}, isMigrate bool) {
 		ldapScope = 0
 	}
 	cfg[ldapScopeKey] = ldapScope
+
 }

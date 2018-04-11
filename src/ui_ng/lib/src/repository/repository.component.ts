@@ -47,14 +47,13 @@ const TabLinkContentMap: {[index: string]: string} = {
 export class RepositoryComponent implements OnInit {
   signedCon: {[key: string]: any | string[]} = {};
   @Input() projectId: number;
-  @Input() projectName: string;
   @Input() repoName: string;
   @Input() hasSignedIn: boolean;
   @Input() hasProjectAdminRole: boolean;
-  @Input() withNotary: boolean;
-  @Input() withClair: boolean;
+  @Input() isGuest: boolean;
   @Output() tagClickEvent = new EventEmitter<TagClickEvent>();
-  @Output() backEvt: EventEmitter<any> = new EventEmitter<any>();
+  @Output() backRepEvt: EventEmitter<any> = new EventEmitter<any>();
+  @Output() backProEvt: EventEmitter<any> = new EventEmitter<any>();
 
   onGoing = false;
   editing = false;
@@ -81,6 +80,18 @@ export class RepositoryComponent implements OnInit {
 
   public get registryUrl(): string {
     return this.systemInfo ? this.systemInfo.registry_url : '';
+  }
+
+  public get withNotary(): boolean {
+    return this.systemInfo ? this.systemInfo.with_notary : false;
+  }
+
+  public get withClair(): boolean {
+    return this.systemInfo ? this.systemInfo.with_clair : false;
+  }
+
+  public get withAdmiral(): boolean {
+    return this.systemInfo ? this.systemInfo.with_admiral : false;
   }
 
   ngOnInit(): void {
@@ -145,9 +156,12 @@ export class RepositoryComponent implements OnInit {
            .catch(error => this.errorHandler.error(error));
  }
 
-  goBack() {
-    this.backEvt.emit(this.projectId);
-  }
+    goRepBack(): void {
+        this.backRepEvt.emit(this.projectId);
+    }
+    goProBack(): void {
+        this.backProEvt.emit();
+    }
 
   hasChanges() {
     return this.imageInfo !== this.orgImageInfo;

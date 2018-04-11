@@ -41,6 +41,10 @@ var (
 		common.LDAPScope,
 		common.LDAPTimeout,
 		common.LDAPVerifyCert,
+		common.LDAPGroupAttributeName,
+		common.LDAPGroupBaseDN,
+		common.LDAPGroupSearchFilter,
+		common.LDAPGroupSearchScope,
 		common.EmailHost,
 		common.EmailPort,
 		common.EmailUsername,
@@ -56,6 +60,7 @@ var (
 		common.UAAClientSecret,
 		common.UAAEndpoint,
 		common.UAAVerifyCert,
+		common.ReadOnly,
 	}
 
 	stringKeys = []string{
@@ -66,6 +71,9 @@ var (
 		common.LDAPBaseDN,
 		common.LDAPUID,
 		common.LDAPFilter,
+		common.LDAPGroupAttributeName,
+		common.LDAPGroupBaseDN,
+		common.LDAPGroupSearchFilter,
 		common.EmailHost,
 		common.EmailUsername,
 		common.EmailPassword,
@@ -80,6 +88,7 @@ var (
 		common.EmailPort,
 		common.LDAPScope,
 		common.LDAPTimeout,
+		common.LDAPGroupSearchScope,
 		common.TokenExpiration,
 	}
 
@@ -89,6 +98,7 @@ var (
 		common.SelfRegistration,
 		common.LDAPVerifyCert,
 		common.UAAVerifyCert,
+		common.ReadOnly,
 	}
 
 	passwordKeys = []string{

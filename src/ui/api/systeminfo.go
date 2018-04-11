@@ -37,7 +37,7 @@ type SystemInfoAPI struct {
 }
 
 const defaultRootCert = "/etc/ui/ca/ca.crt"
-const harborVersionFile = "/harbor/VERSION"
+const harborVersionFile = "/harbor/UIVERSION"
 
 //SystemInfo models for system info.
 type SystemInfo struct {
@@ -99,6 +99,7 @@ type GeneralInfo struct {
 	NextScanAll                 int64                            `json:"next_scan_all"`
 	ClairVulnStatus             *models.ClairVulnerabilityStatus `json:"clair_vulnerability_status,omitempty"`
 	RegistryStorageProviderName string                           `json:"registry_storage_provider_name"`
+	ReadOnly                    bool                             `json:"read_only"`
 }
 
 // validate for validating user if an admin.
@@ -177,6 +178,7 @@ func (sia *SystemInfoAPI) GetGeneralInfo() {
 		HasCARoot:                   caStatErr == nil,
 		HarborVersion:               harborVersion,
 		RegistryStorageProviderName: cfg[common.RegistryStorageProviderName].(string),
+		ReadOnly:                    config.ReadOnly(),
 	}
 	if info.WithClair {
 		info.ClairVulnStatus = getClairVulnStatus()
@@ -246,4 +248,10 @@ func getClairVulnStatus() *models.ClairVulnerabilityStatus {
 	}
 	res.Details = details
 	return res
+}
+
+// Ping ping the harbor UI service.
+func (sia *SystemInfoAPI) Ping() {
+	sia.Data["json"] = "Pong"
+	sia.ServeJSON()
 }

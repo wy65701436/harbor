@@ -64,7 +64,7 @@ create table user_group (
 id INTEGER PRIMARY KEY,
 group_name varchar(255) NOT NULL,
 group_type int default 0,
-group_property varchar(512) NOT NULL,
+ldap_group_dn varchar(512) NOT NULL,
 creation_time timestamp default CURRENT_TIMESTAMP,
 update_time timestamp default CURRENT_TIMESTAMP
 );
@@ -111,7 +111,7 @@ create table project_metadata (
  creation_time timestamp,
  update_time timestamp,
  deleted tinyint (1) DEFAULT 0 NOT NULL,
- UNIQUE(project_id, name) ON CONFLICT REPLACE,
+ UNIQUE(project_id, name),
  FOREIGN KEY (project_id) REFERENCES project(project_id)
 );
 
@@ -183,6 +183,7 @@ create table replication_job (
  repository varchar(256) NOT NULL,
  operation  varchar(64) NOT NULL,
  tags   varchar(16384),
+ job_uuid varchar(64),
  creation_time timestamp default CURRENT_TIMESTAMP,
  update_time timestamp default CURRENT_TIMESTAMP
  );
@@ -204,6 +205,7 @@ create table img_scan_job (
  repository varchar(256) NOT NULL,
  tag   varchar(128) NOT NULL,
  digest varchar(64),
+ job_uuid varchar(64),
  creation_time timestamp default CURRENT_TIMESTAMP,
  update_time timestamp default CURRENT_TIMESTAMP
  );
@@ -240,9 +242,53 @@ create table properties (
  UNIQUE(k)
  );
 
+create table harbor_label (
+ id INTEGER PRIMARY KEY,
+ name varchar(128) NOT NULL,
+ description text,
+ color varchar(16),
+/*
+ 's' for system level labels
+ 'u' for user level labels
+*/
+ level char(1) NOT NULL,
+/*
+ 'g' for global labels
+ 'p' for project labels
+*/
+ scope char(1) NOT NULL,
+ project_id int,
+ creation_time timestamp default CURRENT_TIMESTAMP,
+ update_time timestamp default CURRENT_TIMESTAMP,
+ UNIQUE(name, scope)
+ );
+
+create table harbor_resource_label (
+ id INTEGER PRIMARY KEY,
+ label_id int NOT NULL,
+/*
+ the resource_id is the ID of project when the resource_type is p
+ the resource_id is the ID of repository when the resource_type is r
+*/
+ resource_id int,
+/*
+ the resource_name is the name of image when the resource_type is i
+*/
+ resource_name varchar(256),
+/*
+ 'p' for project
+ 'r' for repository
+ 'i' for image
+*/
+ resource_type char(1) NOT NULL,
+ creation_time timestamp default CURRENT_TIMESTAMP,
+ update_time timestamp default CURRENT_TIMESTAMP,
+ UNIQUE (label_id,resource_id,resource_name,resource_type)
+ );
+
 create table alembic_version (
     version_num varchar(32) NOT NULL
 );
 
-insert into alembic_version values ('1.4.0');
+insert into alembic_version values ('1.5.0');
 

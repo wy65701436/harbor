@@ -29,6 +29,15 @@ const (
 	RoleDeveloper    = 2
 	RoleGuest        = 3
 
+	LabelLevelSystem  = "s"
+	LabelLevelUser    = "u"
+	LabelScopeGlobal  = "g"
+	LabelScopeProject = "p"
+
+	ResourceTypeProject    = "p"
+	ResourceTypeRepository = "r"
+	ResourceTypeImage      = "i"
+
 	ExtEndpoint                 = "ext_endpoint"
 	AUTHMode                    = "auth_mode"
 	DatabaseType                = "database_type"
@@ -50,6 +59,10 @@ const (
 	LDAPScope                   = "ldap_scope"
 	LDAPTimeout                 = "ldap_timeout"
 	LDAPVerifyCert              = "ldap_verify_cert"
+	LDAPGroupBaseDN             = "ldap_group_base_dn"
+	LDAPGroupSearchFilter       = "ldap_group_search_filter"
+	LDAPGroupAttributeName      = "ldap_group_attribute_name"
+	LDAPGroupSearchScope        = "ldap_group_search_scope"
 	TokenServiceURL             = "token_service_url"
 	RegistryURL                 = "registry_url"
 	EmailHost                   = "email_host"
@@ -86,4 +99,12 @@ const (
 	RegistryStorageProviderName = "registry_storage_provider_name"
 	UserMember                  = "u"
 	GroupMember                 = "g"
+	ReadOnly                    = "read_only"
+	ClairURL                    = "clair_url"
+	NotaryURL                   = "notary_url"
+	DefaultAdminserverEndpoint  = "http://adminserver:8080"
+	DefaultJobserviceEndpoint   = "http://jobservice:8080"
+	DefaultUIEndpoint           = "http://ui:8080"
+	DefaultNotaryEndpoint       = "http://notary-server:4443"
+	LdapGroupType               = 1
 )

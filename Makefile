@@ -85,9 +85,14 @@ BUILDBIN=false
 MIGRATORFLAG=false
 
 # version prepare
+# for docker image tag
 VERSIONTAG=dev
+# for harbor package name
+PKGVERSIONTAG=dev
+# for harbor about dialog
+UIVERSIONTAG=dev
 VERSIONFILEPATH=$(CURDIR)
-VERSIONFILENAME=VERSION
+VERSIONFILENAME=UIVERSION
 
 #versions
 REGISTRYVERSION=v2.6.2
@@ -97,7 +102,8 @@ NOTARYVERSION=v0.5.1
 MARIADBVERSION=$(VERSIONTAG)
 CLAIRVERSION=v2.0.1
 CLAIRDBVERSION=$(VERSIONTAG)
-MIGRATORVERSION=1.4
+MIGRATORVERSION=v1.5.0-test
+REDISVERSION=$(VERSIONTAG)
 
 #clarity parameters
 CLARITYIMAGE=vmware/harbor-clarity-ui-builder[:tag]
@@ -203,15 +209,16 @@ DOCKERSAVE_PARA=$(DOCKERIMAGENAME_ADMINSERVER):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_LOG):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_DB):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_JOBSERVICE):$(VERSIONTAG) \
+		vmware/redis-photon:$(REDISVERSION) \
 		vmware/nginx-photon:$(NGINXVERSION) vmware/registry-photon:$(REGISTRYVERSION)-$(VERSIONTAG) \
 		vmware/photon:$(PHOTONVERSION)
-PACKAGE_OFFLINE_PARA=-zcvf harbor-offline-installer-$(VERSIONTAG).tgz \
+PACKAGE_OFFLINE_PARA=-zcvf harbor-offline-installer-$(PKGVERSIONTAG).tgz \
 		          $(HARBORPKG)/common/templates $(HARBORPKG)/$(DOCKERIMGFILE).$(VERSIONTAG).tar.gz \
 				  $(HARBORPKG)/prepare $(HARBORPKG)/NOTICE \
 				  $(HARBORPKG)/LICENSE $(HARBORPKG)/install.sh \
 				  $(HARBORPKG)/harbor.cfg $(HARBORPKG)/$(DOCKERCOMPOSEFILENAME) \
 				  $(HARBORPKG)/ha
-PACKAGE_ONLINE_PARA=-zcvf harbor-online-installer-$(VERSIONTAG).tgz \
+PACKAGE_ONLINE_PARA=-zcvf harbor-online-installer-$(PKGVERSIONTAG).tgz \
 		          $(HARBORPKG)/common/templates $(HARBORPKG)/prepare \
 				  $(HARBORPKG)/LICENSE $(HARBORPKG)/NOTICE \
 				  $(HARBORPKG)/install.sh $(HARBORPKG)/$(DOCKERCOMPOSEFILENAME) \
@@ -232,11 +239,11 @@ ifeq ($(CLAIRFLAG), true)
 	DOCKERCOMPOSE_LIST+= -f $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSECLAIRFILENAME)
 endif
 ifeq ($(MIGRATORFLAG), true)
-	DOCKERSAVE_PARA+= vmware/harbor-db-migrator:$(MIGRATORVERSION)
+	DOCKERSAVE_PARA+= vmware/harbor-migrator:$(MIGRATORVERSION)
 endif
 
 version:
-	@printf $(VERSIONTAG) > $(VERSIONFILEPATH)/$(VERSIONFILENAME);
+	@printf $(UIVERSIONTAG) > $(VERSIONFILEPATH)/$(VERSIONFILENAME);
 
 check_environment:
 	@$(MAKEPATH)/$(CHECKENVCMD)
@@ -277,7 +284,7 @@ build:
 	make -f $(MAKEFILEPATH_PHOTON)/Makefile build -e DEVFLAG=$(DEVFLAG) -e MARIADBVERSION=$(MARIADBVERSION) \
 	 -e REGISTRYVERSION=$(REGISTRYVERSION) -e NGINXVERSION=$(NGINXVERSION) -e NOTARYVERSION=$(NOTARYVERSION) \
 	 -e CLAIRVERSION=$(CLAIRVERSION) -e CLAIRDBVERSION=$(CLAIRDBVERSION) -e VERSIONTAG=$(VERSIONTAG) \
-	 -e BUILDBIN=$(BUILDBIN)
+	 -e BUILDBIN=$(BUILDBIN) -e REDISVERSION=$(REDISVERSION)
 
 modify_composefile: modify_composefile_notary modify_composefile_clair
 	@echo "preparing docker-compose file..."
@@ -290,6 +297,7 @@ modify_composefile: modify_composefile_notary modify_composefile_clair
 	@$(SEDCMD) -i 's/__reg_version__/$(REGISTRYVERSION)-$(VERSIONTAG)/g' $(DOCKERCOMPOSEFILEPATH)/ha/$(DOCKERCOMPOSEFILENAME)
 	@$(SEDCMD) -i 's/__nginx_version__/$(NGINXVERSION)/g' $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSEFILENAME)
 	@$(SEDCMD) -i 's/__nginx_version__/$(NGINXVERSION)/g' $(DOCKERCOMPOSEFILEPATH)/ha/$(DOCKERCOMPOSEFILENAME)
+	@$(SEDCMD) -i 's/__redis_version__/$(REDISVERSION)/g' $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSEFILENAME)
 
 modify_composefile_notary:
 	@echo "preparing docker-compose notary file..."
@@ -339,8 +347,8 @@ package_offline: compile version build modify_sourcefiles modify_composefile
 	@cp $(HARBORPKG)/photon/db/registry.sql $(HARBORPKG)/ha/
 	
 	@if [ "$(MIGRATORFLAG)" = "true" ] ; then \
-		echo "pulling DB migrator..."; \
-		$(DOCKERPULL) vmware/harbor-db-migrator:$(MIGRATORVERSION); \
+		echo "pulling Harbor migrator..."; \
+		$(DOCKERPULL) vmware/harbor-migrator:$(MIGRATORVERSION); \
 	fi
 
 	@echo "saving harbor docker image"
