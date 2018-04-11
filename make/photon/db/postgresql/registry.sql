@@ -8,6 +8,13 @@ create table access (
  comment varchar (30)
 );
 
+insert into access (access_code, comment) values 
+('M', 'Management access for project'),
+('R', 'Read access for project'),
+('W', 'Write access for project'),
+('D', 'Delete access for project'),
+('S', 'Search access for project');
+
 create table role (
  role_id SERIAL PRIMARY KEY NOT NULL,
  role_mask int DEFAULT 0 NOT NULL,
@@ -49,6 +56,8 @@ insert into harbor_user (username, email, password, realname, comment, deleted, 
 create table project (
  project_id SERIAL PRIMARY KEY NOT NULL,
  owner_id int NOT NULL,
+ # The max length of name controlled by API is 30, 
+ # and 11 is reserved for marking the deleted project.
  name varchar (255) NOT NULL,
  creation_time timestamp,
  update_time timestamp,
@@ -112,7 +121,7 @@ create table user_group (
  id SERIAL NOT NULL,
  group_name varchar(255) NOT NULL,
  group_type smallint default 0,
- group_property varchar(512) NOT NULL,
+ ldap_group_dn varchar(512) NOT NULL,
  creation_time timestamp default 'now'::timestamp,
  update_time timestamp default 'now'::timestamp,
  PRIMARY KEY (id)
@@ -195,6 +204,10 @@ create table replication_job (
  repository varchar(256) NOT NULL,
  operation  varchar(64) NOT NULL,
  tags   varchar(16384),
+  /*
+New job service only records uuid, for compatibility in this table both IDs are stored.
+ */
+ job_uuid varchar(64),
  creation_time timestamp default 'now'::timestamp,
  update_time timestamp default 'now'::timestamp,
  PRIMARY KEY (id)
@@ -202,6 +215,7 @@ create table replication_job (
  
 CREATE INDEX policy ON replication_job (policy_id);
 CREATE INDEX poid_uptime ON replication_job (policy_id, update_time);
+CREATE INDEX poid_status ON replication_job (policy_id, status);
  
 CREATE TRIGGER replication_job_update_time_at_modtime BEFORE UPDATE ON replication_job FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
 
@@ -224,10 +238,19 @@ create table replication_immediate_trigger (
  repository varchar(256) NOT NULL,
  tag varchar(128) NOT NULL,
  digest varchar(128),
+/*
+New job service only records uuid, for compatibility in this table both IDs are stored.
+*/
+ job_uuid varchar(64),
  creation_time timestamp default 'now'::timestamp,
  update_time timestamp default 'now'::timestamp,
  PRIMARY KEY (id)
  );
+
+CREATE INDEX idx_status ON img_scan_job (status);
+CREATE INDEX idx_digest ON img_scan_job (digest);
+CREATE INDEX idx_uuid ON img_scan_job (job_uuid);
+CREATE INDEX idx_repository_tag ON img_scan_job (repository,tag);
  
 CREATE TRIGGER img_scan_job_update_time_at_modtime BEFORE UPDATE ON img_scan_job FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
 
@@ -264,10 +287,60 @@ create table properties (
  PRIMARY KEY(id),
  UNIQUE (k)
  );
+
+create table harbor_label (
+ id SERIAL NOT NULL,
+ name varchar(128) NOT NULL,
+ description text,
+ color varchar(16),
+/*
+'s' for system level labels
+'u' for user level labels
+*/
+ level char(1) NOT NULL,
+/*
+'g' for global labels
+'p' for project labels
+*/
+ scope char(1) NOT NULL,
+ project_id int,
+ creation_time timestamp default 'now'::timestamp,
+ update_time timestamp default 'now'::timestamp,
+ PRIMARY KEY(id),
+ CONSTRAINT unique_name_and_scope UNIQUE (name,scope)
+ );
+
+CREATE TRIGGER harbor_label_update_time_at_modtime BEFORE UPDATE ON harbor_label FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
+
+create table harbor_resource_label (
+ id SERIAL NOT NULL,
+ label_id int NOT NULL,
+/*
+ the resource_id is the ID of project when the resource_type is p
+ the resource_id is the ID of repository when the resource_type is r
+*/
+ resource_id int,
+/*
+the resource_name is the name of image when the resource_type is i
+*/
+ resource_name varchar(256),
+/*
+ 'p' for project
+ 'r' for repository
+ 'i' for image
+*/
+ resource_type char(1) NOT NULL,
+ creation_time timestamp default 'now'::timestamp,
+ update_time timestamp default 'now'::timestamp,
+ PRIMARY KEY(id),
+ CONSTRAINT unique_label_resource UNIQUE (label_id,resource_id, resource_name, resource_type)
+ );
+
+CREATE TRIGGER harbor_resource_label_update_time_at_modtime BEFORE UPDATE ON harbor_resource_label FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
  
 CREATE TABLE IF NOT EXISTS alembic_version (
     version_num varchar(32) NOT NULL
 );
 
-insert into alembic_version values ('1.4.0');
+insert into alembic_version values ('1.5.0');
 
