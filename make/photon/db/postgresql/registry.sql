@@ -56,8 +56,10 @@ insert into harbor_user (username, email, password, realname, comment, deleted, 
 create table project (
  project_id SERIAL PRIMARY KEY NOT NULL,
  owner_id int NOT NULL,
- # The max length of name controlled by API is 30, 
- # and 11 is reserved for marking the deleted project.
+ /*
+ The max length of name controlled by API is 30, 
+ and 11 is reserved for marking the deleted project.
+ */
  name varchar (255) NOT NULL,
  creation_time timestamp,
  update_time timestamp,
