@@ -549,4 +549,3 @@ if args.ha_mode:
 
 FNULL.close()
 print("The configuration files are ready, please use docker-compose to start the service.")
-
