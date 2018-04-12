@@ -26,7 +26,7 @@ import (
 func AddUserGroup(userGroup models.UserGroup) (int, error) {
 	o := dao.GetOrmer()
 
-	sql := "insert into project (group_name, group_type, ldap_group_dn, creation_time, update_time) values (?, ?, ?, ?, ?) RETURNING id"
+	sql := "insert into user_group (group_name, group_type, ldap_group_dn, creation_time, update_time) values (?, ?, ?, ?, ?) RETURNING id"
 	var id int
 	now := time.Now()
 
