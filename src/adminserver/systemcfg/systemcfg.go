@@ -389,7 +389,7 @@ func GetDatabaseFromCfg(cfg map[string]interface{}) *models.Database {
 	database.Type = cfg[common.DatabaseType].(string)
 	postgresql := &models.PostGreSQL{}
 	postgresql.Host = cfg[common.PostGreSQLHOST].(string)
-	postgresql.Port = int(cfg[common.PostGreSQLPort].(int))
+	postgresql.Port = int(cfg[common.PostGreSQLPort].(float64))
 	postgresql.Username = cfg[common.PostGreSQLUsername].(string)
 	postgresql.Password = cfg[common.PostGreSQLPassword].(string)
 	postgresql.Database = cfg[common.PostGreSQLDatabase].(string)
