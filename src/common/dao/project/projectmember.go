@@ -90,13 +90,13 @@ func AddProjectMember(member models.Member) (int, error) {
 		return 0, err
 	}
 
-	var pmid int64
+	var pmid int
 	sql := "insert into project_member (project_id, entity_id , role, entity_type) values (?, ?, ?, ?)"
 	err = o.Raw(sql, member.ProjectID, member.EntityID, member.Role, member.EntityType).QueryRow(&pmid)
 	if err != nil {
 		return 0, err
 	}
-	return int(pmid), err
+	return pmid, err
 }
 
 // UpdateProjectMemberRole updates the record in table project_member, only role can be changed

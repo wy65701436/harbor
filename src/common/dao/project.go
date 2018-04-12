@@ -65,16 +65,13 @@ func addProjectMember(member models.Member) (int, error) {
 		return 0, fmt.Errorf("Invalid project_id, member: %+v", member)
 	}
 
+	var pmID int
 	sql := "insert into project_member (project_id, entity_id , role, entity_type) values (?, ?, ?, ?)"
-	r, err := o.Raw(sql, member.ProjectID, member.EntityID, member.Role, member.EntityType).Exec()
+	err := o.Raw(sql, member.ProjectID, member.EntityID, member.Role, member.EntityType).QueryRow(&pmID)
 	if err != nil {
 		return 0, err
 	}
-	pmid, err := r.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	return int(pmid), err
+	return pmID, err
 }
 
 // GetProjectByID ...
