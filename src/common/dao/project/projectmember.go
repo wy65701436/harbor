@@ -89,12 +89,10 @@ func AddProjectMember(member models.Member) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	var pmid int64
 	sql := "insert into project_member (project_id, entity_id , role, entity_type) values (?, ?, ?, ?)"
-	r, err := o.Raw(sql, member.ProjectID, member.EntityID, member.Role, member.EntityType).Exec()
-	if err != nil {
-		return 0, err
-	}
-	pmid, err := r.LastInsertId()
+	err = o.Raw(sql, member.ProjectID, member.EntityID, member.Role, member.EntityType).QueryRow(&pmid)
 	if err != nil {
 		return 0, err
 	}
