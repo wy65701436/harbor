@@ -35,7 +35,7 @@ func GetProjectMember(queryMember models.Member) ([]*models.Member, error) {
 		on pm.project_id = ? and ug.id = pm.entity_id join role r on pm.role = r.role_id where  pm.entity_type = 'g')
 		union
 		(select pm.id as id, pm.project_id as project_id, u.user_id as entity_id, u.username as entity_name, u.creation_time, u.update_time, r.name as rolename, 
-		r.role_id as role, pm.entity_type as entity_type from user u join project_member pm 
+		r.role_id as role, pm.entity_type as entity_type from harbor_user u join project_member pm 
 		on pm.project_id = ? and u.user_id = pm.entity_id 
 		join role r on pm.role = r.role_id where u.deleted = 0 and pm.entity_type = 'u')) as a where a.project_id = ? `
 
