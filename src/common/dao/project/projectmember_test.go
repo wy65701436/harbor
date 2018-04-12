@@ -31,16 +31,14 @@ import (
 func TestMain(m *testing.M) {
 
 	//databases := []string{"mysql", "sqlite"}
-	databases := []string{"mysql"}
+	databases := []string{"postgresql"}
 	for _, database := range databases {
 		log.Infof("run test cases for database: %s", database)
 
 		result := 1
 		switch database {
-		case "mysql":
-			dao.PrepareTestForMySQL()
-		case "sqlite":
-			dao.PrepareTestForSQLite()
+		case "postgresql":
+			dao.PrepareTestForPostgresSQL()
 		default:
 			log.Fatalf("invalid database: %s", database)
 		}
