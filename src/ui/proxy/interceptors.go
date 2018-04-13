@@ -132,7 +132,7 @@ type urlHandler struct {
 
 func (uh urlHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	log.Debugf("in url handler, path: %s", req.URL.Path)
-	req.URL.Path = strings.TrimPrefix(req.URL.Path, RegistryProxyPrefix)
+	// req.URL.Path = strings.TrimPrefix(req.URL.Path, RegistryProxyPrefix)
 	flag, repository, reference := MatchPullManifest(req)
 	if flag {
 		components := strings.SplitN(repository, "/", 2)
@@ -175,6 +175,7 @@ type readonlyHandler struct {
 func (rh readonlyHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	errorCode := "DENIED"
 	errorMsg := "The system is in read only mode. Any modification is not prohibited."
+	req.URL.Path = strings.TrimPrefix(req.URL.Path, RegistryProxyPrefix)
 	if config.ReadOnly() {
 		if MatchCheckLayer(req) {
 			http.Error(rw, marshalError(errorCode, errorMsg), http.StatusForbidden)
