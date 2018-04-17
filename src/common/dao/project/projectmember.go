@@ -125,7 +125,7 @@ func SearchMemberByName(projectID int64, entityName string) ([]*models.Member, e
 	               r.name as rolename,
 			       pm.role, pm.entity_id, pm.entity_type 
 			  from project_member pm
-         left join user u on pm.entity_id = u.user_id and pm.entity_type = 'u'
+         left join harbor_user u on pm.entity_id = u.user_id and pm.entity_type = 'u'
 		 left join role r on pm.role = r.role_id
 			 where u.deleted = 0 and pm.project_id = ? and u.username like ? order by entity_name )
 			union
