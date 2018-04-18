@@ -63,7 +63,7 @@ create table project (
  name varchar (255) NOT NULL,
  creation_time timestamp,
  update_time timestamp,
- deleted smallint DEFAULT 0 NOT NULL,
+ deleted boolean NOT NULL,
  FOREIGN KEY (owner_id) REFERENCES harbor_user(user_id),
  UNIQUE (name)
 );
