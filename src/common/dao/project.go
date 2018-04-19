@@ -218,7 +218,7 @@ func projectQueryConditions(query *models.ProjectQueryParam) (string, []interfac
 			params = append(params, (query.Pagination.Page-1)*query.Pagination.Size)
 		}
 	}
-	/sign-in
+
 	return sql, params
 }
 
