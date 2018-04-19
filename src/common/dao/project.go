@@ -218,7 +218,7 @@ func projectQueryConditions(query *models.ProjectQueryParam) (string, []interfac
 			params = append(params, (query.Pagination.Page-1)*query.Pagination.Size)
 		}
 	}
-
+	/sign-in
 	return sql, params
 }
 
@@ -232,7 +232,7 @@ func DeleteProject(id int64) error {
 	name := fmt.Sprintf("%s#%d", project.Name, project.ProjectID)
 
 	sql := `update project 
-		set deleted = 1, name = ? 
+		set deleted = true, name = ? 
 		where project_id = ?`
 	_, err = GetOrmer().Raw(sql, name, id).Exec()
 	return err

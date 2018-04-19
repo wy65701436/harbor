@@ -27,7 +27,7 @@ func AddProjectMetadata(meta *models.ProjectMetadata) error {
 	now := time.Now()
 	sql := `insert into project_metadata
 				(project_id, name, value, creation_time, update_time, deleted)
-				 values (?, ?, ?, ?, ?, 0)`
+				 values (?, ?, ?, ?, ?, false)`
 	_, err := GetOrmer().Raw(sql, meta.ProjectID, meta.Name, meta.Value,
 		now, now).Exec()
 	return err

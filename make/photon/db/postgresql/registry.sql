@@ -63,7 +63,7 @@ create table project (
  name varchar (255) NOT NULL,
  creation_time timestamp,
  update_time timestamp,
- deleted boolean NOT NULL,
+ deleted boolean DEFAULT FALSE NOT NULL,
  FOREIGN KEY (owner_id) REFERENCES harbor_user(user_id),
  UNIQUE (name)
 );
@@ -108,7 +108,7 @@ create table project_metadata (
  value varchar(255),
  creation_time timestamp default 'now'::timestamp,
  update_time timestamp default 'now'::timestamp,
- deleted smallint DEFAULT 0 NOT NULL,
+ deleted boolean DEFAULT FALSE NOT NULL,
  PRIMARY KEY (id),
  CONSTRAINT unique_project_id_and_name UNIQUE (project_id,name),
  FOREIGN KEY (project_id) REFERENCES project(project_id)
@@ -117,7 +117,7 @@ create table project_metadata (
 CREATE TRIGGER project_metadata_update_time_at_modtime BEFORE UPDATE ON project_metadata FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
 
 insert into project_metadata (project_id, name, value, creation_time, update_time, deleted) values
-(1, 'public', 'true', NOW(), NOW(), 0);
+(1, 'public', 'true', NOW(), NOW(), false);
 
 create table user_group (
  id SERIAL NOT NULL,
