@@ -668,7 +668,7 @@ func TestGetProjects(t *testing.T) {
 		t.Errorf("Expected length of projects is 2, but actual: %d, the projects: %+v", len(projects), projects)
 	}
 	if projects[1].Name != projectName {
-		t.Errorf("Expected project name in the list: %s, actual: %s", projectName, projects[1].Name)
+		t.Errorf("Expected project name in the list: %s, actual: %s and %s", projectName, projects[1].Name, projects[0].Name)
 	}
 }
 
