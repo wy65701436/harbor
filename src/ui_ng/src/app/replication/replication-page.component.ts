@@ -48,7 +48,7 @@ export class ReplicationPageComponent implements OnInit, AfterViewInit {
 
   public get isSystemAdmin(): boolean {
     let account = this.session.getCurrentUser();
-    return account != null && account.has_admin_role > 0;
+    return account != null && account.has_admin_role;
   }
 
   ngAfterViewInit(): void {

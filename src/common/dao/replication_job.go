@@ -28,17 +28,10 @@ import (
 func AddRepTarget(target models.RepTarget) (int64, error) {
 	o := GetOrmer()
 
-	var secureBool int
 	sql := "insert into replication_target (name, url, username, password, insecure, target_type) values (?, ?, ?, ?, ?, ?) RETURNING id"
 
-	if target.Insecure == false {
-		secureBool = 0
-	} else {
-		secureBool = 1
-	}
-
 	var targetID int64
-	err := o.Raw(sql, target.Name, target.URL, target.Username, target.Password, secureBool, target.Type).QueryRow(&targetID)
+	err := o.Raw(sql, target.Name, target.URL, target.Username, target.Password, target.Insecure, target.Type).QueryRow(&targetID)
 	if err != nil {
 		return 0, err
 	}
@@ -95,14 +88,7 @@ func UpdateRepTarget(target models.RepTarget) error {
 	set url = ?, name = ?, username = ?, password = ?, insecure = ?, update_time = ?
 	where id = ?`
 
-	var secureBool int
-	if target.Insecure == false {
-		secureBool = 0
-	} else {
-		secureBool = 1
-	}
-
-	_, err := o.Raw(sql, target.URL, target.Name, target.Username, target.Password, secureBool, time.Now(), target.ID).Exec()
+	_, err := o.Raw(sql, target.URL, target.Name, target.Username, target.Password, target.Insecure, time.Now(), target.ID).Exec()
 
 	return err
 }
@@ -137,14 +123,7 @@ func AddRepPolicy(policy models.RepPolicy) (int64, error) {
 	params := []interface{}{}
 	now := time.Now()
 
-	var replicationDeletionBool int
-	if policy.ReplicateDeletion == false {
-		replicationDeletionBool = 0
-	} else {
-		replicationDeletionBool = 1
-	}
-
-	params = append(params, policy.Name, policy.ProjectID, policy.TargetID, 1,
+	params = append(params, policy.Name, policy.ProjectID, policy.TargetID, true,
 		policy.Description, policy.Trigger, now, now, policy.Filters,
 		replicationDeletionBool)
 
@@ -160,7 +139,7 @@ func AddRepPolicy(policy models.RepPolicy) (int64, error) {
 // GetRepPolicy ...
 func GetRepPolicy(id int64) (*models.RepPolicy, error) {
 	o := GetOrmer()
-	sql := `select * from replication_policy where id = ? and deleted = 0`
+	sql := `select * from replication_policy where id = ? and deleted = false`
 
 	var policy models.RepPolicy
 
@@ -176,7 +155,7 @@ func GetRepPolicy(id int64) (*models.RepPolicy, error) {
 
 // GetTotalOfRepPolicies returns the total count of replication policies
 func GetTotalOfRepPolicies(name string, projectID int64) (int64, error) {
-	qs := GetOrmer().QueryTable(&models.RepPolicy{}).Filter("deleted", 0)
+	qs := GetOrmer().QueryTable(&models.RepPolicy{}).Filter("deleted", false)
 
 	if len(name) != 0 {
 		qs = qs.Filter("name__icontains", name)
@@ -204,7 +183,7 @@ func FilterRepPolicies(name string, projectID, page, pageSize int64) ([]*models.
 			left join replication_target rt on rp.target_id=rt.id 
 			left join replication_job rj on rp.id=rj.policy_id and (rj.status='error' 
 				or rj.status='retrying') 
-			where rp.deleted = 0 `
+			where rp.deleted = false `
 
 	if len(name) != 0 && projectID != 0 {
 		sql += `and rp.name like ? and rp.project_id = ? `
@@ -236,7 +215,7 @@ func FilterRepPolicies(name string, projectID, page, pageSize int64) ([]*models.
 // GetRepPolicyByName ...
 func GetRepPolicyByName(name string) (*models.RepPolicy, error) {
 	o := GetOrmer()
-	sql := `select * from replication_policy where deleted = 0 and name = ?`
+	sql := `select * from replication_policy where deleted = false and name = ?`
 
 	var policy models.RepPolicy
 
@@ -253,7 +232,7 @@ func GetRepPolicyByName(name string) (*models.RepPolicy, error) {
 // GetRepPolicyByProject ...
 func GetRepPolicyByProject(projectID int64) ([]*models.RepPolicy, error) {
 	o := GetOrmer()
-	sql := `select * from replication_policy where deleted = 0 and project_id = ?`
+	sql := `select * from replication_policy where deleted = false and project_id = ?`
 
 	var policies []*models.RepPolicy
 
@@ -267,7 +246,7 @@ func GetRepPolicyByProject(projectID int64) ([]*models.RepPolicy, error) {
 // GetRepPolicyByTarget ...
 func GetRepPolicyByTarget(targetID int64) ([]*models.RepPolicy, error) {
 	o := GetOrmer()
-	sql := `select * from replication_policy where deleted = 0 and target_id = ?`
+	sql := `select * from replication_policy where deleted = false and target_id = ?`
 
 	var policies []*models.RepPolicy
 
@@ -281,7 +260,7 @@ func GetRepPolicyByTarget(targetID int64) ([]*models.RepPolicy, error) {
 // GetRepPolicyByProjectAndTarget ...
 func GetRepPolicyByProjectAndTarget(projectID, targetID int64) ([]*models.RepPolicy, error) {
 	o := GetOrmer()
-	sql := `select * from replication_policy where deleted = 0 and project_id = ? and target_id = ?`
+	sql := `select * from replication_policy where deleted = false and project_id = ? and target_id = ?`
 
 	var policies []*models.RepPolicy
 
@@ -300,14 +279,7 @@ func UpdateRepPolicy(policy *models.RepPolicy) error {
 		set project_id = ?, target_id = ?, name = ?, description = ?, cron_str = ?, filters = ?, replicate_deletion = ?, update_time = ? 
 		where id = ?`
 
-	var replicationDeletionBool int
-	if policy.ReplicateDeletion == false {
-		replicationDeletionBool = 0
-	} else {
-		replicationDeletionBool = 1
-	}
-
-	_, err := o.Raw(sql, policy.ProjectID, policy.TargetID, policy.Name, policy.Description, policy.Trigger, policy.Filters, replicationDeletionBool, time.Now(), policy.ID).Exec()
+	_, err := o.Raw(sql, policy.ProjectID, policy.TargetID, policy.Name, policy.Description, policy.Trigger, policy.Filters, policy.ReplicateDeletion, time.Now(), policy.ID).Exec()
 
 	return err
 }
@@ -317,7 +289,7 @@ func DeleteRepPolicy(id int64) error {
 	o := GetOrmer()
 	policy := &models.RepPolicy{
 		ID:         id,
-		Deleted:    1,
+		Deleted:    true,
 		UpdateTime: time.Now(),
 	}
 	_, err := o.Update(policy, "Deleted")

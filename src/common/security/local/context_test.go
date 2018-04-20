@@ -197,7 +197,7 @@ func TestIsSysAdmin(t *testing.T) {
 	// authenticated, admin
 	ctx = NewSecurityContext(&models.User{
 		Username:     "test",
-		HasAdminRole: 1,
+		HasAdminRole: true,
 	}, nil)
 	assert.True(t, ctx.IsSysAdmin())
 }
@@ -229,7 +229,7 @@ func TestHasReadPerm(t *testing.T) {
 	// private project, authenticated, system admin
 	ctx = NewSecurityContext(&models.User{
 		Username:     "admin",
-		HasAdminRole: 1,
+		HasAdminRole: true,
 	}, pm)
 	assert.True(t, ctx.HasReadPerm(private.Name))
 }
@@ -250,7 +250,7 @@ func TestHasWritePerm(t *testing.T) {
 	// authenticated, system admin
 	ctx = NewSecurityContext(&models.User{
 		Username:     "admin",
-		HasAdminRole: 1,
+		HasAdminRole: true,
 	}, pm)
 	assert.True(t, ctx.HasReadPerm(private.Name))
 }
@@ -267,7 +267,7 @@ func TestHasAllPerm(t *testing.T) {
 	// authenticated, system admin
 	ctx = NewSecurityContext(&models.User{
 		Username:     "admin",
-		HasAdminRole: 1,
+		HasAdminRole: true,
 	}, pm)
 	assert.True(t, ctx.HasAllPerm(private.Name))
 }
