@@ -79,7 +79,7 @@ func GetProjectByID(id int64) (*models.Project, error) {
 	o := GetOrmer()
 
 	sql := `select p.project_id, p.name, u.username as owner_name, p.owner_id, p.creation_time, p.update_time  
-		from project p left join harbor_user u on p.owner_id = u.user_id where p.deleted = 0 and p.project_id = ?`
+		from project p left join harbor_user u on p.owner_id = u.user_id where p.deleted = false and p.project_id = ?`
 	queryParam := make([]interface{}, 1)
 	queryParam = append(queryParam, id)
 
@@ -101,7 +101,7 @@ func GetProjectByID(id int64) (*models.Project, error) {
 func GetProjectByName(name string) (*models.Project, error) {
 	o := GetOrmer()
 	var p []models.Project
-	n, err := o.Raw(`select * from project where name = ? and deleted = 0`, name).QueryRows(&p)
+	n, err := o.Raw(`select * from project where name = ? and deleted = false`, name).QueryRows(&p)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func projectQueryConditions(query *models.ProjectQueryParam) (string, []interfac
 	sql := ` from project as p`
 
 	if query == nil {
-		sql += ` where p.deleted=0`
+		sql += ` where p.deleted=false`
 		return sql, params
 	}
 
@@ -171,7 +171,7 @@ func projectQueryConditions(query *models.ProjectQueryParam) (string, []interfac
 					join harbor_user u2
 					on pm.entity_id=u2.user_id`
 	}
-	sql += ` where p.deleted=0`
+	sql += ` where p.deleted=false`
 
 	if len(query.Owner) != 0 {
 		sql += ` and u1.username=?`
@@ -232,7 +232,7 @@ func DeleteProject(id int64) error {
 	name := fmt.Sprintf("%s#%d", project.Name, project.ProjectID)
 
 	sql := `update project 
-		set deleted = 1, name = ? 
+		set deleted = true, name = ? 
 		where project_id = ?`
 	_, err = GetOrmer().Raw(sql, name, id).Exec()
 	return err

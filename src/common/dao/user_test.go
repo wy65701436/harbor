@@ -56,7 +56,7 @@ func TestDeleteUser(t *testing.T) {
 		t.Fatalf("failed to query user: %v", err)
 	}
 
-	if user.Deleted != 1 {
+	if user.Deleted != true {
 		t.Error("user is not deleted")
 	}
 

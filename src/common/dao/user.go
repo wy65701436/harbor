@@ -35,7 +35,7 @@ func GetUser(query models.User) (*models.User, error) {
 	sql := `select user_id, username, email, realname, comment, reset_uuid, salt,
 		sysadmin_flag, creation_time, update_time
 		from harbor_user u
-		where deleted = 0 `
+		where deleted = false `
 	queryParam := make([]interface{}, 1)
 	if query.UserID != 0 {
 		sql += ` and user_id = ? `
@@ -79,7 +79,7 @@ func LoginByDb(auth models.AuthModel) (*models.User, error) {
 	o := GetOrmer()
 
 	var users []models.User
-	n, err := o.Raw(`select * from harbor_user where (username = ? or email = ?) and deleted = 0`,
+	n, err := o.Raw(`select * from harbor_user where (username = ? or email = ?) and deleted = false`,
 		auth.Principal, auth.Principal).QueryRows(&users)
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func userQueryConditions(query *models.UserQuery) orm.QuerySeter {
 }
 
 // ToggleUserAdminRole gives a user admin role.
-func ToggleUserAdminRole(userID, hasAdmin int) error {
+func ToggleUserAdminRole(userID int, hasAdmin bool) error {
 	o := GetOrmer()
 	queryParams := make([]interface{}, 1)
 	sql := `update harbor_user set sysadmin_flag = ? where user_id = ?`
@@ -218,7 +218,7 @@ func CheckUserPassword(query models.User) (*models.User, error) {
 		return nil, nil
 	}
 
-	sql := `select user_id, username, salt from harbor_user where deleted = 0 and username = ? and password = ?`
+	sql := `select user_id, username, salt from harbor_user where deleted = false and username = ? and password = ?`
 	queryParam := make([]interface{}, 1)
 	queryParam = append(queryParam, currentUser.Username)
 	queryParam = append(queryParam, utils.Encrypt(query.Password, currentUser.Salt))
@@ -252,7 +252,7 @@ func DeleteUser(userID int) error {
 	email := fmt.Sprintf("%s#%d", user.Email, user.UserID)
 
 	_, err = o.Raw(`update harbor_user 
-		set deleted = 1, username = ?, email = ?
+		set deleted = true, username = ?, email = ?
 		where user_id = ?`, name, email, userID).Exec()
 	return err
 }

@@ -39,10 +39,10 @@ create table harbor_user (
  password varchar(40) NOT NULL,
  realname varchar (255) NOT NULL,
  comment varchar (30),
- deleted smallint DEFAULT 0 NOT NULL,
+ deleted boolean DEFAULT false NOT NULL,
  reset_uuid varchar(40) DEFAULT NULL,
  salt varchar(40) DEFAULT NULL,
- sysadmin_flag smallint,
+ sysadmin_flag boolean DEFAULT false NOT NULL,
  creation_time timestamp(0),
  update_time timestamp(0),
  UNIQUE (username),
@@ -50,8 +50,8 @@ create table harbor_user (
 );
 
 insert into harbor_user (username, email, password, realname, comment, deleted, sysadmin_flag, creation_time, update_time) values 
-('admin', 'admin@example.com', '', 'system admin', 'admin user',0, 1, NOW(), NOW()),
-('anonymous', 'anonymous@example.com', '', 'anonymous user', 'anonymous user', 1, 0, NOW(), NOW());
+('admin', 'admin@example.com', '', 'system admin', 'admin user',false, true, NOW(), NOW()),
+('anonymous', 'anonymous@example.com', '', 'anonymous user', 'anonymous user', true, false, NOW(), NOW());
 
 create table project (
  project_id SERIAL PRIMARY KEY NOT NULL,
@@ -63,7 +63,7 @@ create table project (
  name varchar (255) NOT NULL,
  creation_time timestamp,
  update_time timestamp,
- deleted smallint DEFAULT 0 NOT NULL,
+ deleted boolean DEFAULT false NOT NULL,
  FOREIGN KEY (owner_id) REFERENCES harbor_user(user_id),
  UNIQUE (name)
 );
@@ -108,7 +108,7 @@ create table project_metadata (
  value varchar(255),
  creation_time timestamp default 'now'::timestamp,
  update_time timestamp default 'now'::timestamp,
- deleted smallint DEFAULT 0 NOT NULL,
+ deleted boolean DEFAULT false NOT NULL,
  PRIMARY KEY (id),
  CONSTRAINT unique_project_id_and_name UNIQUE (project_id,name),
  FOREIGN KEY (project_id) REFERENCES project(project_id)
@@ -117,7 +117,7 @@ create table project_metadata (
 CREATE TRIGGER project_metadata_update_time_at_modtime BEFORE UPDATE ON project_metadata FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
 
 insert into project_metadata (project_id, name, value, creation_time, update_time, deleted) values
-(1, 'public', 'true', NOW(), NOW(), 0);
+(1, 'public', 'true', NOW(), NOW(), false);
 
 create table user_group (
  id SERIAL NOT NULL,
@@ -165,12 +165,12 @@ create table replication_policy (
  name varchar(256),
  project_id int NOT NULL,
  target_id int NOT NULL,
- enabled SMALLINT NOT NULL DEFAULT 1,
+ enabled boolean NOT NULL DEFAULT true,
  description text,
- deleted SMALLINT DEFAULT 0 NOT NULL,
+ deleted boolean DEFAULT false NOT NULL,
  cron_str varchar(256),
  filters varchar(1024),
- replicate_deletion SMALLINT DEFAULT 0 NOT NULL,
+ replicate_deletion boolean DEFAULT false NOT NULL,
  start_time timestamp NULL,
  creation_time timestamp default 'now'::timestamp,
  update_time timestamp default 'now'::timestamp,
@@ -191,7 +191,7 @@ create table replication_target (
  1 means it's a regulart registry
  */
  target_type SMALLINT NOT NULL DEFAULT 0,
- insecure SMALLINT NOT NULL DEFAULT 0,
+ insecure boolean NOT NULL DEFAULT false,
  creation_time timestamp default 'now'::timestamp,
  update_time timestamp default 'now'::timestamp,
  PRIMARY KEY (id)
