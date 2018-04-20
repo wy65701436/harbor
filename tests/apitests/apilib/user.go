@@ -37,7 +37,7 @@ type User struct {
 
 	Comment string `json:"comment,omitempty"`
 
-	Deleted int32 `json:"deleted,omitempty"`
+	Deleted bool `json:"deleted,omitempty"`
 
 	RoleName string `json:"role_name,omitempty"`
 
