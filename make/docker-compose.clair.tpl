@@ -26,7 +26,7 @@ services:
     depends_on:
       - postgresql
     volumes:
-      - ./common/config/clair:/config:z
+      - ./common/config/clair/config.yaml:/etc/clair/config.yaml:z
     logging:
       driver: "syslog"
       options:  

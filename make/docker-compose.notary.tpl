@@ -19,7 +19,7 @@ services:
       - notary-sig
       - harbor-notary
     volumes:
-      - ./common/config/notary:/config:z
+      - ./common/config/notary:/etc/config:z
     env_file:
       - ./common/config/notary/server_env
     depends_on:
@@ -40,7 +40,7 @@ services:
         aliases:
           - notarysigner
     volumes:
-      - ./common/config/notary:/config:z
+      - ./common/config/notary:/etc/notary:z
     env_file:
       - ./common/config/notary/signer_env
     depends_on:
