@@ -49,8 +49,8 @@ func TestDeleteProject(t *testing.T) {
 		t.Fatalf("failed to get project: %v", err)
 	}
 
-	if p.Deleted != 1 {
-		t.Errorf("unexpeced deleted column: %d != %d", p.Deleted, 1)
+	if !p.Deleted {
+		t.Errorf("unexpeced deleted column: %t != %t", p.Deleted, true)
 	}
 
 	deletedName := fmt.Sprintf("%s#%d", name, id)

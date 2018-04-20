@@ -690,7 +690,7 @@ func TestGetRoleByID(t *testing.T) {
 }
 
 func TestToggleAdminRole(t *testing.T) {
-	err := ToggleUserAdminRole(currentUser.UserID, 1)
+	err := ToggleUserAdminRole(currentUser.UserID, true)
 	if err != nil {
 		t.Errorf("Error in toggle ToggleUserAdmin role: %v, user: %+v", err, currentUser)
 	}
@@ -701,7 +701,7 @@ func TestToggleAdminRole(t *testing.T) {
 	if !isAdmin {
 		t.Errorf("User is not admin after toggled, user id: %d", currentUser.UserID)
 	}
-	err = ToggleUserAdminRole(currentUser.UserID, 0)
+	err = ToggleUserAdminRole(currentUser.UserID, false)
 	if err != nil {
 		t.Errorf("Error in toggle ToggleUserAdmin role: %v, user: %+v", err, currentUser)
 	}
@@ -1192,7 +1192,7 @@ func TestDeleteRepPolicy(t *testing.T) {
 	if err != nil && err != orm.ErrNoRows {
 		t.Errorf("Error occurred in GetRepPolicy:%v", err)
 	}
-	if p != nil && p.Deleted != 1 {
+	if p != nil && !p.Deleted {
 		t.Errorf("Able to find rep policy after deletion, id: %d", policyID)
 	}
 }
