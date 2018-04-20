@@ -125,7 +125,7 @@ func AddRepPolicy(policy models.RepPolicy) (int64, error) {
 
 	params = append(params, policy.Name, policy.ProjectID, policy.TargetID, true,
 		policy.Description, policy.Trigger, now, now, policy.Filters,
-		policy.ReplicateDeletion)
+		replicationDeletionBool)
 
 	var policyID int64
 	err := o.Raw(sql, params...).QueryRow(&policyID)
