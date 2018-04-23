@@ -57,10 +57,24 @@ You can add `harbor.my.domain` and IP mapping in the DNS server, or in /etc/host
 
 Follow the `NOTES` section in the command output to get Harbor admin password and **add Harbor root CA into docker trusted certificates**.
 
+If you are using an external service like [cert-manager](https://github.com/jetstack/cert-manager) for generating the TLS certificates,
+you will want to disable the certificate generation by helm by setting the value `generateCertificates` to _false_. Then the ingress' annotations will be scanned
+by _cert-manager_ and the appropriate secret will get created and updated by the service.
+
+If using acme's certificates, do not forget to add the following annotation to
+your ingress.
+
+```yaml
+ingress:
+  annotations:
+    kubernetes.io/tls-acme: "true"
+```
+
 The command deploys Harbor on the Kubernetes cluster in the default configuration.
 The [configuration](#configuration) section lists the parameters that can be configured in values.yaml or via '--set' params during installation.
 
 > **Tip**: List all releases using `helm list`
+
 
 ### Insecure Registry Mode
 
@@ -96,6 +110,7 @@ The following tables lists the configurable parameters of the Harbor chart and t
 | `harborImageTag`     | The tag for Harbor docker images | `v1.4.0` |
 | `externalDomain`       | Harbor will run on (https://`externalDomain`/). Recommend using K8s Ingress Controller FQDN as `externalDomain`, or make sure this FQDN resolves to the K8s Ingress Controller IP. | `harbor.my.domain` |
 | `insecureRegistry`     | If set to true, you don't need to set tlsCrt/tlsKey/caCrt, but must add Harbor FQDN as insecure-registries for your docker client. | `false` |
+| `generateCertificates`  | Set to false if TLS certificate will be managed by an external service | `true` |
 | `tlsCrt`               | TLS certificate to use for Harbor's https endpoint. Its CN must match `externalDomain`. | auto-generated |
 | `tlsKey`               | TLS key to use for Harbor's https endpoint | auto-generated |
 | `caCrt`                | CA Cert for self signed TLS cert | auto-generated |
@@ -161,24 +176,32 @@ The following tables lists the configurable parameters of the Harbor chart and t
 | `registry.resources` | [resources](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) to allocate for container   | undefined |
 | `registry.volumes` | used to create PVCs if persistence is enabled (see instructions in values.yaml) | see values.yaml |
 | **Clair** |
-| `clair.enabled` | Enable clair? | `true` |
+| `clair.enabled` | Enable Clair? | `true` |
 | `clair.image.repository` | Repository for clair image | `vmware/clair-photon` |
 | `clair.image.tag` | Tag for clair image | `v2.0.1-v1.4.0`
 | `clair.resources` | [resources](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) to allocate for container   | undefined
 | `postgresql` | Overrides for postgresql chart [values.yaml](https://github.com/kubernetes/charts/blob/f2938a46e3ae8e2512ede1142465004094c3c333/stable/postgresql/values.yaml) | see values.yaml
-| | | |
+| **Notary** |
+| `notary.enabled` | Enable Notary? | `true` |
+| `notary.server.image.repository` | Repository for notary server image | `vmware/notary-server-photon` |
+| `notary.server.image.tag` | Tag for notary server image | `v0.5.1-v1.4.0`
+| `notary.signer.image.repository` | Repository for notary signer image | `vmware/notary-signer-photon` |
+| `notary.signer.image.tag` | Tag for notary signer image | `v0.5.1-v1.4.0`
+| `notary.db.image.repository` | Repository for notary database image | `vmware/mariadb-photon` |
+| `notary.db.image.tag` | Tag for notary database image | `v1.4.0`
+| `notary.db.password` | The password of users for notary database | Specify your own password |
 
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example:
 
 ```bash
-helm install --name my-release --set mysql.pass=baconeggs .
+helm install . --name my-release --set externalDomain=harbor.<IP>.xip.io
 ```
 
 Alternatively, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example,
 
 ```bash
-helm install --name my-release -f /path/to/values.yaml .
+helm install . --name my-release -f /path/to/values.yaml
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)
