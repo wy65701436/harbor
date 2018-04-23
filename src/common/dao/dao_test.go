@@ -667,9 +667,11 @@ func TestGetProjects(t *testing.T) {
 	if len(projects) != 2 {
 		t.Errorf("Expected length of projects is 2, but actual: %d, the projects: %+v", len(projects), projects)
 	}
-	// if projects[1].Name != projectName {
-	// 	t.Errorf("Expected project name in the list: %s, actual: %s and %s", projectName, projects[1].Name, projects[0].Name)
-	// }
+	if projects[1].Name != projectName {
+		log.Infof("The project 1 is %s", projects[0].Name)
+		log.Infof("The project 1 is %s", projects[1].Name)
+		t.Errorf("Expected project name in the list: %s, actual: %s and %s", projectName, projects[1].Name, projects[0].Name)
+	}
 }
 
 func TestGetRoleByID(t *testing.T) {
