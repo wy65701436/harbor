@@ -75,14 +75,16 @@ export const DefaultServiceConfig: IServiceConfig = {
   repositoryBaseEndpoint: "/api/repositories",
   logBaseEndpoint: "/api/logs",
   targetBaseEndpoint: "/api/targets",
+  replicationBaseEndpoint: "/api/replications",
   replicationRuleEndpoint: "/api/policies/replication",
   replicationJobEndpoint: "/api/jobs/replication",
   vulnerabilityScanningBaseEndpoint: "/api/repositories",
   projectPolicyEndpoint: "/api/projects/configs",
+  projectBaseEndpoint: "/api/projects",
   enablei18Support: false,
-  defaultLang: DEFAULT_LANG,
   langCookieKey: DEFAULT_LANG_COOKIE_KEY,
   supportedLangs: DEFAULT_SUPPORTING_LANGS,
+  defaultLang: DEFAULT_LANG,
   langMessageLoader: "local",
   langMessagePathForHttpLoader: "i18n/langs/",
   langMessageFileSuffixForHttpLoader: "-lang.json",
@@ -94,7 +96,7 @@ export const DefaultServiceConfig: IServiceConfig = {
 
 /**
  * Define the configuration for harbor shareable module
- * 
+ *
  * @export
  * @interface HarborModuleConfig
  */
@@ -140,8 +142,6 @@ export interface HarborModuleConfig {
 }
 
 /**
- * 
- * 
  * @export
  * @param {AppConfigService} configService
  * @returns
