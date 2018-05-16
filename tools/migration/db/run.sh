@@ -193,7 +193,7 @@ function upgrade {
     get_version
 
     if [ "$cur_version" = "$target_version" ]; then
-        echo "Current is alreaey $target_version, no need to upgrade."
+        echo "It has always running the $target_version, no longer need to upgrade."
         exit 0
     fi
 
@@ -232,7 +232,7 @@ function upgrade {
             rm -rf /var/lib/mysql/*
 
             ## migrate 1.5.0-mysql to 1.5.0-pqsql.
-            python pgsql_migrator.py /harbor-migration/db/registry.mysql /harbor-migration/db/registry.pgsql
+            python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/registry.mysql /harbor-migration/db/registry.pgsql
 
             launch_pgsql $PGSQL_USR
             psql -U $PGSQL_USR -f /harbor-migration/db/1.5.0_schema/registry_from_$cur_version.pgsql
@@ -247,9 +247,14 @@ function upgrade {
         fi        
     fi
 
-    # $cur_version >'1.5.0', $target_version >'1.5.0', it needs to pgsql upgrade.    
+    # $cur_version > '1.5.0', $target_version > '1.5.0', it needs to pgsql upgrade.    
     if [ $v1_com = 1 ] && [ $v2_com = 1 ]; then
-        alembic_up $target_version
+        if [ $ISPGSQL != true ]; then
+            echo "Please make sure to mount the correct the data volumn."
+            exit 1
+        else
+            alembic_up $target_version
+        fi
     fi
 
     echo "Unsupported DB upgraden from $cur_version to $target_version, please check the inputs."
