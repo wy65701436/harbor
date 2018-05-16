@@ -11,19 +11,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-// import { RepositoryComponent} from 'harbor-ui';
+import { RepositoryComponent, TagClickEvent} from 'harbor-ui';
+
 import { AppConfigService } from '../../app-config.service';
 import { SessionService } from '../../shared/session.service';
-import { TagClickEvent } from 'harbor-ui';
 import { Project } from '../../project/project';
-import { RepositoryComponent } from 'harbor-ui/src/repository/repository.component';
 
 @Component({
   selector: 'tag-repository',
   templateUrl: 'tag-repository.component.html',
-  styleUrls: ['./tag-repository.component.css']
+  styleUrls: ['./tag-repository.component.scss']
 })
 export class TagRepositoryComponent implements OnInit {
 
@@ -47,7 +47,7 @@ export class TagRepositoryComponent implements OnInit {
     this.projectId = this.route.snapshot.params['id'];
     if (!this.projectId) {
       this.projectId = this.route.snapshot.parent.params['id'];
-    };
+    }
 
     let resolverData = this.route.snapshot.data;
 

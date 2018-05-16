@@ -208,7 +208,7 @@ func (ctl *DefaultController) Replicate(policyID int64, metadata ...map[string]i
 	// prepare candidates for replication
 	candidates := getCandidates(&policy, ctl.sourcer, metadata...)
 	if len(candidates) == 0 {
-		log.Debugf("replicaton candidates are null, no further action needed")
+		log.Debugf("replication candidates are null, no further action needed")
 	}
 
 	targets := []*common_models.RepTarget{}
@@ -259,17 +259,34 @@ func getCandidates(policy *models.ReplicationPolicy, sourcer *source.Sourcer,
 func buildFilterChain(policy *models.ReplicationPolicy, sourcer *source.Sourcer) source.FilterChain {
 	filters := []source.Filter{}
 
-	patterns := map[string]string{}
-	for _, f := range policy.Filters {
-		patterns[f.Kind] = f.Pattern
+	fm := map[string][]models.Filter{}
+	for _, filter := range policy.Filters {
+		fm[filter.Kind] = append(fm[filter.Kind], filter)
 	}
 
 	registry := sourcer.GetAdaptor(replication.AdaptorKindHarbor)
-	// only support repository and tag filter for now
+	// repository filter
+	pattern := ""
+	repoFilters := fm[replication.FilterItemKindRepository]
+	if len(repoFilters) > 0 {
+		pattern = repoFilters[0].Value.(string)
+	}
 	filters = append(filters,
-		source.NewRepositoryFilter(patterns[replication.FilterItemKindRepository], registry))
+		source.NewRepositoryFilter(pattern, registry))
+	// tag filter
+	pattern = ""
+	tagFilters := fm[replication.FilterItemKindTag]
+	if len(tagFilters) > 0 {
+		pattern = tagFilters[0].Value.(string)
+	}
 	filters = append(filters,
-		source.NewTagFilter(patterns[replication.FilterItemKindTag], registry))
+		source.NewTagFilter(pattern, registry))
+	// label filters
+	var labelID int64
+	for _, labelFilter := range fm[replication.FilterItemKindLabel] {
+		labelID = labelFilter.Value.(int64)
+		filters = append(filters, source.NewLabelFilter(labelID))
+	}
 
 	return source.NewDefaultFilterChain(filters)
 }

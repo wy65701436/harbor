@@ -11,22 +11,19 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import {Component, Input, Output, OnInit, EventEmitter, OnChanges} from '@angular/core';
-import { Subject } from 'rxjs/Subject';
-import { Observable } from 'rxjs/Observable';
+import {Component, Input, OnInit, OnChanges} from '@angular/core';
 
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/distinctUntilChanged';
 
-import { LABEL_PIEICE_TEMPLATE, LABEL_PIEICE_STYLES } from './label-piece.template';
 import {Label} from "../service/interface";
 import {LabelColor} from "../shared/shared.const";
 
 
 @Component({
     selector: 'hbr-label-piece',
-    styles: [LABEL_PIEICE_STYLES],
-    template: LABEL_PIEICE_TEMPLATE
+    templateUrl: './label-piece.component.html',
+    styleUrls: ['./label-piece.component.scss']
 })
 
 export class LabelPieceComponent implements OnInit, OnChanges {

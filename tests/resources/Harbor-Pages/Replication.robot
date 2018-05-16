@@ -23,7 +23,8 @@ ${HARBOR_VERSION}  v1.1.1
 Check New Rule UI Without Endpoint
     Click Element  ${new_replication-rule_button}
     Page Should Contain  Please add an endpoint first
-    Click Element  ${link_to_registries}
+    Mouse Down  ${link_to_registries}
+    Mouse Up  ${link_to_registries}
     Page Should Contain  Endpoint Name
 
 Create A New Endpoint
@@ -37,7 +38,7 @@ Create A New Endpoint
     Input Text  xpath=${destination_password_xpath}  ${pwd}
     #cancel verify cert since we use a selfsigned cert
     Click Element  ${destination_insecure_xpath}
-    Run Keyword If  '${save}' == 'Y'  Run keyword  Click Element  ${replicaton_save_xpath}
+    Run Keyword If  '${save}' == 'Y'  Run keyword  Click Element  ${replication_save_xpath}
     Run Keyword If  '${save}' == 'N'  No Operation
 
 Create A Rule With Existing Endpoint
@@ -197,7 +198,7 @@ Rename Endpoint
     Click Element  ${action_bar_edit}
     Wait Until Page Contains Element  ${destination_name_xpath}
     Input Text  ${destination_name_xpath}  ${newname}
-    Click Element  ${replicaton_save_xpath}
+    Click Element  ${replication_save_xpath}
 
 Delete Endpoint
     [Arguments]  ${name}

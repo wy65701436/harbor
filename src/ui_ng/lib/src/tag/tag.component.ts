@@ -18,9 +18,8 @@ import {
   Input,
   Output,
   EventEmitter,
-  ChangeDetectionStrategy,
   ChangeDetectorRef,
-  ElementRef, AfterContentInit, AfterViewInit
+  ElementRef, AfterViewInit
 } from "@angular/core";
 
 import { TagService, VulnerabilitySeverity, RequestQueryParams } from "../service/index";
@@ -37,9 +36,6 @@ import { ConfirmationMessage } from "../confirmation-dialog/confirmation-message
 import { ConfirmationAcknowledgement } from "../confirmation-dialog/confirmation-state-message";
 
 import {Label, Tag, TagClickEvent} from "../service/interface";
-
-import { TAG_TEMPLATE } from "./tag.component.html";
-import { TAG_STYLE } from "./tag.component.css";
 
 import {
   toPromise,
@@ -67,9 +63,9 @@ export interface LabelState {
 }
 
 @Component({
-  selector: "hbr-tag",
-  template: TAG_TEMPLATE,
-  styles: [TAG_STYLE],
+  selector: 'hbr-tag',
+  templateUrl: './tag.component.html',
+  styleUrls: ['./tag.component.scss']
 })
 export class TagComponent implements OnInit, AfterViewInit {
 
@@ -100,6 +96,8 @@ export class TagComponent implements OnInit, AfterViewInit {
   lastFilteredTagName: string;
   batchDelectionInfos: BatchInfo[] = [];
   inprogress: boolean;
+  openLabelFilterPanel: boolean;
+  openLabelFilterPiece: boolean;
 
   createdComparator: Comparator<Tag> = new CustomComparator<Tag>("created", "date");
 
@@ -194,7 +192,7 @@ export class TagComponent implements OnInit, AfterViewInit {
               }else {
                 data.show = false;
               }
-            })
+            });
             setTimeout(() => {
               setInterval(() => this.ref.markForCheck(), 200);
             }, 1000);
@@ -304,7 +302,7 @@ export class TagComponent implements OnInit, AfterViewInit {
       this.imageStickLabels.forEach(data => {
         data.iconsShow = false;
         data.show = true;
-      })
+      });
       if (tag[0].labels.length) {
         tag[0].labels.forEach((labelInfo: Label) => {
           let findedLabel = this.imageStickLabels.find(data => labelInfo.id === data['label'].id);
@@ -389,7 +387,6 @@ export class TagComponent implements OnInit, AfterViewInit {
   }
 
   filterLabel(labelInfo: LabelState): void {
-    let labelName = labelInfo.label.name;
     let labelId = labelInfo.label.id;
     // insert the unselected label to groups with the same icons
     let preLabelInfo = this.imageFilterLabels.find(data => data.label.id === this.filterOneLabel.id);
@@ -448,6 +445,30 @@ export class TagComponent implements OnInit, AfterViewInit {
       st.filters = [];
     }
     this.clrLoad(st);
+  }
+
+  closeFilter(): void {
+    this.openLabelFilterPanel = false;
+  }
+
+  openFlagEvent(isOpen: boolean): void {
+    if (isOpen) {
+      this.openLabelFilterPanel = true;
+      this.openLabelFilterPiece = true;
+      this.filterName = '';
+      // redisplay all labels
+      this.imageFilterLabels.forEach(data => {
+        if (data.label.name.indexOf(this.filterName) !== -1) {
+          data.show = true;
+        }else {
+          data.show = false;
+        }
+      });
+    }else  {
+      this.openLabelFilterPanel = false;
+      this.openLabelFilterPiece = false;
+    }
+
   }
 
   handleInputFilter() {
@@ -590,7 +611,8 @@ export class TagComponent implements OnInit, AfterViewInit {
     if (signature) {
       Observable.forkJoin(this.translateService.get("BATCH.DELETED_FAILURE"),
         this.translateService.get("REPOSITORY.DELETION_SUMMARY_TAG_DENIED")).subscribe(res => {
-        let wrongInfo: string = res[1] + "notary -s https://" + this.registryUrl + ":4443 -d ~/.docker/trust remove -p " + this.registryUrl + "/" + this.repoName + " " + name;
+        let wrongInfo: string = res[1] + "notary -s https://" + this.registryUrl + ":4443 -d ~/.docker/trust remove -p " +
+         this.registryUrl + "/" + this.repoName + " " + name;
         findedList = BathInfoChanges(findedList, res[0], false, true, wrongInfo);
       });
     } else {

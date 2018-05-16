@@ -1,12 +1,13 @@
 import { ComponentFixture, TestBed, async, } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import {Component, DebugElement} from '@angular/core';
+import { DebugElement} from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { SharedModule } from '../shared/shared.module';
 import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { RepositoryComponent } from './repository.component';
-import { RepositoryListviewComponent } from '../repository-listview/repository-listview.component';
+import { RepositoryGridviewComponent } from '../repository-gridview/repository-gridview.component';
+import { GridViewComponent } from '../gridview/grid-view.component';
 import { FilterComponent } from '../filter/filter.component';
 import { TagComponent } from '../tag/tag.component';
 import { VULNERABILITY_DIRECTIVES } from '../vulnerability-scanning/index';
@@ -117,7 +118,7 @@ describe('RepositoryComponent (inline template)', () => {
       project_id: 0,
       scope: "g",
       update_time: "",
-    }]
+    }];
 
   let mockLabels1: Label[] = [{
     color: "#9b0d54",
@@ -138,7 +139,7 @@ describe('RepositoryComponent (inline template)', () => {
       project_id: 1,
       scope: "p",
       update_time: "",
-    }]
+    }];
 
   let config: IServiceConfig = {
     repositoryBaseEndpoint: '/api/repository/testing',
@@ -154,7 +155,8 @@ describe('RepositoryComponent (inline template)', () => {
       ],
       declarations: [
         RepositoryComponent,
-        RepositoryListviewComponent,
+        GridViewComponent,
+        RepositoryGridviewComponent,
         ConfirmationDialogComponent,
         FilterComponent,
         TagComponent,
