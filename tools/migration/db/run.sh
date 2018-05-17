@@ -244,6 +244,7 @@ function upgrade {
             ## it needs to call the alembic_up to target, disable it as it's now unsupported.
             #alembic_up $target_version
             stop_pgsql
+            exit 0
         fi        
     fi
 
