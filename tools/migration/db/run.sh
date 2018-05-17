@@ -257,7 +257,7 @@ function upgrade {
         fi
     fi
 
-    echo "Unsupported DB upgraden from $cur_version to $target_version, please check the inputs."
+    echo "Unsupported DB upgrade from $cur_version to $target_version, please check the inputs."
     exit 1
 
 }

@@ -262,9 +262,9 @@ UNIQUE(namespace)
 );
 
 create table properties (
- id int NOT NULL,
  k varchar(64) NOT NULL,
  v varchar(128) NOT NULL,
+ id int NOT NULL,
  PRIMARY KEY(id),
  UNIQUE (k)
  );

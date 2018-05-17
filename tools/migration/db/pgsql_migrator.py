@@ -21,9 +21,9 @@ def do_parse_table(mysql_dump_file, pgsql_dump_file):
         if line.startswith("INSERT INTO"):
             if line.startswith('INSERT INTO "user"'):
                 insert_lines.append(line.replace('INSERT INTO "user"', 'INSERT INTO "harbor_user"'))
-            # elif line.startswith('INSERT INTO "properties"'):
-            #     # ignore all the properties
-            #     continue
+            elif line.startswith('INSERT INTO "properties"'):
+                # ignore all the properties
+                continue
             elif line.find("\\") != -1:
                 line = line.replace('\\', '')
                 insert_lines.append(line)
