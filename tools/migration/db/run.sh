@@ -125,7 +125,11 @@ function launch_mysql {
 }
 
 function stop_mysql {
-    mysqladmin -u$DB_USR -p$DB_PWD shutdown
+    if [[ -z $2 ]]; then
+        mysqladmin -u$1 shutdown
+    else
+        mysqladmin -u$1 -p$DB_PWD shutdown
+    fi
 }
 
 function version_com() {
@@ -183,6 +187,45 @@ function validate {
     fi
 }
 
+function migrate_notary {
+
+    mysqld &
+    echo 'Waiting for MySQL start...'
+    for i in {60..0}; do
+        mysqladmin -uroot processlist >/dev/null 2>&1
+        if [ $? = 0 ]; then
+            break
+        fi
+        sleep 1
+    done
+    set -e
+    if [ "$i" = 0 ]; then
+        echo "timeout. Can't run mysql server."
+        if [[ $var = "test" ]]; then
+            echo "DB test failed."
+        fi
+        exit 1
+    fi
+
+    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql
+    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql     
+    stop_mysql root
+
+    ## migrate 1.5.0-mysql to 1.5.0-pqsql.
+    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
+    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
+
+    launch_pgsql $PGSQL_USR
+    psql -U server -f /harbor-migration/db/schema/notaryserver.pgsql
+    psql -U server -f /harbor-migration/db/notaryserver.pgsql
+
+    psql -U signer -f /harbor-migration/db/schema/notarysigner.pgsql
+    psql -U signer -f /harbor-migration/db/notarysigner.pgsql
+
+    stop_pgsql
+    exit 0    
+}
+
 function upgrade {
     local target_version="$1"
     if [[ -z $target_version ]]; then
@@ -228,14 +271,14 @@ function upgrade {
 
             ## dump mysql
             mysqldump --compatible=postgresql --default-character-set=utf8 --databases registry > /harbor-migration/db/registry.mysql     
-            stop_mysql
+            stop_mysql $DB_USR $DB_PWD
             rm -rf /var/lib/mysql/*
 
             ## migrate 1.5.0-mysql to 1.5.0-pqsql.
             python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/registry.mysql /harbor-migration/db/registry.pgsql
 
             launch_pgsql $PGSQL_USR
-            psql -U $PGSQL_USR -f /harbor-migration/db/1.5.0_schema/registry_from_$cur_version.pgsql
+            psql -U $PGSQL_USR -f /harbor-migration/db/schema/registry_from_$cur_version.pgsql
             psql -U $PGSQL_USR -f /harbor-migration/db/registry.pgsql
 
             ## move all the data to /data/database

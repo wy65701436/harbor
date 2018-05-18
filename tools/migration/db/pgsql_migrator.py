@@ -6,7 +6,7 @@ import os
 import time
 import subprocess
 
-def do_parse_table(mysql_dump_file, pgsql_dump_file):
+def do_parse_registry_db(mysql_dump_file, pgsql_dump_file):
     mysql_dump = open(mysql_dump_file)
     pgsql_dump = open(pgsql_dump_file, "w")
     insert_lines = []
@@ -21,9 +21,9 @@ def do_parse_table(mysql_dump_file, pgsql_dump_file):
         if line.startswith("INSERT INTO"):
             if line.startswith('INSERT INTO "user"'):
                 insert_lines.append(line.replace('INSERT INTO "user"', 'INSERT INTO "harbor_user"'))
-            # elif line.startswith('INSERT INTO "properties"'):
-            #     # ignore all the properties
-            #     continue
+            elif line.startswith('INSERT INTO "properties"'):
+                # ignore all the properties, as we don't want to keep the DB configurations.
+                continue
             elif line.find("\\") != -1:
                 line = line.replace('\\', '')
                 insert_lines.append(line)
@@ -66,6 +66,64 @@ def do_parse_table(mysql_dump_file, pgsql_dump_file):
     write_sequence(pgsql_dump, "harbor_label", "id")
     write_sequence(pgsql_dump, "harbor_resource_label", "id")
 
+def do_parse_notary_server_db(mysql_dump_file, pgsql_dump_file):
+    mysql_dump = open(mysql_dump_file)
+    pgsql_dump = open(pgsql_dump_file, "w")
+    insert_lines = []
+
+    for i, line in enumerate(mysql_dump):
+        
+        line = line.decode("utf8").strip()
+        if drop_line(line):
+            continue
+
+        # catch insert
+        if line.startswith("INSERT INTO"):
+            if line.find("\\") != -1:
+                line = line.replace('\\', '')
+                insert_lines.append(line)
+                continue
+            elif line.startswith('INSERT INTO "change_category"') | line.startswith('INSERT INTO "changefeed"'):
+                continue
+            elif line.find("0000-00-00 00:00:00") != -1:
+                line = line.replace("0000-00-00 00:00:00", "0001-01-01 00:00:00")
+                insert_lines.append(line)
+                continue
+            else:    
+                insert_lines.append(line)
+    
+    write_database(pgsql_dump, "notaryserver")
+    write_insert(pgsql_dump, insert_lines)
+    write_sequence(pgsql_dump, "tuf_files", "id")
+
+def do_parse_notary_signer_db(mysql_dump_file, pgsql_dump_file):
+    mysql_dump = open(mysql_dump_file)
+    pgsql_dump = open(pgsql_dump_file, "w")
+    insert_lines = []
+
+    for i, line in enumerate(mysql_dump):
+        
+        line = line.decode("utf8").strip()
+        if drop_line(line):
+            continue
+
+        # catch insert
+        if line.startswith("INSERT INTO"):
+            if line.find("\\") != -1:
+                line = line.replace('\\', '')
+                insert_lines.append(line)
+                continue
+            elif line.find("0000-00-00 00:00:00") != -1:
+                line = line.replace("0000-00-00 00:00:00", "0001-01-01 00:00:00")
+                insert_lines.append(line)
+                continue
+            else:    
+                insert_lines.append(line)
+    
+    write_database(pgsql_dump, "notarysigner")
+    write_insert(pgsql_dump, insert_lines)
+    write_sequence(pgsql_dump, "private_keys", "id")
+
 def drop_line(line):
     if line.startswith("--") or line.startswith("/*") or line.startswith("LOCK TABLES") or line.startswith("DROP TABLE") or line.startswith("UNLOCK TABLES") or not line:
         return True
@@ -102,19 +160,13 @@ def write_sequence(pgsql_dump, table_name, table_columnn):
     pgsql_dump.write("SELECT setval('%s_%s_seq', max(%s)) FROM %s;\n" % (table_name, table_columnn, table_columnn, table_name))
     pgsql_dump.write("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET DEFAULT nextval('%s_%s_seq');\n" % (table_name, table_columnn, table_name, table_columnn))
 
-def write_alter_table(pgsql_dump):
-    pgsql_dump.write('\n')
-    pgsql_dump.write("%s\n" % "ALTER TABLE harbor_user ALTER COLUMN deleted TYPE bool set default false NOT NULL;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE harbor_user ALTER COLUMN sysadmin_flag TYPE bool;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE project ALTER COLUMN deleted TYPE bool set default false NOT NULL;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE project_metadata ALTER COLUMN deleted TYPE bool set default false NOT NULL;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE replication_policy ALTER COLUMN enabled TYPE bool set default true NOT NULL;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE replication_policy ALTER COLUMN deleted TYPE bool set default false NOT NULL;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE replication_policy ALTER COLUMN replicate_deletion TYPE bool set default false NOT NULL;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE replication_target ALTER COLUMN target_type TYPE bool set default false NOT NULL;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE replication_target ALTER COLUMN insecure TYPE bool set default false NOT NULL;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE replication_immediate_trigger ALTER COLUMN on_push TYPE bool set default false NOT NULL;")
-    pgsql_dump.write("%s\n" % "ALTER TABLE replication_immediate_trigger ALTER COLUMN on_deletion TYPE bool set default false NOT NULL;")
-
 if __name__ == "__main__":
-    do_parse_table(sys.argv[1], sys.argv[2])
+    if sys.argv[1].find("registry") != -1:
+        do_parse_registry_db(sys.argv[1], sys.argv[2])
+    elif sys.argv[1].find("notaryserver") != -1:
+        do_parse_notary_server_db(sys.argv[1], sys.argv[2])
+    elif sys.argv[1].find("notarysigner") != -1:
+        do_parse_notary_signer_db(sys.argv[1], sys.argv[2])
+    else:
+        print ("Unsupport mysql dump file.")
+        sys.exit(1)
