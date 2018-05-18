@@ -442,7 +442,7 @@ function main {
 
     case $key in
     up|upgrade)
-        upgrade
+        upgrade $2
         ;;    
     backup)
        backup
