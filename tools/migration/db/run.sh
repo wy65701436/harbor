@@ -18,6 +18,7 @@ set -e
 
 ISMYSQL=false
 ISPGSQL=false
+NOTARYDB=/notary-db
 
 if [ "$(ls -A /var/lib/mysql)" ]; then
     ISMYSQL=true
@@ -268,38 +269,48 @@ function up_harbor {
 
 function up_notary {
 
-    mysqld &
-    echo 'Waiting for MySQL start...'
-    for i in {60..0}; do
-        mysqladmin -uroot processlist >/dev/null 2>&1
-        if [ $? = 0 ]; then
-            break
-        fi
-        sleep 1
-    done
-    set -e
-    if [ "$i" = 0 ]; then
-        echo "timeout. Can't run mysql server."
-        if [[ $var = "test" ]]; then
-            echo "DB test failed."
-        fi
-        exit 1
-    fi
+    # if [ ! -d "$NOTARYDB" ]; then
+    #     # No need to update notary db.
+    #     exit 0
+    # fi
 
-    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql
-    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql     
+    # cp /notary-db/* /var/lib/mysql
+
+    # mysqld & >/dev/null 2>&1
+    # echo 'Waiting for MySQL start...'
+    # for i in {60..0}; do
+    #     mysqladmin -uroot processlist >/dev/null 2>&1
+    #     if [ $? = 0 ]; then
+    #         break
+    #     fi
+    #     sleep 1
+    # done
+    # set -e
+    # if [ "$i" = 0 ]; then
+    #     echo "timeout. Can't run mysql server."
+    #     if [[ $var = "test" ]]; then
+    #         echo "DB test failed."
+    #     fi
+    #     exit 1
+    # fi
+
+    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
+    sed "s/0x\([0-9,A-F]*\))/decode('\1','hex'))/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
+    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql.tmp    
+    sed "s/0x\([0-9,A-F]*\))/decode('\1','hex'))/g" /harbor-migration/db/notarysigner.mysql.tmp > /harbor-migration/db/notarysigner.mysql
     stop_mysql root
 
     ## migrate 1.5.0-mysql to 1.5.0-pqsql.
     python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
     python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
 
-    launch_pgsql $PGSQL_USR
-    psql -U server -f /harbor-migration/db/schema/notaryserver.pgsql
-    psql -U server -f /harbor-migration/db/notaryserver.pgsql
+    # launch_pgsql $PGSQL_USR
+    su - $PGSQL_USR -c "pg_ctl -D \"$PGDATA\" -o \"-c listen_addresses='localhost'\" -w start"
+    #psql -U $PGSQL_USR -f /harbor-migration/db/schema/notaryserver.pgsql
+    psql -U $PGSQL_USR -f /harbor-migration/db/notaryserver.pgsql
 
-    psql -U signer -f /harbor-migration/db/schema/notarysigner.pgsql
-    psql -U signer -f /harbor-migration/db/notarysigner.pgsql
+    #psql -U $PGSQL_USR -f /harbor-migration/db/schema/notarysigner.pgsql
+    psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
 
     stop_pgsql
     exit 0    

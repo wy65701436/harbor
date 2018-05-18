@@ -1,4 +1,4 @@
-\c notarysinger;
+\c notarysigner;
 
 CREATE TABLE "private_keys" (
   "id" int PRIMARY KEY,
