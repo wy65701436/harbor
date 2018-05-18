@@ -187,46 +187,7 @@ function validate {
     fi
 }
 
-function migrate_notary {
-
-    mysqld &
-    echo 'Waiting for MySQL start...'
-    for i in {60..0}; do
-        mysqladmin -uroot processlist >/dev/null 2>&1
-        if [ $? = 0 ]; then
-            break
-        fi
-        sleep 1
-    done
-    set -e
-    if [ "$i" = 0 ]; then
-        echo "timeout. Can't run mysql server."
-        if [[ $var = "test" ]]; then
-            echo "DB test failed."
-        fi
-        exit 1
-    fi
-
-    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql
-    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql     
-    stop_mysql root
-
-    ## migrate 1.5.0-mysql to 1.5.0-pqsql.
-    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
-    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
-
-    launch_pgsql $PGSQL_USR
-    psql -U server -f /harbor-migration/db/schema/notaryserver.pgsql
-    psql -U server -f /harbor-migration/db/notaryserver.pgsql
-
-    psql -U signer -f /harbor-migration/db/schema/notarysigner.pgsql
-    psql -U signer -f /harbor-migration/db/notarysigner.pgsql
-
-    stop_pgsql
-    exit 0    
-}
-
-function upgrade {
+function up_harbor {
     local target_version="$1"
     if [[ -z $target_version ]]; then
         target_version="head"
@@ -303,7 +264,61 @@ function upgrade {
 
     echo "Unsupported DB upgrade from $cur_version to $target_version, please check the inputs."
     exit 1
+}
 
+function up_notary {
+
+    mysqld &
+    echo 'Waiting for MySQL start...'
+    for i in {60..0}; do
+        mysqladmin -uroot processlist >/dev/null 2>&1
+        if [ $? = 0 ]; then
+            break
+        fi
+        sleep 1
+    done
+    set -e
+    if [ "$i" = 0 ]; then
+        echo "timeout. Can't run mysql server."
+        if [[ $var = "test" ]]; then
+            echo "DB test failed."
+        fi
+        exit 1
+    fi
+
+    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql
+    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql     
+    stop_mysql root
+
+    ## migrate 1.5.0-mysql to 1.5.0-pqsql.
+    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
+    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
+
+    launch_pgsql $PGSQL_USR
+    psql -U server -f /harbor-migration/db/schema/notaryserver.pgsql
+    psql -U server -f /harbor-migration/db/notaryserver.pgsql
+
+    psql -U signer -f /harbor-migration/db/schema/notarysigner.pgsql
+    psql -U signer -f /harbor-migration/db/notarysigner.pgsql
+
+    stop_pgsql
+    exit 0    
+}
+
+function upgrade {
+
+    # default only up harbor
+    if [[ -z $1 ]]; then
+        up_harbor
+    fi 
+
+    if [ "$1" = "harbor" ]; then
+        up_harbor
+    fi
+
+    if [ "$1" = "notary" ]; then
+        up_notary
+    fi     
 }
 
 function alembic_up() {
