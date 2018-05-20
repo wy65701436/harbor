@@ -382,8 +382,7 @@ INSERT INTO "changefeed" (
 );
 
 CREATE TABLE "schema_migrations" (
-  "version" int(11) NOT NULL,
-  PRIMARY KEY ("version")
+  "version" int PRIMARY KEY
 );
 
 INSERT INTO "schema_migrations" VALUES (1),(2),(3),(4),(5);
@@ -415,8 +414,7 @@ CREATE TABLE "private_keys" (
 );
 
 CREATE TABLE "schema_migrations" (
-  "version" int(11) NOT NULL,
-  PRIMARY KEY ("version")
+  "version" int PRIMARY KEY
 );
 
 INSERT INTO "schema_migrations" VALUES (1),(2);
