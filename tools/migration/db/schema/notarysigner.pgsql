@@ -18,3 +18,10 @@ CREATE TABLE "private_keys" (
   CONSTRAINT "key_id" UNIQUE ("key_id"),
   CONSTRAINT "key_id_2" UNIQUE ("key_id","algorithm")
 );
+
+CREATE TABLE "schema_migrations" (
+  "version" int(11) NOT NULL,
+  PRIMARY KEY ("version")
+);
+
+INSERT INTO "schema_migrations" VALUES (1),(2);

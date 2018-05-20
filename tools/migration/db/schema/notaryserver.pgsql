@@ -49,3 +49,10 @@ INSERT INTO "changefeed" (
     ORDER BY
         "created_at" ASC
 );
+
+CREATE TABLE "schema_migrations" (
+  "version" int(11) NOT NULL,
+  PRIMARY KEY ("version")
+);
+
+INSERT INTO "schema_migrations" VALUES (1),(2),(3),(4),(5);
