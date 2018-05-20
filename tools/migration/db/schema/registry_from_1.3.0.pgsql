@@ -330,9 +330,6 @@ alter user server with encrypted password 'password';
 
 \c notaryserver;
 
-GRANT ALL PRIVILEGES ON DATABASE notaryserver TO server;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO server;
-
 CREATE TABLE "tuf_files" (
   "id" int PRIMARY KEY,
   "created_at" timestamp NULL DEFAULT NULL,
@@ -389,14 +386,15 @@ CREATE TABLE "schema_migrations" (
 
 INSERT INTO "schema_migrations" VALUES (1),(2),(3),(4),(5);
 
+GRANT ALL PRIVILEGES ON DATABASE notaryserver TO server;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO server;
+
+
 CREATE DATABASE notarysigner;
 CREATE USER signer;
 alter user signer with encrypted password 'password';
 
 \c notarysigner;
-
-GRANT ALL PRIVILEGES ON DATABASE notarysigner TO signer;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO signer;
 
 CREATE TABLE "private_keys" (
   "id" int PRIMARY KEY,
@@ -422,3 +420,6 @@ CREATE TABLE "schema_migrations" (
 );
 
 INSERT INTO "schema_migrations" VALUES (1),(2);
+
+GRANT ALL PRIVILEGES ON DATABASE notarysigner TO signer;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO signer;
