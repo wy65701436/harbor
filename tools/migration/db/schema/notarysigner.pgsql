@@ -1,3 +1,7 @@
+CREATE DATABASE notarysigner;
+CREATE USER signer;
+alter user signer with encrypted password 'password';
+
 \c notarysigner;
 
 CREATE TABLE "private_keys" (
@@ -20,8 +24,10 @@ CREATE TABLE "private_keys" (
 );
 
 CREATE TABLE "schema_migrations" (
-  "version" int(11) NOT NULL,
-  PRIMARY KEY ("version")
+  "version" int PRIMARY KEY
 );
 
 INSERT INTO "schema_migrations" VALUES (1),(2);
+
+GRANT ALL PRIVILEGES ON DATABASE notarysigner TO signer;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO signer;

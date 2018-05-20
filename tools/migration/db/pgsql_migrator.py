@@ -83,7 +83,7 @@ def do_parse_notary_server_db(mysql_dump_file, pgsql_dump_file):
                 line = line.replace('\\', '')
                 insert_lines.append(line)
                 continue
-            elif line.startswith('INSERT INTO "change_category"') | line.startswith('INSERT INTO "changefeed"'):
+            elif line.startswith('INSERT INTO "change_category"') | line.startswith('INSERT INTO "changefeed"') | line.startswith('INSERT INTO "schema_migrations"'):
                 continue
             elif line.find("0000-00-00 00:00:00") != -1:
                 line = line.replace("0000-00-00 00:00:00", "0001-01-01 00:00:00")
@@ -112,6 +112,8 @@ def do_parse_notary_signer_db(mysql_dump_file, pgsql_dump_file):
             if line.find("\\") != -1:
                 line = line.replace('\\', '')
                 insert_lines.append(line)
+                continue
+            elif line.startswith('INSERT INTO "schema_migrations"'):
                 continue
             elif line.find("0000-00-00 00:00:00") != -1:
                 line = line.replace("0000-00-00 00:00:00", "0001-01-01 00:00:00")

@@ -70,7 +70,7 @@ fi
 function get_version {
     set +e
     if [ $ISMYSQL == true ]; then
-        launch_mysql
+        launch_mysql $DB_USR $DB_PWD
         if [[ $(mysql $DBCNF -N -s -e "select count(*) from information_schema.tables \
             where table_schema='registry' and table_name='alembic_version';") -eq 0 ]]; then
             echo "table alembic_version does not exist. Trying to initial alembic_version."
@@ -98,14 +98,20 @@ function get_version {
 
 function launch_mysql {
     set +e
-    local var="$1"
+    local user="$1"
+    local pwd="$2"
+    local var="$3"
     export MYSQL_PWD="${DB_PWD}"
     echo 'Trying to start mysql server...'
     chown -R 10000:10000 /var/lib/mysql
     mysqld &
     echo 'Waiting for MySQL start...'
     for i in {60..0}; do
-        mysqladmin -u$DB_USR -p$DB_PWD processlist >/dev/null 2>&1
+        if [[ -z $pwd ]]; then
+            mysqladmin -u$DB_USR processlist >/dev/null 2>&1
+        else
+            mysqladmin -u$DB_USR -p$DB_PWD processlist >/dev/null 2>&1
+        fi      
         if [ $? = 0 ]; then
             break
         fi
@@ -181,7 +187,7 @@ function restore {
 
 function validate {
     if [ $ISMYSQL == true ]; then
-        launch_mysql test
+        launch_mysql $DB_USR $DB_PWD test
     fi
     if [ $ISPGSQL == true ]; then
         launch_pgsql $PGSQL_USR test
@@ -241,6 +247,9 @@ function up_harbor {
 
             launch_pgsql $PGSQL_USR
             psql -U $PGSQL_USR -f /harbor-migration/db/schema/registry_from_$cur_version.pgsql
+            ##TODO add update notary flag
+            psql -U $PGSQL_USR -f /harbor-migration/db/schema/notaryserver.pgsql
+            psql -U $PGSQL_USR -f /harbor-migration/db/schema/notarysigner.pgsql
             psql -U $PGSQL_USR -f /harbor-migration/db/registry.pgsql
 
             ## move all the data to /data/database
@@ -270,29 +279,13 @@ function up_harbor {
 function up_notary {
 
     # if [ ! -d "$NOTARYDB" ]; then
-    #     # No need to update notary db.
+    #     # No need to update not \\\\\\ary db.
     #     exit 0
     # fi
 
     # cp /notary-db/* /var/lib/mysql
 
-    # mysqld & >/dev/null 2>&1
-    # echo 'Waiting for MySQL start...'
-    # for i in {60..0}; do
-    #     mysqladmin -uroot processlist >/dev/null 2>&1
-    #     if [ $? = 0 ]; then
-    #         break
-    #     fi
-    #     sleep 1
-    # done
-    # set -e
-    # if [ "$i" = 0 ]; then
-    #     echo "timeout. Can't run mysql server."
-    #     if [[ $var = "test" ]]; then
-    #         echo "DB test failed."
-    #     fi
-    #     exit 1
-    # fi
+    launch_mysql root
 
     mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
     sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql

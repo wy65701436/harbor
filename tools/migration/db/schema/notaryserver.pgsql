@@ -1,3 +1,7 @@
+CREATE DATABASE notaryserver;
+CREATE USER server;
+alter user server with encrypted password 'password';
+
 \c notaryserver;
 
 CREATE TABLE "tuf_files" (
@@ -51,8 +55,10 @@ INSERT INTO "changefeed" (
 );
 
 CREATE TABLE "schema_migrations" (
-  "version" int(11) NOT NULL,
-  PRIMARY KEY ("version")
+  "version" int PRIMARY KEY
 );
 
 INSERT INTO "schema_migrations" VALUES (1),(2),(3),(4),(5);
+
+GRANT ALL PRIVILEGES ON DATABASE notaryserver TO server;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO server;
