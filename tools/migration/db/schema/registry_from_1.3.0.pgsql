@@ -327,10 +327,11 @@ CREATE TABLE IF NOT EXISTS alembic_version (
 CREATE DATABASE notaryserver;
 CREATE USER server;
 alter user server with encrypted password 'password';
-GRANT ALL PRIVILEGES ON DATABASE notaryserver TO server;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO server;
 
 \c notaryserver;
+
+GRANT ALL PRIVILEGES ON DATABASE notaryserver TO server;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO server;
 
 CREATE TABLE "tuf_files" (
   "id" int PRIMARY KEY,
@@ -391,10 +392,11 @@ INSERT INTO "schema_migrations" VALUES (1),(2),(3),(4),(5);
 CREATE DATABASE notarysigner;
 CREATE USER signer;
 alter user signer with encrypted password 'password';
-GRANT ALL PRIVILEGES ON DATABASE notarysigner TO signer;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO signer;
 
 \c notarysigner;
+
+GRANT ALL PRIVILEGES ON DATABASE notarysigner TO signer;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO signer;
 
 CREATE TABLE "private_keys" (
   "id" int PRIMARY KEY,
