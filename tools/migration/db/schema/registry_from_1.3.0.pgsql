@@ -328,6 +328,7 @@ CREATE DATABASE notaryserver;
 CREATE USER server;
 alter user server with encrypted password 'password';
 GRANT ALL PRIVILEGES ON DATABASE notaryserver TO server;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO server;
 
 \c notaryserver;
 
@@ -391,6 +392,7 @@ CREATE DATABASE notarysigner;
 CREATE USER signer;
 alter user signer with encrypted password 'password';
 GRANT ALL PRIVILEGES ON DATABASE notarysigner TO signer;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO signer;
 
 \c notarysigner;
 
