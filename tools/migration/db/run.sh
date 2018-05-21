@@ -290,32 +290,30 @@ function up_notary {
     fi
     set -e
 
-    echo "notary DB pass....."
+    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
+    sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
+    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql.tmp    
+    sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notarysigner.mysql.tmp > /harbor-migration/db/notarysigner.mysql
+    stop_mysql root
 
-    if [[ $(mysql $DBCNF -N -s -e "select count(*) from information_schema.tables \
-                where table_schema='notaryserver' and table_name='tuf_files'") -eq 0 ]]; then
-        echo "no content trust data needs to be updated."
+    ## migrate 1.5.0-mysql to 1.5.0-pqsql.
+    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
+    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
+
+    ## No signuature, no need to upgrade 
+    if grep -q 'INSERT INTO "tuf_files"' "/harbor-migration/db/notaryserver.pgsql"; then
+        echo "No need to upgrade notary db as no trust data."
         return 0
-    else
-        mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
-        sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
-        mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql.tmp    
-        sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notarysigner.mysql.tmp > /harbor-migration/db/notarysigner.mysql
-        stop_mysql root
+    fi 
 
-        ## migrate 1.5.0-mysql to 1.5.0-pqsql.
-        python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
-        python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
+    # launch_pgsql $PGSQL_USR
+    chown -R postgres:postgres $PGDATA
+    su - $PGSQL_USR -c "pg_ctl -D \"$PGDATA\" -o \"-c listen_addresses='localhost'\" -w start"
+    psql -U $PGSQL_USR -f /harbor-migration/db/notaryserver.pgsql
+    psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
 
-        # launch_pgsql $PGSQL_USR
-        chown -R postgres:postgres $PGDATA
-        su - $PGSQL_USR -c "pg_ctl -D \"$PGDATA\" -o \"-c listen_addresses='localhost'\" -w start"
-        psql -U $PGSQL_USR -f /harbor-migration/db/notaryserver.pgsql
-        psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
-
-        stop_pgsql
-        return 0   
-    fi
+    stop_pgsql
+    return 0   
  
 }
 
@@ -354,7 +352,7 @@ function upgrade {
             up_notary
             if [ "$?" != 0 ]; then
                 echo "Upgrade notary db error, reverting the data..."
-                cp -rf /var/lib/mysql/* /var/lib/mysql
+                cp -rf /harbor-migration/backup/* /var/lib/mysql/
                 echo "Success to revert data, please run it again..."
                 exit 1
             fi 
