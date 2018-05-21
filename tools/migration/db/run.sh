@@ -26,8 +26,8 @@ if [ "$(ls -A /var/lib/mysql)" ]; then
     if [ -e '/var/lib/mysql/PG_VERSION' ]; then
         ISPGSQL=true
     elif [ -e '/var/lib/mysql/created_in_mariadb.flag' ]; then
-        ISPGSQL=true
-    if
+        ISMYSQL=true
+    fi
 fi
 
 if [ "$(ls -A /notary-db)" ]; then
@@ -119,6 +119,7 @@ function launch_mysql {
         mysqladmin -u$DB_USR -p$DB_PWD processlist >/dev/null 2>&1   
         if [ $? = 0 ]; then
             break
+        fi
         sleep 1
     done
     set -e
