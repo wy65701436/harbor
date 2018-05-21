@@ -76,8 +76,6 @@ if [ "${1:0:1}" = '-' ]; then
         set -- postgres "$@"
 fi
 
-## For the current release migrator:1.6.0, the get version could only support for mysql.
-## TODO: add support for pgsql.
 function get_version {
     set +e
     if [ $ISMYSQL == true ]; then
@@ -270,7 +268,7 @@ function up_harbor {
     exit 1
 }
 
-# It's only for notary mysql to pgsql.
+# This function is only for notary <= 1.5.0 mysql to pgsql.
 function up_notary {
 
     set +e
@@ -332,19 +330,20 @@ function upgrade {
         exit 0
     fi
 
-    up_harbor
-
     set +e
     version_com $cur_version '1.5.0'
     v1_com=$?
     set -e
+
+    up_harbor
     
-    # $cur_version <='1.5.0', it needs to call notary upgrade.
+    # $cur_version <='1.5.0', it needs to mv data and call notary upgrade
     if [ $v1_com != 1 ]; then
         rm -rf /var/lib/mysql/*
         if [ "$UPNOTARY" == true ]; then
             mv /notary-db/* /var/lib/mysql          
             up_notary
+            rm -rf /var/lib/mysql/*
         fi
         ## move all the data to /data/database
         cp -rf $PGDATA/* /var/lib/mysql
