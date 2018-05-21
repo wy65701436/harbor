@@ -275,9 +275,10 @@ function up_harbor {
 function up_notary {
 
     set +e
-    # chown -R 10000:10000 /var/lib/mysql
+    chown -R 10000:10000 /var/lib/mysql
     mysqld &
     sleep 5
+    ls -la /var/lib/mysql
 
     # for i in {60..0}; do
     #     mysqladmin -uroot processlist >/dev/null 2>&1      
