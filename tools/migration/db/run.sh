@@ -142,6 +142,7 @@ function stop_mysql {
     else
         mysqladmin -u$1 -p$DB_PWD shutdown
     fi
+    sleep 5
 }
 
 function version_com() {
@@ -282,12 +283,8 @@ function up_notary {
         fi
         sleep 1
     done
-    set -e
     if [ "$i" = 0 ]; then
         echo "timeout. Can't run mysql server."
-        if [[ $var = "test" ]]; then
-            echo "DB test failed."
-        fi
         return 1
     fi
     set -e
