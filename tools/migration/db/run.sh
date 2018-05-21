@@ -70,7 +70,7 @@ fi
 function get_version {
     set +e
     if [ $ISMYSQL == true ]; then
-        launch_mysql $DB_USR $DB_PWD
+        launch_mysql
         if [[ $(mysql $DBCNF -N -s -e "select count(*) from information_schema.tables \
             where table_schema='registry' and table_name='alembic_version';") -eq 0 ]]; then
             echo "table alembic_version does not exist. Trying to initial alembic_version."
@@ -98,20 +98,14 @@ function get_version {
 
 function launch_mysql {
     set +e
-    local user="$1"
-    local pwd="$2"
-    local var="$3"
+    local var="$1"
     export MYSQL_PWD="${DB_PWD}"
     echo 'Trying to start mysql server...'
     chown -R 10000:10000 /var/lib/mysql
     mysqld &
     echo 'Waiting for MySQL start...'
     for i in {60..0}; do
-        if [[ -z $pwd ]]; then
-            mysqladmin -u$DB_USR processlist >/dev/null 2>&1
-        else
-            mysqladmin -u$DB_USR -p$DB_PWD processlist >/dev/null 2>&1
-        fi      
+        mysqladmin -u$DB_USR -p$DB_PWD processlist >/dev/null 2>&1      
         if [ $? = 0 ]; then
             break
         fi
@@ -187,7 +181,7 @@ function restore {
 
 function validate {
     if [ $ISMYSQL == true ]; then
-        launch_mysql $DB_USR $DB_PWD test
+        launch_mysql test
     fi
     if [ $ISPGSQL == true ]; then
         launch_pgsql $PGSQL_USR test
@@ -285,7 +279,9 @@ function up_notary {
 
     # cp /notary-db/* /var/lib/mysql
 
-    launch_mysql root
+    set +e
+    mysqld &
+    set -e
 
     mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
     sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
@@ -299,10 +295,7 @@ function up_notary {
 
     # launch_pgsql $PGSQL_USR
     su - $PGSQL_USR -c "pg_ctl -D \"$PGDATA\" -o \"-c listen_addresses='localhost'\" -w start"
-    #psql -U $PGSQL_USR -f /harbor-migration/db/schema/notaryserver.pgsql
     psql -U $PGSQL_USR -f /harbor-migration/db/notaryserver.pgsql
-
-    #psql -U $PGSQL_USR -f /harbor-migration/db/schema/notarysigner.pgsql
     psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
 
     stop_pgsql
