@@ -275,6 +275,7 @@ function up_harbor {
 function up_notary {
 
     set +e
+    chown -R 10000:10000 /var/lib/mysql
     mysqld &
     for i in {60..0}; do
         mysqladmin -uroot processlist >/dev/null 2>&1      
@@ -288,6 +289,8 @@ function up_notary {
         return 1
     fi
     set -e
+
+    echo "notary DB pass....."
 
     if [[ $(mysql $DBCNF -N -s -e "select count(*) from information_schema.tables \
                 where table_schema='notaryserver' and table_name='tuf_files'") -eq 0 ]]; then
