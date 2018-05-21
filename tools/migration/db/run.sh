@@ -285,8 +285,26 @@ function up_notary {
 
     # cp /notary-db/* /var/lib/mysql
 
-    launch_mysql root
+    set +e
+    mysqld &
+    for i in {60..0}; do
+        mysqladmin -uroot processlist >/dev/null 2>&1      
+        if [ $? = 0 ]; then
+            break
+        fi
+        sleep 1
+    done
+    set -e
+    if [ "$i" = 0 ]; then
+        echo "timeout. Can't run mysql server."
+        if [[ $var = "test" ]]; then
+            echo "DB test failed."
+        fi
+        exit 1
+    fi
+
     echo "db success."
+    set -e
 
     mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
     sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
