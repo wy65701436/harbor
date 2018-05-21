@@ -204,6 +204,16 @@ function validate {
 
 function up_harbor {
     local target_version="$1"
+    if [[ -z $target_version ]]; then
+        target_version="head"
+        echo "Version is not specified. Default version is head."
+    fi
+
+    get_version
+    if [ "$cur_version" = "$target_version" ]; then
+        echo "It has always running the $target_version, no longer need to upgrade."
+        exit 0
+    fi
 
     set +e
     version_com $cur_version '1.5.0'
@@ -325,26 +335,22 @@ function up_notary {
 
 function upgrade {
 
-    local target_version="$2"
-    if [[ -z $target_version ]]; then
-        target_version="head"
-        echo "Version is not specified. Default version is head."
-    fi
-
-    get_version
-    if [ "$cur_version" = "$target_version" ]; then
-        echo "It has always running the $target_version, no longer need to upgrade."
-        exit 0
-    fi
-
     # default mode is to update harbor db only.
-    if [[ -z $1 ]] && [ "$1" = "harbor" ]; then
-        up_harbor $target_version
+    if [[ -z $1 ]]; then
+        up_harbor
         if [ "$?" != 0 ]; then
             echo "Upgrade harbor db error, please run it again."
             exit 1
         fi 
     fi
+
+    if [ "$1" = "harbor" ]; then
+        up_harbor $2
+        if [ "$?" != 0 ]; then
+            echo "Upgrade notary db error, please run it again."
+            exit 1
+        fi
+    fi    
 
     if [ "$1" = "notary" ]; then
         up_notary
