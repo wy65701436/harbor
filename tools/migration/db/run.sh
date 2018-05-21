@@ -125,6 +125,35 @@ function launch_mysql {
     fi
 }
 
+function launch_mysql_notary {
+    set +e
+    local var="$1"
+    export MYSQL_PWD="${DB_PWD}"
+    echo 'Trying to start mysql server...'
+    chown -R 10000:10000 /var/lib/mysql
+    mysqld &
+    echo 'Waiting for MySQL start...'
+    for i in {60..0}; do
+        mysqladmin -uroot processlist >/dev/null 2>&1      
+        if [ $? = 0 ]; then
+            break
+        fi
+        sleep 1
+    done
+    set -e
+    if [ "$i" = 0 ]; then
+        echo "timeout. Can't run mysql server."
+        if [[ $var = "test" ]]; then
+            echo "DB test failed."
+        fi
+        exit 1
+    fi
+    if [[ $var = "test" ]]; then
+        echo "DB test passed."
+        exit 0
+    fi
+}
+
 function stop_mysql {
     if [[ -z $2 ]]; then
         mysqladmin -u$1 shutdown
@@ -296,6 +325,7 @@ function up_notary {
     # launch_pgsql $PGSQL_USR
     su - $PGSQL_USR -c "pg_ctl -D \"$PGDATA\" -o \"-c listen_addresses='localhost'\" -w start"
     psql -U $PGSQL_USR -f /harbor-migration/db/notaryserver.pgsql
+
     psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
 
     stop_pgsql
