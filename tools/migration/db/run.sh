@@ -321,6 +321,10 @@ function up_notary {
 }
 
 function upgrade {
+    up_notary
+}
+
+function upgrade1 {
 
     local target_version="$1"
     if [[ -z $target_version ]]; then
