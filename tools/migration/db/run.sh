@@ -244,7 +244,6 @@ function up_harbor {
 
             launch_pgsql $PGSQL_USR
             psql -U $PGSQL_USR -f /harbor-migration/db/schema/registry_from_$cur_version.pgsql
-            ##TODO add update notary flag
             psql -U $PGSQL_USR -f /harbor-migration/db/schema/notaryserver.pgsql
             psql -U $PGSQL_USR -f /harbor-migration/db/schema/notarysigner.pgsql
             psql -U $PGSQL_USR -f /harbor-migration/db/registry.pgsql
@@ -277,56 +276,56 @@ function up_notary {
     set +e
     chown -R 10000:10000 /var/lib/mysql
     mysqld &
-    sleep 5
-    ls -la /var/lib/mysql
-
-    # for i in {60..0}; do
-    #     mysqladmin -uroot processlist >/dev/null 2>&1      
-    #     if [ $? = 0 ]; then
-    #         break
-    #     fi
-    #     sleep 1
-    # done
-    # if [ "$i" = 0 ]; then
-    #     echo "timeout. Can't run mysql server."
-    #     return 1
-    # fi
+    for i in {60..0}; do
+        mysqladmin -uroot processlist >/dev/null 2>&1      
+        if [ $? = 0 ]; then
+            break
+        fi
+        sleep 1
+    done
+    if [ "$i" = 0 ]; then
+        echo "timeout. Can't run mysql server."
+        return 1
+    fi
     set -e
 
-    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
-    sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
-    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql.tmp    
-    sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notarysigner.mysql.tmp > /harbor-migration/db/notarysigner.mysql
-    stop_mysql root
-
-    ## migrate 1.5.0-mysql to 1.5.0-pqsql.
-    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
-    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
-
-    ## No signuature, no need to upgrade 
-    if grep -q 'INSERT INTO "tuf_files"' "/harbor-migration/db/notaryserver.pgsql"; then
-        echo "No need to upgrade notary db as no trust data."
+    if [[ $(mysql $DBCNF -N -s -e "select count(*) from information_schema.tables \
+                where table_schema='notaryserver' and table_name='tuf_files'") -eq 0 ]]; then
+        echo "no content trust data needs to be updated."
         return 0
-    fi 
+    else
 
-    # launch_pgsql $PGSQL_USR
-    chown -R postgres:postgres $PGDATA
-    su - $PGSQL_USR -c "pg_ctl -D \"$PGDATA\" -o \"-c listen_addresses='localhost'\" -w start"
-    psql -U $PGSQL_USR -f /harbor-migration/db/notaryserver.pgsql
-    psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
+        # launch_pgsql $PGSQL_USR
+        chown -R postgres:postgres $PGDATA
+        su - $PGSQL_USR -c "pg_ctl -D \"$PGDATA\" -o \"-c listen_addresses='localhost'\" -w start"
 
-    stop_pgsql
-    return 0   
+        # delete all data to make it re-runable
+        psql -U $PGSQL_USR -d notaryserver -t -c "TRUNCATE tuf_files;"
+        psql -U $PGSQL_USR -d notarysigner -t -c "TRUNCATE private_keys;"
+
+        mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
+        sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
+        mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql.tmp    
+        sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notarysigner.mysql.tmp > /harbor-migration/db/notarysigner.mysql
+        stop_mysql root
+
+        ## migrate 1.5.0-mysql to 1.5.0-pqsql.
+        python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
+        python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
+
+        # launch_pgsql $PGSQL_USR
+        psql -U $PGSQL_USR -f /harbor-migration/db/notaryserver.pgsql
+        psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
+
+        stop_pgsql
+        return 0   
+    fi
  
 }
 
 function upgrade {
-    up_notary
-}
 
-function upgrade1 {
-
-    local target_version="$1"
+    local target_version="$2"
     if [[ -z $target_version ]]; then
         target_version="head"
         echo "Version is not specified. Default version is head."
@@ -338,40 +337,23 @@ function upgrade1 {
         exit 0
     fi
 
-    set +e
-    version_com $cur_version '1.5.0'
-    v1_com=$?
-    set -e
+    # default mode is to update harbor db only.
+    if [[ -z $1 ]] && [ "$1" = "harbor" ]; then
+        up_harbor $target_version
+        if [ "$?" != 0 ]; then
+            echo "Upgrade harbor db error, please run it again."
+            exit 1
+        fi 
+    fi
 
-    ls -la /var/lib/mysql
-
-    up_harbor $target_version
-    if [ "$?" != 0 ]; then
-        echo "Upgrade harbor db error, please run it again."
-        exit 1
+    if [ "$1" = "notary" ]; then
+        up_notary
+        if [ "$?" != 0 ]; then
+            echo "Upgrade notary db error, please run it again."
+            exit 1
+        fi
     fi 
     
-    # $cur_version <='1.5.0', it needs to mv data and call notary upgrade
-    if [ $v1_com != 1 ]; then
-        mkdir -p /harbor-migration/backup
-        cp -rf /var/lib/mysql/* /harbor-migration/backup
-        rm -rf /var/lib/mysql/*
-        if [ "$UPNOTARY" == true ]; then
-            ls -la /notary-db
-            mv /notary-db/* /var/lib/mysql          
-            up_notary
-            if [ "$?" != 0 ]; then
-                echo "Upgrade notary db error, reverting the data..."
-                cp -rf /harbor-migration/backup/* /var/lib/mysql/
-                echo "Success to revert data, please run it again..."
-                exit 1
-            fi 
-            rm -rf /var/lib/mysql/*
-        fi
-        ## move all the data to /data/database
-        cp -rf $PGDATA/* /var/lib/mysql
-    fi   
-
 }
 
 function alembic_up() {
