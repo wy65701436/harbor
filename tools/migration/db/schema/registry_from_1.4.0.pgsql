@@ -322,14 +322,3 @@ CREATE TRIGGER harbor_resource_label_update_time_at_modtime BEFORE UPDATE ON har
 CREATE TABLE IF NOT EXISTS alembic_version (
     version_num varchar(32) NOT NULL
 );
-
-/* Create notary database */
-CREATE DATABASE notaryserver;
-CREATE USER server;
-alter user server with encrypted password 'password';
-GRANT ALL PRIVILEGES ON DATABASE notaryserver TO server;
-
-CREATE DATABASE notarysigner;
-CREATE USER signer;
-alter user signer with encrypted password 'password';
-GRANT ALL PRIVILEGES ON DATABASE notarysigner TO signer;

@@ -19,10 +19,21 @@ set -e
 ISMYSQL=false
 ISPGSQL=false
 NOTARYDB=/notary-db
+UPNOTARY=false
 
 if [ "$(ls -A /var/lib/mysql)" ]; then
-    ISMYSQL=true
+    # use the logic to handle run upgrade from less than 1.5.0 twice.
+    if [ -e '/var/lib/mysql/PG_VERSION' ]; then
+        ISPGSQL=true
+    elif [ -e '/var/lib/mysql/created_in_mariadb.flag' ]; then
+        ISPGSQL=true
+    if
 fi
+
+if [ "$(ls -A /notary-db)" ]; then
+    UPNOTARY=true
+fi
+
 if [ "$(ls -A /var/lib/postgresql/data)" ]; then
     ISPGSQL=true
 fi
@@ -70,7 +81,7 @@ fi
 function get_version {
     set +e
     if [ $ISMYSQL == true ]; then
-        launch_mysql $DB_USR $DB_PWD
+        launch_mysql
         if [[ $(mysql $DBCNF -N -s -e "select count(*) from information_schema.tables \
             where table_schema='registry' and table_name='alembic_version';") -eq 0 ]]; then
             echo "table alembic_version does not exist. Trying to initial alembic_version."
@@ -93,28 +104,23 @@ function get_version {
     set -e
     if [ $ISPGSQL == true ]; then
         launch_pgsql $PGSQL_USR
+        cur_version=$(psql -U $PGSQL_USR -d registry -t -c "select * from alembic_version;")
+        echo $cur_version
     fi
 }
 
 function launch_mysql {
     set +e
-    local usr="$1"
-    local pwd="$2"
-    local var="$3"
+    local var="$1"
     export MYSQL_PWD="${DB_PWD}"
     echo 'Trying to start mysql server...'
     chown -R 10000:10000 /var/lib/mysql
     mysqld &
     echo 'Waiting for MySQL start...'
     for i in {60..0}; do
-        if [[ -z $pwd ]]; then
-            mysqladmin -u$DB_USR processlist >/dev/null 2>&1
-        else
-            mysqladmin -u$DB_USR -p$DB_PWD processlist >/dev/null 2>&1 
-        fi    
+        mysqladmin -u$DB_USR -p$DB_PWD processlist >/dev/null 2>&1   
         if [ $? = 0 ]; then
             break
-        fi
         sleep 1
     done
     set -e
@@ -162,6 +168,7 @@ function version_com() {
 function backup {
     echo "Performing backup..."
     if [ $ISMYSQL == true ]; then
+        launch_mysql
         mysqldump $DBCNF --add-drop-database --databases registry > /harbor-migration/backup/registry.sql
     fi
     if [ $ISPGSQL == true ]; then
@@ -175,6 +182,7 @@ function backup {
 function restore {
     echo "Performing restore..."
     if [ $ISMYSQL == true ]; then
+        launch_mysql
         mysql $DBCNF < /harbor-migration/backup/registry.sql
     fi
     if [ $ISPGSQL == true ]; then
@@ -187,7 +195,7 @@ function restore {
 
 function validate {
     if [ $ISMYSQL == true ]; then
-        launch_mysql $DB_USR $DB_PWD test
+        launch_mysql test
     fi
     if [ $ISPGSQL == true ]; then
         launch_pgsql $PGSQL_USR test
@@ -196,17 +204,6 @@ function validate {
 
 function up_harbor {
     local target_version="$1"
-    if [[ -z $target_version ]]; then
-        target_version="head"
-        echo "Version is not specified. Default version is head."
-    fi
-
-    get_version
-
-    if [ "$cur_version" = "$target_version" ]; then
-        echo "It has always running the $target_version, no longer need to upgrade."
-        exit 0
-    fi
 
     set +e
     version_com $cur_version '1.5.0'
@@ -240,7 +237,6 @@ function up_harbor {
             ## dump mysql
             mysqldump --compatible=postgresql --default-character-set=utf8 --databases registry > /harbor-migration/db/registry.mysql     
             stop_mysql $DB_USR $DB_PWD
-            rm -rf /var/lib/mysql/*
 
             ## migrate 1.5.0-mysql to 1.5.0-pqsql.
             python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/registry.mysql /harbor-migration/db/registry.pgsql
@@ -252,12 +248,10 @@ function up_harbor {
             psql -U $PGSQL_USR -f /harbor-migration/db/schema/notarysigner.pgsql
             psql -U $PGSQL_USR -f /harbor-migration/db/registry.pgsql
 
-            ## move all the data to /data/database
-            cp -rf $PGDATA/* /var/lib/mysql
-
             ## it needs to call the alembic_up to target, disable it as it's now unsupported.
             #alembic_up $target_version
             stop_pgsql
+
             exit 0
         fi        
     fi
@@ -276,14 +270,8 @@ function up_harbor {
     exit 1
 }
 
+# It's only for notary mysql to pgsql.
 function up_notary {
-
-    # if [ ! -d "$NOTARYDB" ]; then
-    #     # No need to update not \\\\\\ary db.
-    #     exit 0
-    # fi
-
-    # cp /notary-db/* /var/lib/mysql
 
     set +e
     mysqld &
@@ -302,43 +290,66 @@ function up_notary {
         fi
         exit 1
     fi
-
-    echo "db success."
     set -e
 
-    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
-    sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
-    mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql.tmp    
-    sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notarysigner.mysql.tmp > /harbor-migration/db/notarysigner.mysql
-    stop_mysql root
+    if [[ $(mysql $DBCNF -N -s -e "select count(*) from information_schema.tables \
+                where table_schema='notaryserver' and table_name='tuf_files'") -eq 0 ]]; then
+        echo "no content trust data needs to be updated."
+    else
+        mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
+        sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
+        mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notarysigner > /harbor-migration/db/notarysigner.mysql.tmp    
+        sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notarysigner.mysql.tmp > /harbor-migration/db/notarysigner.mysql
+        stop_mysql root
 
-    ## migrate 1.5.0-mysql to 1.5.0-pqsql.
-    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
-    python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
+        ## migrate 1.5.0-mysql to 1.5.0-pqsql.
+        python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notaryserver.mysql /harbor-migration/db/notaryserver.pgsql
+        python /harbor-migration/db/pgsql_migrator.py /harbor-migration/db/notarysigner.mysql /harbor-migration/db/notarysigner.pgsql
 
-    # launch_pgsql $PGSQL_USR
-    su - $PGSQL_USR -c "pg_ctl -D \"$PGDATA\" -o \"-c listen_addresses='localhost'\" -w start"
-    psql -U $PGSQL_USR -f /harbor-migration/db/notaryserver.pgsql
-    psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
+        # launch_pgsql $PGSQL_USR
+        chown -R postgres:postgres $PGDATA
+        su - $PGSQL_USR -c "pg_ctl -D \"$PGDATA\" -o \"-c listen_addresses='localhost'\" -w start"
+        psql -U $PGSQL_USR -f /harbor-migration/db/notaryserver.pgsql
+        psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
 
-    stop_pgsql
-    exit 0    
+        stop_pgsql
+        exit 0   
+    fi
+ 
 }
 
 function upgrade {
 
-    # default only up harbor
-    if [[ -z $1 ]]; then
-        up_harbor
-    fi 
-
-    if [ "$1" = "harbor" ]; then
-        up_harbor
+    local target_version="$1"
+    if [[ -z $target_version ]]; then
+        target_version="head"
+        echo "Version is not specified. Default version is head."
     fi
 
-    if [ "$1" = "notary" ]; then
-        up_notary
-    fi     
+    get_version
+    if [ "$cur_version" = "$target_version" ]; then
+        echo "It has always running the $target_version, no longer need to upgrade."
+        exit 0
+    fi
+
+    up_harbor
+
+    set +e
+    version_com $cur_version '1.5.0'
+    v1_com=$?
+    set -e
+    
+    # $cur_version <='1.5.0', it needs to call notary upgrade.
+    if [ $v1_com != 1 ]; then
+        rm -rf /var/lib/mysql/*
+        if [ "$UPNOTARY" == true ]; then
+            mv /notary-db/* /var/lib/mysql          
+            up_notary
+        fi
+        ## move all the data to /data/database
+        cp -rf $PGDATA/* /var/lib/mysql
+    fi   
+
 }
 
 function alembic_up() {
