@@ -261,6 +261,9 @@ function up_harbor {
             ## it needs to call the alembic_up to target, disable it as it's now unsupported.
             #alembic_up $target_version
             stop_pgsql
+
+            rm -rf /var/lib/mysql/*
+            cp -rf $PGDATA/* /var/lib/mysql
             return 0
         fi        
     fi
