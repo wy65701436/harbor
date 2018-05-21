@@ -339,6 +339,8 @@ function upgrade {
     v1_com=$?
     set -e
 
+    ls -la /var/lib/mysql
+
     up_harbor $target_version
     if [ "$?" != 0 ]; then
         echo "Upgrade harbor db error, please run it again."
@@ -351,6 +353,7 @@ function upgrade {
         cp -rf /var/lib/mysql/* /harbor-migration/backup
         rm -rf /var/lib/mysql/*
         if [ "$UPNOTARY" == true ]; then
+            ls -la /notary-db
             mv /notary-db/* /var/lib/mysql          
             up_notary
             if [ "$?" != 0 ]; then
