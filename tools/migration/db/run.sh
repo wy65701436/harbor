@@ -219,9 +219,10 @@ function up_harbor {
     if [ $v1_com != 1 ] && [ $v2_com != 1 ]; then
         if [ $ISMYSQL != true ]; then
             echo "Please make sure to mount the correct the data volumn."
-            exit 1
+            return 1
         else
             alembic_up $target_version
+            return $?
         fi
     fi
 
@@ -229,7 +230,7 @@ function up_harbor {
     if [ $v1_com != 1 ] && [ $v2_com = 1 ]; then
         if [ $ISMYSQL != true ]; then
             echo "Please make sure to mount the correct the data volumn."
-            exit 1
+            return 1
         else
             alembic_up '1.5.0' false
 
@@ -250,8 +251,7 @@ function up_harbor {
             ## it needs to call the alembic_up to target, disable it as it's now unsupported.
             #alembic_up $target_version
             stop_pgsql
-
-            exit 0
+            return 0
         fi        
     fi
 
@@ -259,14 +259,15 @@ function up_harbor {
     if [ $v1_com = 1 ] && [ $v2_com = 1 ]; then
         if [ $ISPGSQL != true ]; then
             echo "Please make sure to mount the correct the data volumn."
-            exit 1
+            return 1
         else
             alembic_up $target_version
+            return $?
         fi
     fi
 
     echo "Unsupported DB upgrade from $cur_version to $target_version, please check the inputs."
-    exit 1
+    return 1
 }
 
 # This function is only for notary <= 1.5.0 mysql to pgsql.
@@ -287,13 +288,14 @@ function up_notary {
         if [[ $var = "test" ]]; then
             echo "DB test failed."
         fi
-        exit 1
+        return 1
     fi
     set -e
 
     if [[ $(mysql $DBCNF -N -s -e "select count(*) from information_schema.tables \
                 where table_schema='notaryserver' and table_name='tuf_files'") -eq 0 ]]; then
         echo "no content trust data needs to be updated."
+        return 0
     else
         mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
         sed "s/0x\([0-9A-F]*\)/decode('\1','hex')/g" /harbor-migration/db/notaryserver.mysql.tmp > /harbor-migration/db/notaryserver.mysql
@@ -312,7 +314,7 @@ function up_notary {
         psql -U $PGSQL_USR -f /harbor-migration/db/notarysigner.pgsql
 
         stop_pgsql
-        exit 0   
+        return 0   
     fi
  
 }
@@ -336,14 +338,26 @@ function upgrade {
     v1_com=$?
     set -e
 
-    up_harbor
+    up_harbor $target_version
+    if [ "$?" != 0 ]; then
+        echo "Upgrade harbor db error, please run it again."
+        exit 1
+    fi 
     
     # $cur_version <='1.5.0', it needs to mv data and call notary upgrade
     if [ $v1_com != 1 ]; then
+        mkdir -p /harbor-migration/backup
+        cp -rf /var/lib/mysql/* /harbor-migration/backup
         rm -rf /var/lib/mysql/*
         if [ "$UPNOTARY" == true ]; then
             mv /notary-db/* /var/lib/mysql          
             up_notary
+            if [ "$?" != 0 ]; then
+                echo "Upgrade notary db error, reverting the data..."
+                cp -rf /var/lib/mysql/* /var/lib/mysql
+                echo "Success to revert data, please run it again..."
+                exit 1
+            fi 
             rm -rf /var/lib/mysql/*
         fi
         ## move all the data to /data/database
