@@ -275,19 +275,21 @@ function up_harbor {
 function up_notary {
 
     set +e
-    chown -R 10000:10000 /var/lib/mysql
+    # chown -R 10000:10000 /var/lib/mysql
     mysqld &
-    for i in {60..0}; do
-        mysqladmin -uroot processlist >/dev/null 2>&1      
-        if [ $? = 0 ]; then
-            break
-        fi
-        sleep 1
-    done
-    if [ "$i" = 0 ]; then
-        echo "timeout. Can't run mysql server."
-        return 1
-    fi
+    sleep 5
+
+    # for i in {60..0}; do
+    #     mysqladmin -uroot processlist >/dev/null 2>&1      
+    #     if [ $? = 0 ]; then
+    #         break
+    #     fi
+    #     sleep 1
+    # done
+    # if [ "$i" = 0 ]; then
+    #     echo "timeout. Can't run mysql server."
+    #     return 1
+    # fi
     set -e
 
     mysqldump --skip-triggers --compact --no-create-info --skip-quote-names --hex-blob --compatible=postgresql --default-character-set=utf8 --databases notaryserver > /harbor-migration/db/notaryserver.mysql.tmp
