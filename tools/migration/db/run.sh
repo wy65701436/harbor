@@ -25,7 +25,7 @@ if [ "$(ls -A /var/lib/mysql)" ]; then
     # use the logic to handle run upgrade from less than 1.5.0 twice.
     if [ -e '/var/lib/mysql/PG_VERSION' ]; then
         ISPGSQL=true
-    elif [ -e '/var/lib/mysql/created_in_mariadb.flag' ]; then
+    elif [ "$(ls -A /var/lib/mysql)" ]; then
         ISMYSQL=true
     fi
 fi
