@@ -1,12 +1,9 @@
-import { NgModule, ModuleWithProviders, Provider, APP_INITIALIZER, Inject } from '@angular/core';
+import { NgModule, ModuleWithProviders, Provider, APP_INITIALIZER } from '@angular/core';
 
 import { LOG_DIRECTIVES } from './log/index';
 import { FILTER_DIRECTIVES } from './filter/index';
 import { ENDPOINT_DIRECTIVES } from './endpoint/index';
 import { REPOSITORY_DIRECTIVES } from './repository/index';
-import { REPOSITORY_STACKVIEW_DIRECTIVES } from './repository-stackview/index';
-
-import { REPOSITORY_LISTVIEW_DIRECTIVES } from './repository-listview/index';
 import { TAG_DIRECTIVES } from './tag/index';
 
 import { REPLICATION_DIRECTIVES } from './replication/index';
@@ -26,7 +23,7 @@ import { CONFIGURATION_DIRECTIVES } from './config/index';
 import { JOB_LOG_VIEWER_DIRECTIVES } from './job-log-viewer/index';
 import { PROJECT_POLICY_CONFIG_DIRECTIVES } from './project-policy-config/index';
 import { HBR_GRIDVIEW_DIRECTIVES } from './gridview/index';
-import { REPOSITORY_GRIDVIEW_DIRECTIVES } from './repository-gridview';
+import { REPOSITORY_GRIDVIEW_DIRECTIVES } from './repository-gridview/index';
 
 import {
   SystemInfoService,
@@ -101,44 +98,44 @@ export const DefaultServiceConfig: IServiceConfig = {
  * @interface HarborModuleConfig
  */
 export interface HarborModuleConfig {
-  //Service endpoints
-  config?: Provider,
+  // Service endpoints
+  config?: Provider;
 
-  //Handling error messages
-  errorHandler?: Provider,
+  // Handling error messages
+  errorHandler?: Provider;
 
-  //Service implementation for system info
-  systemInfoService?: Provider,
+  // Service implementation for system info
+  systemInfoService?: Provider;
 
-  //Service implementation for log
-  logService?: Provider,
+  // Service implementation for log
+  logService?: Provider;
 
-  //Service implementation for endpoint
-  endpointService?: Provider,
+  // Service implementation for endpoint
+  endpointService?: Provider;
 
-  //Service implementation for replication
-  replicationService?: Provider,
+  // Service implementation for replication
+  replicationService?: Provider;
 
-  //Service implementation for repository
-  repositoryService?: Provider,
+  // Service implementation for repository
+  repositoryService?: Provider;
 
-  //Service implementation for tag
-  tagService?: Provider,
+  // Service implementation for tag
+  tagService?: Provider;
 
-  //Service implementation for vulnerability scanning
-  scanningService?: Provider,
+  // Service implementation for vulnerability scanning
+  scanningService?: Provider;
 
-  //Service implementation for configuration
-  configService?: Provider,
+  // Service implementation for configuration
+  configService?: Provider;
 
-  //Service implementation for job log
-  jobLogService?: Provider,
+  // Service implementation for job log
+  jobLogService?: Provider;
 
-  //Service implementation for project policy
-  projectPolicyService?: Provider,
+  // Service implementation for project policy
+  projectPolicyService?: Provider;
 
-  //Service implementation for label
-  labelService?: Provider,
+  // Service implementation for label
+  labelService?: Provider;
 }
 
 /**
@@ -167,8 +164,6 @@ export function initConfig(translateInitializer: TranslateServiceInitializer, co
     FILTER_DIRECTIVES,
     ENDPOINT_DIRECTIVES,
     REPOSITORY_DIRECTIVES,
-    REPOSITORY_STACKVIEW_DIRECTIVES,
-    REPOSITORY_LISTVIEW_DIRECTIVES,
     TAG_DIRECTIVES,
     CREATE_EDIT_ENDPOINT_DIRECTIVES,
     CONFIRMATION_DIALOG_DIRECTIVES,
@@ -193,8 +188,6 @@ export function initConfig(translateInitializer: TranslateServiceInitializer, co
     FILTER_DIRECTIVES,
     ENDPOINT_DIRECTIVES,
     REPOSITORY_DIRECTIVES,
-    REPOSITORY_STACKVIEW_DIRECTIVES,
-    REPOSITORY_LISTVIEW_DIRECTIVES,
     TAG_DIRECTIVES,
     CREATE_EDIT_ENDPOINT_DIRECTIVES,
     CONFIRMATION_DIALOG_DIRECTIVES,

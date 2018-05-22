@@ -18,7 +18,7 @@ import { ModalEvent } from '../modal-event';
 import { modalEvents } from '../modal-events.const';
 
 import { AccountSettingsModalComponent } from '../../account/account-settings/account-settings-modal.component';
-import { PasswordSettingComponent } from '../../account/password/password-setting.component';
+import { PasswordSettingComponent } from '../../account/password-setting/password-setting.component';
 import { NavigatorComponent } from '../navigator/navigator.component';
 import { SessionService } from '../../shared/session.service';
 
@@ -33,7 +33,7 @@ import { CommonRoutes } from '../../shared/shared.const';
 @Component({
     selector: 'harbor-shell',
     templateUrl: 'harbor-shell.component.html',
-    styleUrls: ["harbor-shell.component.css"]
+    styleUrls: ["harbor-shell.component.scss"]
 })
 
 export class HarborShellComponent implements OnInit, OnDestroy {
@@ -50,8 +50,8 @@ export class HarborShellComponent implements OnInit, OnDestroy {
     @ViewChild(AboutDialogComponent)
     aboutDialog: AboutDialogComponent;
 
-    //To indicator whwther or not the search results page is displayed
-    //We need to use this property to do some overriding work
+    // To indicator whwther or not the search results page is displayed
+    // We need to use this property to do some overriding work
     isSearchResultsOpened: boolean = false;
 
     searchSub: Subscription;
@@ -65,7 +65,7 @@ export class HarborShellComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.searchSub = this.searchTrigger.searchTriggerChan$.subscribe(searchEvt => {
-            if(searchEvt && searchEvt.trim() != ""){
+            if (searchEvt && searchEvt.trim() !== "") {
                 this.isSearchResultsOpened = true;
             }
         });
@@ -103,7 +103,7 @@ export class HarborShellComponent implements OnInit, OnDestroy {
         return account != null;
     }
 
-    //Open modal dialog
+    // Open modal dialog
     openModal(event: ModalEvent): void {
         switch (event.modalName) {
             case modalEvents.USER_PROFILE:

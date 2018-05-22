@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { Component, OnInit, Input } from '@angular/core';
-import { Router } from '@angular/router';
+import { Comparator, State } from 'clarity-angular';
+
 import {
     AccessLogService,
     AccessLog,
@@ -20,9 +21,7 @@ import {
     RequestQueryParams
 } from '../service/index';
 import { ErrorHandler } from '../error-handler/index';
-import { Observable } from 'rxjs/Observable';
 import { toPromise, CustomComparator } from '../utils';
-import { LOG_TEMPLATE, LOG_STYLES } from './recent-log.template';
 import {
     DEFAULT_PAGE_SIZE,
     calculatePage,
@@ -30,12 +29,10 @@ import {
     doSorting
 } from '../utils';
 
-import { Comparator, State } from 'clarity-angular';
-
 @Component({
     selector: 'hbr-log',
-    styles: [LOG_STYLES],
-    template: LOG_TEMPLATE
+    templateUrl: './recent-log.component.html',
+    styleUrls: ['./recent-log.component.scss']
 })
 
 export class RecentLogComponent implements OnInit {
@@ -43,11 +40,13 @@ export class RecentLogComponent implements OnInit {
     logsCache: AccessLog;
     loading: boolean = true;
     currentTerm: string;
+    defaultFilter = "username";
+    isOpenFilterTag: boolean;
     @Input() withTitle: boolean = false;
 
     pageSize: number = DEFAULT_PAGE_SIZE;
-    currentPage: number = 1;//Double bound to pagination component
-    currentPagePvt: number = 0; //Used to confirm whether page is changed
+    currentPage: number = 1; // Double bound to pagination component
+    currentPagePvt: number = 0; // Used to confirm whether page is changed
     currentState: State;
 
     opTimeComparator: Comparator<AccessLogItem> = new CustomComparator<AccessLogItem>('op_time', 'date');
@@ -69,11 +68,11 @@ export class RecentLogComponent implements OnInit {
 
     public doFilter(terms: string): void {
         this.currentTerm = terms.trim();
-        //Trigger data loading and start from first page
+        // Trigger data loading and start from first page
         this.loading = true;
         this.currentPage = 1;
         if (this.currentPagePvt === 1) {
-            //Force reloading
+            // Force reloading
             let st: State = this.currentState;
             if (!st) {
                 st = {
@@ -84,7 +83,7 @@ export class RecentLogComponent implements OnInit {
             st.page.to = this.pageSize - 1;
             st.page.size = this.pageSize;
 
-            this.currentPagePvt = 0;//Reset pvt
+            this.currentPagePvt = 0; // Reset pvt
 
             this.load(st);
         }
@@ -94,30 +93,43 @@ export class RecentLogComponent implements OnInit {
         this.doFilter("");
     }
 
+    openFilter(isOpen: boolean): void {
+        if (isOpen) {
+            this.isOpenFilterTag = true;
+        }else {
+            this.isOpenFilterTag = false;
+        }
+    }
+
+    selectFilterKey($event: any): void {
+        this.defaultFilter = $event['target'].value;
+        this.doFilter(this.currentTerm);
+    }
+
     load(state: State) {
-        //Keep it for future filter
+        // Keep it for future filter
         this.currentState = state;
 
         let pageNumber: number = calculatePage(state);
         if (pageNumber !== this.currentPagePvt) {
-            //load data
+            // load data
             let params: RequestQueryParams = new RequestQueryParams();
             params.set("page", '' + pageNumber);
             params.set("page_size", '' + this.pageSize);
             if (this.currentTerm && this.currentTerm !== "") {
-                params.set('repository', this.currentTerm);
+                params.set(this.defaultFilter, this.currentTerm);
             }
 
             this.loading = true;
             toPromise<AccessLog>(this.logService.getRecentLogs(params))
                 .then(response => {
-                    this.logsCache = response; //Keep the data
-                    this.recentLogs = this.logsCache.data.filter(log => log.username != "");//To display
+                    this.logsCache = response; // Keep the data
+                    this.recentLogs = this.logsCache.data.filter(log => log.username !== ""); // To display
 
-                    //Do customized filter
+                    // Do customized filter
                     this.recentLogs = doFiltering<AccessLogItem>(this.recentLogs, state);
 
-                    //Do customized sorting
+                    // Do customized sorting
                     this.recentLogs = doSorting<AccessLogItem>(this.recentLogs, state);
 
                     this.currentPagePvt = pageNumber;
@@ -129,14 +141,14 @@ export class RecentLogComponent implements OnInit {
                     this.errorHandler.error(error);
                 });
         } else {
-            //Column sorting and filtering
+            // Column sorting and filtering
 
-            this.recentLogs = this.logsCache.data.filter(log => log.username != "");//Reset data
+            this.recentLogs = this.logsCache.data.filter(log => log.username !== ""); // Reset data
 
-            //Do customized filter
+            // Do customized filter
             this.recentLogs = doFiltering<AccessLogItem>(this.recentLogs, state);
 
-            //Do customized sorting
+            // Do customized sorting
             this.recentLogs = doSorting<AccessLogItem>(this.recentLogs, state);
         }
     }

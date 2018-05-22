@@ -13,11 +13,10 @@
 // limitations under the License.
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { RepositoryItem } from 'harbor-ui';
 
 import { Project } from '../project/project';
 import { SessionService } from '../shared/session.service';
-
-import { TagClickEvent, RepositoryItem } from 'harbor-ui';
 
 @Component({
   selector: 'repository',
@@ -52,4 +51,4 @@ export class RepositoryPageComponent implements OnInit {
     let linkUrl = ['harbor', 'projects', repoEvt.project_id, 'repositories', repoEvt.name];
     this.router.navigate(linkUrl);
   }
-};
+}

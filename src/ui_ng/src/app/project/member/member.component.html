@@ -4,7 +4,7 @@
             <div class="flex-xs-middle option-left" style="position: relative; top: 10px;">
             </div>
             <div class="flex-xs-middle option-right">
-                <hbr-filter [withDivider]="true" filterPlaceholder='{{"MEMBER.FILTER_PLACEHOLDER" | translate}}' (filter)="doSearch($event)" [currentValue]="searchMember"></hbr-filter>
+                <hbr-filter [withDivider]="true" filterPlaceholder='{{"MEMBER.FILTER_PLACEHOLDER" | translate}}' (filterEvt)="doSearch($event)" [currentValue]="searchMember"></hbr-filter>
                 <span class="refresh-btn" (click)="refresh()">
                     <clr-icon shape="refresh"></clr-icon>
                 </span>
@@ -45,5 +45,5 @@
             </clr-dg-footer>
         </clr-datagrid>
     </div>
-    <add-member [projectId]="projectId" (added)="addedMember($event)"></add-member>
+    <add-member [projectId]="projectId" [memberList]="members" (added)="addedMember($event)"></add-member>
 </div>
