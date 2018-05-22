@@ -18,8 +18,6 @@ set -e
 
 ISMYSQL=false
 ISPGSQL=false
-NOTARYDB=/notary-db
-UPNOTARY=false
 
 if [ "$(ls -A /var/lib/mysql)" ]; then
     # use the logic to handle run upgrade from less than 1.5.0 twice.
@@ -28,10 +26,6 @@ if [ "$(ls -A /var/lib/mysql)" ]; then
     elif [ "$(ls -A /var/lib/mysql)" ]; then
         ISMYSQL=true
     fi
-fi
-
-if [ "$(ls -A /notary-db)" ]; then
-    UPNOTARY=true
 fi
 
 if [ "$(ls -A /var/lib/postgresql/data)" ]; then
