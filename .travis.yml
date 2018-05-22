@@ -18,7 +18,6 @@ env:
   POSTGRESQL_USR: postgres 
   POSTGRESQL_PWD: root123
   POSTGRESQL_DATABASE: registry
-  SQLITE_FILE: /tmp/registry.db
   ADMINSERVER_URL: http://127.0.0.1:8888
   DOCKER_COMPOSE_VERSION: 1.7.1
   HARBOR_ADMIN: admin
@@ -72,7 +71,6 @@ install:
 before_script:
   # create tables and load data
   # - mysql < ./make/db/registry.sql -uroot --verbose
-  - sudo sqlite3 /tmp/registry.db < make/photon/db/registry_sqlite.sql
   - sudo chmod 777 /tmp/registry.db
 
 script:
