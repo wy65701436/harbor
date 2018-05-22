@@ -71,7 +71,7 @@ install:
 before_script:
   # create tables and load data
   # - mysql < ./make/db/registry.sql -uroot --verbose
-  - sudo chmod 777 /tmp/registry.db
+  # - sudo chmod 777 /tmp/registry.db
 
 script:
   - sudo mkdir -p /etc/ui/ca/
