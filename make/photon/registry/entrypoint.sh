@@ -17,9 +17,4 @@ if [ -d /storage ]; then
     fi
 fi
 
-case "$1" in
-    *.yaml|*.yml) set -- registry serve "$@" ;;
-    serve|garbage-collect|help|-*) set -- registry "$@" ;;
-esac
-
-sudo -E -u \#10000 "$@"
+sudo -E -u \#10000 "/harbor/harbor_registry"

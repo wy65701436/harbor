@@ -1,0 +1,73 @@
+// Copyright (c) 2017 VMware, Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package api
+
+import (
+	"net/http"
+
+	"github.com/vmware/harbor/src/common/job"
+	job_models "github.com/vmware/harbor/src/common/job/models"
+	"github.com/vmware/harbor/src/common/registry"
+	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/vmware/harbor/src/ui/utils"
+)
+
+// RegistryAPI handles request of harbor registry...
+type RegistryAPI struct {
+	BaseController
+}
+
+// Prepare validates the URL and parms
+func (ra *RegistryAPI) Prepare() {
+	ra.BaseController.Prepare()
+	if !ra.SecurityCtx.IsAuthenticated() {
+		ra.HandleUnauthorized()
+		return
+	}
+	if !ra.SecurityCtx.IsSysAdmin() {
+		ra.HandleForbidden(ra.SecurityCtx.GetUsername())
+		return
+	}
+	registry.Init()
+}
+
+// Post submit the gc job to job service.
+func (ra *RegistryAPI) Post() {
+	// submit job to jobservice
+	log.Debugf("submiting gc job to jobservice")
+	uuid, err := utils.GetJobServiceClient().SubmitJob(&job_models.JobData{
+		Name: job.ImageGC,
+		Metadata: &job_models.JobMetadata{
+			JobKind: job.JobKindGeneric,
+		},
+	})
+	if err != nil {
+		log.Errorf("failed to run gc job: %v", err)
+		ra.CustomAbort(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+	ra.Data["json"] = uuid
+	ra.ServeJSON()
+}
+
+// History ...
+func (ra *RegistryAPI) History() {
+	gcr, err := registry.RegistryClient.History()
+	if err != nil {
+		log.Errorf("failed to get gc result: %v", err)
+		ra.CustomAbort(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	}
+	ra.Data["json"] = gcr
+	ra.ServeJSON()
+}

@@ -14,6 +14,8 @@ services:
   registry:
     image: vmware/registry-photon:__reg_version__
     container_name: registry
+    env_file:
+      - ./common/config/registry/env
     restart: always
     volumes:
       - /data/registry:/storage:z
@@ -22,8 +24,6 @@ services:
       - harbor
     environment:
       - GODEBUG=netdns=cgo
-    command:
-      ["serve", "/etc/registry/config.yml"]
     depends_on:
       - log
     logging:
