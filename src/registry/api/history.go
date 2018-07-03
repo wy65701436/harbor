@@ -25,7 +25,7 @@ import (
 )
 
 // GCResults is the file to storage gc result.
-var GCResults = "/storage/gcresults"
+var GCResults = "/etc/registry/gcresults"
 
 // GetGCResult ...
 func GetGCResult(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +51,13 @@ type GCResult struct {
 
 // DumpGCResult ...
 func (gch *GCResult) DumpGCResult() error {
+	if _, err := os.Stat(GCResults); os.IsNotExist(err) {
+		_, err := os.Create(GCResults)
+		if err != nil {
+			return err
+		}
+	}
+
 	gchJSON, err := json.Marshal(gch)
 	if err != nil {
 		log.Errorf("Error occured getting gc result: %v", err)

@@ -19,6 +19,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"sync"
 	"syscall"
 	"time"
 
@@ -31,6 +32,8 @@ const (
 	regConf    = "/etc/registry/config.yml"
 	maxRetries = 5
 )
+
+var lock *sync.RWMutex = new(sync.RWMutex)
 
 // StartReg launch the docker registry.
 func StartReg() error {
@@ -84,12 +87,15 @@ func monitorReg(c *exec.Cmd) {
 
 // StartGC ...
 func StartGC(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
+	lock.Lock()
+	defer lock.Unlock()
+
 	cmd := exec.Command("/bin/bash", "-c", "registry garbage-collect "+regConf)
 	var outBuf, errBuf bytes.Buffer
 	cmd.Stdout = &outBuf
 	cmd.Stderr = &errBuf
 
+	start := time.Now()
 	if err := cmd.Run(); err != nil {
 		log.Errorf("Fail to execute GC: %s", errBuf.String())
 		gcr := GCResult{false, errBuf.String(), start, time.Now()}

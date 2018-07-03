@@ -26,7 +26,6 @@ import (
 
 const (
 	defaultKeyPath = "/etc/ui/key"
-	maxRetries     = 5
 )
 
 var (

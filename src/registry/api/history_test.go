@@ -12,20 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package handlers
+package api
 
 import (
-	"net/http"
+	"testing"
+	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/vmware/harbor/src/registry/api"
+	"github.com/stretchr/testify/assert"
 )
 
-func newRouter() http.Handler {
-	r := mux.NewRouter()
-	r.HandleFunc("/api/registry/gc", api.StartGC).Methods("POST")
-	r.HandleFunc("/api/registry/gc/status", api.StartGC).Methods("GET")
-	r.HandleFunc("/api/registry/gc/history", api.GetGCResult).Methods("GET")
-	r.HandleFunc("/api/registry/ping", api.Ping).Methods("GET")
-	return r
+func TestDumpGCResult(t *testing.T) {
+	gcr := GCResult{false, "test", time.Now(), time.Now()}
+	gcr.DumpGCResult()
+	assert.Equal(t, "\"Pong\"", string(result))
+}
+
+func TestGetGCResult(t *testing.T) {
+	gcr := GCResult{false, "test", time.Now(), time.Now()}
+	gcr.DumpGCResult()
+	assert.Equal(t, "\"Pong\"", string(result))
 }
