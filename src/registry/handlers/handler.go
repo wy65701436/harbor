@@ -31,7 +31,7 @@ func NewHandler() http.Handler {
 		"uiSecret": os.Getenv("UI_SECRET"),
 	}
 	insecureAPIs := map[string]bool{
-		"/api/ping": true,
+		"/api/registry/ping": true,
 	}
 	h = newAuthHandler(auth.NewSecretAuthenticator(secrets), h, insecureAPIs)
 	h = gorilla_handlers.LoggingHandler(os.Stdout, h)
