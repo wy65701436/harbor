@@ -15,6 +15,7 @@
 package api
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"testing"
 	"time"
@@ -24,16 +25,18 @@ import (
 
 func TestDumpGCResult(t *testing.T) {
 	startTime := time.Now()
-	gcr := GCResult{false, "test", startTime, startTime}
+	gcr := GCResult{false, "TestDumpGCResult", startTime, startTime}
 	gcr.DumpGCResult()
+	out, _ := json.Marshal(gcr)
 	res, _ := ioutil.ReadFile("/etc/regsitry/gcresults")
-	assert.Equal(t, "{\"status\":true,\"msg\":\"test\",\"starttime\":\"2018-07-03T09:26:55.284866114Z\",\"endtime\":\"2018-07-03T09:26:55.37799371Z\"}", string(res))
-}
+	assert.Equal(t, string(out), string(res))
+}}
 
 func TestGetGCResult(t *testing.T) {
 	startTime := time.Now()
-	gcr := GCResult{false, "test", startTime, startTime}
+	gcr := GCResult{false, "TestGetGCResult", startTime, startTime}
 	gcr.DumpGCResult()
+	out, _ := json.Marshal(gcr)
 	res, _ := ioutil.ReadFile("/etc/regsitry/gcresults")
-	assert.Equal(t, "{\"status\":true,\"msg\":\"test\",\"starttime\":\"2018-07-03T09:26:55.284866114Z\",\"endtime\":\"2018-07-03T09:26:55.37799371Z\"}", string(res))
+	assert.Equal(t, string(out), string(res))
 }
