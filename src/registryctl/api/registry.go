@@ -16,11 +16,8 @@ package api
 
 import (
 	"bytes"
-	"math/rand"
 	"net/http"
-	"os"
 	"sync"
-	"syscall"
 	"time"
 
 	"os/exec"
@@ -29,61 +26,10 @@ import (
 )
 
 const (
-	regConf    = "/etc/registry/config.yml"
-	maxRetries = 5
+	regConf = "/etc/registry/config.yml"
 )
 
 var lock *sync.RWMutex = new(sync.RWMutex)
-
-// StartReg launch the docker registry.
-func StartReg() error {
-	var err error
-	var isRunning bool
-
-	isRunning, err = IsRegRunning()
-	if isRunning {
-		log.Info("docker registry is already running.")
-		return nil
-	}
-
-	cmd := exec.Command("/bin/bash", "-c", "registry serve "+regConf)
-	// Redirect the registry log to container stdout.
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	if err := cmd.Start(); err != nil {
-		log.Errorf("Fail to launch docker registry: %s", err)
-		return err
-	}
-
-	time.Sleep(2 * time.Second)
-	backoff := time.Second
-	for i := 0; i < maxRetries; i++ {
-		isRunning, err = IsRegRunning()
-		if isRunning {
-			monitorReg(cmd)
-			log.Info("launch docker registry success")
-			return nil
-		}
-		time.Sleep(backoff - time.Second + (time.Duration(rand.Int31n(1000)) * time.Millisecond))
-		if i <= 4 {
-			backoff = backoff * 2
-		}
-	}
-
-	log.Errorf("Fail to launch docker registry: %s", err)
-	return err
-}
-
-// monitorReg monitor the status of docker registry, quit container if it's crashed.
-func monitorReg(c *exec.Cmd) {
-	go func(c *exec.Cmd) {
-		if err := c.Wait(); err != nil {
-			log.Warningf("Docker regsitry is crashed, err: %s, quit the container to restart it.", err)
-			os.Exit(1)
-		}
-	}(c)
-}
 
 // StartGC ...
 func StartGC(w http.ResponseWriter, r *http.Request) {
@@ -109,4 +55,8 @@ func StartGC(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("failed to write response: %v", err)
 		return
 	}
+}
+
+func GetGCStatus(w http.ResponseWriter, r *http.Request) {
+	return
 }

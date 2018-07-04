@@ -26,6 +26,6 @@ func newRouter() http.Handler {
 	r.HandleFunc("/api/registry/gc", api.StartGC).Methods("POST")
 	r.HandleFunc("/api/registry/gc/status", api.StartGC).Methods("GET")
 	r.HandleFunc("/api/registry/gc/history", api.GetGCResult).Methods("GET")
-	r.HandleFunc("/api/registry/ping", api.Ping).Methods("GET")
+	r.HandleFunc("/api/ping", api.Ping).Methods("GET")
 	return r
 }

@@ -27,9 +27,3 @@ func TestPing(t *testing.T) {
 	Ping(w, nil)
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
-
-func TestIsRegRunning(t *testing.T) {
-	isRuning, err := IsRegRunning()
-	assert.Equal(t, isRuning, false)
-	assert.NotEqual(t, err, nil)
-}

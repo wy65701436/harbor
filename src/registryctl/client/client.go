@@ -72,12 +72,6 @@ func (c *client) Ping() error {
 	return utils.TestTCPConn(addr, 60, 2)
 }
 
-// PingReg ...
-func (c *client) PingReg() error {
-	url := c.baseURL + "/api/registry/ping"
-	return c.client.Get(url)
-}
-
 // StartGC ...
 func (c *client) StartGC() (*api.GCResult, error) {
 	url := c.baseURL + "/api/registry/gc"

@@ -445,7 +445,7 @@ render(os.path.join(templates_dir, "log", "logrotate.conf"),
         log_rotate_count=log_rotate_count,
 		log_rotate_size=log_rotate_size)
 
-render(os.path.join(templates_dir, "registry", "env"),
+render(os.path.join(templates_dir, "registryctl", "env"),
         registry_conf_env,
         ui_secret=ui_secret)
 
