@@ -106,6 +106,7 @@ const (
 	DefaultJobserviceEndpoint   = "http://jobservice:8080"
 	DefaultUIEndpoint           = "http://ui:8080"
 	DefaultNotaryEndpoint       = "http://notary-server:4443"
+  DefaultRegistryControllerEndpoint = "http://registry:8080"
 	LdapGroupType               = 1
 	ReloadKey                   = "reload_key"
 )
