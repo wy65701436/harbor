@@ -17,7 +17,6 @@ package api
 import (
 	"bytes"
 	"net/http"
-	"sync"
 	"time"
 
 	"os/exec"
@@ -29,13 +28,16 @@ const (
 	regConf = "/etc/registry/config.yml"
 )
 
-var lock *sync.RWMutex = new(sync.RWMutex)
+// GCResult ...
+type GCResult struct {
+	Status    bool      `json:"status"`
+	Msg       string    `json:"msg"`
+	StartTime time.Time `json:"starttime"`
+	EndTime   time.Time `json:"endtime"`
+}
 
 // StartGC ...
 func StartGC(w http.ResponseWriter, r *http.Request) {
-	lock.Lock()
-	defer lock.Unlock()
-
 	cmd := exec.Command("/bin/bash", "-c", "registry garbage-collect "+regConf)
 	var outBuf, errBuf bytes.Buffer
 	cmd.Stdout = &outBuf
@@ -44,19 +46,12 @@ func StartGC(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	if err := cmd.Run(); err != nil {
 		log.Errorf("Fail to execute GC: %s", errBuf.String())
-		gcr := GCResult{false, errBuf.String(), start, time.Now()}
-		gcr.DumpGCResult()
 		handleInternalServerError(w)
 	}
 
 	gcr := GCResult{true, outBuf.String(), start, time.Now()}
-	gcr.DumpGCResult()
 	if err := writeJSON(w, gcr); err != nil {
 		log.Errorf("failed to write response: %v", err)
 		return
 	}
-}
-
-func GetGCStatus(w http.ResponseWriter, r *http.Request) {
-	return
 }

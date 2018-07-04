@@ -20,7 +20,7 @@ import (
 
 	gorilla_handlers "github.com/gorilla/handlers"
 	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/registry/auth"
+	"github.com/vmware/harbor/src/registryctl/auth"
 )
 
 // NewHandler returns a gorilla router which is wrapped by  authenticate handler
@@ -31,7 +31,7 @@ func NewHandler() http.Handler {
 		"uiSecret": os.Getenv("UI_SECRET"),
 	}
 	insecureAPIs := map[string]bool{
-		"/api/registry/ping": true,
+		"/api/ping": true,
 	}
 	h = newAuthHandler(auth.NewSecretAuthenticator(secrets), h, insecureAPIs)
 	h = gorilla_handlers.LoggingHandler(os.Stdout, h)

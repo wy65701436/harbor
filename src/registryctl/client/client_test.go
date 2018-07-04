@@ -42,11 +42,3 @@ func TestPing(t *testing.T) {
 	err := c.Ping()
 	assert.Nil(t, err, "unexpected error")
 }
-
-func TestHisotry(t *testing.T) {
-	gcr, err := c.History()
-	if !assert.Nil(t, err, "unexpected error") {
-		return
-	}
-	assert.Equal(t, gcr.Status, true, "unexpected gc result")
-}

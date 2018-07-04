@@ -18,14 +18,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/vmware/harbor/src/registry/api"
+	"github.com/vmware/harbor/src/registryctl/api"
 )
 
 func newRouter() http.Handler {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/registry/gc", api.StartGC).Methods("POST")
-	r.HandleFunc("/api/registry/gc/status", api.StartGC).Methods("GET")
-	r.HandleFunc("/api/registry/gc/history", api.GetGCResult).Methods("GET")
 	r.HandleFunc("/api/ping", api.Ping).Methods("GET")
 	return r
 }

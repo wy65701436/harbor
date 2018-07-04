@@ -100,13 +100,3 @@ func (c *client) StartGC() (*api.GCResult, error) {
 
 	return gcr, nil
 }
-
-// History ...
-func (c *client) History() (*api.GCResult, error) {
-	url := c.baseURL + "/api/registry/gc/history"
-	gcr := &api.GCResult{}
-	if err := c.client.Get(url, gcr); err != nil {
-		return nil, err
-	}
-	return gcr, nil
-}
