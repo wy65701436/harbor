@@ -19,8 +19,7 @@ import (
 	"os"
 
 	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/registry/api"
-	"github.com/vmware/harbor/src/registry/handlers"
+	"github.com/vmware/harbor/src/registryctl/handlers"
 )
 
 // Server for registry controller
@@ -40,8 +39,6 @@ func (s *Server) Serve() error {
 }
 
 func main() {
-	log.Info("initializing registry configurations...")
-
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "80"
@@ -51,13 +48,9 @@ func main() {
 		Handler: handlers.NewHandler(),
 	}
 
-	if err := api.StartReg(); err != nil {
-		log.Fatal(err)
-	}
-
 	if err := server.Serve(); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Info("initializing registry success...")
+	log.Info("initialize registry controller success...")
 }

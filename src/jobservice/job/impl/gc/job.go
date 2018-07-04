@@ -15,16 +15,16 @@
 package gc
 
 import (
-	"github.com/vmware/harbor/src/common/registry"
+	"github.com/vmware/harbor/src/common/registryctl"
 	"github.com/vmware/harbor/src/jobservice/env"
 	"github.com/vmware/harbor/src/jobservice/logger"
-	"github.com/vmware/harbor/src/registry/client"
+	"github.com/vmware/harbor/src/registryctl/client"
 )
 
 // GCJob is the struct to run registry's garbage collection
 type GCJob struct {
-	registryClient client.Client
-	logger         logger.Interface
+	registryCtlClient client.Client
+	logger            logger.Interface
 }
 
 // MaxFails implements the interface in job/Interface
@@ -48,7 +48,7 @@ func (gcj *GCJob) Run(ctx env.JobContext, params map[string]interface{}) error {
 		return err
 	}
 	gcj.logger.Infof("start to run gc in job.")
-	gcr, err := gcj.registryClient.StartGC()
+	gcr, err := gcj.registryCtlClient.StartGC()
 	if err != nil {
 		gcj.logger.Errorf("failed to get gc result: %v", err)
 	}
@@ -59,7 +59,7 @@ func (gcj *GCJob) Run(ctx env.JobContext, params map[string]interface{}) error {
 
 func (gcj *GCJob) init(ctx env.JobContext) error {
 	registry.Init()
-	gcj.registryClient = registry.RegistryClient
+	gcj.registryCtlClient = registryctl.RegistryCtlClient
 	gcj.logger = ctx.GetLogger()
 	return nil
 }
