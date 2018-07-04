@@ -24,7 +24,7 @@ import (
 	common_http "github.com/vmware/harbor/src/common/http"
 	"github.com/vmware/harbor/src/common/http/modifier/auth"
 	"github.com/vmware/harbor/src/common/utils"
-	"github.com/vmware/harbor/src/registry/api"
+	"github.com/vmware/harbor/src/registryctl/api"
 )
 
 // Client defines methods that an Regsitry client should implement
@@ -33,8 +33,6 @@ type Client interface {
 	Ping() error
 	// StartGC enable the gc of registry server
 	StartGC() (*api.GCResult, error)
-	// History
-	History() (*api.GCResult, error)
 }
 
 type client struct {

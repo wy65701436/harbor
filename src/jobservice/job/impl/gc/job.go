@@ -58,7 +58,7 @@ func (gcj *GCJob) Run(ctx env.JobContext, params map[string]interface{}) error {
 }
 
 func (gcj *GCJob) init(ctx env.JobContext) error {
-	registry.Init()
+	registryctl.Init()
 	gcj.registryCtlClient = registryctl.RegistryCtlClient
 	gcj.logger = ctx.GetLogger()
 	return nil

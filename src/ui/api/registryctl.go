@@ -19,18 +19,17 @@ import (
 
 	"github.com/vmware/harbor/src/common/job"
 	job_models "github.com/vmware/harbor/src/common/job/models"
-	"github.com/vmware/harbor/src/common/registry"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/ui/utils"
 )
 
-// RegistryAPI handles request of harbor registry...
-type RegistryAPI struct {
+// RegistryCtlAPI handles request of harbor registry...
+type RegistryCtlAPI struct {
 	BaseController
 }
 
 // Prepare validates the URL and parms
-func (ra *RegistryAPI) Prepare() {
+func (ra *RegistryCtlAPI) Prepare() {
 	ra.BaseController.Prepare()
 	if !ra.SecurityCtx.IsAuthenticated() {
 		ra.HandleUnauthorized()
@@ -40,11 +39,10 @@ func (ra *RegistryAPI) Prepare() {
 		ra.HandleForbidden(ra.SecurityCtx.GetUsername())
 		return
 	}
-	registry.Init()
 }
 
 // Post submit the gc job to job service.
-func (ra *RegistryAPI) Post() {
+func (ra *RegistryCtlAPI) Post() {
 	// submit job to jobservice
 	log.Debugf("submiting gc job to jobservice")
 	uuid, err := utils.GetJobServiceClient().SubmitJob(&job_models.JobData{
@@ -58,16 +56,5 @@ func (ra *RegistryAPI) Post() {
 		ra.CustomAbort(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 	}
 	ra.Data["json"] = uuid
-	ra.ServeJSON()
-}
-
-// History ...
-func (ra *RegistryAPI) History() {
-	gcr, err := registry.RegistryClient.History()
-	if err != nil {
-		log.Errorf("failed to get gc result: %v", err)
-		ra.CustomAbort(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-	}
-	ra.Data["json"] = gcr
 	ra.ServeJSON()
 }
