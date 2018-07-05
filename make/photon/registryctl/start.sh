@@ -17,4 +17,4 @@ if [ -d /storage ]; then
     fi
 fi
 
-sudo -E -u \#10000 "/harbor/harbor_registry"
+sudo -E -u \#10000 "/harbor/harbor_registryctl"
