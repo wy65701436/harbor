@@ -33,7 +33,7 @@ services:
     image: vmware/harbor-regsitryctl:__version__
     container_name: registryctl
     env_file:
-      - ./common/config/registry/env
+      - ./common/config/registryctl/env
     restart: always
     volumes:
       - /data/registry:/storage:z
