@@ -29,8 +29,8 @@ type GCResult struct {
 	EndTime   time.Time `json:"endtime"`
 }
 
-// NewRegistry returns a mock registry server
-func NewRegistry(config map[string]interface{}) (*httptest.Server, error) {
+// NewRegistryCtl returns a mock registry server
+func NewRegistryCtl(config map[string]interface{}) (*httptest.Server, error) {
 	m := []*RequestHandlerMapping{}
 
 	gcr := GCResult{true, "hello-world", time.Now(), time.Now()}
@@ -46,7 +46,7 @@ func NewRegistry(config map[string]interface{}) (*httptest.Server, error) {
 
 	m = append(m, &RequestHandlerMapping{
 		Method:  "GET",
-		Pattern: "/api/registry/ping",
+		Pattern: "/api/ping",
 		Handler: Handler(&Response{
 			StatusCode: http.StatusOK,
 		}),
@@ -55,12 +55,6 @@ func NewRegistry(config map[string]interface{}) (*httptest.Server, error) {
 	m = append(m, &RequestHandlerMapping{
 		Method:  "POST",
 		Pattern: "/api/registry/gc",
-		Handler: Handler(resp),
-	})
-
-	m = append(m, &RequestHandlerMapping{
-		Method:  "GET",
-		Pattern: "/api/registry/gc/history",
 		Handler: Handler(resp),
 	})
 

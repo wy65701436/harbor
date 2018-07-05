@@ -27,7 +27,7 @@ var c Client
 
 func TestMain(m *testing.M) {
 
-	server, err := test.NewRegistry(nil)
+	server, err := test.NewRegistryCtl(nil)
 	if err != nil {
 		fmt.Printf("failed to create regsitry: %v", err)
 		os.Exit(1)
