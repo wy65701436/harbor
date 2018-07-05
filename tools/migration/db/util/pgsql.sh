@@ -17,6 +17,7 @@
 set -e
 
 POSTGRES_PASSWORD=${DB_PWD}
+PGDATA='/var/lib/postgresql/data'
 
 function file_env {
         local var="$1"
