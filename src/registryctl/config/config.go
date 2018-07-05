@@ -39,12 +39,6 @@ type HTTPSConfig struct {
 }
 
 //Load the configuration options from the specified yaml file.
-//If the yaml file is specified and existing, load configurations from yaml file first;
-//If detecting env variables is specified, load configurations from env variables;
-//Please pay attentions, the detected env variable will override the same configuration item loading from file.
-//
-//yamlFilePath	string: The path config yaml file
-//readEnv       bool  : Whether detect the environment variables or not
 func (c *Configuration) Load(yamlFilePath string, detectEnv bool) error {
 	if len(yamlFilePath) != 0 {
 		//Try to load from file first
