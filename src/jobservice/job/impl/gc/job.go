@@ -15,6 +15,8 @@
 package gc
 
 import (
+	"time"
+
 	"github.com/vmware/harbor/src/common/registryctl"
 	"github.com/vmware/harbor/src/jobservice/env"
 	"github.com/vmware/harbor/src/jobservice/logger"
@@ -47,6 +49,7 @@ func (gcj *GCJob) Run(ctx env.JobContext, params map[string]interface{}) error {
 	if err := gcj.init(ctx); err != nil {
 		return err
 	}
+	time.Sleep(20 * time.Second)
 	gcj.logger.Infof("start to run gc in job.")
 	gcr, err := gcj.registryCtlClient.StartGC()
 	if err != nil {
