@@ -102,7 +102,7 @@ NOTARYVERSION=v0.5.1
 MARIADBVERSION=$(VERSIONTAG)
 CLAIRVERSION=v2.0.1
 CLAIRDBVERSION=$(VERSIONTAG)
-MIGRATORVERSION=v1.6.0
+MIGRATORVERSION=$(VERSIONTAG)
 REDISVERSION=$(VERSIONTAG)
 
 #clarity parameters
@@ -136,10 +136,12 @@ GOIMAGEBUILD=$(GOIMAGEBUILDCMD) build
 GOBUILDPATH_ADMINSERVER=$(GOBUILDPATH)/src/adminserver
 GOBUILDPATH_UI=$(GOBUILDPATH)/src/ui
 GOBUILDPATH_JOBSERVICE=$(GOBUILDPATH)/src/jobservice
+GOBUILDPATH_REGISTRYCTL=$(GOBUILDPATH)/src/registryctl
 GOBUILDMAKEPATH=$(GOBUILDPATH)/make
 GOBUILDMAKEPATH_ADMINSERVER=$(GOBUILDMAKEPATH)/dev/adminserver
 GOBUILDMAKEPATH_UI=$(GOBUILDMAKEPATH)/dev/ui
 GOBUILDMAKEPATH_JOBSERVICE=$(GOBUILDMAKEPATH)/dev/jobservice
+GOBUILDMAKEPATH_REGISTRYCTL=$(GOBUILDMAKEPATH)/dev/registryctl
 GOLANGDOCKERFILENAME=Dockerfile.golang
 
 # binary
@@ -149,6 +151,8 @@ UIBINARYPATH=$(MAKEDEVPATH)/ui
 UIBINARYNAME=harbor_ui
 JOBSERVICEBINARYPATH=$(MAKEDEVPATH)/jobservice
 JOBSERVICEBINARYNAME=harbor_jobservice
+REGISTRYCTLBINARYPATH=$(MAKEDEVPATH)/registryctl
+REGISTRYCTLBINARYNAME=harbor_registryctl
 
 # configfile
 CONFIGPATH=$(MAKEPATH)
@@ -210,7 +214,6 @@ DOCKERSAVE_PARA=$(DOCKERIMAGENAME_ADMINSERVER):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_DB):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_JOBSERVICE):$(VERSIONTAG) \
 		vmware/redis-photon:$(REDISVERSION) \
-		vmware/harbor-migrator:$(VERSIONTAG) \
 		vmware/nginx-photon:$(NGINXVERSION) vmware/registry-photon:$(REGISTRYVERSION)-$(VERSIONTAG) \
 		vmware/photon:$(PHOTONVERSION)
 PACKAGE_OFFLINE_PARA=-zcvf harbor-offline-installer-$(PKGVERSIONTAG).tgz \
@@ -274,6 +277,10 @@ compile_golangimage: compile_clarity
 	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_JOBSERVICE) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -o $(GOBUILDMAKEPATH_JOBSERVICE)/$(JOBSERVICEBINARYNAME)
 	@echo "Done."
 
+	@echo "compiling binary for harbor regsitry controller (golang image)..."
+	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_REGISTRYCTL) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -o $(GOBUILDMAKEPATH_REGISTRYCTL)/$(REGISTRYCTLBINARYNAME)
+	@echo "Done."
+
 compile:check_environment compile_golangimage
 	
 prepare:
@@ -284,7 +291,7 @@ build:
 	make -f $(MAKEFILEPATH_PHOTON)/Makefile build -e DEVFLAG=$(DEVFLAG) -e MARIADBVERSION=$(MARIADBVERSION) \
 	 -e REGISTRYVERSION=$(REGISTRYVERSION) -e NGINXVERSION=$(NGINXVERSION) -e NOTARYVERSION=$(NOTARYVERSION) \
 	 -e CLAIRVERSION=$(CLAIRVERSION) -e CLAIRDBVERSION=$(CLAIRDBVERSION) -e VERSIONTAG=$(VERSIONTAG) \
-	 -e BUILDBIN=$(BUILDBIN) -e REDISVERSION=$(REDISVERSION)
+	 -e BUILDBIN=$(BUILDBIN) -e REDISVERSION=$(REDISVERSION) -e MIGRATORVERSION=$(MIGRATORVERSION)
 
 modify_composefile: modify_composefile_notary modify_composefile_clair
 	@echo "preparing docker-compose file..."
@@ -344,12 +351,7 @@ package_offline: compile version build modify_sourcefiles modify_composefile
 	@cp -r make $(HARBORPKG)
 	@cp LICENSE $(HARBORPKG)/LICENSE
 	@cp NOTICE $(HARBORPKG)/NOTICE
-	@cp $(HARBORPKG)/photon/db/registry.sql $(HARBORPKG)/ha/
-	
-	@if [ "$(MIGRATORFLAG)" = "true" ] ; then \
-		echo "pulling Harbor migrator..."; \
-		$(DOCKERPULL) vmware/harbor-migrator:$(MIGRATORVERSION); \
-	fi
+	@cp $(HARBORPKG)/photon/db/initial-registry.sql $(HARBORPKG)/ha/
 
 	@echo "saving harbor docker image"
 	@$(DOCKERSAVE) $(DOCKERSAVE_PARA) > $(HARBORPKG)/$(DOCKERIMGFILE).$(VERSIONTAG).tar
