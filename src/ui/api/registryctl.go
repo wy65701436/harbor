@@ -48,7 +48,8 @@ func (ra *RegistryCtlAPI) Post() {
 	uuid, err := utils.GetJobServiceClient().SubmitJob(&job_models.JobData{
 		Name: job.ImageGC,
 		Metadata: &job_models.JobMetadata{
-			JobKind: job.JobKindGeneric,
+			JobKind:  job.JobKindGeneric,
+			IsUnique: true,
 		},
 	})
 	if err != nil {
