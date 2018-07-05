@@ -14,8 +14,6 @@ services:
   registry:
     image: vmware/registry-photon:__reg_version__
     container_name: registry
-    env_file:
-      - ./common/config/registry/env
     restart: always
     volumes:
       - /data/registry:/storage:z
