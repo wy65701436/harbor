@@ -1,3 +1,8 @@
+<<<<<<< HEAD
 UI_SECRET=$ui_secret
 JOBSERVICE_SECRET=$jobservice_secret
 
+=======
+PORT=8080
+UI_SECRET=$ui_secret
+>>>>>>> f0f8d293d884f2e79cb1573087b9db5bec487c97
