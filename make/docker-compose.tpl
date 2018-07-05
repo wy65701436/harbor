@@ -30,7 +30,7 @@ services:
         syslog-address: "tcp://127.0.0.1:1514"
         tag: "registry"
   registryctl:
-    image: vmware/harbor-regsitryctl:__version__
+    image: vmware/harbor-registryctl:__version__
     container_name: registryctl
     env_file:
       - ./common/config/registryctl/env
