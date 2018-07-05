@@ -15,37 +15,77 @@
 package main
 
 import (
+	"crypto/tls"
+	"flag"
 	"net/http"
-	"os"
 
 	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/vmware/harbor/src/registryctl/config"
 	"github.com/vmware/harbor/src/registryctl/handlers"
 )
 
 // Server for registry controller
 type Server struct {
-	Port    string
-	Handler http.Handler
+	ServerConf config.Configuration
+	Handler    http.Handler
 }
 
 // Serve the API
 func (s *Server) Serve() error {
 	server := &http.Server{
-		Addr:    ":" + s.Port,
+		Addr:    ":" + s.ServerConf.Port,
 		Handler: s.Handler,
 	}
 
-	return server.ListenAndServe()
+	if s.ServerConf.Protocol == "HTTPS" {
+		tlsCfg := &tls.Config{
+			MinVersion:               tls.VersionTLS12,
+			CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+			PreferServerCipherSuites: true,
+			CipherSuites: []uint16{
+				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+			},
+		}
+
+		server.TLSConfig = tlsCfg
+		server.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0)
+	}
+
+	var err error
+	if s.ServerConf.Protocol == "HTTPS" {
+		err = server.ListenAndServeTLS(s.ServerConf.HTTPSConfig.Cert, s.ServerConf.HTTPSConfig.Key)
+	} else {
+		err = server.ListenAndServe()
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	if len(port) == 0 {
-		port = "80"
+
+	configPath := flag.String("c", "", "Specify the yaml config file path")
+	flag.Parse()
+
+	if configPath == nil || len(*configPath) == 0 {
+		flag.Usage()
+		log.Fatal("Config file should be specified")
 	}
+
+	//Load configurations
+	if err := config.DefaultConfig.Load(*configPath, true); err != nil {
+		log.Fatalf("Failed to load configurations with error: %s\n", err)
+	}
+
 	server := &Server{
-		Port:    port,
-		Handler: handlers.NewHandler(),
+		ServerConf: *config.DefaultConfig,
+		Handler:    handlers.NewHandler(),
 	}
 
 	if err := server.Serve(); err != nil {

@@ -38,6 +38,7 @@ services:
     volumes:
       - /data/registry:/storage:z
       - ./common/config/registry/:/etc/registry/:z
+      - ./common/config/regsitryctl/config.yml:/etc/regsitryctl/config.yml:z
     networks:
       - harbor
     environment:

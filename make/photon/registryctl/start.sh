@@ -17,4 +17,4 @@ if [ -d /storage ]; then
     fi
 fi
 
-sudo -E -u \#10000 "/harbor/harbor_registryctl"
+sudo -E -u \#10000 "/harbor/harbor_registryctl" "-c" "/etc/registryctl/config.yml"
