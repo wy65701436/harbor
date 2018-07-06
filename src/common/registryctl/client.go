@@ -51,7 +51,7 @@ func initRegistryCtlClient() {
 
 	log.Infof("initializing client for reigstry %s ...", registryCtlURL)
 	cfg := &client.Config{
-		Secret: os.Getenv("UI_SECRET"),
+		Secret: os.Getenv("JOBSERVICE_SECRET"),
 	}
 	RegistryCtlClient = client.NewClient(registryCtlURL, cfg)
 }
