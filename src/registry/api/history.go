@@ -51,12 +51,12 @@ type GCResult struct {
 
 // DumpGCResult ...
 func (gch *GCResult) DumpGCResult() error {
-	if _, err := os.Stat(GCResults); os.IsNotExist(err) {
-		_, err := os.Create(GCResults)
-		if err != nil {
-			return err
-		}
-	}
+	// if _, err := os.Stat(GCResults); os.IsNotExist(err) {
+	// 	_, err := os.Create(GCResults)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	gchJSON, err := json.Marshal(gch)
 	if err != nil {
