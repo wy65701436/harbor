@@ -15,6 +15,7 @@
 package config
 
 import (
+	"os"
 	"testing"
 )
 
@@ -22,5 +23,23 @@ func TestConfigDoesNotExists(t *testing.T) {
 	cfg := &Configuration{}
 	if err := cfg.Load("./config.not-existing.yaml", false); err == nil {
 		t.Fatalf("Load config from none-existing document, expect none nil error but got '%s'\n", err)
+	}
+}
+
+func TestConfigLoadingWithEnv(t *testing.T) {
+	os.Setenv("REGISTRYCTL_PROTOCOL", "https")
+	os.Setenv("PORT", "0000")
+	os.Setenv("LOG_LEVEL", "DEBUG")
+
+	cfg := &Configuration{}
+
+	if cfg.Protocol != "https" {
+		t.Fatalf("expect protocol 'https', but got '%s'\n", cfg.Protocol)
+	}
+	if cfg.Port != "8989" {
+		t.Fatalf("expect port 8989 but got '%s'\n", cfg.Port)
+	}
+	if cfg.LogLevel != "DEBUG" {
+		t.Fatalf("expect log level 'DEBUG' but got '%s'\n", cfg.LogLevel)
 	}
 }

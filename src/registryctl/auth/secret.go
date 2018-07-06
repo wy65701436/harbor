@@ -21,7 +21,7 @@ import (
 )
 
 //HarborSecret is the prefix of the value of Authorization header.
-const HarborSecret = "harbor-secret "
+const HarborSecret = "Harbor-Secret "
 
 var (
 	// ErrNoSecret ...
