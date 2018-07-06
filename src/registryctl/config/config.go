@@ -21,7 +21,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-//DefaultConfig is the default configuration reference
+//DefaultConfig ...
 var DefaultConfig = &Configuration{}
 
 //Configuration loads and keeps the related configuration items of job service.
