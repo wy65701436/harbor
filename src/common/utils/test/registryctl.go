@@ -46,7 +46,7 @@ func NewRegistryCtl(config map[string]interface{}) (*httptest.Server, error) {
 
 	m = append(m, &RequestHandlerMapping{
 		Method:  "GET",
-		Pattern: "/api/ping",
+		Pattern: "/api/health",
 		Handler: Handler(&Response{
 			StatusCode: http.StatusOK,
 		}),
