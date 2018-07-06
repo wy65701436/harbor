@@ -24,6 +24,6 @@ import (
 func newRouter() http.Handler {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/registry/gc", api.StartGC).Methods("POST")
-	r.HandleFunc("/api/ping", api.Ping).Methods("GET")
+	r.HandleFunc("/api/health", api.Health).Methods("GET")
 	return r
 }

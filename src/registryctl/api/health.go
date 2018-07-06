@@ -20,10 +20,14 @@ import (
 	"github.com/vmware/harbor/src/common/utils/log"
 )
 
-// Ping ...
-func Ping(w http.ResponseWriter, r *http.Request) {
-	if err := writeJSON(w, "Pong"); err != nil {
-		log.Errorf("Failed to write response: %v", err)
-		return
+// Health ...
+func Health(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		if err := writeJSON(w, "healty"); err != nil {
+			log.Errorf("Failed to write response: %v", err)
+			return
+		}
+	} else {
+		http.NotFound(w, r)
 	}
 }

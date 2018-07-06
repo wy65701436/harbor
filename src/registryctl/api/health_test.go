@@ -28,5 +28,5 @@ func TestPing(t *testing.T) {
 	Ping(w, nil)
 	assert.Equal(t, http.StatusOK, w.Code)
 	result, _ := ioutil.ReadAll(w.Body)
-	assert.Equal(t, "\"Pong\"", string(result))
+	assert.Equal(t, "\"Healthy\"", string(result))
 }

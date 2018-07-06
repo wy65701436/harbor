@@ -29,8 +29,8 @@ import (
 
 // Client defines methods that an Regsitry client should implement
 type Client interface {
-	// Ping tests the connection with registry server
-	Ping() error
+	// Health tests the connection with registry server
+	Health() error
 	// StartGC enable the gc of registry server
 	StartGC() (*api.GCResult, error)
 }
@@ -61,8 +61,8 @@ func NewClient(baseURL string, cfg *Config) Client {
 	return client
 }
 
-// Ping ...
-func (c *client) Ping() error {
+// Health ...
+func (c *client) Health() error {
 	addr := strings.Split(c.baseURL, "://")[1]
 	if !strings.Contains(addr, ":") {
 		addr = addr + ":80"

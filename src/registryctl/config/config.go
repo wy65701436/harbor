@@ -26,16 +26,13 @@ var DefaultConfig = &Configuration{}
 
 //Configuration loads and keeps the related configuration items of job service.
 type Configuration struct {
-	Protocol    string       `yaml:"protocol"`
-	Port        string       `yaml:"port"`
-	LogLevel    string       `yaml:"log_level"`
-	HTTPSConfig *HTTPSConfig `yaml:"https_config,omitempty"`
-}
-
-//HTTPSConfig keeps additional configurations when using https protocol
-type HTTPSConfig struct {
-	Cert string `yaml:"cert"`
-	Key  string `yaml:"key"`
+	Protocol    string `yaml:"protocol"`
+	Port        string `yaml:"port"`
+	LogLevel    string `yaml:"log_level"`
+	HTTPSConfig struct {
+		Cert string `yaml:"cert"`
+		Key  string `yaml:"key"`
+	} `yaml:"https_config,omitempty"`
 }
 
 //Load the configuration options from the specified yaml file.
@@ -90,24 +87,12 @@ func (c *Configuration) loadEnvs() {
 	if c.Protocol == "HTTPS" {
 		cert := os.Getenv("REGISTRYCTL_HTTPS_CERT")
 		if len(cert) != 0 {
-			if c.HTTPSConfig != nil {
-				c.HTTPSConfig.Cert = cert
-			} else {
-				c.HTTPSConfig = &HTTPSConfig{
-					Cert: cert,
-				}
-			}
+			c.HTTPSConfig.Cert = cert
 		}
 
 		certKey := os.Getenv("REGISTRYCTL_HTTPS_KEY")
 		if len(certKey) != 0 {
-			if c.HTTPSConfig != nil {
-				c.HTTPSConfig.Key = certKey
-			} else {
-				c.HTTPSConfig = &HTTPSConfig{
-					Key: certKey,
-				}
-			}
+			c.HTTPSConfig.Key = certKey
 		}
 	}
 

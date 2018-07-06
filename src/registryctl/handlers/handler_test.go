@@ -66,7 +66,7 @@ func TestNewAuthHandler(t *testing.T) {
 		{&fakeAuthenticator{
 			authenticated: false,
 			err:           nil,
-		}, &fakeHandler{http.StatusOK}, map[string]bool{"/api/ping": true}, http.StatusOK, "http://localhost/api/ping"},
+		}, &fakeHandler{http.StatusOK}, map[string]bool{"/api/health": true}, http.StatusOK, "http://localhost/api/health"},
 	}
 
 	for _, c := range cases {
@@ -78,7 +78,7 @@ func TestNewAuthHandler(t *testing.T) {
 	}
 	handler := NewHandler()
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "http://localhost/api/ping", nil)
+	r := httptest.NewRequest("GET", "http://localhost/api/health", nil)
 	handler.ServeHTTP(w, r)
 
 }

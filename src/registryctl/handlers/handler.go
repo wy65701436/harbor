@@ -23,28 +23,28 @@ import (
 	"github.com/vmware/harbor/src/registryctl/auth"
 )
 
-// NewHandler returns a gorilla router which is wrapped by  authenticate handler
+// NewHandlerChan returns a gorilla router which is wrapped by  authenticate handler
 // and logging handler
-func NewHandler() http.Handler {
+func NewHandlerChan() http.Handler {
 	h := newRouter()
 	secrets := map[string]string{
-		"uiSecret": os.Getenv("UI_SECRET"),
+		"jobSecret": os.Getenv("JOBSERVICE_SECRET"),
 	}
 	insecureAPIs := map[string]bool{
-		"/api/ping": true,
+		"/api/health": true,
 	}
-	h = newAuthHandler(auth.NewSecretAuthenticator(secrets), h, insecureAPIs)
+	h = newAuthHandler(auth.NewSecretHandler(secrets), h, insecureAPIs)
 	h = gorilla_handlers.LoggingHandler(os.Stdout, h)
 	return h
 }
 
 type authHandler struct {
-	authenticator auth.Authenticator
+	authenticator auth.AuthenticationHandler
 	handler       http.Handler
 	insecureAPIs  map[string]bool
 }
 
-func newAuthHandler(authenticator auth.Authenticator, handler http.Handler, insecureAPIs map[string]bool) http.Handler {
+func newAuthHandler(authenticator auth.AuthenticationHandler, handler http.Handler, insecureAPIs map[string]bool) http.Handler {
 	return &authHandler{
 		authenticator: authenticator,
 		handler:       handler,
@@ -54,9 +54,9 @@ func newAuthHandler(authenticator auth.Authenticator, handler http.Handler, inse
 
 func (a *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if a.authenticator == nil {
-		if a.handler != nil {
-			a.handler.ServeHTTP(w, r)
-		}
+		log.Errorf("No authenticatorf found in regsitry controller.")
+		http.Error(w, http.StatusText(http.StatusInternalServerError),
+			http.StatusInternalServerError)
 		return
 	}
 
@@ -66,15 +66,10 @@ func (a *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	valid, err := a.authenticator.Authenticate(r)
+
+	err := a.authenticator.AuthorizeRequest(r)
 	if err != nil {
 		log.Errorf("failed to authenticate request: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError),
-			http.StatusInternalServerError)
-		return
-	}
-
-	if !valid {
 		http.Error(w, http.StatusText(http.StatusUnauthorized),
 			http.StatusUnauthorized)
 		return

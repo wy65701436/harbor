@@ -24,15 +24,15 @@ import (
 	"github.com/vmware/harbor/src/registryctl/handlers"
 )
 
-// Server for registry controller
-type Server struct {
+// RegistryCtl for registry controller
+type RegistryCtl struct {
 	ServerConf config.Configuration
 	Handler    http.Handler
 }
 
-// Serve the API
-func (s *Server) Serve() error {
-	server := &http.Server{
+// Start the registry controller
+func (s *RegistryCtl) Start() error {
+	regCtl := &http.Server{
 		Addr:    ":" + s.ServerConf.Port,
 		Handler: s.Handler,
 	}
@@ -50,15 +50,15 @@ func (s *Server) Serve() error {
 			},
 		}
 
-		server.TLSConfig = tlsCfg
-		server.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0)
+		regCtl.TLSConfig = tlsCfg
+		regCtl.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0)
 	}
 
 	var err error
 	if s.ServerConf.Protocol == "HTTPS" {
-		err = server.ListenAndServeTLS(s.ServerConf.HTTPSConfig.Cert, s.ServerConf.HTTPSConfig.Key)
+		err = regCtl.ListenAndServeTLS(s.ServerConf.HTTPSConfig.Cert, s.ServerConf.HTTPSConfig.Key)
 	} else {
-		err = server.ListenAndServe()
+		err = regCtl.ListenAndServe()
 	}
 
 	if err != nil {
@@ -78,17 +78,16 @@ func main() {
 		log.Fatal("Config file should be specified")
 	}
 
-	//Load configurations
 	if err := config.DefaultConfig.Load(*configPath, true); err != nil {
 		log.Fatalf("Failed to load configurations with error: %s\n", err)
 	}
 
-	server := &Server{
+	regCtl := &RegistryCtl{
 		ServerConf: *config.DefaultConfig,
-		Handler:    handlers.NewHandler(),
+		Handler:    handlers.NewHandlerChan(),
 	}
 
-	if err := server.Serve(); err != nil {
+	if err := regCtl.Start(); err != nil {
 		log.Fatal(err)
 	}
 

@@ -15,41 +15,18 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
-
-	"github.com/vmware/harbor/src/common/secret"
 )
 
-// Authenticator defines Authenticate function to authenticate requests
-type Authenticator interface {
-	// Authenticate the request, if there is no error, the bool value
-	// determines whether the request is authenticated or not
-	Authenticate(req *http.Request) (bool, error)
-}
+var (
+	// ErrInvalidCredential is returned when the auth token does not authenticate correctly.
+	ErrInvalidCredential = errors.New("invalid authorization credential")
+)
 
-type secretAuthenticator struct {
-	secrets map[string]string
-}
+// AuthenticationHandler is an interface for authorizing a request
+type AuthenticationHandler interface {
 
-// NewSecretAuthenticator returns an instance of secretAuthenticator
-func NewSecretAuthenticator(secrets map[string]string) Authenticator {
-	return &secretAuthenticator{
-		secrets: secrets,
-	}
-}
-
-// Authenticate the request according the secret
-func (s *secretAuthenticator) Authenticate(req *http.Request) (bool, error) {
-	if len(s.secrets) == 0 {
-		return true, nil
-	}
-	reqSecret := secret.FromRequest(req)
-
-	for _, v := range s.secrets {
-		if reqSecret == v {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	// AuthorizeRequest ...
+	AuthorizeRequest(req *http.Request) error
 }
