@@ -17,6 +17,8 @@ package config
 import (
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConfigDoesNotExists(t *testing.T) {
@@ -28,18 +30,11 @@ func TestConfigDoesNotExists(t *testing.T) {
 
 func TestConfigLoadingWithEnv(t *testing.T) {
 	os.Setenv("REGISTRYCTL_PROTOCOL", "https")
-	os.Setenv("PORT", "0000")
+	os.Setenv("PORT", "1000")
 	os.Setenv("LOG_LEVEL", "DEBUG")
 
 	cfg := &Configuration{}
-
-	if cfg.Protocol != "https" {
-		t.Fatalf("expect protocol 'https', but got '%s'\n", cfg.Protocol)
-	}
-	if cfg.Port != "8989" {
-		t.Fatalf("expect port 8989 but got '%s'\n", cfg.Port)
-	}
-	if cfg.LogLevel != "DEBUG" {
-		t.Fatalf("expect log level 'DEBUG' but got '%s'\n", cfg.LogLevel)
-	}
+	assert.Equal(t, "https", cfg.Protocol)
+	assert.Equal(t, "https", cfg.Port)
+	assert.Equal(t, "https", cfg.LogLevel)
 }
