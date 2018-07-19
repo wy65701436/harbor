@@ -35,7 +35,8 @@
         "COPY": "COPY",
         "EDIT": "EDIT",
         "SWITCH": "SWITCH",
-        "REPLICATE": "REPLICATE"
+        "REPLICATE": "REPLICATE",
+        "ACTIONS": "Actions"
     },
     "BATCH": {
         "DELETED_SUCCESS": "Deleted successfully",
@@ -112,6 +113,7 @@
         "SYSTEM_MGMT": {
             "NAME": "Administration",
             "USER": "Users",
+            "GROUP": "Groups",
             "REGISTRY": "Registries",
             "REPLICATION": "Replications",
             "CONFIG": "Configuration"
@@ -191,7 +193,7 @@
         "PUBLIC_POLICY": "Making a project registry public will make all repositories accessible to everyone.",
         "SECURITY": "Deployment security",
         "CONTENT_TRUST_TOGGLE": "Enable content trust",
-        "CONTENT_TRUST_POLCIY": "Only allow verified images to be deployed.",
+        "CONTENT_TRUST_POLCIY": "Allow only verified images to be deployed.",
         "PREVENT_VULNERABLE_TOGGLE": "Prevent vulnerable images from running.",
         "PREVENT_VULNERABLE_1": "Prevent images with vulnerability severity of",
         "PREVENT_VULNERABLE_2": "and above from being deployed.",
@@ -200,6 +202,7 @@
         "AUTOSCAN_POLICY": "Automatically scan images when they are pushed to the project registry."
     },
     "MEMBER": {
+        "NEW_USER": "New User",
         "NEW_MEMBER": "New Member",
         "MEMBER": "Member",
         "NAME": "Name",
@@ -211,6 +214,25 @@
         "DELETE": "Delete",
         "ITEMS": "items",
         "ACTIONS": "Actions",
+        "USER": " User",
+        "USERS": "Users",
+        "EMAIL": "Email",
+        "ADD_USER": "Add User",
+        "NEW_USER_INFO": "Add an user to be a member of this project with specified role",
+        "NEW_GROUP": "New Group",
+        "IMPORT_GROUP": "Import New LDAP Group",
+        "NEW_GROUP_INFO": "Import a new LDAP group or select one or more existing groups to add with the specific role.",
+        "ADD_GROUP_SELECT": "Add a group as a project member",
+        "CREATE_GROUP_SELECT": "Import a new group from LDAP",
+        "LDAP_SEARCH_DN": "LDAP Group DN",
+        "LDAP_SEARCH_NAME": "Name",
+        "LDAP_GROUP": "Group",
+        "LDAP_GROUPS": "Groups",
+        "LDAP_PROPERTY": "Property",
+        "ACTION": "ACTION",
+        "MEMBER_TYPE": "Member Type",
+        "GROUP_TYPE": "Group",
+        "USER_TYPE": "User",
         "USERNAME_IS_REQUIRED": "Username is required",
         "USERNAME_DOES_NOT_EXISTS": "Username does not exist.",
         "USERNAME_ALREADY_EXISTS": "Username already exists.",
@@ -224,8 +246,25 @@
         "OF": "of",
         "SWITCH_TITLE": "Confirm project members switch",
         "SWITCH_SUMMARY": "Do you want to switch project members {{param}}?",
-        "ACTION": "SET ROLE",
-        "REMOVE": "REMOVE"
+        "SET_ROLE": "SET ROLE",
+        "REMOVE": "Remove"
+    },
+    "GROUP": {
+        "GROUP": "Group",
+        "GROUPS": "Groups",
+        "IMPORT_LDAP_GROUP": "Import LDAP Group",
+        "ADD": "New Group",
+        "EDIT": "Edit",
+        "DELETE": "Delete",
+        "NAME": "Name",
+        "TYPE": "Type",
+        "DN": "DN",
+        "GROUP_DN": "Ldap Group DN",
+        "PROPERTY": "Property",
+        "REG_TIME": "Registration Time",
+        "ADD_GROUP_SUCCESS": "Add group success",
+        "ADD_GROUP_FAILURE": "Add group failure",
+        "LDAP_TYPE": "LDAP"
     },
     "AUDIT_LOG": {
         "USERNAME": "Username",
@@ -272,6 +311,7 @@
         "TEST_CONNECTION_SUCCESS": "Connection tested successfully.",
         "TEST_CONNECTION_FAILURE": "Failed to ping endpoint.",
         "NAME": "Name",
+        "STATUS": "Status",
         "PROJECT": "Project",
         "NAME_IS_REQUIRED": "Name is required.",
         "DESCRIPTION": "Description",
@@ -344,7 +384,10 @@
         "DELETE_REMOTE_IMAGES":"Delete remote images when locally deleted",
         "REPLICATE_IMMEDIATE":"Replicate existing images immediately",
         "NEW": "New",
-        "NAME_TOOLTIP": "replication rule name should be at least 2 characters long with lower case characters, numbers and ._- and must be start with characters or numbers."
+        "NAME_TOOLTIP": "replication rule name should be at least 2 characters long with lower case characters, numbers and ._- and must be start with characters or numbers.",
+        "DELETED_LABEL_INFO": "Deleted label(s) '{{param}}' referenced in the filter, click 'SAVE' to update the filter to enable this rule.",
+        "ACKNOWLEDGE": "Acknowledge",
+        "RULE_DISABLED": "This rule has been disabled because a label used in its filter has been deleted. \n Edit the rule and update its filter to enable it."
     },
     "DESTINATION": {
         "NEW_ENDPOINT": "New Endpoint",
@@ -503,7 +546,16 @@
             "FILTER": "LDAP Filter",
             "UID": "LDAP UID",
             "SCOPE": "LDAP Scope",
-            "VERIFY_CERT": "LDAP Verify Cert"
+            "VERIFY_CERT": "LDAP Verify Cert",
+            "LDAP_GROUP_BASE_DN": "LDAP Group Base DN",
+            "LDAP_GROUP_BASE_DN_INFO": "The base DN of your LDAP group.",
+            "LDAP_GROUP_FILTER": "LDAP Group Filter",
+            "LDAP_GROUP_FILTER_INFO": "The filter of your LDAP group",
+            "LDAP_GROUP_GID": "LDAP Group GID",
+            "LDAP_GROUP_GID_INFO": "The Group gid of your LDAP group",
+            "GROUP_SCOPE": "LDAP Group Scope",
+            "GROUP_SCOPE_INFO": "The scope of your LDAP Group"
+
         },
         "UAA": {
             "ENDPOINT": "UAA Endpoint",
@@ -669,8 +721,11 @@
         "DELETE_USER": "Delete user",
         "DELETE_REGISTRY": "Delete registry",
         "DELETE_REPLICATION": "Delete replication",
-        "DELETE_MEMBER": "Delete member",
+        "DELETE_MEMBER": "Delete user member",
+        "DELETE_GROUP": "Delete group member",
         "SWITCH_ROLE": "Switch role",
+        "ADD_GROUP": "Add group member",
+        "ADD_USER": "Add user member",
         "DELETE_LABEL": "Delete label",
         "REPLICATION": "Replication",
         "DAY_AGO": " day(s) ago",

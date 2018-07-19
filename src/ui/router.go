@@ -104,6 +104,7 @@ func initRouters() {
 	beego.Router("/api/replications", &api.ReplicationAPI{})
 	beego.Router("/api/labels", &api.LabelAPI{}, "post:Post;get:List")
 	beego.Router("/api/labels/:id([0-9]+)", &api.LabelAPI{}, "get:Get;put:Put;delete:Delete")
+	beego.Router("/api/labels/:id([0-9]+)/resources", &api.LabelAPI{}, "get:ListResources")
 
 	beego.Router("/api/systeminfo", &api.SystemInfoAPI{}, "get:GetGeneralInfo")
 	beego.Router("/api/systeminfo/volumes", &api.SystemInfoAPI{}, "get:GetVolumeInfo")
@@ -120,6 +121,21 @@ func initRouters() {
 	beego.Router("/service/token", &token.Handler{})
 
 	beego.Router("/registryproxy/*", &controllers.RegistryProxy{}, "*:Handle")
+
+	//APIs for chart repository
+	chartRepositoryAPIType := &api.ChartRepositoryAPI{}
+	beego.Router("/api/chartserver/health", chartRepositoryAPIType, "get:GetHealthStatus")
+	beego.Router("/api/:repo/charts", chartRepositoryAPIType, "get:ListCharts")
+	beego.Router("/api/:repo/charts/:name", chartRepositoryAPIType, "get:ListChartVersions")
+	beego.Router("/api/:repo/charts/:name/:version", chartRepositoryAPIType, "get:GetChartVersion")
+	beego.Router("/api/:repo/charts/:name/:version", chartRepositoryAPIType, "delete:DeleteChartVersion")
+	beego.Router("/api/:repo/charts", chartRepositoryAPIType, "post:UploadChartVersion")
+	beego.Router("/api/:repo/prov", chartRepositoryAPIType, "post:UploadChartProvFile")
+
+	//Repository services
+	beego.Router("/:repo/index.yaml", chartRepositoryAPIType, "get:GetIndexByRepo")
+	beego.Router("/index.yaml", chartRepositoryAPIType, "get:GetIndex")
+	beego.Router("/:repo/charts/:filename", chartRepositoryAPIType, "get:DownloadChart")
 
 	//Error pages
 	beego.ErrorController(&controllers.ErrorController{})
