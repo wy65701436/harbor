@@ -282,10 +282,10 @@ secret_key = get_secret_key(secretkey_path)
 log_rotate_count = rcp.get("configuration", "log_rotate_count")
 log_rotate_size = rcp.get("configuration", "log_rotate_size")
 
-if rcp.has_option("configuration", "redis_url"):
-    redis_url = rcp.get("configuration", "redis_url")
-else:
-    redis_url = ""
+redis_host = rcp.get("configuration", "redis_host")
+redis_port = rcp.get("configuration", "redis_port")
+redis_password = rcp.get("configuration", "redis_password")
+redis_db_index = rcp.get("configuration", "redis_db_index")
 
 if rcp.has_option("configuration", "skip_reload_env_pattern"):
     skip_reload_env_pattern = rcp.get("configuration", "skip_reload_env_pattern")
@@ -430,7 +430,7 @@ render(os.path.join(templates_dir, "adminserver", "env"),
 # set cache for chart repo server
 # default set 'memory' mode, if redis is configured then set to 'redis'
 chart_cache_driver = "memory"
-if len(redis_url) > 0:
+if len(redis_host) > 0:
     chart_cache_driver = "redis"
 
 render(os.path.join(templates_dir, "ui", "env"), 
@@ -466,7 +466,10 @@ render(os.path.join(templates_dir, "registry", registry_config_file),
     storage_provider_info=storage_provider_info,
     public_url=public_url,
     ui_url=ui_url,
-    redis_url=redis_url)
+    redis_host=redis_host,
+    redis_port=redis_port,
+    redis_password=redis_password,
+    redis_db_index_registry=)
 
 render(os.path.join(templates_dir, "db", "env"),
         db_conf_env,
