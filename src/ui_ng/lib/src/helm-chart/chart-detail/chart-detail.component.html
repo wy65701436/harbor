@@ -1,25 +1,21 @@
 <div>
-    <div class="row flex-items-xs-between">
-        <div class="col-xs-4">
-            <div class="title-container">
-                <div class="chart-name">
-                    {{chartNameWithVersion | translate}}
-                </div>
-                <div>
-                    {{roleName | translate}}
-                </div>
+    <div class="flex-container">
+        <div class="title-container">
+            <div class="chart-name">
+                {{chartNameWithVersion | translate}}
+            </div>
+            <div>
+                {{roleName | translate}}
             </div>
         </div>
-        <div class="col-xs-1">
+        <div>
             <button class="btn btn-sm btn-secondary"
             (click)="downloadChart()">{{'HELM_CHART.DOWNLOAD' | translate}}</button>
         </div>
     </div>
-    <div class="detail-loading" *ngIf="loading">
-        <span class="spinner">
-            Loading...
-        </span>
-    </div>
+    <span *ngIf="loading" class="spinner spinner-lg detail-loading">
+        Loading...
+    </span>
     <div *ngIf="!loading && isChartExist">
         <clr-tabs>
             <clr-tab>
