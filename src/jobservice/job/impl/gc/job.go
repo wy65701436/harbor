@@ -18,7 +18,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/gomodule/redigo/redis"
 	"github.com/vmware/harbor/src/common"
 	common_http "github.com/vmware/harbor/src/common/http"
 	"github.com/vmware/harbor/src/common/http/modifier/auth"
@@ -27,6 +29,12 @@ import (
 	"github.com/vmware/harbor/src/jobservice/env"
 	"github.com/vmware/harbor/src/jobservice/logger"
 	"github.com/vmware/harbor/src/registryctl/client"
+)
+
+const (
+	dialConnectionTimeout = 30 * time.Second
+	dialReadTimeout       = time.Minute + 10*time.Second
+	dialWriteTimeout      = 10 * time.Second
 )
 
 // GarbageCollector is the struct to run registry's garbage collection
@@ -106,4 +114,27 @@ func (gc *GarbageCollector) readonly(switcher bool) error {
 	}
 	gc.logger.Info("the readonly request has been sent successfully")
 	return nil
+}
+
+// cleanCache is to clean the registry cache for GC.
+// To do this is because the issue https://github.com/docker/distribution/issues/2094
+func (gc *GarbageCollector) cleanCache() error {
+
+	con, err := redis.DialURL(
+		"redis:6389",
+		redis.DialConnectTimeout(dialConnectionTimeout),
+		redis.DialReadTimeout(dialReadTimeout),
+		redis.DialWriteTimeout(dialWriteTimeout),
+	)
+
+	if err != nil {
+		gc.logger.Errorf("failed to connect to redis %v", err)
+		return err
+	}
+
+	con.Close()
+	return nil
+	// pong, err := client.Ping().Result()
+	// fmt.Println(pong, err)
+	// Output: PONG <nil>
 }
