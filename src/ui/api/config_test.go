@@ -118,3 +118,34 @@ func TestResetConfig(t *testing.T) {
 	}
 	t.Logf("%v", ccc)
 }
+
+func TestPutConfigMaxLength(t *testing.T) {
+	fmt.Println("Testing modifying configurations with max length.")
+	assert := assert.New(t)
+	apiTest := newHarborAPI()
+
+	// length is 512，expected code: 200
+	cfg := map[string]interface{}{
+		common.LDAPGroupSearchFilter: "OSWvgTrQJuhiPRZt7eCReNku29vrtMBBD2cZt6jl7LQN4OZQcirqEhS2vCnkW8X1OAHMJxiO1LyEY26j" +
+			"YhBEiUFliPKDUt8Q9endowT3H60nJibEnCkSRVjix7QujXKRzlmvxcOK76v1oZAoWeHSwwtv7tZrOk16Jj5LTGYdLOnZd2LIgBniTKmceL" +
+			"VY5WOgcpmgQCfI5HLbzWsmAqmFfbsDbadirrEDiXYYfZQ0LnF8s6sD4H13eImgenAumXEsBRH43FT37AbNXNxzlaSs8IQYEdPLaMyKoXFb" +
+			"rfa0LPipwXnU7bl54IlWOTXwCwum0JGS4qBiMl6LwKUBle34ObZ9fTLh5dFOVE1GdzrGE0kQ7qUmYjMZafQbSXzV80zTc22aZt3RQa9Gxt" +
+			"Dn2VqtgcoKAiZHkEySStiwOJtZpwuplyy1jcM3DcN0R9b8IidYAWOsriqetUBThqb75XIZTXAaRWhHLw4ayROYiaw8dPuLRjeVKhdyznqq" +
+			"AKxQGyvm",
+	}
+	code200, _ := apiTest.PutConfig(*admin, cfg)
+	assert.Equal(200, code200, "the status code of modifying configurations with admin user should be 200")
+
+	// length is 1059，expected code: 500
+	cfg = map[string]interface{}{
+		common.LDAPGroupSearchFilter: "J8GtXaDUNTJv6TewTpoyRYGQBLryurjIHdvotcR1v68bC89iaa9Csa4mwKfyCFpPG8UmjOt03z5gNlmn" +
+			"qFKzfQzjVlVnoKhNmpLhzWfFXpuLrfxljH0i560Lq9NErPYS06p73N38yVUD6BGubp229lJGenqcYLhaoUru6vay8ChQvouJtcQ1ai5BQ3" +
+			"maBKfyfALfI5ca0ETUkrN1wpAXVD8K27iSACnldqgM3WZ6uxXGXYA8HEOA8tEy8bMbIOwtqHuE1zyslQzDKqPUWfFhE1dZjIyipuC7eksF" +
+			"dNaIUvlhwWKiCjoxb5X5lkB2ZNjqX2gRn80dfAPfbQIcEPJxey9rldk1rvjfRxLP9NngS6l1wLDY2qk6pNVC9zyS1yfYeBBj8hOhmvb3vN" +
+			"mKYe9IslWNIydRYl3jqmVdmL3RF1MW1GU74EpurUwRzeLYtkeBzegp2ZhZNKDaUJ0OysFNKjtyhgdiL6gv06yEvcs7CVHhxn8W6uTeAFiI" +
+			"XfTBipJ8Hj0Sv7ZGQZbxcOe66EHAnTLEe5rst312a8mcQbkftY3oVcCuUhmvw2vMvxb9z4p2D42GSWIDsGtpF5FcwnF3VRZeDQUksTgTJ0" +
+			"PEtLlB6YCXOBBBvrCsTsegAMLHznesN2OJPN45e6PKaY53Chsj3i4m0Rf7GC2b6FuiIRi3r4VK1bhjGYgHoPQE1X6UGgCFLmyZKH",
+	}
+	code500, _ := apiTest.PutConfig(*admin, cfg)
+	assert.Equal(500, code500, "the status code of modifying configurations with admin user should be 500")
+}
