@@ -82,4 +82,4 @@ Changelog for harbor database schema
 
 ## 1.7.0
 
-  - alter column `v` on table `properties`: varchar(128)->varchar(256)
+  - alter column `v` on table `properties`: varchar(128)->varchar(1024)
