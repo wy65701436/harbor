@@ -63,7 +63,7 @@ before_script:
   - echo $REGISTRY_URL
   - cd tests && sudo ./ldapprepare.sh && cd ..
   - sudo ./tests/admiral.sh
-  - sudo make -f make/photon/Makefile _build_db _build_registry -e VERSIONTAG=dev -e CLAIRDBVERSION=dev -e REGISTRYVERSION=${REG_VERSION}
+  - sudo make -f make/photon/Makefile _build_adminiserver _build_db _build_registry -e VERSIONTAG=dev -e CLAIRDBVERSION=dev -e REGISTRYVERSION=${REG_VERSION}
   - sudo sed -i 's/__reg_version__/${REG_VERSION}-dev/g' ./make/docker-compose.test.yml
   - sudo sed -i 's/__version__/dev/g' ./make/docker-compose.test.yml
   - sudo mkdir -p ./make/common/config/registry/ && sudo mv ./tests/reg_config.yml ./make/common/config/registry/config.yml
@@ -75,6 +75,5 @@ script:
   #- make go_check
   #- ./tests/pushimage.sh
   - go test -race -i ./src/ui ./src/adminserver ./src/jobservice
-  - ls -la /home/travis/gopath/src/github.com/goharbor/harbor/make/migrations/postgresql/
   - sudo -E env "PATH=$PATH" "POSTGRES_MIGRATION_SCRIPTS_PATH=/home/travis/gopath/src/github.com/goharbor/harbor/make/migrations/postgresql/" ./tests/coverage4gotest.sh
   - goveralls -coverprofile=profile.cov -service=travis-ci
