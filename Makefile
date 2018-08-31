@@ -282,6 +282,13 @@ compile_clarity:
 	fi
 	@echo "Done."
 
+compile_adminserver:
+	@echo "compiling binary for adminserver (golang image)..."
+	@echo $(GOBASEPATH)
+	@echo $(GOBUILDPATH)
+	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_ADMINSERVER) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -o $(GOBUILDMAKEPATH_ADMINSERVER)/$(ADMINSERVERBINARYNAME)
+	@echo "Done."
+
 compile_golangimage: compile_clarity
 	@echo "compiling binary for adminserver (golang image)..."
 	@echo $(GOBASEPATH)
