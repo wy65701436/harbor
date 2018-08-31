@@ -106,7 +106,6 @@ func init() {
 		log.Fatalf("failed to get database configurations: %v", err)
 	}
 	dao.InitDatabase(database)
-	dao.UpgradeSchema(database)
 	_, file, _, _ := runtime.Caller(0)
 	dir := filepath.Dir(file)
 	dir = filepath.Join(dir, "..")
