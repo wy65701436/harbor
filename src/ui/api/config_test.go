@@ -138,13 +138,17 @@ func TestPutConfigMaxLength(t *testing.T) {
 
 	// length is 1059，expected code: 500
 	cfg = map[string]interface{}{
-		common.LDAPGroupSearchFilter: "J8GtXaDUNTJv6TewTpoyRYGQBLryurjIHdvotcR1v68bC89iaa9Csa4mwKfyCFpPG8UmjOt03z5gNlmn" +
-			"qFKzfQzjVlVnoKhNmpLhzWfFXpuLrfxljH0i560Lq9NErPYS06p73N38yVUD6BGubp229lJGenqcYLhaoUru6vay8ChQvouJtcQ1ai5BQ3" +
-			"maBKfyfALfI5ca0ETUkrN1wpAXVD8K27iSACnldqgM3WZ6uxXGXYA8HEOA8tEy8bMbIOwtqHuE1zyslQzDKqPUWfFhE1dZjIyipuC7eksF" +
-			"dNaIUvlhwWKiCjoxb5X5lkB2ZNjqX2gRn80dfAPfbQIcEPJxey9rldk1rvjfRxLP9NngS6l1wLDY2qk6pNVC9zyS1yfYeBBj8hOhmvb3vN" +
-			"mKYe9IslWNIydRYl3jqmVdmL3RF1MW1GU74EpurUwRzeLYtkeBzegp2ZhZNKDaUJ0OysFNKjtyhgdiL6gv06yEvcs7CVHhxn8W6uTeAFiI" +
-			"XfTBipJ8Hj0Sv7ZGQZbxcOe66EHAnTLEe5rst312a8mcQbkftY3oVcCuUhmvw2vMvxb9z4p2D42GSWIDsGtpF5FcwnF3VRZeDQUksTgTJ0" +
-			"PEtLlB6YCXOBBBvrCsTsegAMLHznesN2OJPN45e6PKaY53Chsj3i4m0Rf7GC2b6FuiIRi3r4VK1bhjGYgHoPQE1X6UGgCFLmyZKH",
+		common.LDAPGroupSearchFilter: "YU2YcM13JtSx5jtBiftTjfaEM9KZFQ0XA5fKQHU02E9Xe0aLYaSy7YBokrTA8oHFjSkWFSgWZJ6FEmTS" +
+			"Vy5Ovsy5to2kWnFtbVNX3pzbeQpZeAqK3mEGnXdMkMSQu9WTq74s99GpwjEdA628pcZqLx6wCR0IvwryqIcNoRtqPlUcuRGODWA8ZXaC0d" +
+			"Qs7cRUYSe8onHsM2c9JWuUS8Jv4E7KggfytrxeKAT0WGP5DBZsB7rHZKxoAppE3C0NueEeC4yV791PUOODJt9rc0RrcD6ORUIO5RriCwym" +
+			"IinJZa03MtTk3vGFTmL9wM0wEYZP3fEBmoiB0iF8o4wkHGyMpNJoDyPuo7huuCbipAXClEcX1R7xD4aijTF9iOMKymvsObMZ4qqI7flco5" +
+			"yLFf7W8cpSisk3YJSvxDWfrl91WT4IFE5KHK976DgLQJhTZ8msGOImnFiUGtuIUNQpOgFFtlXJV41OltSsjW5jwAzxcko0MFkOIc7XuPjB" +
+			"XMrdjC9poYldrxNFrGOPFSyh19iS2UWKayKrtnhvDYAWrNCqOmRs01awEXBlwHp17VcLuze6XGCx7ZoPQX1Nu4uF1InAGpSm1B3pKtteeR" +
+			"WNNeLZjmNGNuiorHyxLTx1bQTfkG2UzZTTR0e2XatiXt5nCDxSqP2OkOxH7dew36fm9LpkFbmgtlxWxjHX8buYzSJCAjTqqwW3rHCEfQjv" +
+			"B4T7CTJrAgehCG9zL82P59DQbGXXWqRHbw5g9QszREQys1m56SHLosNptVPUwy7vD70rRf5s8knohW5npEZS9f3RGel64mj5g7bQBBkopx" +
+			"f6uac3MlJAe9d6C0B7fexZJABln2kCtXXYzITflICISwxuZ0YXHJmT2sMSIpn9VwMnMidV4JsM2BD8ykExZ5QyeVyOCXHDxvRvFwQwjQfR" +
+			"kkqQmtFREitKWl5njO8wLJw0XyeIVAej75NsGKKZWVjyaupaM9Bqn6NFrWjELFacLox6OCcRIDSDl3ntNN8tIzGOF7aXVCIqljJl0IL9Pz" +
+			"NenmmubaNm48YjfkBk8MqOUSYJYaFkO1qCKbVdMg7yTqKEHgSUqEkoFPoJMH6GAozC",
 	}
 	code500, _ := apiTest.PutConfig(*admin, cfg)
 	assert.Equal(500, code500, "the status code of modifying configurations with admin user should be 500")
