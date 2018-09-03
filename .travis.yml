@@ -27,6 +27,8 @@ env:
   REDIS_HOST: localhost
   REG_VERSION: v2.6.2
   UI_BUILDER_VERSION: 1.6.0
+  - TEST_COMMAND="tests/ut.sh"
+  - TEST_COMMAND="tests/e2e/sh"
 
 before_install:
    - sudo ./tests/hostcfg.sh
@@ -70,11 +72,4 @@ before_script:
   - sudo mkdir -p ./make/common/config/registry/ && sudo mv ./tests/reg_config.yml ./make/common/config/registry/config.yml
 
 script:
-  - sudo make run_clarity_ut CLARITYIMAGE=goharbor/harbor-clarity-ui-builder:${UI_BUILDER_VERSION}
-  - cat ./src/ui_ng/npm-ut-test-results
-  - sudo docker-compose -f ./make/docker-compose.test.yml up -d
-  - make go_check
-  - ./tests/pushimage.sh
-  - go test -race -i ./src/ui ./src/adminserver ./src/jobservice
-  - sudo -E env "PATH=$PATH" "POSTGRES_MIGRATION_SCRIPTS_PATH=/home/travis/gopath/src/github.com/goharbor/harbor/make/migrations/postgresql/" ./tests/coverage4gotest.sh
-  - goveralls -coverprofile=profile.cov -service=travis-ci
+  - (eval "$TEST_COMMAND")
