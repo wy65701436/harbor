@@ -2,4 +2,4 @@
 
 set -e
 
-docker pull vmware/harbor-e2e-engine:1.44
+docker pull vmware/harbor-e2e-engine:1.41
