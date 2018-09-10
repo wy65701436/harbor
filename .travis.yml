@@ -58,10 +58,6 @@ install:
    - if [ "$UTTEST" == true ]; then bash ./tests/travis/ut_install.sh ; fi
    - if [ "$E2ETEST" == true ]; then bash ./tests/travis/e2e_install.sh ; fi
 
-before_script:
-  - if [ "$UTTEST" == true ]; then bash ./tests/travis/ut_prepare.sh ; else echo 'skipping ui tests'; fi
-  - if [ "$E2ETEST" == true ]; then echo "skipping e2e prepare ...." ; else echo 'skipping e2e tests'; fi
-
 script:
   - if [ "$UTTEST" == true ]; then bash ./tests/travis/ut_run.sh ; fi
   - if [ "$E2ETEST" == true ]; then bash ./tests/travis/e2e_run.sh ; fi
