@@ -19,7 +19,7 @@ matrix:
     - UTTEST=true
   - go: "1.10"
     env:
-    - E2ETEST=true
+    - APITEST=true
 
 env:
   global:
@@ -49,8 +49,8 @@ before_install:
 
 install:
    - if [ "$UTTEST" == true ]; then bash ./tests/travis/ut_install.sh ; fi
-   - if [ "$E2ETEST" == true ]; then bash ./tests/travis/e2e_install.sh ; fi
+   - if [ "$APITEST" == true ]; then bash ./tests/travis/api_install.sh ; fi
 
 script:
   - if [ "$UTTEST" == true ]; then bash ./tests/travis/ut_run.sh ; fi
-  - if [ "$E2ETEST" == true ]; then bash ./tests/travis/e2e_run.sh ; fi
+  - if [ "$APITEST" == true ]; then bash ./tests/travis/api_run.sh ; fi

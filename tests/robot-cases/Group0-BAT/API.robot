@@ -20,7 +20,6 @@ Library  String
 Library  Collections
 Library  requests
 Library  Process
-Suite Setup  Setup API Test
 Default Tags  E2E
 
 *** Test Cases ***
