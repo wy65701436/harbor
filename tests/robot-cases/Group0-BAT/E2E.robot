@@ -14,11 +14,9 @@
 
 *** Settings ***
 Documentation  Harbor BATs
-Resource  ../../resources/Util.robot
+Resource  ../../resources/APITest-Util.robot
+Suite Setup  Setup API Test
 Default Tags  BAT
-
-*** Variables ***
-${HARBOR_URL}  https://${ip}
 
 *** Test Cases ***
 Test Case - Run LDAP Group Related API Test
