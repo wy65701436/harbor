@@ -15,11 +15,11 @@
 *** Settings ***
 Documentation  Harbor BATs
 Resource  ../../resources/APITest-Util.robot
-Resource  Library  OperatingSystem
-Resource  Library  String
-Resource  Library  Collections
-Resource  Library  requests
-Resource  Library  Process
+Library  OperatingSystem
+Library  String
+Library  Collections
+Library  requests
+Library  Process
 Suite Setup  Setup API Test
 Default Tags  E2E
 
