@@ -18,6 +18,13 @@ sudo service postgresql stop
 IP=`ip addr s eth0 |grep "inet "|awk '{print $2}' |awk -F "/" '{print $1}'`
 export POSTGRESQL_HOST=$IP
 export REGISTRY_URL=$IP:5000
+sudo ./tests/hostcfg.sh
+sudo ./tests/generateCerts.sh
+sudo ./make/prepare
+sudo mkdir -p "/data/redis"
+sudo mkdir -p /etc/ui/ca/ && sudo mv ./tests/ca.crt /etc/ui/ca/
+sudo mkdir -p /harbor && sudo mv ./VERSION /harbor/UIVERSION
+sudo ./tests/testprepare.sh
 
 cd tests && sudo ./ldapprepare.sh && sudo ./admiral.sh && cd ..
 sudo make compile_adminserver

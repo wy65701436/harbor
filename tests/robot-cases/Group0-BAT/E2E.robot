@@ -15,8 +15,13 @@
 *** Settings ***
 Documentation  Harbor BATs
 Resource  ../../resources/APITest-Util.robot
+Resource  Library  OperatingSystem
+Resource  Library  String
+Resource  Library  Collections
+Resource  Library  requests
+Resource  Library  Process
 Suite Setup  Setup API Test
-Default Tags  BAT
+Default Tags  E2E
 
 *** Test Cases ***
 Test Case - Run LDAP Group Related API Test

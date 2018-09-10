@@ -40,13 +40,6 @@ env:
 
 
 before_install:
-   - sudo ./tests/hostcfg.sh
-   - sudo ./tests/generateCerts.sh
-   - sudo ./make/prepare
-   - sudo mkdir -p "/data/redis"
-   - sudo mkdir -p /etc/ui/ca/ && sudo mv ./tests/ca.crt /etc/ui/ca/
-   - sudo mkdir -p /harbor && sudo mv ./VERSION /harbor/UIVERSION
-   - sudo ./tests/testprepare.sh
    - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
    - chmod +x docker-compose
    - sudo mv docker-compose /usr/local/bin
