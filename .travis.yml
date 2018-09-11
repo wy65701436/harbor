@@ -52,10 +52,10 @@ before_install:
 
 install:
    - if [ "$UTTEST" == true ]; then bash ./tests/travis/ut_install.sh ; fi
-   - if [ "APITEST_DB" == true ]; then bash ./tests/travis/api_db_install.sh ; fi
-   - if [ "APITEST_LDAP" == true ]; then bash ./tests/travis/api_ldap_install.sh ; fi
+   - if [ "$APITEST_DB" == true ]; then bash ./tests/travis/api_db_install.sh ; fi
+   - if [ "$APITEST_LDAP" == true ]; then bash ./tests/travis/api_ldap_install.sh ; fi
 
 script:
   - if [ "$UTTEST" == true ]; then bash ./tests/travis/ut_run.sh ; fi
-  - if [ "APITEST_DB" == true ]; then bash ./tests/travis/api_run.sh DB; fi
-  - if [ "APITEST_LDAP" == true ]; then bash ./tests/travis/api_run.sh LDAP; fi
+  - if [ "$APITEST_DB" == true ]; then bash ./tests/travis/api_run.sh DB; fi
+  - if [ "$APITEST_LDAP" == true ]; then bash ./tests/travis/api_run.sh LDAP; fi
