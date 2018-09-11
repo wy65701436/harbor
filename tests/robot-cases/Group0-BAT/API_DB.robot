@@ -22,6 +22,7 @@ Test Case - Create Project
     Log To Console  ${project_name}
 
 Test Case - Push Image
+    Sleep  2
     Docker Pull  hello-world:latest
 
     ${project_id}  ${project_name} =  Create Project
