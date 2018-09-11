@@ -10,9 +10,6 @@ Library  Process
 Default Tags  API
 
 *** Test Cases ***
-Test Case - Create Project
-    ${project_id}  ${project_name} =  Create Project
-
 Test Case - LDAP Group Admin Role
     Harbor API Test  ./tests/apitests/python/test_ldap_admin_role.py
 
