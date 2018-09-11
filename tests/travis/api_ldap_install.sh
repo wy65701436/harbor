@@ -7,7 +7,6 @@ mkdir -p /data
 set -e
 sudo ./tests/generateCerts.sh
 sudo ./tests/hostcfg.sh
-cd tests && sudo ./ldapprepare.sh && cd ..
 sudo sed "s/db_auth/ldap_auth/" -i make/harbor.cfg
 sudo sed "s/ldaps://ldap.mydomain.com/$IP/" -i make/harbor.cfg
 sudo sed "s/#ldap_searchdn = uid=searchuser,ou=people,dc=mydomain,dc=com/ldap_searchdn = cn=admin,dc=example,dc=com/" -i make/harbor.cfg
@@ -20,3 +19,4 @@ sudo wget https://bootstrap.pypa.io/get-pip.py && sudo python ./get-pip.py && su
 sudo make swagger_client
 sudo make install GOBUILDIMAGE=golang:1.9.2 COMPILETAG=compile_golangimage CLARITYIMAGE=goharbor/harbor-clarity-ui-builder:1.6.0 NOTARYFLAG=true CLAIRFLAG=true CHARTFLAG=true
 sleep 10
+cd tests && sudo ./ldapprepare.sh && cd ..
