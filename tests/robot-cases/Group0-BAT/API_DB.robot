@@ -22,9 +22,10 @@ Test Case - Create Project
     Log To Console  ${project_name}
 
 Test Case - Push Image
+    Docker Pull  hello-world:latest
+
     ${project_id}  ${project_name} =  Create Project
     Log To Console  ${project_name}
-    Docker Pull  hello-world:latest
     Docker Login  ${SERVER}  admin  Harbor12345
     Docker Tag  hello-world:latest  ${SERVER}/${project_name}/hello-world:1.0
     Docker Push  ${SERVER}/${project_name}/hello-world:1.0

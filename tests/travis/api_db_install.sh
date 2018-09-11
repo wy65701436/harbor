@@ -1,8 +1,8 @@
 #!/bin/bash
 
 set +e
-rm -rf /data
-mkdir -p /data
+sudo rm -rf /data
+suod mkdir -p /data
 
 set -e
 sudo ./tests/generateCerts.sh

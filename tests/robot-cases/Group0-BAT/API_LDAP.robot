@@ -1,7 +1,6 @@
 *** Settings ***
 Documentation  Harbor BATs
 Resource  ../../resources/APITest-Util.robot
-Library  ../../apitests/python/library/Harbor.py  ${SERVER_CONFIG}
 Library  OperatingSystem
 Library  String
 Library  Collections

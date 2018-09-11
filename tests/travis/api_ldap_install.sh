@@ -1,8 +1,8 @@
 #!/bin/bash
 
 set +e
-rm -rf /data
-mkdir -p /data
+sudo rm -rf /data
+sudo mkdir -p /data
 
 set -e
 sudo ./tests/generateCerts.sh
@@ -13,3 +13,4 @@ sudo wget https://bootstrap.pypa.io/get-pip.py && sudo python ./get-pip.py && su
 sudo make swagger_client
 sudo make install GOBUILDIMAGE=golang:1.9.2 COMPILETAG=compile_golangimage CLARITYIMAGE=goharbor/harbor-clarity-ui-builder:1.6.0 NOTARYFLAG=true CLAIRFLAG=true CHARTFLAG=true
 sleep 10
+cat ./make/harbor.cfg
