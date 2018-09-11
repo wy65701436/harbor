@@ -7,7 +7,7 @@ mkdir -p /data
 set -e
 sudo ./tests/generateCerts.sh
 sudo ./tests/hostcfg.sh
-sudo ./tests/ldapprepare.sh
+cd tests && sudo ./ldapprepare.sh && cd ..
 sudo sed "s/db_auth/ldap_auth/" -i make/harbor.cfg
 sudo sed "s/ldaps://ldap.mydomain.com/$IP/" -i make/harbor.cfg
 sudo sed "s/#ldap_searchdn = uid=searchuser,ou=people,dc=mydomain,dc=com/ldap_searchdn = cn=admin,dc=example,dc=com/" -i make/harbor.cfg
