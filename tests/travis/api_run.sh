@@ -16,4 +16,4 @@ fi
 
 #cat /home/travis/gopath/src/github.com/goharbor/harbor/log.html
 ls -la /var/log/harbor
-cat /var/log/harbor/ui.log
+sudo cat /var/log/harbor/ui.log
