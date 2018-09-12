@@ -18,6 +18,8 @@ sudo service postgresql stop
 IP=`ip addr s eth0 |grep "inet "|awk '{print $2}' |awk -F "/" '{print $1}'`
 export POSTGRESQL_HOST=$IP
 export REGISTRY_URL=$IP:5000
+
+echo $POSTGRESQL_HOST
 sudo ./tests/hostcfg.sh
 sudo ./tests/generateCerts.sh
 sudo ./make/prepare
