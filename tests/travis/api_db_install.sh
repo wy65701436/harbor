@@ -9,8 +9,7 @@ set -e
 # prepare cert ...
 sudo sed "s/127.0.0.1/$1/" -i tests/generateCerts.sh
 sudo ./tests/generateCerts.sh
-sudo mkdir -p /etc/docker/certs.d/$1
-sudo cp ./harbor_ca.crt /etc/docker/certs.d/$1/
+sudo mkdir -p /etc/docker/certs.d/$1 && sudo cp ./harbor_ca.crt /etc/docker/certs.d/$1/
 
 sudo ./tests/hostcfg.sh
 sudo apt-get update && sudo apt-get install -y --no-install-recommends python-dev openjdk-7-jdk libssl-dev && sudo apt-get autoremove -y && sudo rm -rf /var/lib/apt/lists/*

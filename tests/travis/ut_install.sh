@@ -12,8 +12,13 @@ go get github.com/dghubble/sling
 go get github.com/stretchr/testify
 go get golang.org/x/tools/cmd/cover
 go get github.com/mattn/goveralls
-go get -u github.com/client9/misspell/cmd/misspell
+sudo go get -u github.com/client9/misspell/cmd/misspell
 sudo service postgresql stop
+
+go env
+misspell
+find . -type d \( -path ./src/vendor -o -path ./tests \) -prune -o -name '*.go' -print
+
 
 sudo make go_check
 
