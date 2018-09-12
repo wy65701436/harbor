@@ -22,9 +22,8 @@ Test Case - Create Project
     Log To Console  ${project_name}
 
 Test Case - Push Image
-    Sleep  2
+    Sleep  1
     Docker Pull  hello-world:latest
-
     ${project_id}  ${project_name} =  Create Project
     Log To Console  ${project_name}
     Docker Login  ${SERVER}  admin  Harbor12345
