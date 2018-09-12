@@ -5,6 +5,8 @@ sudo rm -rf /data
 sudo mkdir -p /data
 
 set -e
+IP=`ip addr s eth0 |grep "inet "|awk '{print $2}' |awk -F "/" '{print $1}'`
+sudo sed "s/127.0.0.1/$IP/" -i tests/generateCerts.sh
 sudo ./tests/generateCerts.sh
 sudo ./tests/hostcfg.sh LDAP
 cd tests && sudo ./ldapprepare.sh && cd ..

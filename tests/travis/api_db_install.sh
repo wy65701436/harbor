@@ -5,6 +5,8 @@ sudo rm -rf /data
 suod mkdir -p /data
 
 set -e
+IP=`ip addr s eth0 |grep "inet "|awk '{print $2}' |awk -F "/" '{print $1}'`
+sudo sed "s/127.0.0.1/$IP/" -i tests/generateCerts.sh
 sudo ./tests/generateCerts.sh
 sudo ./tests/hostcfg.sh
 sudo apt-get update && sudo apt-get install -y --no-install-recommends python-dev openjdk-7-jdk libssl-dev && sudo apt-get autoremove -y && sudo rm -rf /var/lib/apt/lists/*
