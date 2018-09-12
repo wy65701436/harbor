@@ -48,6 +48,7 @@ before_install:
    - sudo mv docker-compose /usr/local/bin
    - IP=`ip addr s eth0 |grep "inet "|awk '{print $2}' |awk -F "/" '{print $1}'`
    - sudo sed -i '$a DOCKER_OPTS=\"--insecure-registry '$IP':5000\"' /etc/default/docker
+   - export IP=$IP
    - sudo service docker restart
 
 install:
