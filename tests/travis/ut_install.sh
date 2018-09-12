@@ -3,19 +3,17 @@
 set -e
 
 sudo apt-get update && sudo apt-get install -y libldap2-dev
-sudo go get -d github.com/docker/distribution
-sudo go get -d github.com/docker/libtrust
-sudo go get -d github.com/lib/pq
-sudo go get github.com/golang/lint/golint
-sudo go get github.com/GeertJohan/fgt
-sudo go get github.com/dghubble/sling
-sudo go get github.com/stretchr/testify
-sudo go get golang.org/x/tools/cmd/cover
-sudo go get github.com/mattn/goveralls
-sudo go get -u github.com/client9/misspell/cmd/misspell
+go get -d github.com/docker/distribution
+go get -d github.com/docker/libtrust
+go get -d github.com/lib/pq
+go get github.com/golang/lint/golint
+go get github.com/GeertJohan/fgt
+go get github.com/dghubble/sling
+go get github.com/stretchr/testify
+go get golang.org/x/tools/cmd/cover
+go get github.com/mattn/goveralls
+go get -u github.com/client9/misspell/cmd/misspell
 sudo service postgresql stop
-
-sudo make go_check
 
 #sudo ./tests/hostcfg.sh
 #sudo ./tests/generateCerts.sh
