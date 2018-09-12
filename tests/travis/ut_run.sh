@@ -9,7 +9,6 @@ sudo make run_clarity_ut CLARITYIMAGE=goharbor/harbor-clarity-ui-builder:${UI_BU
 cat ./src/ui_ng/npm-ut-test-results
 sudo docker-compose -f ./make/docker-compose.test.yml up -d
 sleep 10
-sudo make go_check
 ./tests/pushimage.sh
 docker ps
 

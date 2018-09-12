@@ -15,6 +15,8 @@ go get github.com/mattn/goveralls
 go get -u github.com/client9/misspell/cmd/misspell
 sudo service postgresql stop
 
+sudo make go_check
+
 sudo ./tests/hostcfg.sh
 sudo ./tests/generateCerts.sh
 sudo ./make/prepare

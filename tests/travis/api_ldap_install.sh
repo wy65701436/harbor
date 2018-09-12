@@ -7,11 +7,10 @@ sudo mkdir -p /data
 set -e
 
 # prepare cert ...
-IP=`ip addr s eth0 |grep "inet "|awk '{print $2}' |awk -F "/" '{print $1}'`
-sudo sed "s/127.0.0.1/$IP/" -i tests/generateCerts.sh
+sudo sed "s/127.0.0.1/$1/" -i tests/generateCerts.sh
 sudo ./tests/generateCerts.sh
-sudo mkdir -p /etc/docker/certs.d/$IP
-sudo cp ./harbor_ca.crt /etc/docker/certs.d/$IP/
+sudo mkdir -p /etc/docker/certs.d/$1
+sudo cp ./harbor_ca.crt /etc/docker/certs.d/$1/
 
 
 sudo ./tests/hostcfg.sh LDAP
