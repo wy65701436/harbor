@@ -12,7 +12,7 @@ go get github.com/dghubble/sling
 go get github.com/stretchr/testify
 go get golang.org/x/tools/cmd/cover
 go get github.com/mattn/goveralls
-sudo go get -u github.com/client9/misspell/cmd/misspell
+go get -u github.com/client9/misspell/cmd/misspell
 sudo service postgresql stop
 
 go env
