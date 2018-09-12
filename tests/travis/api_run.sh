@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set +e
 
 IP=`ip addr s eth0 |grep "inet "|awk '{print $2}' |awk -F "/" '{print $1}'`
 docker ps
@@ -14,4 +14,6 @@ if [ "$1" = 'LDAP' ]; then
     pybot -v ip:$IP -v HARBOR_PASSWORD:Harbor12345 /home/travis/gopath/src/github.com/goharbor/harbor/tests/robot-cases/Group0-BAT/API_LDAP.robot
 fi
 
-cat /home/travis/gopath/src/github.com/goharbor/harbor/log.html
+#cat /home/travis/gopath/src/github.com/goharbor/harbor/log.html
+ls -la /var/log/harbor
+cat /var/log/harbor/ui.log
