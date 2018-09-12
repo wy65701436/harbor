@@ -2,6 +2,7 @@
 
 set -e
 
+export GOPATH=/home/travis/gopath
 sudo make go_check
 #export POSTGRESQL_HOST=$1
 #export REGISTRY_URL=$1:5000

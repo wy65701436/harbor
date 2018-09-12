@@ -427,11 +427,11 @@ gofmt:
 
 misspell:
 	@echo checking misspell...
-	@find . -type d \( -path ./src/vendor -o -path ./tests \) -prune -o -name '*.go' -print | xargs misspell -error
+	@find . -type d \( -path ./src/vendor -o -path ./tests \) -prune -o -name '*.go' -print | xargs $(GOPATH)/bin/misspell -error
 
 golint:
 	@echo checking golint...
-	@go list ./... | grep -v -E 'vendor|test' | xargs -L1 fgt golint
+	@go list ./... | grep -v -E 'vendor|test' | xargs -L1 $(GOPATH)/bin/fgt $(GOPATH)/bin/golint
 
 govet:
 	@echo checking govet...
