@@ -15,25 +15,17 @@ go get github.com/mattn/goveralls
 go get -u github.com/client9/misspell/cmd/misspell
 sudo service postgresql stop
 
-ls /home/travis/gopath/bin
-find . -type d \( -path ./src/vendor -o -path ./tests \) -prune -o -name '*.go' -print
-
-sudo make golint
-sudo make gofmt
-sudo make govet
-sudo make misspell
-
-sudo ./tests/hostcfg.sh
-sudo ./tests/generateCerts.sh
-sudo ./make/prepare
-sudo mkdir -p "/data/redis"
-sudo mkdir -p /etc/ui/ca/ && sudo mv ./tests/ca.crt /etc/ui/ca/
-sudo mkdir -p /harbor && sudo mv ./VERSION /harbor/UIVERSION
-sudo ./tests/testprepare.sh
-
-cd tests && sudo ./ldapprepare.sh && sudo ./admiral.sh && cd ..
-sudo make compile_adminserver
-sudo make -f make/photon/Makefile _build_adminserver _build_db _build_registry -e VERSIONTAG=dev -e CLAIRDBVERSION=dev -e REGISTRYVERSION=${REG_VERSION}
-sudo sed -i 's/__reg_version__/${REG_VERSION}-dev/g' ./make/docker-compose.test.yml
-sudo sed -i 's/__version__/dev/g' ./make/docker-compose.test.yml
-sudo mkdir -p ./make/common/config/registry/ && sudo mv ./tests/reg_config.yml ./make/common/config/registry/config.yml
+#sudo ./tests/hostcfg.sh
+#sudo ./tests/generateCerts.sh
+#sudo ./make/prepare
+#sudo mkdir -p "/data/redis"
+#sudo mkdir -p /etc/ui/ca/ && sudo mv ./tests/ca.crt /etc/ui/ca/
+#sudo mkdir -p /harbor && sudo mv ./VERSION /harbor/UIVERSION
+#sudo ./tests/testprepare.sh
+#
+#cd tests && sudo ./ldapprepare.sh && sudo ./admiral.sh && cd ..
+#sudo make compile_adminserver
+#sudo make -f make/photon/Makefile _build_adminserver _build_db _build_registry -e VERSIONTAG=dev -e CLAIRDBVERSION=dev -e REGISTRYVERSION=${REG_VERSION}
+#sudo sed -i 's/__reg_version__/${REG_VERSION}-dev/g' ./make/docker-compose.test.yml
+#sudo sed -i 's/__version__/dev/g' ./make/docker-compose.test.yml
+#sudo mkdir -p ./make/common/config/registry/ && sudo mv ./tests/reg_config.yml ./make/common/config/registry/config.yml
