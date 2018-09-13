@@ -17,7 +17,7 @@ sudo service postgresql stop
 
 sleep 5
 
-#sudo make go_check
+sudo -E -E env "PATH=$PATH" make go_check
 
 sudo ./tests/hostcfg.sh
 sudo ./tests/generateCerts.sh
