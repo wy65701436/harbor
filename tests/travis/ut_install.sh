@@ -15,6 +15,9 @@ go get github.com/mattn/goveralls
 go get -u github.com/client9/misspell/cmd/misspell
 sudo service postgresql stop
 
+sleep 5
+
+go list ./... | grep -v -E 'vendor|test' | xargs -L1 fgt golint
 sudo make go_check
 
 #sudo ./tests/hostcfg.sh
