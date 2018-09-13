@@ -17,7 +17,6 @@ sudo service postgresql stop
 
 sleep 5
 
-
 #sudo make go_check
 
 sudo ./tests/hostcfg.sh

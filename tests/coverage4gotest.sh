@@ -26,8 +26,7 @@ for package in $packages
 do
 	listDeps $package
 
-    echo "DEBUG: testing package $package"
-    echo "go test -race -cover -coverprofile=profile.tmp -coverpkg \"$deps\" $package"
+#    echo "DEBUG: testing package $package"
 	go test -race -cover -coverprofile=profile.tmp -coverpkg "$deps" $package
 	if [ -f profile.tmp ]	
 	then
