@@ -4,9 +4,11 @@ set -e
 
 export POSTGRESQL_HOST=$1
 export REGISTRY_URL=$1:5000
+export CHROME_BIN=chromium-browser
+export DISPLAY=:99.0
+sh -e /etc/init.d/xvfb start
 
-sudo make run_clarity_ut CLARITYIMAGE=goharbor/harbor-clarity-ui-builder:${UI_BUILDER_VERSION}
-cat ./src/ui_ng/npm-ut-test-results
+cd ./src/portal && npm run lint && npm run lint:lib && npm run test && cd -
 sudo docker-compose -f ./make/docker-compose.test.yml up -d
 sleep 10
 ./tests/pushimage.sh
