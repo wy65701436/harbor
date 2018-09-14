@@ -11,6 +11,3 @@ fi
 if [ "$1" = 'LDAP' ]; then
     pybot -v ip:$2 -v HARBOR_PASSWORD:Harbor12345 /home/travis/gopath/src/github.com/goharbor/harbor/tests/robot-cases/Group0-BAT/API_LDAP.robot
 fi
-
-#cat /home/travis/gopath/src/github.com/goharbor/harbor/log.html
-#ls -la /var/log/harbor

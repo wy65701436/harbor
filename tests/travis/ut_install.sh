@@ -14,11 +14,9 @@ go get golang.org/x/tools/cmd/cover
 go get github.com/mattn/goveralls
 go get -u github.com/client9/misspell/cmd/misspell
 sudo service postgresql stop
+sleep 2
 
-sleep 5
-
-sudo -E -E env "PATH=$PATH" make go_check
-
+sudo -E env "PATH=$PATH" make go_check
 sudo ./tests/hostcfg.sh
 sudo ./tests/generateCerts.sh
 sudo ./make/prepare

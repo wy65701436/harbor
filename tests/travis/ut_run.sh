@@ -5,7 +5,6 @@ set -e
 export POSTGRESQL_HOST=$1
 export REGISTRY_URL=$1:5000
 
-sudo make go_check
 sudo make run_clarity_ut CLARITYIMAGE=goharbor/harbor-clarity-ui-builder:${UI_BUILDER_VERSION}
 cat ./src/ui_ng/npm-ut-test-results
 sudo docker-compose -f ./make/docker-compose.test.yml up -d

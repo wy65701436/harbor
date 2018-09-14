@@ -14,15 +14,15 @@ dist: trusty
 
 matrix:
   include:
-  - go: "1.10"
+  - go: "1.9.2"
     env:
     - UTTEST=true
-  - go: "1.10"
+  - go: "1.9.2"
     env:
-    - APITEST_DB=false
-  - go: "1.10"
+    - APITEST_DB=true
+  - go: "1.9.2"
     env:
-    - APITEST_LDAP=false
+    - APITEST_LDAP=true
 
 env:
   global:
@@ -40,8 +40,6 @@ env:
     - REDIS_HOST: localhost
     - REG_VERSION: v2.6.2
     - UI_BUILDER_VERSION: 1.6.0
-    - secure: "IcWloGUqJfGT4AietOBKGk9yjK220L0WVAiwGEoy90YWA8BO9i2WibVNpmmjvQKaF6w1YDuO4tiZpN9kvhwzJN4a+83+3OMzVwvNI9HV+ChV2aj4ZIWKhBoMCG/SSJTA4mzdp4eL0YmQMG8gYqliwc/5q5f766j/BXaPt3y/kq7vtLbXXe1vwVrYpj5NiF4Q/bLpFYzg1SoGM4pajWIRNaavXAqomOYBd07Sn4iJYfA2UdoKIP8C024Y9Ct8Dif/Ny9y2LWYDGlz89nCjB5G1dLODKj2F1F0MIiI7XhBdWS3c4ofrB25nE26cLE0Ze4UwuWHBtnOgDy+JcI367NTjp8tDXajkoApT2s4POuIyHRCNDRbRmYb3TxF2AUI5PvVe0c6Id3RLtJa8aLN7BxRgIbT2iUoXWzKYYHorwRIgfqNI3UVjNiT7YlVQ/QWzOdGkfQeXHiigQvGFtvzUpSdU3M4huLCBXmfrJBlfF4M1kEED+Ozr3BqoLAlX1oV+/wYhBO51hApvgSWqNkOf2sZmFodvl8hiXcNg4ZVH70Uh3lfJ0EF6+Ts3AdLwsp6LkLZ8rTgBubLSox3/sJ8eigrv2iTwjSnM02BpeyVTmgPgQAQ7R5eA/IHOR1ilb3juFPJnUisP98axaXYD/ZDmUvQPLvaSxCianmCxqvx0sDwRjw="
-
 
 before_install:
    - echo $yantest
