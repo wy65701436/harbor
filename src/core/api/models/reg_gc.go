@@ -36,13 +36,15 @@ const (
 	ScheduleManual = "Manual"
 	// ScheduleNone : 'None'
 	ScheduleNone = "None"
+	// GCScheduler is the scheduler of GC job
+	GCScheduler = "GCScheduler"
 )
 
 // GCReq holds request information for admin job
 type GCReq struct {
+	ID         int64                  `json:"id"`
 	Schedule   *ScheduleParam         `json:"schedule"`
 	Status     string                 `json:"status"`
-	ID         int64                  `json:"id"`
 	Parameters map[string]interface{} `json:"parameters"`
 }
 
@@ -106,8 +108,8 @@ func (gr *GCReq) ToJob() (*models.JobData, error) {
 		Name:       job.ImageGC,
 		Parameters: gr.Parameters,
 		Metadata:   metadata,
-		StatusHook: fmt.Sprintf("%s/service/notifications/jobs/adminjob/%d",
-			config.InternalCoreURL(), gr.ID),
+		StatusHook: fmt.Sprintf("%s/service/notifications/jobs/adminjob",
+			config.InternalCoreURL()),
 	}
 	return jobData, nil
 }

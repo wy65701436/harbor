@@ -119,7 +119,7 @@ func initRouters() {
 	beego.Router("/service/notifications/clair", &clair.Handler{}, "post:Handle")
 	beego.Router("/service/notifications/jobs/scan/:id([0-9]+)", &jobs.Handler{}, "post:HandleScan")
 	beego.Router("/service/notifications/jobs/replication/:id([0-9]+)", &jobs.Handler{}, "post:HandleReplication")
-	beego.Router("/service/notifications/jobs/adminjob/:id([0-9]+)", &admin.Handler{}, "post:HandleAdminJob")
+	beego.Router("/service/notifications/jobs/adminjob", &admin.Handler{}, "post:HandleAdminJob")
 	beego.Router("/service/token", &token.Handler{})
 
 	beego.Router("/v2/*", &controllers.RegistryProxy{}, "*:Handle")

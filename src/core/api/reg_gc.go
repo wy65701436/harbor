@@ -68,7 +68,7 @@ func (gc *GCAPI) Put() {
 
 	query := &common_models.AdminJobQuery{
 		Name: common_job.ImageGC,
-		Kind: common_job.JobKindPeriodic,
+		Kind: models.GCScheduler,
 	}
 	jobs, err := dao.GetAdminJobs(query)
 	if err != nil {
@@ -153,7 +153,7 @@ func (gc *GCAPI) List() {
 func (gc *GCAPI) Get() {
 	jobs, err := dao.GetAdminJobs(&common_models.AdminJobQuery{
 		Name: common_job.ImageGC,
-		Kind: common_job.JobKindPeriodic,
+		Kind: models.GCScheduler,
 	})
 	if err != nil {
 		gc.HandleNotFound(fmt.Sprintf("failed to get admin jobs: %v", err))
@@ -214,11 +214,12 @@ func (gc *GCAPI) GetLog() {
 
 // submitJob submits a job to job service per request
 func (gc *GCAPI) submitJob(gr *models.GCReq) {
-	// cannot post multiple schdule for GC job.
+	// cannot post multiple schedule for GC job.
+	var id int64
 	if gr.IsPeriodic() {
 		jobs, err := dao.GetAdminJobs(&common_models.AdminJobQuery{
 			Name: common_job.ImageGC,
-			Kind: common_job.JobKindPeriodic,
+			Kind: models.GCScheduler,
 		})
 		if err != nil {
 			gc.HandleInternalServerError(fmt.Sprintf("failed to get admin jobs: %v", err))
@@ -228,18 +229,18 @@ func (gc *GCAPI) submitJob(gr *models.GCReq) {
 			gc.HandleStatusPreconditionFailed("Fail to set schedule for GC as always had one, please delete it firstly then to re-schedule.")
 			return
 		}
+
+		id, err = dao.AddAdminJob(&common_models.AdminJob{
+			Name: common_job.ImageGC,
+			Kind: models.GCScheduler,
+			Cron: gr.CronString(),
+		})
+		if err != nil {
+			gc.HandleInternalServerError(fmt.Sprintf("%v", err))
+			return
+		}
 	}
 
-	id, err := dao.AddAdminJob(&common_models.AdminJob{
-		Name: common_job.ImageGC,
-		Kind: gr.JobKind(),
-		Cron: gr.CronString(),
-	})
-	if err != nil {
-		gc.HandleInternalServerError(fmt.Sprintf("%v", err))
-		return
-	}
-	gr.ID = id
 	gr.Parameters = map[string]interface{}{
 		"redis_url_reg": os.Getenv("_REDIS_URL_REG"),
 	}
@@ -248,16 +249,23 @@ func (gc *GCAPI) submitJob(gr *models.GCReq) {
 		gc.HandleInternalServerError(fmt.Sprintf("%v", err))
 		return
 	}
-
 	// submit job to jobservice
-	log.Debugf("submiting GC admin job to jobservice")
-	_, err = utils_core.GetJobServiceClient().SubmitJob(job)
+	log.Debugf("submitting GC admin job to jobservice")
+	UUID, err := utils_core.GetJobServiceClient().SubmitJob(job)
 	if err != nil {
-		if err := dao.DeleteAdminJob(id); err != nil {
-			log.Debugf("Failed to delete admin job, err: %v", err)
+		if gr.IsPeriodic() {
+			if err := dao.DeleteAdminJob(id); err != nil {
+				log.Debugf("Failed to delete admin job, err: %v", err)
+			}
 		}
 		gc.HandleInternalServerError(fmt.Sprintf("%v", err))
 		return
+	}
+	if gr.IsPeriodic() {
+		if err := dao.SetAdminJobUUID(id, UUID); err != nil {
+			gc.HandleInternalServerError(err.Error())
+			return
+		}
 	}
 }
 

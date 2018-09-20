@@ -20,9 +20,13 @@ import (
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/job"
 	job_model "github.com/goharbor/harbor/src/common/job/models"
+	common_models "github.com/goharbor/harbor/src/common/models"
+	api_models "github.com/goharbor/harbor/src/core/api/models"
+	common_job "github.com/goharbor/harbor/src/common/job"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/api"
+	"fmt"
 )
 
 var statusMap = map[string]string{
@@ -41,6 +45,7 @@ type Handler struct {
 	id     int64
 	UUID   string
 	status string
+	JobKind     string
 }
 
 // Prepare ...
@@ -52,14 +57,6 @@ func (h *Handler) Prepare() {
 		h.Abort("200")
 		return
 	}
-	id, err := h.GetInt64FromPath(":id")
-	if err != nil {
-		log.Errorf("Failed to get job ID, error: %v", err)
-		// Avoid job service from resending...
-		h.Abort("200")
-		return
-	}
-	h.id = id
 	h.UUID = data.JobID
 	status, ok := statusMap[data.Status]
 	if !ok {
@@ -67,18 +64,43 @@ func (h *Handler) Prepare() {
 		h.Abort("200")
 		return
 	}
+	h.JobKind = data.Metadata.JobKind
 	h.status = status
 }
 
 // HandleAdminJob handles the webhook of admin jobs
 func (h *Handler) HandleAdminJob() {
 	log.Infof("received admin job status update event: job-%d, status-%s", h.id, h.status)
-	// create the mapping relationship between the jobs in database and jobservice
-	if err := dao.SetAdminJobUUID(h.id, h.UUID); err != nil {
-		h.HandleInternalServerError(err.Error())
+
+	jobs, err := dao.GetAdminJobs(&common_models.AdminJobQuery{
+		UUID: h.UUID,
+	})
+	if err != nil {
+		h.HandleInternalServerError(fmt.Sprintf("failed to get admin jobs: %v", err))
 		return
 	}
-	if err := dao.UpdateAdminJobStatus(h.id, h.status); err != nil {
+	if len(jobs) > 1 {
+		h.HandleStatusPreconditionFailed(fmt.Sprintf("Get more than one job with same UUID: %s", h.UUID))
+		return
+	}
+
+	var id int64
+	// Add job for GCScheduler is to record the history of GC
+	if len(jobs) == 0 || jobs[0].Kind == api_models.GCScheduler {
+		id, err = dao.AddAdminJob(&common_models.AdminJob{
+			Name: common_job.ImageGC,
+			Kind: h.JobKind,
+			UUID: h.UUID,
+		})
+		if err != nil {
+			h.HandleInternalServerError(fmt.Sprintf("%v", err))
+			return
+		}
+	}else {
+		id = jobs[0].ID
+	}
+
+	if err := dao.UpdateAdminJobStatus(id, h.status); err != nil {
 		log.Errorf("Failed to update job status, id: %d, status: %s", h.id, h.status)
 		h.HandleInternalServerError(err.Error())
 		return
