@@ -251,7 +251,8 @@ func (gc *GCAPI) submitJob(gr *models.GCReq) {
 
 	// submit job to jobservice
 	log.Debugf("submiting GC admin job to jobservice")
-	_, err = utils_core.GetJobServiceClient().SubmitJob(job)
+	uuid, err := utils_core.GetJobServiceClient().SubmitJob(job)
+	log.Infof("the submitted GC schedule job id : %s", uuid)
 	if err != nil {
 		if err := dao.DeleteAdminJob(id); err != nil {
 			log.Debugf("Failed to delete admin job, err: %v", err)
