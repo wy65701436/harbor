@@ -39,13 +39,14 @@ var statusMap = map[string]string{
 	job.JobServiceStatusScheduled: models.JobScheduled,
 }
 
-// Handler handles reqeust on /service/notifications/jobs/adminjob/*, which listens to the webhook of jobservice.
+// Handler handles request on /service/notifications/jobs/adminjob/*, which listens to the webhook of jobservice.
 type Handler struct {
 	api.BaseController
 	id     int64
 	UUID   string
 	status string
 	JobKind     string
+	Cron string
 }
 
 // Prepare ...
@@ -60,17 +61,18 @@ func (h *Handler) Prepare() {
 	h.UUID = data.JobID
 	status, ok := statusMap[data.Status]
 	if !ok {
-		log.Infof("drop the job status update event: job id-%d, status-%s", h.id, status)
+		log.Infof("drop the job status update event: job id-%d, status-%s", h.UUID, status)
 		h.Abort("200")
 		return
 	}
 	h.JobKind = data.Metadata.JobKind
 	h.status = status
+	h.Cron = data.Metadata.CronSpec
 }
 
 // HandleAdminJob handles the webhook of admin jobs
 func (h *Handler) HandleAdminJob() {
-	log.Infof("received admin job status update event: job-%d, status-%s", h.id, h.status)
+	log.Infof("received admin job status update event: job-%d, status-%s", h.UUID, h.status)
 
 	jobs, err := dao.GetAdminJobs(&common_models.AdminJobQuery{
 		UUID: h.UUID,
@@ -91,6 +93,7 @@ func (h *Handler) HandleAdminJob() {
 			Name: common_job.ImageGC,
 			Kind: h.JobKind,
 			UUID: h.UUID,
+			Cron: h.getCronStr(h.JobKind),
 		})
 		if err != nil {
 			h.HandleInternalServerError(fmt.Sprintf("%v", err))
@@ -105,4 +108,14 @@ func (h *Handler) HandleAdminJob() {
 		h.HandleInternalServerError(err.Error())
 		return
 	}
+}
+
+func (h *Handler) getCronStr(jobKind string) string {
+	if jobKind == "Generic" {
+		return "{\"type\":\"Manual\",\"weekday\":0,\"offtime\":0}"
+	}
+	if jobKind == "Periodic" {
+		return h.Cron
+	}
+	return ""
 }
