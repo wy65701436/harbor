@@ -27,6 +27,7 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/api"
 	"fmt"
+	"github.com/pkg/errors"
 )
 
 var statusMap = map[string]string{
@@ -89,11 +90,18 @@ func (h *Handler) HandleAdminJob() {
 	var id int64
 	// Add job for GCScheduler is to record the history of scheduled GC
 	if len(jobs) == 0 || jobs[0].Kind == api_models.GCScheduler {
+
+		cronStr, err := h.getCronStr(h.JobKind)
+		if err != nil {
+			h.HandleInternalServerError(fmt.Sprintf("%v", err))
+			return
+		}
+
 		id, err = dao.AddAdminJob(&common_models.AdminJob{
 			Name: common_job.ImageGC,
 			Kind: h.JobKind,
 			UUID: h.UUID,
-			Cron: h.getCronStr(h.JobKind),
+			Cron: cronStr,
 		})
 		if err != nil {
 			h.HandleInternalServerError(fmt.Sprintf("%v", err))
@@ -110,12 +118,22 @@ func (h *Handler) HandleAdminJob() {
 	}
 }
 
-func (h *Handler) getCronStr(jobKind string) string {
+func (h *Handler) getCronStr(jobKind string) (string, error) {
 	if jobKind == "Generic" {
-		return "{\"type\":\"Manual\",\"weekday\":0,\"offtime\":0}"
+		return "{\"type\":\"Manual\",\"weekday\":0,\"offtime\":0}", nil
 	}
 	if jobKind == "Periodic" {
-		return h.Cron
+		jobs, err := dao.GetAdminJobs(&common_models.AdminJobQuery{
+			Name: common_job.ImageGC,
+			Kind: api_models.GCScheduler,
+		})
+		if err != nil {
+			return "", err
+		}
+		if len(jobs) > 1 {
+			return "", fmt.Errorf("Get more than one gc scheduler.")
+		}
+		return jobs[0].Cron, nil
 	}
-	return ""
+	return "", errors.Errorf("Unsupported job kind.")
 }
