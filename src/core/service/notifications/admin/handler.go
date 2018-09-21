@@ -61,7 +61,7 @@ func (h *Handler) Prepare() {
 	}
 	h.UUID = data.JobID
 	status, ok := statusMap[data.Status]
-	if !ok  || status == job.JobServiceStatusStopped {
+	if !ok || status == models.JobStopped {
 		log.Infof("drop the job status update event: job id-%d, status-%s", h.UUID, status)
 		h.Abort("200")
 		return
