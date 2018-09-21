@@ -138,6 +138,10 @@ func (gc *GCAPI) List() {
 	}
 	gcreps := []*models.GCRep{}
 	for _, job := range jobs {
+		// filter out scheduler
+		if job.Kind == models.GCScheduler {
+			continue
+		}
 		gcrep, err := convertToGCRep(job)
 		if err != nil {
 			gc.HandleInternalServerError(fmt.Sprintf("failed to convert gc response: %v", err))

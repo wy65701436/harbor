@@ -60,7 +60,7 @@ func (h *Handler) Prepare() {
 	}
 	h.UUID = data.JobID
 	status, ok := statusMap[data.Status]
-	if !ok {
+	if !ok  || status == job.JobServiceStatusStopped {
 		log.Infof("drop the job status update event: job id-%d, status-%s", h.UUID, status)
 		h.Abort("200")
 		return
@@ -87,7 +87,7 @@ func (h *Handler) HandleAdminJob() {
 	}
 
 	var id int64
-	// Add job for GCScheduler is to record the history of GC
+	// Add job for GCScheduler is to record the history of scheduled GC
 	if len(jobs) == 0 || jobs[0].Kind == api_models.GCScheduler {
 		id, err = dao.AddAdminJob(&common_models.AdminJob{
 			Name: common_job.ImageGC,
