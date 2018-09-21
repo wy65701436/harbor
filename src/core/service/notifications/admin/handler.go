@@ -27,7 +27,7 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/api"
 	"fmt"
-	"github.com/pkg/errors"
+	"errors"
 )
 
 var statusMap = map[string]string{
@@ -135,5 +135,5 @@ func (h *Handler) getCronStr(jobKind string) (string, error) {
 		}
 		return jobs[0].Cron, nil
 	}
-	return "", errors.Errorf("Unsupported job kind.")
+	return "", errors.New("Unsupported job kind.")
 }
