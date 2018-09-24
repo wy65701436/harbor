@@ -1,13 +1,15 @@
 #!/bin/bash
 
+source 1.sh
+
 set +e
 sudo rm -fr /data/*
 sudo mkdir -p /data
 
 set -e
 # prepare cert ...
-sudo ls -la
-sudo chmod 777 ./1.sh && sudo ./1.sh
+#sudo ls -la
+#sudo chmod 777 ./1.sh && sudo ./1.sh
 echo $dockerUse
 echo $dockerPwd
 
