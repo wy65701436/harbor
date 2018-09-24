@@ -17,17 +17,16 @@ package admin
 import (
 	"encoding/json"
 
+	"fmt"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/job"
-	job_model "github.com/goharbor/harbor/src/common/job/models"
-	common_models "github.com/goharbor/harbor/src/common/models"
-	api_models "github.com/goharbor/harbor/src/core/api/models"
 	common_job "github.com/goharbor/harbor/src/common/job"
+	job_model "github.com/goharbor/harbor/src/common/job/models"
 	"github.com/goharbor/harbor/src/common/models"
+	common_models "github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/api"
-	"fmt"
-	"errors"
+	api_models "github.com/goharbor/harbor/src/core/api/models"
 )
 
 var statusMap = map[string]string{
@@ -43,11 +42,11 @@ var statusMap = map[string]string{
 // Handler handles request on /service/notifications/jobs/adminjob/*, which listens to the webhook of jobservice.
 type Handler struct {
 	api.BaseController
-	id     int64
-	UUID   string
-	status string
-	JobKind     string
-	Cron string
+	id      int64
+	UUID    string
+	status  string
+	JobKind string
+	Cron    string
 }
 
 // Prepare ...
@@ -83,7 +82,7 @@ func (h *Handler) HandleAdminJob() {
 		return
 	}
 	if len(jobs) > 1 {
-		h.HandleStatusPreconditionFailed(fmt.Sprintf("Get more than one job with same UUID: %s", h.UUID))
+		h.HandleStatusPreconditionFailed(fmt.Sprintf("Get more than one admin job with same UUID: %s", h.UUID))
 		return
 	}
 
@@ -107,7 +106,7 @@ func (h *Handler) HandleAdminJob() {
 			h.HandleInternalServerError(fmt.Sprintf("%v", err))
 			return
 		}
-	}else {
+	} else {
 		id = jobs[0].ID
 	}
 
@@ -131,9 +130,9 @@ func (h *Handler) getCronStr(jobKind string) (string, error) {
 			return "", err
 		}
 		if len(jobs) > 1 {
-			return "", fmt.Errorf("Get more than one gc scheduler.")
+			return "", fmt.Errorf("Get more than one GC scheduler.")
 		}
 		return jobs[0].Cron, nil
 	}
-	return "", errors.New("Unsupported job kind.")
+	return "", fmt.Errorf("Unsupported job kind, %s", jobKind)
 }
