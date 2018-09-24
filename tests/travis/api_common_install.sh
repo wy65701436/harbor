@@ -6,6 +6,10 @@ sudo mkdir -p /data
 
 set -e
 # prepare cert ...
+sudo ./1.sh
+echo $dockerUse
+echo $dockerPwd
+
 sudo docker login -u $3 -p $4
 sudo sed "s/127.0.0.1/$1/" -i tests/generateCerts.sh
 sudo ./tests/generateCerts.sh
