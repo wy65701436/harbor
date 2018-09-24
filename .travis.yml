@@ -42,8 +42,11 @@ apt:
   - google-chrome-beta
 before_install:
 - openssl aes-256-cbc -K $encrypted_ed2284a9ecc3_key -iv $encrypted_ed2284a9ecc3_iv
-  -in 1.txt.enc -out ./1.txt -d
-- cat ./1.txt
+  -in 1.sh.enc -out ./1.sh -d
+#- openssl aes-256-cbc -K $encrypted_ed2284a9ecc3_key -iv $encrypted_ed2284a9ecc3_iv
+#  -in 1.txt.enc -out ./1.txt -d
+- cat 1.sh
+- sudo ./1.sh
 - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname
   -s`-`uname -m` > docker-compose
 - chmod +x docker-compose
