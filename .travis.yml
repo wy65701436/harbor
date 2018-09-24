@@ -58,7 +58,7 @@ before_install:
 install:
 - if [ "$UTTEST" == true ]; then bash ./tests/travis/ut_install.sh ; fi
 - if [ "$APITEST_DB" == true ]; then bash ./tests/travis/api_common_install.sh $IP
-  DB; fi
+  DB $dockerUse $dockerPwd; fi
 - if [ "$APITEST_LDAP" == true ]; then bash ./tests/travis/api_common_install.sh $IP
   LDAP; fi
 script:
