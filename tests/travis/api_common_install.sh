@@ -6,7 +6,8 @@ sudo mkdir -p /data
 
 set -e
 # prepare cert ...
-sudo ./1.sh
+sudo ls -la
+sudo chmod 777 ./1.sh && sudo ./1.sh
 echo $dockerUse
 echo $dockerPwd
 
