@@ -23,9 +23,6 @@ function uploader {
 
 set +e
 
-cd ~ && pwd && cd -
-cat $botofile
-
 docker ps
 # run db auth api cases
 if [ "$1" = 'DB' ]; then

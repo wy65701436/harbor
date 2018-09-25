@@ -4,7 +4,7 @@ set +e
 sudo rm -fr /data/*
 sudo mkdir -p /data
 
-sudo gsutil version
+sudo gsutil version -l
 
 set -e
 # prepare cert ...
