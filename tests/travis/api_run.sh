@@ -23,7 +23,7 @@ function uploader {
     gsutil -D setacl public-read gs://$2/$1 &> /dev/null
 }
 
-set -e
+set +e
 
 docker ps
 # run db auth api cases
@@ -38,7 +38,6 @@ fi
 ## --------------------------------------------- Upload Harbor CI Logs -------------------------------------------
 timestamp=$(date +%s)
 outfile="integration_logs_"$TRAVIS_BUILD_NUMBER"_"$TRAVIS_COMMIT".tar.gz"
-set +e
 sudo tar -zcvf $outfile output.xml log.html
 if [ -f "$outfile" ]; then
     uploader $outfile $harbor_logs_bucket
