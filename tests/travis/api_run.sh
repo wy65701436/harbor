@@ -4,8 +4,10 @@ source gskey.sh
 
 harbor_logs_bucket="harbor-ci-logs"
 # GC credentials
-keyfile="/root/harbor-ci-logs.key"
-botofile="/root/.boto"
+pwd
+
+keyfile="~/harbor-ci-logs.key"
+botofile="~/.boto"
 sudo echo -en $GS_PRIVATE_KEY > $keyfile
 sudo chmod 400 $keyfile
 sudo echo "[Credentials]" >> $botofile
