@@ -6,6 +6,8 @@ harbor_logs_bucket="harbor-ci-logs"
 # GC credentials
 pwd
 
+echo $GS_CLIENT_EMAIL
+
 keyfile="/home/travis/harbor-ci-logs.key"
 botofile="/home/travis/.boto"
 sudo echo -en $GS_PRIVATE_KEY > $keyfile
