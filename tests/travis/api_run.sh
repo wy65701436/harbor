@@ -4,10 +4,6 @@ source gskey.sh
 
 harbor_logs_bucket="harbor-ci-logs"
 # GC credentials
-pwd
-
-echo $GS_CLIENT_EMAIL
-
 keyfile="/home/travis/harbor-ci-logs.key"
 botofile="/home/travis/.boto"
 sudo echo -en $GS_PRIVATE_KEY > $keyfile
@@ -21,11 +17,14 @@ sudo echo "default_project_id = $GS_PROJECT_ID" >> $botofile
 
 # GS util
 function uploader {
-    gsutil cp $1 gs://$2/$1
-    gsutil -D setacl public-read gs://$2/$1 &> /dev/null
+    sudo gsutil cp $1 gs://$2/$1
+    sudo gsutil -D setacl public-read gs://$2/$1 &> /dev/null
 }
 
 set +e
+
+cd ~ && pwd && cd -
+cat $botofile
 
 docker ps
 # run db auth api cases
