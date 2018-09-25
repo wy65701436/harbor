@@ -36,7 +36,8 @@ fi
 ## --------------------------------------------- Upload Harbor CI Logs -------------------------------------------
 timestamp=$(date +%s)
 outfile="integration_logs_"$TRAVIS_BUILD_NUMBER"_"$TRAVIS_COMMIT".tar.gz"
-sudo tar -zcvf $outfile output.xml log.html /var/log/harbor/*
+set +e
+sudo tar -zcvf $outfile output.xml log.html
 if [ -f "$outfile" ]; then
     uploader $outfile $harbor_logs_bucket
     echo "----------------------------------------------"
