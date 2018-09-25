@@ -6,8 +6,8 @@ harbor_logs_bucket="harbor-ci-logs"
 # GC credentials
 pwd
 
-keyfile="~/harbor-ci-logs.key"
-botofile="~/.boto"
+keyfile="/home/travis/harbor-ci-logs.key"
+botofile="/home/travis/.boto"
 sudo echo -en $GS_PRIVATE_KEY > $keyfile
 sudo chmod 400 $keyfile
 sudo echo "[Credentials]" >> $botofile
