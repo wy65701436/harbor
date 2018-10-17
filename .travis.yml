@@ -44,8 +44,6 @@ apt:
   - google-chrome-stable
   - google-chrome-beta
 before_install:
-#- openssl aes-256-cbc -K $encrypted_ed2284a9ecc3_key -iv $encrypted_ed2284a9ecc3_iv
-#  -in gskey.sh.enc -out ./gskey.sh -d
 - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname
   -s`-`uname -m` > docker-compose
 - chmod +x docker-compose
@@ -54,6 +52,7 @@ before_install:
 - sudo sed -i '$a DOCKER_OPTS=\"--insecure-registry '$IP':5000\"' /etc/default/docker
 - export IP=$IP
 - sudo service docker restart
+- mkdir -p ./logs
 install:
 - if [ "$UTTEST" == true ]; then bash ./tests/travis/ut_install.sh ; fi
 - if [ "$APITEST_DB" == true ]; then bash ./tests/travis/api_common_install.sh $IP
@@ -65,3 +64,12 @@ script:
 - if [ "$APITEST_DB" == true ]; then bash ./tests/travis/api_run.sh DB $IP; fi
 - if [ "$APITEST_LDAP" == true ]; then bash ./tests/travis/api_run.sh LDAP $IP; fi
 - if [ "$OFFLINE" == true ]; then bash ./tests/travis/distro_installer.sh; fi
+
+deploy:
+  provider: gcs
+  access_key_id: GOOGWEBABXMTTRAJCGSG2BZF
+  secret_access_key:
+    secure: cPCFFVnlX/2Wwbs2idUPMpH9fMOpavR66gkWyhiIqPKT97kwXGjLyr1FYBpm/gzFsY72MFJC9pZsVm6kKo9yf/O9W3rgy+/xn8uoHY+lhHZ7Jd+u3s7SbpYf6XZXnOcSmDTQzX+XrcjKmxj8P+kQsPJBnxwPs2wYo5hAoIWGez6bLZ45+z8UpFdRwyNSk6q4nsybK1psLrYRpUD3oScexVZjtEco1En/95aJDhSONWHPdleY0DEZxBXRwCWmNOtiKTGkOVfqbHhBuWzmctJwJIJudaq5NYlZ8citWQb7BsnT2bOWOrMAyaFiLujBM1IQYeJfdbpNQWmCctKuIZFLq/9nnhQRWAYVJIMwSzU3PJ6LcAvax34coTQ3MF3iElFOXiTwqsLOlAtacnQBt1tAo1f6WcrrCuEvZl0aXdGv9jxnXrxOd3rwRo836QFwI9zjCZITlsHuukxzi76r50S4j93R+hPYm8/o/JKD5mIuvstDcW7oafTVIUFCbA0AuPhEmKGqBrkJL9Ar6mr5Q72OSd/oFZqkcQY3TllM1iZkBfuXWS2iRG7iProkh4xAF2FMQesdRqCCfrTfh3UYn3F4srBxQt8fQ0ZcL+/rdSp38ctHy3vtu8d/S9b1RajVe1F/afQNYH0Fg+Wrts240GhKiuQl+FZ8UZRFQdoUSxtykf4=
+  bucket: "harbor-ci-logs"
+  acl: public-read
+  local-dir: logs

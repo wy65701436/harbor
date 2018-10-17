@@ -36,15 +36,15 @@ if [ "$1" = 'LDAP' ]; then
 fi
 
 ## --------------------------------------------- Upload Harbor CI Logs -------------------------------------------
-#outfile="integration_logs_$TRAVIS_BUILD_NUMBER_$TRAVIS_COMMIT.tar.gz"
-#sudo tar -zcvf $outfile output.xml log.html /var/log/harbor/*
-#if [ -f "$outfile" ]; then
-#    uploader $outfile $harbor_logs_bucket
-#    echo "----------------------------------------------"
-#    echo "Download test logs:"
-#    echo "https://storage.googleapis.com/harbor-ci-logs/$outfile"
-#    echo "----------------------------------------------"
-#else
-#    echo "No log output file to upload"
-#fi
+outfile="integration_logs_$TRAVIS_BUILD_NUMBER_$TRAVIS_COMMIT.tar.gz"
+sudo tar -zcvf $outfile output.xml log.html /var/log/harbor/*
+if [ -f "$outfile" ]; then
+    echo "----------------------------------------------"
+    echo "Download test logs:"
+    echo "https://storage.googleapis.com/harbor-ci-logs/$outfile"
+    echo "----------------------------------------------"
+else
+    echo "No log output file to upload"
+fi
 
+cp $outfile /home/travis/gopath/src/github.com/goharbor/harbor/logs
