@@ -23,6 +23,7 @@ function uploader {
 
 docker ps
 
+sudo cat /etc/boto.cfg
 sudo cat $botofile
 
 uploader LICENSE $harbor_logs_bucket
