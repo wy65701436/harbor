@@ -1,29 +1,24 @@
 #!/bin/bash
 
-#source gskey.sh
+sudo gsutil version -l
 
-#sudo gsutil version -l
-
-#harbor_logs_bucket="harbor-ci-logs"
+harbor_logs_bucket="harbor-ci-logs"
 # GC credentials
-#keyfile="/home/travis/harbor-ci-logs.key"
-#botofile="/home/travis/.boto"
-#echo -en $GS_PRIVATE_KEY > $keyfile
-#sudo chmod 400 $keyfile
-#echo "[Credentials]" >> $botofile
-#echo "gs_service_key_file = $keyfile" >> $botofile
-#echo "gs_service_client_id = $GS_CLIENT_EMAIL" >> $botofile
-#echo "[GSUtil]" >> $botofile
-#echo "content_language = en" >> $botofile
-#echo "default_project_id = $GS_PROJECT_ID" >> $botofile
+botofile="/home/travis/.boto"
+echo "[Credentials]" >> $botofile
+echo "gs_access_key_id = $gs_access_key_id" >> $botofile
+echo "gs_secret_access_key = $gs_secret_access_key" >> $botofile
+echo "[GSUtil]" >> $botofile
+echo "content_language = en" >> $botofile
+echo "default_project_id = $default_project_id" >> $botofile
 
 # GS util
-#function uploader {
-#    sudo gsutil cp $1 gs://$2/$1
-#    sudo gsutil -D setacl public-read gs://$2/$1 &> /dev/null
-#}
+function uploader {
+    sudo gsutil cp $1 gs://$2/$1
+    sudo gsutil -D setacl public-read gs://$2/$1 &> /dev/null
+}
 
-#set +e
+set +e
 
 docker ps
 # run db auth api cases
@@ -46,5 +41,3 @@ if [ -f "$outfile" ]; then
 else
     echo "No log output file to upload"
 fi
-
-cp $outfile /home/travis/gopath/src/github.com/goharbor/harbor/logs
