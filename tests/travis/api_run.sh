@@ -3,6 +3,7 @@
 sudo gsutil version -l
 
 harbor_logs_bucket="harbor-ci-logs"
+
 # GC credentials
 botofile="/home/travis/.boto"
 echo "[Credentials]" >> $botofile
