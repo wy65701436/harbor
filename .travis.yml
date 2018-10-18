@@ -10,16 +10,16 @@ matrix:
   include:
   - go: 1.9.2
     env:
-    - UTTEST=true
+    - UTTEST=false
   - go: 1.9.2
     env:
     - APITEST_DB=true
   - go: 1.9.2
     env:
-    - APITEST_LDAP=true
+    - APITEST_LDAP=false
   - go: 1.9.2
     env:
-    - OFFLINE=true
+    - OFFLINE=false
 env:
   global:
   - POSTGRESQL_HOST: localhost
