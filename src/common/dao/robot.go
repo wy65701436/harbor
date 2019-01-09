@@ -15,10 +15,10 @@
 package dao
 
 import (
-	"github.com/goharbor/harbor/src/common/models"
-	"github.com/astaxie/beego/orm"
-	"time"
 	"fmt"
+	"github.com/astaxie/beego/orm"
+	"github.com/goharbor/harbor/src/common/models"
+	"time"
 )
 
 // AddRobot ...
