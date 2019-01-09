@@ -26,7 +26,7 @@ func AddRobot(robot *models.Robot) (int64, error) {
 	now := time.Now()
 	robot.CreationTime = now
 	robot.UpdateTime = now
-	return GetOrmer().Insert(Robot)
+	return GetOrmer().Insert(robot)
 }
 
 // GetRobotByID ...
