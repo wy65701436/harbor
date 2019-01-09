@@ -41,6 +41,13 @@ type RobotQuery struct {
 	Pagination
 }
 
+// RobotReq ...
+type RobotReq struct {
+	Name        string
+	Description string
+	Access      []*ResourceActions
+}
+
 // TableName ...
 func (u *Robot) TableName() string {
 	return RobotTable

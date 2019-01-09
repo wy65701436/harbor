@@ -20,3 +20,8 @@ type Token struct {
 	ExpiresIn int    `json:"expires_in"`
 	IssuedAt  string `json:"issued_at"`
 }
+
+type ResourceActions struct {
+	Name    string   `json:"name"`
+	Actions []string `json:"actions"`
+}zz

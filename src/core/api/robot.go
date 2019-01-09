@@ -17,19 +17,105 @@ package api
 import (
 	"net/http"
 	"github.com/goharbor/harbor/src/common/models"
+	"fmt"
+	"github.com/goharbor/harbor/src/common/dao"
+	"strconv"
 )
 
 // RobotAPI ...
 type RobotAPI struct {
 	BaseController
-	project *models.Robot
-	name    string
+	robot   *models.Robot
+	project *models.Project
+}
+
+// Prepare ...
+func (r *RobotAPI) Prepare() {
+	r.BaseController.Prepare()
+
+	if !r.SecurityCtx.IsAuthenticated() {
+		r.HandleUnauthorized()
+		return
+	}
+
+	pid, err := r.GetInt64FromPath(":pid")
+	if err != nil || pid <= 0 {
+		text := "invalid project ID: "
+		if err != nil {
+			text += err.Error()
+		} else {
+			text += fmt.Sprintf("%d", pid)
+		}
+		r.HandleBadRequest(text)
+		return
+	}
+	project, err := r.ProjectMgr.Get(pid)
+	if err != nil {
+		r.ParseAndHandleError(fmt.Sprintf("failed to get project %d", pid), err)
+		return
+	}
+	if project == nil {
+		r.HandleNotFound(fmt.Sprintf("project %d not found", pid))
+		return
+	}
+	r.project = project
+
 }
 
 // Post ...
-func (m *MetadataAPI) Post() {
-	var robot map[string]string
-	m.DecodeJSONReq(&robot)
+func (r *RobotAPI) Post() {
+	var robotReq models.RobotReq
+	r.DecodeJSONReq(&robotReq)
 
-	m.Ctx.ResponseWriter.WriteHeader(http.StatusCreated)
+	robot := models.Robot{
+		Name:        robotReq.Name,
+		Description: robotReq.Description,
+		ProjectID:   r.project.ProjectID,
+		// TODO: use token service to generate token per access information
+		Token: "thisisaplaceholder",
+	}
+
+	id, err := dao.AddRobot(&robot)
+	if err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to create robot account: %v", err))
+	}
+
+	r.Redirect(http.StatusCreated, strconv.FormatInt(id, 10))
+}
+
+// Get get robot by id
+func (r *RobotAPI) Get() {
+	id, err := r.GetInt64FromPath(":id")
+	if err != nil || id <= 0 {
+		r.HandleBadRequest(fmt.Sprintf("invalid robot ID: %s", l.GetStringFromPath(":id")))
+		return
+	}
+
+	robot, err := dao.GetRobotByID(id)
+	if err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to get robot %d: %v", id, err))
+		return
+	}
+
+	if robot == nil || robot.Disabled {
+		r.HandleNotFound(fmt.Sprintf("robot %d not found", id))
+		return
+	}
+
+	r.Data["json"] = robot
+	r.ServeJSON()
+}
+
+// Delete delete robot by id
+func (r *RobotAPI) Delete() {
+	id, err := r.GetInt64FromPath(":id")
+	if err != nil || id <= 0 {
+		r.HandleBadRequest(fmt.Sprintf("invalid robot ID: %s", l.GetStringFromPath(":id")))
+		return
+	}
+
+	if err := dao.DisableRobot(id); err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to disable robot %d: %v", id, err))
+		return
+	}
 }
