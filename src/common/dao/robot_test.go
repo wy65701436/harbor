@@ -26,10 +26,10 @@ import (
 func TestMethodsOfRobot(t *testing.T) {
 	robotName := "test1"
 	robot := &models.Robot{
-		Name:      robotName,
-		Token:     "rKgjKEMpMEK23zqejkWn5GIVvgJps1vKACTa6tnGXXyOlOTsXFESccDvgaJx047q",
-		Description:     "test1 description",
-		ProjectID: 1,
+		Name:        robotName,
+		Token:       "rKgjKEMpMEK23zqejkWn5GIVvgJps1vKACTa6tnGXXyOlOTsXFESccDvgaJx047q",
+		Description: "test1 description",
+		ProjectID:   1,
 	}
 
 	// add
