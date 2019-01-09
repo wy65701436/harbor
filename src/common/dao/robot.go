@@ -29,7 +29,7 @@ func AddRobot(robot *models.Robot) (int64, error) {
 	return GetOrmer().Insert(Robot)
 }
 
-// GetRobot specified by ID
+// GetRobotByID ...
 func GetRobotByID(id int64) (*models.Robot, error) {
 	robot := &models.Robot{
 		ID: id,
