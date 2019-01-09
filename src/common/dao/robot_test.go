@@ -23,12 +23,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMethodsOfRobot(t *testing.T) {
+func TestAddRobot(t *testing.T) {
 	robotName := "test1"
 	robot := &models.Robot{
 		Name:        robotName,
-		Token:       "rKgjKEMpMEK23zqejkWn5GIVvgJps1vKACTa6tnGXXyOlOTsXFESccDvgaJx047q",
+		Token:       "rKgjKEMpMEK23zqejkWn5GIVvgJps1vKACTa6tnGXXyOlOTsXFESccDvgaJx047q1",
 		Description: "test1 description",
+		ProjectID:   1,
+	}
+
+	// add
+	id, err := AddRobot(robot)
+	require.Nil(t, err)
+	robot.ID = id
+
+	require.Nil(t, err)
+	assert.NotNil(t, id)
+
+}
+
+func TestGetRobot(t *testing.T) {
+	robotName := "test2"
+	robot := &models.Robot{
+		Name:        robotName,
+		Token:       "rKgjKEMpMEK23zqejkWn5GIVvgJps1vKACTa6tnGXXyOlOTsXFESccDvgaJx047q2",
+		Description: "test2 description",
 		ProjectID:   1,
 	}
 
@@ -40,5 +59,49 @@ func TestMethodsOfRobot(t *testing.T) {
 	robot, err = GetRobotByID(id)
 	require.Nil(t, err)
 	assert.Equal(t, robotName, robot.Name)
+
+}
+
+func TestListRobots(t *testing.T) {
+	robotName := "test3"
+	robot := &models.Robot{
+		Name:        robotName,
+		Token:       "rKgjKEMpMEK23zqejkWn5GIVvgJps1vKACTa6tnGXXyOlOTsXFESccDvgaJx047q3",
+		Description: "test3 description",
+		ProjectID:   1,
+	}
+
+	_, err := AddRobot(robot)
+	require.Nil(t, err)
+
+	robots, err := ListRobots(&models.RobotQuery{
+		ProjectID: 1,
+	})
+	require.Nil(t, err)
+	assert.Equal(t, 3, len(robots))
+
+}
+
+func TestDisableRobot(t *testing.T) {
+	robotName := "test4"
+	robot := &models.Robot{
+		Name:        robotName,
+		Token:       "rKgjKEMpMEK23zqejkWn5GIVvgJps1vKACTa6tnGXXyOlOTsXFESccDvgaJx047q4",
+		Description: "test4 description",
+		ProjectID:   1,
+	}
+
+	// add
+	id, err := AddRobot(robot)
+	require.Nil(t, err)
+
+	// Disable
+	err = DisableRobot(id)
+	require.Nil(t, err)
+
+	// Get
+	robot, err = GetRobotByID(id)
+	require.Nil(t, err)
+	assert.Equal(t, true, robot.Disabled)
 
 }
