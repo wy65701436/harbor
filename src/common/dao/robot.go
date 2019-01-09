@@ -17,7 +17,17 @@ package dao
 import (
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/astaxie/beego/orm"
+	"time"
+	"fmt"
 )
+
+// AddRobot ...
+func AddRobot(robot *models.Robot) (int64, error) {
+	now := time.Now()
+	robot.CreationTime = now
+	robot.UpdateTime = now
+	return GetOrmer().Insert(Robot)
+}
 
 // GetRobot specified by ID
 func GetRobotByID(id int64) (*models.Robot, error) {
@@ -32,4 +42,45 @@ func GetRobotByID(id int64) (*models.Robot, error) {
 	}
 
 	return robot, nil
+}
+
+// ListRobots list robots according to the query conditions
+func ListRobots(query *models.RobotQuery) ([]*models.Robot, error) {
+	qs := getRobotQuerySetter(query)
+	if query.Size > 0 {
+		qs = qs.Limit(query.Size)
+		if query.Page > 0 {
+			qs = qs.Offset((query.Page - 1) * query.Size)
+		}
+	}
+	qs = qs.OrderBy("Name")
+
+	robots := []*models.Robot{}
+	_, err := qs.All(&robots)
+	return robots, err
+}
+
+func getRobotQuerySetter(query *models.RobotQuery) orm.QuerySeter {
+	qs := GetOrmer().QueryTable(&models.Robot{})
+	if len(query.Name) > 0 {
+		qs = qs.Filter("Name", query.Name)
+	}
+	if query.ProjectID != 0 {
+		qs = qs.Filter("ProjectID", query.ProjectID)
+	}
+	qs = qs.Filter("Disabled", false)
+	return qs
+}
+
+// DisableRobot ...
+func DisableRobot(id int64) error {
+	robot, err := GetRobotByID(id)
+	if err != nil {
+		return err
+	}
+	robot.Name = fmt.Sprintf("%s#%d", robot.Name, robot.ID)
+	robot.UpdateTime = time.Now()
+	robot.Disabled = true
+	_, err = GetOrmer().Update(robot, "Name", "UpdateTime", "Disabled")
+	return err
 }
