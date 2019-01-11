@@ -15,10 +15,10 @@
 package api
 
 import (
-	"net/http"
-	"github.com/goharbor/harbor/src/common/models"
 	"fmt"
 	"github.com/goharbor/harbor/src/common/dao"
+	"github.com/goharbor/harbor/src/common/models"
+	"net/http"
 	"strconv"
 )
 
