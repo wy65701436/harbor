@@ -60,6 +60,12 @@ func (r *RobotAPI) Prepare() {
 	}
 	r.project = project
 
+	if !(r.Ctx.Input.IsGet() && r.SecurityCtx.HasReadPerm(pid) ||
+		r.SecurityCtx.HasAllPerm(pid)) {
+		r.HandleForbidden(r.SecurityCtx.GetUsername())
+		return
+	}
+
 }
 
 // Post ...
@@ -144,7 +150,7 @@ func (r *RobotAPI) Put() {
 func (r *RobotAPI) Delete() {
 	id, err := r.GetInt64FromPath(":id")
 	if err != nil || id <= 0 {
-		r.HandleBadRequest(fmt.Sprintf("invalid robot ID: %s", l.GetStringFromPath(":id")))
+		r.HandleBadRequest(fmt.Sprintf("invalid robot ID: %s", r.GetStringFromPath(":id")))
 		return
 	}
 
