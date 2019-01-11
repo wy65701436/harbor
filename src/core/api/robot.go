@@ -72,7 +72,7 @@ func (r *RobotAPI) Post() {
 		Description: robotReq.Description,
 		ProjectID:   r.project.ProjectID,
 		// TODO: use token service to generate token per access information
-		Token: "thisisaplaceholder",
+		Token: "this is a placeholder",
 	}
 
 	id, err := dao.AddRobot(&robot)
@@ -83,11 +83,24 @@ func (r *RobotAPI) Post() {
 	r.Redirect(http.StatusCreated, strconv.FormatInt(id, 10))
 }
 
+// List list all the robots of a project
+func (r *RobotAPI) List() {
+	query := models.RobotQuery{
+		ProjectID: r.project.ProjectID,
+	}
+	robots, err := dao.ListRobots(&query)
+	if err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to get robots %v", err))
+	}
+	r.Data["json"] = robots
+	r.ServeJSON()
+}
+
 // Get get robot by id
 func (r *RobotAPI) Get() {
 	id, err := r.GetInt64FromPath(":id")
 	if err != nil || id <= 0 {
-		r.HandleBadRequest(fmt.Sprintf("invalid robot ID: %s", l.GetStringFromPath(":id")))
+		r.HandleBadRequest(fmt.Sprintf("invalid robot ID: %s", r.GetStringFromPath(":id")))
 		return
 	}
 
@@ -96,14 +109,35 @@ func (r *RobotAPI) Get() {
 		r.HandleInternalServerError(fmt.Sprintf("failed to get robot %d: %v", id, err))
 		return
 	}
-
-	if robot == nil || robot.Disabled {
+	if robot == nil {
 		r.HandleNotFound(fmt.Sprintf("robot %d not found", id))
 		return
 	}
 
 	r.Data["json"] = robot
 	r.ServeJSON()
+}
+
+// Put disable or enable a robot account
+func (r *RobotAPI) Put() {
+	var robotReq models.RobotReq
+	r.DecodeJSONReq(&robotReq)
+
+	id, err := r.GetInt64FromPath(":id")
+	if err != nil || id <= 0 {
+		r.HandleBadRequest(fmt.Sprintf("invalid robot ID: %s", r.GetStringFromPath(":id")))
+		return
+	}
+
+	robot := models.Robot{
+		ID:       id,
+		Disabled: robotReq.Disabled,
+	}
+
+	err = dao.UpdateRobot(&robot)
+	if err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to update robot: %v", err))
+	}
 }
 
 // Delete delete robot by id
@@ -114,8 +148,8 @@ func (r *RobotAPI) Delete() {
 		return
 	}
 
-	if err := dao.DisableRobot(id); err != nil {
-		r.HandleInternalServerError(fmt.Sprintf("failed to disable robot %d: %v", id, err))
+	if err := dao.DeleteRobot(id); err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to delete robot %d: %v", id, err))
 		return
 	}
 }

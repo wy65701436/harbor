@@ -24,4 +24,4 @@ type Token struct {
 type ResourceActions struct {
 	Name    string   `json:"name"`
 	Actions []string `json:"actions"`
-}zz
+}
