@@ -21,6 +21,7 @@ type Token struct {
 	IssuedAt  string `json:"issued_at"`
 }
 
+// ResourceActions ...
 type ResourceActions struct {
 	Name    string   `json:"name"`
 	Actions []string `json:"actions"`
