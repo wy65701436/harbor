@@ -15,6 +15,7 @@
 package models
 
 import (
+	"github.com/astaxie/beego/validation"
 	"time"
 )
 
@@ -35,13 +36,37 @@ type Robot struct {
 
 // RobotQuery ...
 type RobotQuery struct {
-	Name      string
-	ProjectID int64
-	Disabled  bool
+	Name           string
+	ProjectID      int64
+	Disabled       bool
+	FuzzyMatchName bool
 	Pagination
 }
 
+// RobotReq ...
+type RobotReq struct {
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Disabled    bool               `json:"disabled"`
+	Access      []*ResourceActions `json:"access"`
+}
+
+// Valid put request validation
+func (rq *RobotReq) Valid(v *validation.Validation) {
+	switch rq.Disabled {
+	case true, false:
+	default:
+		v.SetError("disabled", "must be in [true, false]")
+	}
+}
+
+// RobotRep ...
+type RobotRep struct {
+	Name  string
+	Token string
+}
+
 // TableName ...
-func (u *Robot) TableName() string {
+func (r *Robot) TableName() string {
 	return RobotTable
 }
