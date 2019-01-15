@@ -100,14 +100,15 @@ func TestRobotAPIGet(t *testing.T) {
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/%d", robotPath, 0),
 			},
-			code: http.StatusBadRequest,
+			code: http.StatusUnauthorized,
 		},
 
 		// 404
 		{
 			request: &testingRequest{
-				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/%d", robotPath, 1000),
+				method:     http.MethodGet,
+				url:        fmt.Sprintf("%s/%d", robotPath, 1000),
+				credential: projDeveloper,
 			},
 			code: http.StatusNotFound,
 		},
@@ -119,7 +120,7 @@ func TestRobotAPIGet(t *testing.T) {
 				url:        fmt.Sprintf("%s/%d", robotPath, 1),
 				credential: projDeveloper,
 			},
-			code: http.StatusNotFound,
+			code: http.StatusOK,
 		},
 
 		// 200

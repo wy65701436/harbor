@@ -30,11 +30,13 @@ const robotPrefix = "robot$"
 type RobotAPI struct {
 	BaseController
 	project *models.Project
+	robot   *models.Robot
 }
 
 // Prepare ...
 func (r *RobotAPI) Prepare() {
 	r.BaseController.Prepare()
+	method := r.Ctx.Request.Method
 
 	if !r.SecurityCtx.IsAuthenticated() {
 		r.HandleUnauthorized()
@@ -62,6 +64,27 @@ func (r *RobotAPI) Prepare() {
 		return
 	}
 	r.project = project
+
+	if method == http.MethodPut || method == http.MethodDelete {
+		id, err := r.GetInt64FromPath(":id")
+		if err != nil || id <= 0 {
+			r.HandleBadRequest("invalid robot ID")
+			return
+		}
+
+		robot, err := dao.GetRobotByID(id)
+		if err != nil {
+			r.HandleInternalServerError(fmt.Sprintf("failed to get robot %d: %v", id, err))
+			return
+		}
+
+		if robot == nil {
+			r.HandleNotFound(fmt.Sprintf("robot %d not found", id))
+			return
+		}
+
+		r.robot = robot
+	}
 
 	if !(r.Ctx.Input.IsGet() && r.SecurityCtx.HasReadPerm(pid) ||
 		r.SecurityCtx.HasAllPerm(pid)) {
@@ -166,22 +189,10 @@ func (r *RobotAPI) Get() {
 func (r *RobotAPI) Put() {
 	var robotReq models.RobotReq
 	r.DecodeJSONReqAndValidate(&robotReq)
+	r.robot.Disabled = robotReq.Disabled
 
-	id, err := r.GetInt64FromPath(":id")
-	if err != nil || id <= 0 {
-		r.HandleBadRequest(fmt.Sprintf("invalid robot ID: %s", r.GetStringFromPath(":id")))
-		return
-	}
-
-	robotUpdate, err := dao.GetRobotByID(id)
-	if err != nil {
-		r.HandleBadRequest(fmt.Sprintf("failed to get robot %v", err))
-		return
-	}
-	robotUpdate.Disabled = robotReq.Disabled
-
-	if err := dao.UpdateRobot(robotUpdate); err != nil {
-		r.HandleInternalServerError(fmt.Sprintf("failed to update robot %d: %v", robotUpdate.ID, err))
+	if err := dao.UpdateRobot(r.robot); err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to update robot %d: %v", r.robot.ID, err))
 		return
 	}
 
@@ -189,14 +200,8 @@ func (r *RobotAPI) Put() {
 
 // Delete delete robot by id
 func (r *RobotAPI) Delete() {
-	id, err := r.GetInt64FromPath(":id")
-	if err != nil || id <= 0 {
-		r.HandleBadRequest(fmt.Sprintf("invalid robot ID: %s", r.GetStringFromPath(":id")))
-		return
-	}
-
-	if err := dao.DeleteRobot(id); err != nil {
-		r.HandleInternalServerError(fmt.Sprintf("failed to delete robot %d: %v", id, err))
+	if err := dao.DeleteRobot(r.robot.ID); err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to delete robot %d: %v", r.robot.ID, err))
 		return
 	}
 }
