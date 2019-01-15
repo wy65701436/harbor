@@ -15,10 +15,10 @@
 package api
 
 import (
+	"fmt"
 	"github.com/goharbor/harbor/src/common/models"
 	"net/http"
 	"testing"
-	"fmt"
 )
 
 var (
@@ -278,8 +278,8 @@ func TestRobotAPIDelete(t *testing.T) {
 		// 200
 		{
 			request: &testingRequest{
-				method: http.MethodDelete,
-				url:    fmt.Sprintf("%s/%d", robotPath, 1),
+				method:     http.MethodDelete,
+				url:        fmt.Sprintf("%s/%d", robotPath, 1),
 				credential: projAdmin,
 			},
 			code: http.StatusOK,
