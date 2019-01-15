@@ -19,8 +19,6 @@ import (
 	"net/http"
 	"testing"
 	"fmt"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -128,13 +126,13 @@ func TestRobotAPIGet(t *testing.T) {
 
 func TestRobotAPIList(t *testing.T) {
 	cases := []*codeCheckingCase{
-		// 200
+		// 401
 		{
 			request: &testingRequest{
 				method: http.MethodGet,
 				url:    robotPath,
 			},
-			code: http.StatusBadRequest,
+			code: http.StatusUnauthorized,
 		},
 
 		// 400
@@ -224,12 +222,69 @@ func TestRobotAPIPut(t *testing.T) {
 	}
 
 	runCodeCheckingCases(t, cases...)
+}
 
-	label := &models.Label{}
-	err := handleAndParse(&testingRequest{
-		method: http.MethodGet,
-		url:    fmt.Sprintf("%s/%d", labelAPIBasePath, labelID),
-	}, label)
-	require.Nil(t, err)
-	assert.Equal(t, "product", label.Name)
+func TestRobotAPIDelete(t *testing.T) {
+	cases := []*codeCheckingCase{
+		// 401
+		{
+			request: &testingRequest{
+				method: http.MethodDelete,
+				url:    fmt.Sprintf("%s/%d", robotPath, 1),
+			},
+			code: http.StatusUnauthorized,
+		},
+
+		// 400
+		{
+			request: &testingRequest{
+				method:     http.MethodDelete,
+				url:        fmt.Sprintf("%s/%d", robotPath, 0),
+				credential: projAdmin,
+			},
+			code: http.StatusBadRequest,
+		},
+
+		// 404
+		{
+			request: &testingRequest{
+				method:     http.MethodDelete,
+				url:        fmt.Sprintf("%s/%d", robotPath, 10000),
+				credential: projAdmin,
+			},
+			code: http.StatusNotFound,
+		},
+
+		// 403 non-member user
+		{
+			request: &testingRequest{
+				method:     http.MethodDelete,
+				url:        fmt.Sprintf("%s/%d", robotPath, 1),
+				credential: nonSysAdmin,
+			},
+			code: http.StatusForbidden,
+		},
+
+		// 403 developer
+		{
+			request: &testingRequest{
+				method:     http.MethodDelete,
+				url:        fmt.Sprintf("%s/%d", robotPath, 1),
+				credential: projDeveloper,
+			},
+			code: http.StatusForbidden,
+		},
+
+		// 200
+		{
+			request: &testingRequest{
+				method: http.MethodDelete,
+				url:    fmt.Sprintf("%s/%d", robotPath, 1),
+				credential: projAdmin,
+			},
+			code: http.StatusOK,
+		},
+	}
+
+	runCodeCheckingCases(t, cases...)
 }
