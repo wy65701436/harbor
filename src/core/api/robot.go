@@ -24,7 +24,7 @@ import (
 
 // User this prefix to distinguish harbor user,
 // The prefix contains a specific character($), so it cannot be registered as a harbor user.
-const robotPrefix  = "robot$"
+const robotPrefix = "robot$"
 
 // RobotAPI ...
 type RobotAPI struct {
@@ -107,7 +107,7 @@ func (r *RobotAPI) Post() {
 	}
 
 	robotRep := models.RobotRep{
-		Name: robot.Name,
+		Name:  robot.Name,
 		Token: robot.Token,
 	}
 
