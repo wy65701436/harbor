@@ -56,7 +56,7 @@ func TestRobotAPIPost(t *testing.T) {
 					Name:        "test",
 					Description: "test desc",
 				},
-				credential: projAdmin,
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusCreated,
 		},
@@ -84,7 +84,7 @@ func TestRobotAPIPost(t *testing.T) {
 					Description: "test desc",
 					ProjectID:   1,
 				},
-				credential: projAdmin,
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusConflict,
 		},
@@ -117,6 +117,17 @@ func TestRobotAPIGet(t *testing.T) {
 			request: &testingRequest{
 				method: http.MethodGet,
 				url:    fmt.Sprintf("%s/%d", robotPath, 1),
+				credential: projDeveloper,
+			},
+			code: http.StatusNotFound,
+		},
+
+		// 200
+		{
+			request: &testingRequest{
+				method: http.MethodGet,
+				url:    fmt.Sprintf("%s/%d", robotPath, 1),
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusOK,
 		},
@@ -140,6 +151,7 @@ func TestRobotAPIList(t *testing.T) {
 			request: &testingRequest{
 				method: http.MethodGet,
 				url:    "/api/projects/0/robots",
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusBadRequest,
 		},
@@ -148,7 +160,18 @@ func TestRobotAPIList(t *testing.T) {
 		{
 			request: &testingRequest{
 				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/%d", robotPath, 1),
+				url:    robotPath,
+				credential: projDeveloper,
+			},
+			code: http.StatusOK,
+		},
+
+		// 200
+		{
+			request: &testingRequest{
+				method: http.MethodGet,
+				url:    robotPath,
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusOK,
 		},
@@ -172,7 +195,7 @@ func TestRobotAPIPut(t *testing.T) {
 			request: &testingRequest{
 				method:     http.MethodPut,
 				url:        fmt.Sprintf("%s/%d", robotPath, 0),
-				credential: projAdmin,
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusBadRequest,
 		},
@@ -182,7 +205,7 @@ func TestRobotAPIPut(t *testing.T) {
 			request: &testingRequest{
 				method:     http.MethodPut,
 				url:        fmt.Sprintf("%s/%d", robotPath, 10000),
-				credential: projAdmin,
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusNotFound,
 		},
@@ -215,7 +238,7 @@ func TestRobotAPIPut(t *testing.T) {
 				bodyJSON: &models.Robot{
 					Disabled: true,
 				},
-				credential: projAdmin,
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusOK,
 		},
@@ -240,7 +263,7 @@ func TestRobotAPIDelete(t *testing.T) {
 			request: &testingRequest{
 				method:     http.MethodDelete,
 				url:        fmt.Sprintf("%s/%d", robotPath, 0),
-				credential: projAdmin,
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusBadRequest,
 		},
@@ -250,7 +273,7 @@ func TestRobotAPIDelete(t *testing.T) {
 			request: &testingRequest{
 				method:     http.MethodDelete,
 				url:        fmt.Sprintf("%s/%d", robotPath, 10000),
-				credential: projAdmin,
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusNotFound,
 		},
@@ -280,7 +303,7 @@ func TestRobotAPIDelete(t *testing.T) {
 			request: &testingRequest{
 				method:     http.MethodDelete,
 				url:        fmt.Sprintf("%s/%d", robotPath, 1),
-				credential: projAdmin,
+				credential: projAdmin4Robot,
 			},
 			code: http.StatusOK,
 		},

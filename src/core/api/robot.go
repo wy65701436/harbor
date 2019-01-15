@@ -63,8 +63,8 @@ func (r *RobotAPI) Prepare() {
 	}
 	r.project = project
 
-	// Token operations are project admin only as it's store the token.
-	if !r.SecurityCtx.HasAllPerm(pid) {
+	if !(r.Ctx.Input.IsGet() && r.SecurityCtx.HasReadPerm(pid) ||
+		r.SecurityCtx.HasAllPerm(pid)) {
 		r.HandleForbidden(r.SecurityCtx.GetUsername())
 		return
 	}
