@@ -115,8 +115,8 @@ func TestRobotAPIGet(t *testing.T) {
 		// 200
 		{
 			request: &testingRequest{
-				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/%d", robotPath, 1),
+				method:     http.MethodGet,
+				url:        fmt.Sprintf("%s/%d", robotPath, 1),
 				credential: projDeveloper,
 			},
 			code: http.StatusNotFound,
@@ -125,8 +125,8 @@ func TestRobotAPIGet(t *testing.T) {
 		// 200
 		{
 			request: &testingRequest{
-				method: http.MethodGet,
-				url:    fmt.Sprintf("%s/%d", robotPath, 1),
+				method:     http.MethodGet,
+				url:        fmt.Sprintf("%s/%d", robotPath, 1),
 				credential: projAdmin4Robot,
 			},
 			code: http.StatusOK,
@@ -149,8 +149,8 @@ func TestRobotAPIList(t *testing.T) {
 		// 400
 		{
 			request: &testingRequest{
-				method: http.MethodGet,
-				url:    "/api/projects/0/robots",
+				method:     http.MethodGet,
+				url:        "/api/projects/0/robots",
 				credential: projAdmin4Robot,
 			},
 			code: http.StatusBadRequest,
@@ -159,8 +159,8 @@ func TestRobotAPIList(t *testing.T) {
 		// 200
 		{
 			request: &testingRequest{
-				method: http.MethodGet,
-				url:    robotPath,
+				method:     http.MethodGet,
+				url:        robotPath,
 				credential: projDeveloper,
 			},
 			code: http.StatusOK,
@@ -169,8 +169,8 @@ func TestRobotAPIList(t *testing.T) {
 		// 200
 		{
 			request: &testingRequest{
-				method: http.MethodGet,
-				url:    robotPath,
+				method:     http.MethodGet,
+				url:        robotPath,
 				credential: projAdmin4Robot,
 			},
 			code: http.StatusOK,
