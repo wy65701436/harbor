@@ -28,12 +28,14 @@ import (
 	admr "github.com/goharbor/harbor/src/common/security/admiral"
 	"github.com/goharbor/harbor/src/common/security/admiral/authcontext"
 	"github.com/goharbor/harbor/src/common/security/local"
+	robot "github.com/goharbor/harbor/src/common/security/robot"
 	"github.com/goharbor/harbor/src/common/security/secret"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/auth"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/core/promgr/pmsdriver/admiral"
+	"github.com/goharbor/harbor/src/common/dao"
 )
 
 // ContextValueKey for content value
@@ -95,6 +97,7 @@ func Init() {
 	// standalone
 	reqCtxModifiers = []ReqCtxModifier{
 		&secretReqCtxModifier{config.SecretStore},
+		&tokenAuthReqCtxModifier{},
 		&basicAuthReqCtxModifier{},
 		&sessionReqCtxModifier{},
 		&unauthorizedReqCtxModifier{}}
@@ -144,6 +147,36 @@ func (s *secretReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 
 	setSecurCtxAndPM(ctx.Request, securCtx, pm)
 
+	return true
+}
+
+type tokenAuthReqCtxModifier struct{}
+
+func (t *tokenAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
+	username, password, ok := ctx.Request.BasicAuth()
+	if !ok {
+		return false
+	}
+	log.Debug("got user information via basic auth")
+	log.Info("%v", password)
+
+	// ToDo: needs a token service to decode the token string, and get the token id.
+	user, err := dao.GetRobotByID(1)
+	if err != nil {
+		log.Errorf("failed to authenticate %s: %v", username, err)
+		return false
+	}
+	if user == nil {
+		log.Debug("basic auth user is nil")
+		return false
+	}
+	if user.Disabled {
+		log.Errorf("the robot account %s is disabled", user.Name)
+		return false
+	}
+	log.Debug("creating robot account security context...")
+	securCtx := robot.NewSecurityContext(user)
+	addToReqContext(ctx.Request, SecurCtxKey, securCtx)
 	return true
 }
 
