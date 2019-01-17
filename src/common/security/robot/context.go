@@ -23,15 +23,17 @@ import (
 
 // SecurityContext implements security.Context interface based on database
 type SecurityContext struct {
-	robot *models.Robot
-	pm    promgr.ProjectManager
+	robot  *models.Robot
+	pm     promgr.ProjectManager
+	policy []*rbac.Policy
 }
 
 // NewSecurityContext ...
-func NewSecurityContext(robot *models.Robot, pm promgr.ProjectManager) *SecurityContext {
+func NewSecurityContext(robot *models.Robot, pm promgr.ProjectManager, policy []*rbac.Policy) *SecurityContext {
 	return &SecurityContext{
-		robot: robot,
-		pm:    pm,
+		robot:  robot,
+		pm:     pm,
+		policy: policy,
 	}
 }
 
@@ -77,12 +79,17 @@ func (s *SecurityContext) HasAllPerm(projectIDOrName interface{}) bool {
 	return s.Can(project.ActionPushPull, rbac.NewProjectNamespace(projectIDOrName, isPublicProject).Resource(project.ResourceImage))
 }
 
-// GetMyProjects ...
+// GetMyProjects no implementation
 func (s *SecurityContext) GetMyProjects() ([]*models.Project, error) {
 	return nil, nil
 }
 
-// GetProjectRoles ...
+// GetPolicies get access infor from the token and convert it to the rbac policy
+func (s *SecurityContext) GetPolicies() ([]*rbac.Policy) {
+	return nil
+}
+
+// GetProjectRoles no implementation
 func (s *SecurityContext) GetProjectRoles(projectIDOrName interface{}) []int {
 	return nil
 }

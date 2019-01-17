@@ -37,6 +37,7 @@ import (
 	"github.com/goharbor/harbor/src/core/promgr/pmsdriver/admiral"
 	"github.com/goharbor/harbor/src/common/dao"
 	"strings"
+	"github.com/goharbor/harbor/src/common/rbac"
 )
 
 // ContextValueKey for content value
@@ -98,7 +99,7 @@ func Init() {
 	// standalone
 	reqCtxModifiers = []ReqCtxModifier{
 		&secretReqCtxModifier{config.SecretStore},
-		&tokenAuthReqCtxModifier{},
+		&robotAuthReqCtxModifier{},
 		&basicAuthReqCtxModifier{},
 		&sessionReqCtxModifier{},
 		&unauthorizedReqCtxModifier{}}
@@ -151,29 +152,35 @@ func (s *secretReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	return true
 }
 
-type tokenAuthReqCtxModifier struct{}
+type robotAuthReqCtxModifier struct{}
 
-func (t *tokenAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
+func (t *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	robotName, robotTk, ok := ctx.Request.BasicAuth()
 	if !ok {
 		return false
 	}
-	log.Debug("got user information via token auth")
+	log.Debug("got robot information via token auth")
 	if !strings.HasPrefix(robotName, "robot$") {
 		return false
 	}
 	// ToDo: needs a token service to decode the token string, and get the token id.
-	// Here to log it to by pass the compile error.
+	// ToDo: remove the log, here to log it to by pass the compile error.
 	log.Info("%v", robotTk)
 
-	// ToDo: remove the hard code ID 1
-	robot, err := dao.GetRobotByID(1)
+	var tokenID int64
+	var policies []*rbac.Policy
+
+	// ToDo: get ID from token string
+	// ToDo: get policies from token string
+
+	// Do authn for robot account, as Harbor only stores the token ID, just validate the ID and disable.
+	robot, err := dao.GetRobotByID(tokenID)
 	if err != nil {
 		log.Errorf("failed to authenticate %s: %v", robotName, err)
 		return false
 	}
 	if robot == nil {
-		log.Debug("basic auth robot account is nil")
+		log.Error("the token is not validate.")
 		return false
 	}
 	if robot.Disabled {
@@ -182,7 +189,7 @@ func (t *tokenAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	}
 	log.Debug("creating robot account security context...")
 	pm := config.GlobalProjectMgr
-	securCtx := robotCtx.NewSecurityContext(robot, pm)
+	securCtx := robotCtx.NewSecurityContext(robot, pm, policies)
 	setSecurCtxAndPM(ctx.Request, securCtx, pm)
 	return true
 }
