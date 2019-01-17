@@ -18,23 +18,26 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/rbac"
 	"github.com/goharbor/harbor/src/common/rbac/project"
+	"github.com/goharbor/harbor/src/core/promgr"
 )
 
 // SecurityContext implements security.Context interface based on database
 type SecurityContext struct {
-	user *models.Robot
+	robot *models.Robot
+	pm    promgr.ProjectManager
 }
 
 // NewSecurityContext ...
-func NewSecurityContext(user *models.Robot) *SecurityContext {
+func NewSecurityContext(robot *models.Robot, pm promgr.ProjectManager) *SecurityContext {
 	return &SecurityContext{
-		user: user,
+		robot: robot,
+		pm:    pm,
 	}
 }
 
 // IsAuthenticated returns true if the user has been authenticated
 func (s *SecurityContext) IsAuthenticated() bool {
-	return s.user != nil
+	return s.robot != nil
 }
 
 // GetUsername returns the username of the authenticated user
@@ -43,7 +46,7 @@ func (s *SecurityContext) GetUsername() string {
 	if !s.IsAuthenticated() {
 		return ""
 	}
-	return s.user.Name
+	return s.robot.Name
 }
 
 // IsSysAdmin robot cannot be a system admin
@@ -51,7 +54,7 @@ func (s *SecurityContext) IsSysAdmin() bool {
 	return false
 }
 
-// IsSolutionUser ...
+// IsSolutionUser robot cannot be a system admin
 func (s *SecurityContext) IsSolutionUser() bool {
 	return false
 }
@@ -64,16 +67,18 @@ func (s *SecurityContext) HasReadPerm(projectIDOrName interface{}) bool {
 
 // HasWritePerm returns whether the user has write permission to the project
 func (s *SecurityContext) HasWritePerm(projectIDOrName interface{}) bool {
-	return false
+	isPublicProject, _ := s.pm.IsPublic(projectIDOrName)
+	return s.Can(project.ActionPush, rbac.NewProjectNamespace(projectIDOrName, isPublicProject).Resource(project.ResourceImage))
 }
 
 // HasAllPerm returns whether the user has all permissions to the project
 func (s *SecurityContext) HasAllPerm(projectIDOrName interface{}) bool {
-	return false
+	isPublicProject, _ := s.pm.IsPublic(projectIDOrName)
+	return s.Can(project.ActionPushPull, rbac.NewProjectNamespace(projectIDOrName, isPublicProject).Resource(project.ResourceImage))
 }
 
 // GetMyProjects ...
-func (s *SecurityContext) GetMyProjects() ([]*models.Project, error){
+func (s *SecurityContext) GetMyProjects() ([]*models.Project, error) {
 	return nil, nil
 }
 
@@ -82,7 +87,7 @@ func (s *SecurityContext) GetProjectRoles(projectIDOrName interface{}) []int {
 	return nil
 }
 
-// Can returns whether the user can do action on resource
+// Can returns whether the robot can do action on resource
 func (s *SecurityContext) Can(action rbac.Action, resource rbac.Resource) bool {
 	ns, err := resource.GetNamespace()
 	if err == nil {
@@ -91,8 +96,8 @@ func (s *SecurityContext) Can(action rbac.Action, resource rbac.Resource) bool {
 			projectIDOrName := ns.Identity()
 			isPublicProject, _ := s.pm.IsPublic(projectIDOrName)
 			projectNamespace := rbac.NewProjectNamespace(projectIDOrName, isPublicProject)
-			user := project.NewUser(s, projectNamespace, s.GetProjectRoles(projectIDOrName)...)
-			return rbac.HasPermission(user, resource, action)
+			robot := project.NewRobot(s, projectNamespace)
+			return rbac.HasPermission(robot, resource, action)
 		}
 	}
 

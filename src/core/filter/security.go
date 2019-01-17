@@ -28,14 +28,15 @@ import (
 	admr "github.com/goharbor/harbor/src/common/security/admiral"
 	"github.com/goharbor/harbor/src/common/security/admiral/authcontext"
 	"github.com/goharbor/harbor/src/common/security/local"
-	robot "github.com/goharbor/harbor/src/common/security/robot"
 	"github.com/goharbor/harbor/src/common/security/secret"
+	robotCtx "github.com/goharbor/harbor/src/common/security/robot"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/auth"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/core/promgr/pmsdriver/admiral"
 	"github.com/goharbor/harbor/src/common/dao"
+	"strings"
 )
 
 // ContextValueKey for content value
@@ -153,30 +154,35 @@ func (s *secretReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 type tokenAuthReqCtxModifier struct{}
 
 func (t *tokenAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
-	username, password, ok := ctx.Request.BasicAuth()
+	robotName, robotTk, ok := ctx.Request.BasicAuth()
 	if !ok {
 		return false
 	}
-	log.Debug("got user information via basic auth")
-	log.Info("%v", password)
-
+	log.Debug("got user information via token auth")
+	if !strings.HasPrefix(robotName, "robot$") {
+		return false
+	}
 	// ToDo: needs a token service to decode the token string, and get the token id.
-	user, err := dao.GetRobotByID(1)
+	// Here to log it to by pass the compile error.
+	log.Info("%v", robotTk)
+
+	// ToDo: remove the hard code ID 1
+	robot, err := dao.GetRobotByID(1)
 	if err != nil {
-		log.Errorf("failed to authenticate %s: %v", username, err)
+		log.Errorf("failed to authenticate %s: %v", robotName, err)
 		return false
 	}
-	if user == nil {
-		log.Debug("basic auth user is nil")
+	if robot == nil {
+		log.Debug("basic auth robot account is nil")
 		return false
 	}
-	if user.Disabled {
-		log.Errorf("the robot account %s is disabled", user.Name)
+	if robot.Disabled {
+		log.Errorf("the robot account %s is disabled", robot.Name)
 		return false
 	}
 	log.Debug("creating robot account security context...")
 	pm := config.GlobalProjectMgr
-	securCtx := robot.NewSecurityContext(user)
+	securCtx := robotCtx.NewSecurityContext(robot, pm)
 	setSecurCtxAndPM(ctx.Request, securCtx, pm)
 	return true
 }
