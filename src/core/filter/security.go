@@ -175,8 +175,9 @@ func (t *tokenAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 		return false
 	}
 	log.Debug("creating robot account security context...")
+	pm := config.GlobalProjectMgr
 	securCtx := robot.NewSecurityContext(user)
-	addToReqContext(ctx.Request, SecurCtxKey, securCtx)
+	setSecurCtxAndPM(ctx.Request, securCtx, pm)
 	return true
 }
 
