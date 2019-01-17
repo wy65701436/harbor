@@ -16,6 +16,8 @@ package local
 
 import (
 	"github.com/goharbor/harbor/src/common/models"
+	"github.com/goharbor/harbor/src/common/rbac"
+	"github.com/goharbor/harbor/src/common/rbac/project"
 )
 
 // SecurityContext implements security.Context interface based on database
@@ -56,7 +58,8 @@ func (s *SecurityContext) IsSolutionUser() bool {
 
 // HasReadPerm returns whether the user has read permission to the project
 func (s *SecurityContext) HasReadPerm(projectIDOrName interface{}) bool {
-	return false
+	isPublicProject, _ := s.pm.IsPublic(projectIDOrName)
+	return s.Can(project.ActionPull, rbac.NewProjectNamespace(projectIDOrName, isPublicProject).Resource(project.ResourceImage))
 }
 
 // HasWritePerm returns whether the user has write permission to the project
@@ -77,4 +80,21 @@ func (s *SecurityContext) GetMyProjects() ([]*models.Project, error){
 // GetProjectRoles ...
 func (s *SecurityContext) GetProjectRoles(projectIDOrName interface{}) []int {
 	return nil
+}
+
+// Can returns whether the user can do action on resource
+func (s *SecurityContext) Can(action rbac.Action, resource rbac.Resource) bool {
+	ns, err := resource.GetNamespace()
+	if err == nil {
+		switch ns.Kind() {
+		case "project":
+			projectIDOrName := ns.Identity()
+			isPublicProject, _ := s.pm.IsPublic(projectIDOrName)
+			projectNamespace := rbac.NewProjectNamespace(projectIDOrName, isPublicProject)
+			user := project.NewUser(s, projectNamespace, s.GetProjectRoles(projectIDOrName)...)
+			return rbac.HasPermission(user, resource, action)
+		}
+	}
+
+	return false
 }
