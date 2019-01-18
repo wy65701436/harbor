@@ -154,13 +154,14 @@ func (s *secretReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 
 type robotAuthReqCtxModifier struct{}
 
-func (t *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
+func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	robotName, robotTk, ok := ctx.Request.BasicAuth()
 	if !ok {
 		return false
 	}
 	log.Debug("got robot information via token auth")
 	if !strings.HasPrefix(robotName, "robot$") {
+		log.Infof(fmt.Sprintf("got the robot user name: %v", robotName))
 		return false
 	}
 	defaultJwt, err := token.NewDefaultHarborJWT()

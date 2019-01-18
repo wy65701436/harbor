@@ -64,6 +64,7 @@ func NewDefaultHarborJWT() (*HarborJWT, error) {
 	return htk, nil
 }
 
+// Encrypt ...
 func (hj *HarborJWT) Encrypt(claims *Claims) (string, error) {
 	claimsWrapper := Claims{
 		claims.TokenID,
@@ -83,6 +84,7 @@ func (hj *HarborJWT) Encrypt(claims *Claims) (string, error) {
 	return tokenStr, err
 }
 
+// Decrypt decrypt a string with key file to get the token claim info.
 func (hj *HarborJWT) Decrypt(rawToken string) (*Claims, error) {
 	claim := Claims{}
 	token, err := jwt.ParseWithClaims(rawToken, &claim, func(token *jwt.Token) (interface{}, error) {
