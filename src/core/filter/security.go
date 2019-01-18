@@ -166,10 +166,13 @@ func (t *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	defaultJwt, err := token.NewDefaultHarborJWT()
 	if err != nil {
 		log.Errorf("failed to get default JWT, %v", err)
+		return false
 	}
+	log.Infof(fmt.Sprintf("got robot token, %v", robotTk))
 	tokenClaim, err := defaultJwt.Decrypt(robotTk)
 	if err != nil {
 		log.Errorf("failed to decrypt robot token, %v", err)
+		return false
 	}
 	// Do authn for robot account, as Harbor only stores the token ID, just validate the ID and disable.
 	robot, err := dao.GetRobotByID(tokenClaim.TokenID)

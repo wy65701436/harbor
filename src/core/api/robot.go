@@ -98,30 +98,16 @@ func (r *RobotAPI) Prepare() {
 // Post ...
 func (r *RobotAPI) Post() {
 	var robotReq models.RobotReq
+	var isTokenCreationFail bool
 	r.DecodeJSONReq(&robotReq)
-
 	createdName := robotPrefix + robotReq.Name
 
-	claim := token.Claims{
-		TokenID: 1,
-		Policy: robotReq.Policy,
-	}
-	jwt, err := token.NewDefaultHarborJWT()
-	if err != nil {
-		fmt.Printf("failed to new htk, %v", err)
-	}
-	token, err := jwt.Encrypt(&claim)
-	if err != nil {
-		fmt.Printf("failed to encrypt, %v", err)
-	}
-
+	// first to add a robot account, and get its id.
 	robot := models.Robot{
 		Name:        createdName,
 		Description: robotReq.Description,
 		ProjectID:   r.project.ProjectID,
-		Token: token,
 	}
-
 	id, err := dao.AddRobot(&robot)
 	if err != nil {
 		if err == dao.ErrDupRows {
@@ -132,11 +118,34 @@ func (r *RobotAPI) Post() {
 		return
 	}
 
-	robotRep := models.RobotRep{
-		Name:  robot.Name,
-		Token: robot.Token,
+	// generate the token, and return it with response data.
+	// token is not stored in the database.
+	claim := token.Claims{
+		TokenID: id,
+		Policy:  robotReq.Policy,
+	}
+	jwt, err := token.NewDefaultHarborJWT()
+	if err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to init defatule harbor JWT, %v", err))
+		isTokenCreationFail = true
+	}
+	token, err := jwt.Encrypt(&claim)
+	if err != nil {
+		r.HandleInternalServerError(fmt.Sprintf("failed to create token, %v", err))
+		isTokenCreationFail = true
+	}
+	if isTokenCreationFail {
+		err := dao.DeleteRobot(id)
+		if err != nil {
+			r.HandleInternalServerError(fmt.Sprintf("failed to delete the robot account: %d, %v", id, err))
+		}
+		return
 	}
 
+	robotRep := models.RobotRep{
+		Name:  robot.Name,
+		Token: token,
+	}
 	r.Redirect(http.StatusCreated, strconv.FormatInt(id, 10))
 	r.Data["json"] = robotRep
 	r.ServeJSON()
