@@ -21,6 +21,7 @@ import (
 	"github.com/casbin/casbin"
 	"github.com/casbin/casbin/model"
 	"github.com/casbin/casbin/persist"
+	"github.com/goharbor/harbor/src/common/utils/log"
 )
 
 var (
@@ -75,6 +76,7 @@ func (a *userAdapter) getUserPolicyLines() []string {
 	lines := []string{}
 
 	username := a.GetUserName()
+	log.Infof(fmt.Sprintf("1111111,    %s", username))
 	// returns empty policy lines if username is empty
 	if username == "" {
 		return lines
@@ -82,6 +84,7 @@ func (a *userAdapter) getUserPolicyLines() []string {
 
 	for _, policy := range a.GetPolicies() {
 		line := fmt.Sprintf("p, %s, %s, %s, %s", username, policy.Resource, policy.Action, policy.GetEffect())
+		log.Info(line)
 		lines = append(lines, line)
 	}
 
