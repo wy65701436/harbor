@@ -20,6 +20,7 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	"net/http"
 	"strconv"
+	"github.com/goharbor/harbor/src/common/token"
 )
 
 // User this prefix to distinguish harbor user,
@@ -101,12 +102,24 @@ func (r *RobotAPI) Post() {
 
 	createdName := robotPrefix + robotReq.Name
 
+	claim := token.Claims{
+		TokenID: 1,
+		Policy: robotReq.Policy,
+	}
+	jwt, err := token.NewDefaultHarborJWT()
+	if err != nil {
+		fmt.Printf("failed to new htk, %v", err)
+	}
+	token, err := jwt.Encrypt(&claim)
+	if err != nil {
+		fmt.Printf("failed to encrypt, %v", err)
+	}
+
 	robot := models.Robot{
 		Name:        createdName,
 		Description: robotReq.Description,
 		ProjectID:   r.project.ProjectID,
-		// TODO: use token service to generate token per access information
-		Token: "this is a placeholder",
+		Token: token,
 	}
 
 	id, err := dao.AddRobot(&robot)

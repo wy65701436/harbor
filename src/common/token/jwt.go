@@ -12,21 +12,21 @@ import (
 )
 
 type Claims struct {
-	jwt.StandardClaims
 	TokenID int64          `json:"ID"`
-	Policy  *[]rbac.Policy `json:"access"`
+	Policy  []*rbac.Policy `json:"access"`
+	jwt.StandardClaims
 }
 
-type HarborToken struct {
+type HarborJWT struct {
 	signMethod jwt.SigningMethod
 	key        interface{}
 	ttl        time.Duration
+	issuer     string
 }
 
-// NewHarborToken ...
-func NewHarborToken(optMap map[string]string) (*HarborToken, error) {
-	var opts jwtOptions
-	var htk *HarborToken
+// NewHarborJWT ...
+func NewHarborJWT(optMap map[string]string) (*HarborJWT, error) {
+	var opts JWTOptions
 	err := opts.Parse(optMap)
 	if err != nil {
 		return nil, err
@@ -35,19 +35,46 @@ func NewHarborToken(optMap map[string]string) (*HarborToken, error) {
 	if err != nil {
 		log.Errorf("failed to get key of token, %v", err)
 	}
-
-	htk = &HarborToken{
+	htk := &HarborJWT{
 		signMethod: opts.SignMethod,
 		key:        key,
 		ttl:        opts.TTL,
 	}
-
 	return htk, nil
 }
 
-func (htk *HarborToken) Encrypt(claims Claims) (string, error) {
-	tk := jwt.NewWithClaims(htk.signMethod, claims)
-	tokenStr, err := tk.SignedString(htk.key)
+// NewDefaultHarborJWT ...
+func NewDefaultHarborJWT() (*HarborJWT, error) {
+	var opts JWTOptions
+	err := opts.Default()
+	if err != nil {
+		return nil, err
+	}
+	key, err := opts.GetKey()
+	if err != nil {
+		log.Errorf("failed to get key of token, %v", err)
+		return nil, err
+	}
+	htk := &HarborJWT{
+		signMethod: opts.SignMethod,
+		key:        key,
+		ttl:        opts.TTL,
+		issuer:     opts.Issuer,
+	}
+	return htk, nil
+}
+
+func (hj *HarborJWT) Encrypt(claims *Claims) (string, error) {
+	claimsWrapper := Claims{
+		claims.TokenID,
+		claims.Policy,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(hj.ttl).Unix(),
+			Issuer:    hj.issuer,
+		},
+	}
+	tk := jwt.NewWithClaims(hj.signMethod, claimsWrapper)
+	tokenStr, err := tk.SignedString(hj.key)
 	if err != nil {
 		log.Debugf(fmt.Sprintf("failed to issue token %v", err))
 		return "", err
@@ -56,34 +83,31 @@ func (htk *HarborToken) Encrypt(claims Claims) (string, error) {
 	return tokenStr, err
 }
 
-func (htk *HarborToken) Decrypt(rawToken string) (*Claims, error) {
-	var claim Claims
-	token, err := jwt.ParseWithClaims(rawToken, claim, func(token *jwt.Token) (interface{}, error) {
-		if token.Method.Alg() != htk.signMethod.Alg() {
+func (hj *HarborJWT) Decrypt(rawToken string) (*Claims, error) {
+	claim := Claims{}
+	token, err := jwt.ParseWithClaims(rawToken, &claim, func(token *jwt.Token) (interface{}, error) {
+		if token.Method.Alg() != hj.signMethod.Alg() {
 			return nil, errors.New("invalid signing method")
 		}
-		switch k := htk.key.(type) {
+		switch k := hj.key.(type) {
 		case *rsa.PrivateKey:
 			return &k.PublicKey, nil
 		case *ecdsa.PrivateKey:
 			return &k.PublicKey, nil
 		default:
-			return htk.key, nil
+			return hj.key, nil
 		}
 	})
 
+	if err != nil {
+		return nil, err
+	}
+
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		fmt.Printf("%v %v", claims.Policy, claims.StandardClaims.ExpiresAt)
+		fmt.Printf("%v %v", claims.Policy, claims.TokenID)
 	} else {
 		log.Errorf(fmt.Sprintf("parse token error, %v", err))
-		fmt.Println(err)
 		return nil, err
 	}
 	return &claim, nil
 }
-
-func main() {
-	fmt.Println("test token string ...")
-	return
-}
-git 

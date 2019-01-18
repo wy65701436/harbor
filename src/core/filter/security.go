@@ -37,7 +37,7 @@ import (
 	"github.com/goharbor/harbor/src/core/promgr/pmsdriver/admiral"
 	"github.com/goharbor/harbor/src/common/dao"
 	"strings"
-	"github.com/goharbor/harbor/src/common/rbac"
+	"github.com/goharbor/harbor/src/common/token"
 )
 
 // ContextValueKey for content value
@@ -163,18 +163,16 @@ func (t *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	if !strings.HasPrefix(robotName, "robot$") {
 		return false
 	}
-	// ToDo: needs a token service to decode the token string, and get the token id.
-	// ToDo: remove the log, here to log it to by pass the compile error.
-	log.Info("%v", robotTk)
-
-	var tokenID int64
-	var policies []*rbac.Policy
-
-	// ToDo: get ID from token string
-	// ToDo: get policies from token string
-
+	defaultJwt, err := token.NewDefaultHarborJWT()
+	if err != nil {
+		log.Errorf("failed to get default JWT, %v", err)
+	}
+	tokenClaim, err := defaultJwt.Decrypt(robotTk)
+	if err != nil {
+		log.Errorf("failed to decrypt robot token, %v", err)
+	}
 	// Do authn for robot account, as Harbor only stores the token ID, just validate the ID and disable.
-	robot, err := dao.GetRobotByID(tokenID)
+	robot, err := dao.GetRobotByID(tokenClaim.TokenID)
 	if err != nil {
 		log.Errorf("failed to authenticate %s: %v", robotName, err)
 		return false
@@ -189,7 +187,7 @@ func (t *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	}
 	log.Debug("creating robot account security context...")
 	pm := config.GlobalProjectMgr
-	securCtx := robotCtx.NewSecurityContext(robot, pm, policies)
+	securCtx := robotCtx.NewSecurityContext(robot, pm, tokenClaim.Policy)
 	setSecurCtxAndPM(ctx.Request, securCtx, pm)
 	return true
 }
