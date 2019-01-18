@@ -161,7 +161,6 @@ func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	}
 	log.Debug("got robot information via token auth")
 	if !strings.HasPrefix(robotName, "robot$") {
-		log.Infof(fmt.Sprintf("got the robot user name: %v", robotName))
 		return false
 	}
 	defaultJwt, err := token.NewDefaultHarborJWT()

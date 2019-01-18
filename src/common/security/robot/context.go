@@ -86,7 +86,7 @@ func (s *SecurityContext) GetMyProjects() ([]*models.Project, error) {
 
 // GetPolicies get access infor from the token and convert it to the rbac policy
 func (s *SecurityContext) GetPolicies() ([]*rbac.Policy) {
-	return nil
+	return s.policy
 }
 
 // GetProjectRoles no implementation
