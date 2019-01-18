@@ -8,14 +8,15 @@ import (
 	"crypto/rsa"
 	"errors"
 	"github.com/goharbor/harbor/src/common/utils/log"
+	"github.com/goharbor/harbor/src/core/config"
 )
 
 var (
 	defaultTTL          = 60 * time.Minute
 	defaultIssuer       = "harbor-token-issuer"
 	defaultSignedMethod = "RS256"
-	//defaultPrivateKey   = config.TokenPrivateKeyPath()
-	defaultPrivateKey = "/Users/yan/go/src/github.com/goharbor/harbor/make/common/config/core/private_key.pem"
+	defaultPrivateKey   = config.TokenPrivateKeyPath()
+	//defaultPrivateKey = "/Users/yan/go/src/github.com/goharbor/harbor/make/common/config/core/private_key.pem"
 )
 
 type JWTOptions struct {
