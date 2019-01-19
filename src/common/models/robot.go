@@ -16,8 +16,8 @@ package models
 
 import (
 	"github.com/astaxie/beego/validation"
-	"time"
 	"github.com/goharbor/harbor/src/common/rbac"
+	"time"
 )
 
 // RobotTable is the name of table in DB that holds the robot object

@@ -22,22 +22,23 @@ import (
 
 	beegoctx "github.com/astaxie/beego/context"
 	"github.com/docker/distribution/reference"
+	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
 	secstore "github.com/goharbor/harbor/src/common/secret"
 	"github.com/goharbor/harbor/src/common/security"
 	admr "github.com/goharbor/harbor/src/common/security/admiral"
 	"github.com/goharbor/harbor/src/common/security/admiral/authcontext"
 	"github.com/goharbor/harbor/src/common/security/local"
-	"github.com/goharbor/harbor/src/common/security/secret"
 	robotCtx "github.com/goharbor/harbor/src/common/security/robot"
+	"github.com/goharbor/harbor/src/common/security/secret"
+	"github.com/goharbor/harbor/src/common/token"
 	"github.com/goharbor/harbor/src/common/utils/log"
+	"github.com/goharbor/harbor/src/core/api"
 	"github.com/goharbor/harbor/src/core/auth"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/core/promgr/pmsdriver/admiral"
-	"github.com/goharbor/harbor/src/common/dao"
 	"strings"
-	"github.com/goharbor/harbor/src/common/token"
 )
 
 // ContextValueKey for content value
@@ -160,7 +161,7 @@ func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 		return false
 	}
 	log.Debug("got robot information via token auth")
-	if !strings.HasPrefix(robotName, "robot$") {
+	if !strings.HasPrefix(robotName, api.RobotPrefix) {
 		return false
 	}
 	defaultJwt, err := token.NewDefaultHarborJWT()

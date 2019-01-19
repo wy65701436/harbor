@@ -1,9 +1,9 @@
 package project
 
 import (
-	"testing"
 	"github.com/goharbor/harbor/src/common/rbac"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type fakeRobotContext struct {

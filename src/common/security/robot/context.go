@@ -19,8 +19,6 @@ import (
 	"github.com/goharbor/harbor/src/common/rbac"
 	"github.com/goharbor/harbor/src/common/rbac/project"
 	"github.com/goharbor/harbor/src/core/promgr"
-	"github.com/goharbor/harbor/src/common/utils/log"
-	"fmt"
 )
 
 // SecurityContext implements security.Context interface based on database
@@ -87,7 +85,7 @@ func (s *SecurityContext) GetMyProjects() ([]*models.Project, error) {
 }
 
 // GetPolicies get access infor from the token and convert it to the rbac policy
-func (s *SecurityContext) GetPolicies() ([]*rbac.Policy) {
+func (s *SecurityContext) GetPolicies() []*rbac.Policy {
 	return s.policy
 }
 
@@ -106,8 +104,6 @@ func (s *SecurityContext) Can(action rbac.Action, resource rbac.Resource) bool {
 			isPublicProject, _ := s.pm.IsPublic(projectIDOrName)
 			projectNamespace := rbac.NewProjectNamespace(projectIDOrName, isPublicProject)
 			robot := project.NewRobot(s, projectNamespace)
-			log.Infof(fmt.Sprintf("robot res, %v", resource.String()))
-			log.Infof(fmt.Sprintf("robot act, %v", action.String()))
 			return rbac.HasPermission(robot, resource, action)
 		}
 	}

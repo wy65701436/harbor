@@ -1,14 +1,14 @@
 package token
 
 import (
-	"github.com/dgrijalva/jwt-go"
-	"time"
-	"github.com/goharbor/harbor/src/common/utils/log"
-	"fmt"
-	"github.com/goharbor/harbor/src/common/rbac"
-	"crypto/rsa"
 	"crypto/ecdsa"
+	"crypto/rsa"
 	"errors"
+	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/goharbor/harbor/src/common/rbac"
+	"github.com/goharbor/harbor/src/common/utils/log"
+	"time"
 )
 
 type Claims struct {
