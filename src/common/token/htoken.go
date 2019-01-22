@@ -13,15 +13,10 @@ import (
 // HToken ...
 type HToken struct {
 	jwt.Token
-	key interface{}
 }
 
 // NewWithClaims ...
 func NewWithClaims(claims *RobotClaims) *HToken {
-	key, err := DefaultOptions.GetKey()
-	if err != nil {
-		return nil
-	}
 	rClaims := &RobotClaims{
 		TokenID:   claims.TokenID,
 		ProjectID: claims.ProjectID,
@@ -33,13 +28,16 @@ func NewWithClaims(claims *RobotClaims) *HToken {
 	}
 	return &HToken{
 		Token: *jwt.NewWithClaims(DefaultOptions.SignMethod, rClaims),
-		key:   key,
 	}
 }
 
 // SignedString get the SignedString.
 func (htk *HToken) SignedString() (string, error) {
-	raw, err := htk.Token.SignedString(htk.key)
+	key, err := DefaultOptions.GetKey()
+	if err != nil {
+		return "", nil
+	}
+	raw, err := htk.Token.SignedString(key)
 	if err != nil {
 		log.Debugf(fmt.Sprintf("failed to issue token %v", err))
 		return "", err
@@ -72,6 +70,5 @@ func ParseWithClaims(rawToken string, claims jwt.Claims) (*HToken, error) {
 	}
 	return &HToken{
 		Token: *token,
-		key:   key,
 	}, nil
 }
