@@ -98,7 +98,6 @@ func (r *RobotAPI) Prepare() {
 // Post ...
 func (r *RobotAPI) Post() {
 	var robotReq models.RobotReq
-	var isTokenCreationFail bool
 	r.DecodeJSONReq(&robotReq)
 	createdName := RobotPrefix + robotReq.Name
 

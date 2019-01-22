@@ -32,7 +32,6 @@ import (
 	robotCtx "github.com/goharbor/harbor/src/common/security/robot"
 	"github.com/goharbor/harbor/src/common/security/secret"
 	"github.com/goharbor/harbor/src/common/token"
-	"github.com/goharbor/harbor/src/common/token2/util"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/api"
 	"github.com/goharbor/harbor/src/core/auth"
@@ -189,7 +188,7 @@ func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	}
 	log.Debug("creating robot account security context...")
 	pm := config.GlobalProjectMgr
-	securCtx := robotCtx.NewSecurityContext(robot, pm, tokenClaim.Policy)
+	securCtx := robotCtx.NewSecurityContext(robot, pm, rClaims.Policy)
 	setSecurCtxAndPM(ctx.Request, securCtx, pm)
 	return true
 }
