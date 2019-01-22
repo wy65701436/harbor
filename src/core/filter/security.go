@@ -175,11 +175,15 @@ func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	// Do authn for robot account, as Harbor only stores the token ID, just validate the ID and disable.
 	robot, err := dao.GetRobotByID(rClaims.TokenID)
 	if err != nil {
-		log.Errorf("failed to authenticate %s: %v", robotName, err)
+		log.Errorf("failed to get robot %s: %v", robotName, err)
 		return false
 	}
 	if robot == nil {
-		log.Error("the token is not validate.")
+		log.Error("the token is not valid.")
+		return false
+	}
+	if robotName != robot.Name {
+		log.Errorf("failed to authenticate : %v", robotName)
 		return false
 	}
 	if robot.Disabled {
