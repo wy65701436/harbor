@@ -80,5 +80,4 @@ func (o *Options) GetKey() (interface{}, error) {
 	default:
 		return nil, fmt.Errorf(fmt.Sprintf("unsupported sign method, %s", o.SignMethod))
 	}
-	return nil, nil
 }

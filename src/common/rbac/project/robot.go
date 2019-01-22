@@ -18,7 +18,7 @@ type robot struct {
 	namespace rbac.Namespace
 }
 
-/// GetUserName get the robot name.
+// GetUserName get the robot name.
 func (r *robot) GetUserName() string {
 	return r.ctx.GetUsername()
 }
