@@ -16,12 +16,12 @@ package api
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/token"
 	"net/http"
 	"strconv"
-	"github.com/goharbor/harbor/src/common"
 )
 
 // RobotAPI ...

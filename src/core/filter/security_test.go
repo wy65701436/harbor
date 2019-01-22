@@ -136,7 +136,7 @@ func TestRobotReqCtxModifier(t *testing.T) {
 
 	modifier := &robotAuthReqCtxModifier{}
 	modified := modifier.Modify(ctx)
-	assert.True(t, modified)
+	assert.False(t, modified)
 	assert.IsType(t, &secret.SecurityContext{},
 		securityContext(ctx))
 	assert.NotNil(t, projectManager(ctx))

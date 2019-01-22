@@ -22,6 +22,7 @@ import (
 
 	beegoctx "github.com/astaxie/beego/context"
 	"github.com/docker/distribution/reference"
+	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
 	secstore "github.com/goharbor/harbor/src/common/secret"
@@ -38,7 +39,6 @@ import (
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/core/promgr/pmsdriver/admiral"
 	"strings"
-	"github.com/goharbor/harbor/src/common"
 )
 
 // ContextValueKey for content value
