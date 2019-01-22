@@ -10,12 +10,15 @@ import (
 	"time"
 )
 
+const (
+	ttl          = 60 * time.Minute
+	issuer       = "harbor-token-issuer"
+	signedMethod = "RS256"
+)
+
 var (
-	defaultTTL          = 60 * time.Minute
-	defaultIssuer       = "harbor-token-issuer"
-	defaultSignedMethod = "RS256"
-	defaultPrivateKey   = config.TokenPrivateKeyPath()
-	//defaultPrivateKey = "/Users/yan/go/src/github.com/goharbor/harbor/make/common/config/core/private_key.pem"
+	privateKey     = config.TokenPrivateKeyPath()
+	DefaultOptions = NewOptions()
 )
 
 // Options ...
@@ -27,22 +30,20 @@ type Options struct {
 	Issuer     string
 }
 
-// NewDafaultOptions ...
-func NewDafaultOptions() (*Options, error) {
-	var err error
-	var privateKey []byte
-	privateKey, err = ioutil.ReadFile(defaultPrivateKey)
+// NewOptions ...
+func NewOptions() *Options {
+	privateKey, err := ioutil.ReadFile(privateKey)
 	if err != nil {
 		log.Errorf(fmt.Sprintf("failed to read private key %v", err))
-		return nil, err
+		return nil
 	}
 	opt := &Options{
-		SignMethod: jwt.GetSigningMethod(defaultSignedMethod),
+		SignMethod: jwt.GetSigningMethod(signedMethod),
 		PrivateKey: privateKey,
-		Issuer:     defaultIssuer,
-		TTL:        defaultTTL,
+		Issuer:     issuer,
+		TTL:        ttl,
 	}
-	return opt, nil
+	return opt
 }
 
 // GetKey ...

@@ -20,8 +20,14 @@ import (
 
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/rbac"
+	"github.com/goharbor/harbor/src/core/promgr"
+	"github.com/goharbor/harbor/src/core/promgr/pmsdriver/local"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	pm = promgr.NewDefaultProjectManager(local.NewDriver(), true)
 )
 
 func TestMain(m *testing.M) {

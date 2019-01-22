@@ -18,12 +18,7 @@ type HToken struct {
 
 // NewWithClaims ...
 func NewWithClaims(claims *RobotClaims) *HToken {
-	dafaultOpts, err := NewDafaultOptions()
-	if err != nil {
-		log.Errorf(fmt.Sprintf("failed to get default jwt options %v", err))
-		return nil
-	}
-	key, err := dafaultOpts.GetKey()
+	key, err := DefaultOptions.GetKey()
 	if err != nil {
 		return nil
 	}
@@ -32,12 +27,12 @@ func NewWithClaims(claims *RobotClaims) *HToken {
 		ProjectID: claims.ProjectID,
 		Policy:    claims.Policy,
 		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(dafaultOpts.TTL).Unix(),
-			Issuer:    dafaultOpts.Issuer,
+			ExpiresAt: time.Now().Add(DefaultOptions.TTL).Unix(),
+			Issuer:    DefaultOptions.Issuer,
 		},
 	}
 	return &HToken{
-		Token: *jwt.NewWithClaims(dafaultOpts.SignMethod, rClaims),
+		Token: *jwt.NewWithClaims(DefaultOptions.SignMethod, rClaims),
 		key:   key,
 	}
 }
@@ -49,23 +44,17 @@ func (htk *HToken) SignedString() (string, error) {
 		log.Debugf(fmt.Sprintf("failed to issue token %v", err))
 		return "", err
 	}
-	log.Infof(fmt.Sprintf("issued token: %s", raw))
 	return raw, err
 }
 
 // ParseWithClaims ...
 func ParseWithClaims(rawToken string, claims jwt.Claims) (*HToken, error) {
-	dafaultOpts, err := NewDafaultOptions()
-	if err != nil {
-		log.Errorf(fmt.Sprintf("failed to get default jwt options %v", err))
-		return nil, err
-	}
-	key, err := dafaultOpts.GetKey()
+	key, err := DefaultOptions.GetKey()
 	if err != nil {
 		return nil, err
 	}
 	token, err := jwt.ParseWithClaims(rawToken, claims, func(token *jwt.Token) (interface{}, error) {
-		if token.Method.Alg() != dafaultOpts.SignMethod.Alg() {
+		if token.Method.Alg() != DefaultOptions.SignMethod.Alg() {
 			return nil, errors.New("invalid signing method")
 		}
 		switch k := key.(type) {
