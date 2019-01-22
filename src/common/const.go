@@ -118,6 +118,9 @@ const (
 	DefaultPortalURL                  = "http://portal"
 	DefaultRegistryCtlURL             = "http://registryctl:8080"
 	DefaultClairHealthCheckServerURL  = "http://clair:6061"
+	// Use this prefix to distinguish harbor user,
+	// The prefix contains a specific character($), so it cannot be registered as a harbor user.
+	RobotPrefix                       = "robot$"
 )
 
 // Shared variable, not allowed to modify

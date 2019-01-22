@@ -21,11 +21,8 @@ import (
 	"github.com/goharbor/harbor/src/common/token"
 	"net/http"
 	"strconv"
+	"github.com/goharbor/harbor/src/common"
 )
-
-// User this prefix to distinguish harbor user,
-// The prefix contains a specific character($), so it cannot be registered as a harbor user.
-const RobotPrefix = "robot$"
 
 // RobotAPI ...
 type RobotAPI struct {
@@ -99,7 +96,7 @@ func (r *RobotAPI) Prepare() {
 func (r *RobotAPI) Post() {
 	var robotReq models.RobotReq
 	r.DecodeJSONReq(&robotReq)
-	createdName := RobotPrefix + robotReq.Name
+	createdName := common.RobotPrefix + robotReq.Name
 
 	// first to add a robot account, and get its id.
 	robot := models.Robot{
