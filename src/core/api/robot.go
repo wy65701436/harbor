@@ -120,21 +120,15 @@ func (r *RobotAPI) Post() {
 
 	// generate the token, and return it with response data.
 	// token is not stored in the database.
-	claim := token.Claims{
-		TokenID: id,
-		Policy:  robotReq.Policy,
+	rClaims := &token.RobotClaims{
+		TokenID:   id,
+		ProjectID: r.project.ProjectID,
+		Policy:    robotReq.Policy,
 	}
-	jwt, err := token.NewDefaultHarborJWT()
+	token := token.NewWithClaims(rClaims)
+	rawTk, err := token.SignedString()
 	if err != nil {
-		r.HandleInternalServerError(fmt.Sprintf("failed to init defatule harbor JWT, %v", err))
-		isTokenCreationFail = true
-	}
-	token, err := jwt.Encrypt(&claim)
-	if err != nil {
-		r.HandleInternalServerError(fmt.Sprintf("failed to create token, %v", err))
-		isTokenCreationFail = true
-	}
-	if isTokenCreationFail {
+		r.HandleInternalServerError(fmt.Sprintf("failed to create token for robot account, %v", err))
 		err := dao.DeleteRobot(id)
 		if err != nil {
 			r.HandleInternalServerError(fmt.Sprintf("failed to delete the robot account: %d, %v", id, err))
@@ -144,7 +138,7 @@ func (r *RobotAPI) Post() {
 
 	robotRep := models.RobotRep{
 		Name:  robot.Name,
-		Token: token,
+		Token: rawTk,
 	}
 	r.Redirect(http.StatusCreated, strconv.FormatInt(id, 10))
 	r.Data["json"] = robotRep

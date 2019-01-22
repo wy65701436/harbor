@@ -32,6 +32,7 @@ import (
 	robotCtx "github.com/goharbor/harbor/src/common/security/robot"
 	"github.com/goharbor/harbor/src/common/security/secret"
 	"github.com/goharbor/harbor/src/common/token"
+	"github.com/goharbor/harbor/src/common/token2/util"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/api"
 	"github.com/goharbor/harbor/src/core/auth"
@@ -164,19 +165,16 @@ func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	if !strings.HasPrefix(robotName, api.RobotPrefix) {
 		return false
 	}
-	defaultJwt, err := token.NewDefaultHarborJWT()
-	if err != nil {
-		log.Errorf("failed to get default JWT, %v", err)
-		return false
-	}
-	log.Infof(fmt.Sprintf("got robot token, %v", robotTk))
-	tokenClaim, err := defaultJwt.Decrypt(robotTk)
+	rClaims := &token.RobotClaims{}
+	htk := &token.HToken{}
+	htk, err := token.ParseWithClaims(robotTk, rClaims)
 	if err != nil {
 		log.Errorf("failed to decrypt robot token, %v", err)
 		return false
 	}
+	log.Infof(fmt.Sprintf("got robot token header, %v", htk.Header))
 	// Do authn for robot account, as Harbor only stores the token ID, just validate the ID and disable.
-	robot, err := dao.GetRobotByID(tokenClaim.TokenID)
+	robot, err := dao.GetRobotByID(rClaims.TokenID)
 	if err != nil {
 		log.Errorf("failed to authenticate %s: %v", robotName, err)
 		return false

@@ -1,13 +1,13 @@
-package token
+package token2
 
 import (
-	"crypto/rsa"
-	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"time"
+	"io/ioutil"
+	"fmt"
+	"crypto/rsa"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
-	"io/ioutil"
-	"time"
 )
 
 var (
