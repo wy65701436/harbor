@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// RobotClaims RobotClaims implements the interface of jwt.Claims
+// RobotClaims implements the interface of jwt.Claims
 type RobotClaims struct {
 	TokenID        int64          `json:"ID"`
 	ProjectID      int64          `json:"PID"`
@@ -14,7 +14,7 @@ type RobotClaims struct {
 	StandardClaims *jwt.StandardClaims
 }
 
-// Valid valid the claims "id, product and access".
+// Valid valid the claims "tokenID, projectID and access".
 func (rc RobotClaims) Valid() error {
 
 	if rc.TokenID < 0 {
