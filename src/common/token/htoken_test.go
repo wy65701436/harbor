@@ -87,7 +87,7 @@ func TestSignedString(t *testing.T) {
 	token := NewWithClaims(policy)
 	rawTk, err := token.SignedString()
 
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 	assert.NotNil(t, rawTk)
 }
 

@@ -18,6 +18,6 @@ func TestNewOptions(t *testing.T) {
 func TestGetKey(t *testing.T) {
 	defaultOpt := DefaultOptions
 	key, err := defaultOpt.GetKey()
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 	assert.NotNil(t, key)
 }
