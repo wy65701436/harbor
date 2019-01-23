@@ -72,6 +72,12 @@ func TestMain(m *testing.M) {
 		},
 	}
 
+	log.Infof("POSTGRES_HOST: %s, POSTGRES_USR: %s, POSTGRES_PORT: %d, POSTGRES_PWD: %s\n", dbHost, dbUser, dbPort, dbPassword)
+
+	if err := dao.InitDatabase(database); err != nil {
+		log.Fatalf("failed to initialize database: %v", err)
+	}
+
 	// add project
 	id, err := dao.AddProject(*private)
 	if err != nil {
@@ -79,12 +85,6 @@ func TestMain(m *testing.M) {
 	}
 	private.ProjectID = id
 	defer dao.DeleteProject(id)
-
-	log.Infof("POSTGRES_HOST: %s, POSTGRES_USR: %s, POSTGRES_PORT: %d, POSTGRES_PWD: %s\n", dbHost, dbUser, dbPort, dbPassword)
-
-	if err := dao.InitDatabase(database); err != nil {
-		log.Fatalf("failed to initialize database: %v", err)
-	}
 
 	os.Exit(m.Run())
 }
