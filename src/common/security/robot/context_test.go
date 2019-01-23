@@ -179,7 +179,6 @@ func TestHasAllPerm(t *testing.T) {
 		Description: "desc",
 	}
 
-
 	ctx := NewSecurityContext(robot, pm, policies)
 	assert.True(t, ctx.HasAllPerm(private.ProjectID))
 }
