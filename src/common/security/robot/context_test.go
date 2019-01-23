@@ -30,6 +30,10 @@ import (
 )
 
 var (
+	private = &models.Project{
+		Name:    "testrobot",
+		OwnerID: 1,
+	}
 	pm = promgr.NewDefaultProjectManager(local.NewDriver(), true)
 )
 
@@ -67,6 +71,14 @@ func TestMain(m *testing.M) {
 			Database: dbDatabase,
 		},
 	}
+
+	// add project
+	id, err := dao.AddProject(*private)
+	if err != nil {
+		log.Fatalf("failed to add project: %v", err)
+	}
+	private.ProjectID = id
+	defer dao.DeleteProject(id)
 
 	log.Infof("POSTGRES_HOST: %s, POSTGRES_USR: %s, POSTGRES_PORT: %d, POSTGRES_PWD: %s\n", dbHost, dbUser, dbPort, dbPassword)
 
@@ -122,42 +134,54 @@ func TestIsSolutionUser(t *testing.T) {
 }
 
 func TestHasReadPerm(t *testing.T) {
-	// public project
+
 	rbacPolicy := &rbac.Policy{
-		Resource: "/project/library/image",
+		Resource: "/project/testrobot/image",
 		Action:   "pull",
 	}
 	policies := []*rbac.Policy{}
 	policies = append(policies, rbacPolicy)
+	robot := &models.Robot{
+		Name:        "test_robot_1",
+		Description: "desc",
+	}
 
-	ctx := NewSecurityContext(nil, pm, policies)
-	assert.True(t, ctx.HasReadPerm("library"))
+	ctx := NewSecurityContext(robot, pm, policies)
+	assert.True(t, ctx.HasReadPerm(private.ProjectID))
 }
 
 func TestHasWritePerm(t *testing.T) {
-	// unauthenticated
+
 	rbacPolicy := &rbac.Policy{
-		Resource: "/project/library/image",
+		Resource: "/project/testrobot/image",
 		Action:   "push",
 	}
 	policies := []*rbac.Policy{}
 	policies = append(policies, rbacPolicy)
+	robot := &models.Robot{
+		Name:        "test_robot_2",
+		Description: "desc",
+	}
 
-	ctx := NewSecurityContext(nil, pm, policies)
-	assert.True(t, ctx.HasWritePerm("library"))
+	ctx := NewSecurityContext(robot, pm, policies)
+	assert.True(t, ctx.HasWritePerm(private.ProjectID))
 }
 
 func TestHasAllPerm(t *testing.T) {
-	// unauthenticated
 	rbacPolicy := &rbac.Policy{
-		Resource: "/project/library/image",
-		Action:   "pull+push",
+		Resource: "/project/testrobot/image",
+		Action:   "push+pull",
 	}
 	policies := []*rbac.Policy{}
 	policies = append(policies, rbacPolicy)
+	robot := &models.Robot{
+		Name:        "test_robot_3",
+		Description: "desc",
+	}
 
-	ctx := NewSecurityContext(nil, pm, policies)
-	assert.True(t, ctx.HasAllPerm("library"))
+
+	ctx := NewSecurityContext(robot, pm, policies)
+	assert.True(t, ctx.HasAllPerm(private.ProjectID))
 }
 
 func TestGetMyProjects(t *testing.T) {
