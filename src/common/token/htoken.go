@@ -21,7 +21,7 @@ func NewWithClaims(claims *RobotClaims) *HToken {
 		TokenID:   claims.TokenID,
 		ProjectID: claims.ProjectID,
 		Policy:    claims.Policy,
-		StandardClaims: &jwt.StandardClaims{
+		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(DefaultOptions.TTL).Unix(),
 			Issuer:    DefaultOptions.Issuer,
 		},
