@@ -13,13 +13,13 @@ matrix:
     - UTTEST=true
   - go: 1.11.2
     env:
-    - APITEST_DB=true
+    - APITEST_DB=false
   - go: 1.11.2
     env:
-    - APITEST_LDAP=true
+    - APITEST_LDAP=false
   - go: 1.11.2
     env:
-    - OFFLINE=true
+    - OFFLINE=false
 env:
   global:
   - POSTGRESQL_HOST: localhost
