@@ -9,9 +9,9 @@ import (
 // RobotClaims implements the interface of jwt.Claims
 type RobotClaims struct {
 	jwt.StandardClaims
-	TokenID   int64          `json:"ID"`
-	ProjectID int64          `json:"PID"`
-	Policy    []*rbac.Policy `json:"Access"`
+	TokenID   int64          `json:"id"`
+	ProjectID int64          `json:"pid"`
+	Policy    []*rbac.Policy `json:"access"`
 }
 
 // Valid valid the claims "tokenID, projectID and access".

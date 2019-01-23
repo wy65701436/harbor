@@ -8,8 +8,6 @@ import (
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/stretchr/testify/assert"
 	"os"
-	"path"
-	"runtime"
 	"testing"
 )
 
@@ -22,16 +20,6 @@ func TestMain(m *testing.M) {
 
 	if err := os.Setenv("ADMINSERVER_URL", server.URL); err != nil {
 		panic(err)
-	}
-
-	_, f, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("Failed to get current directory")
-	}
-	keyPath := path.Join(path.Dir(f), "test/private_key.pem")
-
-	if err := os.Setenv("TOKEN_PRIVATE_KEY_PATH", keyPath); err != nil {
-		log.Fatalf("failed to set env %s: %v", "KEY_PATH", err)
 	}
 
 	if err := config.Init(); err != nil {
