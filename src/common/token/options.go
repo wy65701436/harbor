@@ -18,6 +18,7 @@ const (
 
 var (
 	privateKey     = config.TokenPrivateKeyPath()
+	// DefaultOptions ...
 	DefaultOptions = NewOptions()
 )
 
