@@ -1,10 +1,48 @@
 package token
 
 import (
+	"fmt"
 	"github.com/goharbor/harbor/src/common/rbac"
+	"github.com/goharbor/harbor/src/common/utils/log"
+	"github.com/goharbor/harbor/src/common/utils/test"
+	"github.com/goharbor/harbor/src/core/config"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"path"
+	"runtime"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+	server, err := test.NewAdminserver(nil)
+	if err != nil {
+		panic(err)
+	}
+	defer server.Close()
+
+	if err := os.Setenv("ADMINSERVER_URL", server.URL); err != nil {
+		panic(err)
+	}
+
+	_, f, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("Failed to get current directory")
+	}
+	keyPath := path.Join(path.Dir(f), "test/private_key.pem")
+
+	if err := os.Setenv("TOKEN_PRIVATE_KEY_PATH", keyPath); err != nil {
+		log.Fatalf("failed to set env %s: %v", "KEY_PATH", err)
+	}
+
+	if err := config.Init(); err != nil {
+		panic(err)
+	}
+
+	result := m.Run()
+	if result != 0 {
+		os.Exit(result)
+	}
+}
 
 func TestNewWithClaims(t *testing.T) {
 	rbacPolicy := &rbac.Policy{
@@ -39,6 +77,13 @@ func TestSignedString(t *testing.T) {
 		ProjectID: 321,
 		Policy:    policies,
 	}
+
+	keyPath, err := DefaultOptions.GetKey()
+	if err != nil {
+		log.Infof(fmt.Sprintf("get key error, %v", err))
+	}
+	log.Infof(fmt.Sprintf("get the key path, %s, ", keyPath))
+
 	token := NewWithClaims(policy)
 	rawTk, err := token.SignedString()
 
