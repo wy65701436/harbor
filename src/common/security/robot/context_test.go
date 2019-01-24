@@ -147,7 +147,7 @@ func TestHasReadPerm(t *testing.T) {
 	}
 
 	ctx := NewSecurityContext(robot, pm, policies)
-	assert.False(t, ctx.HasReadPerm(private.ProjectID))
+	assert.True(t, ctx.HasReadPerm(private.ProjectID))
 }
 
 func TestHasWritePerm(t *testing.T) {
