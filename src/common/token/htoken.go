@@ -65,10 +65,11 @@ func ParseWithClaims(rawToken string, claims jwt.Claims) (*HToken, error) {
 		}
 	})
 	if err != nil {
+		log.Errorf(fmt.Sprintf("parse token error, %v", err))
 		return nil, err
 	}
 	if !token.Valid {
-		log.Errorf(fmt.Sprintf("parse token error, %v", err))
+		log.Errorf(fmt.Sprintf("invalid jwt token, %v", token))
 		return nil, err
 	}
 	return &HToken{

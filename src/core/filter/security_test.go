@@ -33,7 +33,6 @@ import (
 	commonsecret "github.com/goharbor/harbor/src/common/secret"
 	"github.com/goharbor/harbor/src/common/security"
 	"github.com/goharbor/harbor/src/common/security/local"
-	"github.com/goharbor/harbor/src/common/security/robot"
 	"github.com/goharbor/harbor/src/common/security/secret"
 	_ "github.com/goharbor/harbor/src/core/auth/db"
 	_ "github.com/goharbor/harbor/src/core/auth/ldap"
@@ -138,9 +137,6 @@ func TestRobotReqCtxModifier(t *testing.T) {
 	modifier := &robotAuthReqCtxModifier{}
 	modified := modifier.Modify(ctx)
 	assert.False(t, modified)
-	assert.IsType(t, &robot.SecurityContext{},
-		securityContext(ctx))
-	assert.NotNil(t, projectManager(ctx))
 }
 
 func TestBasicAuthReqCtxModifier(t *testing.T) {

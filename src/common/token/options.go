@@ -68,11 +68,10 @@ func (o *Options) GetKey() (interface{}, error) {
 			}
 		}
 		if privateKey == nil {
-			if publicKey == nil {
-				return nil, fmt.Errorf("key is missing")
+			if publicKey != nil {
+				return publicKey, nil
 			}
-			// Public key only, can verify tokens
-			return publicKey, nil
+			return nil, fmt.Errorf("key is provided")
 		}
 		if publicKey != nil && publicKey.E != privateKey.E && publicKey.N.Cmp(privateKey.N) != 0 {
 			return nil, fmt.Errorf("the public key and private key are not match")
