@@ -164,7 +164,7 @@ func TestHasWritePerm(t *testing.T) {
 	}
 
 	ctx := NewSecurityContext(robot, pm, policies)
-	assert.False(t, ctx.HasWritePerm(private.ProjectID))
+	assert.True(t, ctx.HasWritePerm(private.Name))
 }
 
 func TestHasAllPerm(t *testing.T) {
@@ -180,7 +180,7 @@ func TestHasAllPerm(t *testing.T) {
 	}
 
 	ctx := NewSecurityContext(robot, pm, policies)
-	assert.False(t, ctx.HasAllPerm(private.ProjectID))
+	assert.True(t, ctx.HasAllPerm(private.Name))
 }
 
 func TestGetMyProjects(t *testing.T) {
