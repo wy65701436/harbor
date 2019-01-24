@@ -51,8 +51,6 @@ func ParseWithClaims(rawToken string, claims jwt.Claims) (*HToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("------------")
-	log.Infof(fmt.Sprintf("key is , %v", key))
 	token, err := jwt.ParseWithClaims(rawToken, claims, func(token *jwt.Token) (interface{}, error) {
 		if token.Method.Alg() != DefaultOptions.SignMethod.Alg() {
 			return nil, errors.New("invalid signing method")
@@ -66,9 +64,9 @@ func ParseWithClaims(rawToken string, claims jwt.Claims) (*HToken, error) {
 			return key, nil
 		}
 	})
-	log.Infof("------------")
-	log.Infof(fmt.Sprintf("token is , %v", token))
-
+	if err != nil {
+		return nil, err
+	}
 	if !token.Valid {
 		log.Errorf(fmt.Sprintf("parse token error, %v", err))
 		return nil, err
