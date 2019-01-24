@@ -53,9 +53,9 @@ func TestConfig(t *testing.T) {
 	if err := os.Setenv("KEY_PATH", secretKeyPath); err != nil {
 		t.Fatalf("failed to set env %s: %v", "KEY_PATH", err)
 	}
-	//if err := os.Setenv("TOKEN_PRIVATE_KEY_PATH", ""); err != nil {
+	//  if err := os.Setenv("TOKEN_PRIVATE_KEY_PATH", ""); err != nil {
 	//	t.Fatalf("failed to set env %s: %v", "TOKEN_PRIVATE_KEY_PATH", err)
-	//}
+	//  }
 
 	if err := Init(); err != nil {
 		t.Fatalf("failed to initialize configurations: %v", err)
@@ -188,9 +188,9 @@ func TestConfig(t *testing.T) {
 		t.Errorf("unexpected scan all policy %v", s)
 	}
 
-	//if tokenKeyPath := TokenPrivateKeyPath(); tokenKeyPath != "/etc/core/private_key.pem" {
+	//  if tokenKeyPath := TokenPrivateKeyPath(); tokenKeyPath != "/etc/core/private_key.pem" {
 	//	t.Errorf("Unexpected token private key path: %s, expected: %s", tokenKeyPath, "/etc/core/private_key.pem")
-	//}
+	//  }
 
 	us, err := UAASettings()
 	if err != nil {
