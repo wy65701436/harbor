@@ -15,9 +15,11 @@
 package robot
 
 import (
+	"fmt"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/rbac"
 	"github.com/goharbor/harbor/src/common/rbac/project"
+	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/promgr"
 )
 
@@ -104,6 +106,11 @@ func (s *SecurityContext) Can(action rbac.Action, resource rbac.Resource) bool {
 			isPublicProject, _ := s.pm.IsPublic(projectIDOrName)
 			projectNamespace := rbac.NewProjectNamespace(projectIDOrName, isPublicProject)
 			robot := project.NewRobot(s, projectNamespace)
+			log.Infof("----------------------")
+			log.Infof(fmt.Sprintf("policy, %v", robot.GetPolicies()))
+			log.Infof(fmt.Sprintf("resource, %v", resource))
+			log.Infof(fmt.Sprintf("action, %v", action))
+			log.Infof("----------------------")
 			return rbac.HasPermission(robot, resource, action)
 		}
 	}

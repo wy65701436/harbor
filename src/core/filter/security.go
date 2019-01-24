@@ -173,7 +173,7 @@ func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	}
 	log.Infof(fmt.Sprintf("got robot token header, %v", htk.Header))
 	// Do authn for robot account, as Harbor only stores the token ID, just validate the ID and disable.
-	robot, err := dao.GetRobotByID(rClaims.TokenID)
+	robot, err := dao.GetRobotByID(htk.Claims.(*token.RobotClaims).TokenID)
 	if err != nil {
 		log.Errorf("failed to get robot %s: %v", robotName, err)
 		return false
@@ -192,7 +192,7 @@ func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	}
 	log.Debug("creating robot account security context...")
 	pm := config.GlobalProjectMgr
-	securCtx := robotCtx.NewSecurityContext(robot, pm, rClaims.Policy)
+	securCtx := robotCtx.NewSecurityContext(robot, pm, htk.Claims.(*token.RobotClaims).Policy)
 	setSecurCtxAndPM(ctx.Request, securCtx, pm)
 	return true
 }
