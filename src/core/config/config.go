@@ -199,6 +199,8 @@ func TokenPrivateKeyPath() string {
 	if len(path) == 0 {
 		path = defaultRegistryTokenPrivateKeyPath
 	}
+	log.Infof("---------------")
+	log.Infof(fmt.Sprintf("get path, %s.", path))
 	return path
 }
 
