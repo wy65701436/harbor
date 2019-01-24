@@ -134,9 +134,9 @@ func TestIsSolutionUser(t *testing.T) {
 }
 
 func TestHasReadPerm(t *testing.T) {
-	
+
 	rbacPolicy := &rbac.Policy{
-		Resource: "/project/testrobot/image" ,
+		Resource: "/project/testrobot/image",
 		Action:   "pull",
 	}
 	policies := []*rbac.Policy{}
