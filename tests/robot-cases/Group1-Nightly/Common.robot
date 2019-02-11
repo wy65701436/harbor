@@ -28,6 +28,22 @@ Test Case - Sign With Admin
     Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
     Close Browser
 
+Test Case - Robot Account
+    Init Chrome Driver
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    ${d}=  get current date  result_format=%m%s
+    Create An New Project  project${d}
+    Go Into Project  project${d}  has_image=${false}
+    Capture Page Screenshot  222
+    Goto Project Robot Accounts
+    Capture Page Screenshot  333
+    ${token}=  Create A Robot Account  test001  test001desc
+    Push Image  ${ip}  test001  ${token}  project${d}  busybox:latest
+    Pull Image  ${ip}  test001  ${token}  project${d}  busybox:latest
+    Disable A Robot Account  test001
+    Cannot Pull image  ${ip}  test001  ${token}  project${d}  busybox:latest
+    Close Browser
+
 Test Case - Vulnerability Data Not Ready
 #This case must run before vulnerability db ready
     Init Chrome Driver
