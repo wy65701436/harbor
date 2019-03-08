@@ -43,29 +43,28 @@ func TestAdminJobGet(t *testing.T) {
 func TestConvertToGCRep(t *testing.T) {
 	cases := []struct {
 		input    *common_models.AdminJob
-		expected api_modes.GCRep
+		expected api_modes.AdminJobRep
 	}{
 		{
 			input:    nil,
-			expected: api_modes.GCRep{},
+			expected: api_modes.AdminJobRep{},
 		},
 		{
 			input: &common_models.AdminJob{
 				ID:      1,
 				Name:    "IMAGE_GC",
 				Kind:    "Generic",
-				Cron:    "{\"Type\":\"Manual\",\"Weekday\":0,\"Offtime\":0}",
+				Cron:    "{\"Type\":\"Daily\",\"Cron\":\"20 3 0 * * *\"}",
 				Status:  "pending",
 				Deleted: false,
 			},
-			expected: api_modes.GCRep{
+			expected: api_modes.AdminJobRep{
 				ID:   1,
 				Name: "IMAGE_GC",
 				Kind: "Generic",
 				Schedule: &api_modes.ScheduleParam{
-					Type:    "Manual",
-					Weekday: 0,
-					Offtime: 0,
+					Type: "Daily",
+					Cron: "20 3 0 * * *",
 				},
 				Status:  "pending",
 				Deleted: false,
@@ -74,7 +73,7 @@ func TestConvertToGCRep(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual, _ := convertToGCRep(c.input)
+		actual, _ := AdminJobRep(c.input)
 		assert.EqualValues(t, c.expected, actual)
 	}
 }
