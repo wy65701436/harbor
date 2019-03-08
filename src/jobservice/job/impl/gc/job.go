@@ -119,6 +119,14 @@ func (gc *GarbageCollector) getReadOnly() (bool, error) {
 	return gc.cfgMgr.Get(common.ReadOnly).GetBool(), nil
 }
 
+func (gc *GarbageCollector) getRedisURL() (string, error) {
+
+	if err := gc.cfgMgr.Load(); err != nil {
+		return false, err
+	}
+	return gc.cfgMgr.Get(common.ReadOnly).GetBool(), nil
+}
+
 func (gc *GarbageCollector) setReadOnly(switcher bool) error {
 	cfg := map[string]interface{}{
 		common.ReadOnly: switcher,

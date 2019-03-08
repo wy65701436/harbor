@@ -38,8 +38,9 @@ const (
 	ScheduleNone = "None"
 )
 
-// GCReq holds request information for admin job
-type GCReq struct {
+// AdminJobReq holds request information for admin job
+type AdminJobReq struct {
+	Name       string                 `json:"name"`
 	Schedule   *ScheduleParam         `json:"schedule"`
 	Status     string                 `json:"status"`
 	ID         int64                  `json:"id"`
@@ -56,8 +57,8 @@ type ScheduleParam struct {
 	Offtime int64 `json:"offtime"`
 }
 
-// GCRep holds the response of query gc
-type GCRep struct {
+// type AdminJobRep struct { holds the response of query gc
+type AdminJobRep struct {
 	ID           int64          `json:"id"`
 	Name         string         `json:"job_name"`
 	Kind         string         `json:"job_kind"`
@@ -70,59 +71,59 @@ type GCRep struct {
 }
 
 // Valid validates the gc request
-func (gr *GCReq) Valid(v *validation.Validation) {
-	if gr.Schedule == nil {
+func (ar *AdminJobReq) Valid(v *validation.Validation) {
+	if ar.Schedule == nil {
 		return
 	}
-	switch gr.Schedule.Type {
+	switch ar.Schedule.Type {
 	case ScheduleDaily, ScheduleWeekly:
-		if gr.Schedule.Offtime < 0 || gr.Schedule.Offtime > 3600*24 {
-			v.SetError("offtime", fmt.Sprintf("Invalid schedule trigger parameter offtime: %d", gr.Schedule.Offtime))
+		if ar.Schedule.Offtime < 0 || ar.Schedule.Offtime > 3600*24 {
+			v.SetError("offtime", fmt.Sprintf("Invalid schedule trigger parameter offtime: %d", ar.Schedule.Offtime))
 		}
 	case ScheduleManual, ScheduleNone:
 	default:
-		v.SetError("kind", fmt.Sprintf("Invalid schedule kind: %s", gr.Schedule.Type))
+		v.SetError("kind", fmt.Sprintf("Invalid schedule kind: %s", ar.Schedule.Type))
 	}
 }
 
 // ToJob converts request to a job reconiged by job service.
-func (gr *GCReq) ToJob() (*models.JobData, error) {
+func (ar *AdminJobReq) ToJob() (*models.JobData, error) {
 	metadata := &models.JobMetadata{
-		JobKind: gr.JobKind(),
+		JobKind: ar.JobKind(),
 		// GC job must be unique ...
 		IsUnique: true,
 	}
 
-	switch gr.Schedule.Type {
+	switch ar.Schedule.Type {
 	case ScheduleDaily:
-		h, m, s := utils.ParseOfftime(gr.Schedule.Offtime)
+		h, m, s := utils.ParseOfftime(ar.Schedule.Offtime)
 		metadata.Cron = fmt.Sprintf("%d %d %d * * *", s, m, h)
 	case ScheduleWeekly:
-		h, m, s := utils.ParseOfftime(gr.Schedule.Offtime)
-		metadata.Cron = fmt.Sprintf("%d %d %d * * %d", s, m, h, gr.Schedule.Weekday%7)
+		h, m, s := utils.ParseOfftime(ar.Schedule.Offtime)
+		metadata.Cron = fmt.Sprintf("%d %d %d * * %d", s, m, h, ar.Schedule.Weekday%7)
 	case ScheduleManual, ScheduleNone:
 	default:
-		return nil, fmt.Errorf("unsupported schedule trigger type: %s", gr.Schedule.Type)
+		return nil, fmt.Errorf("unsupported schedule trigger type: %s", ar.Schedule.Type)
 	}
 
 	jobData := &models.JobData{
-		Name:       job.ImageGC,
-		Parameters: gr.Parameters,
+		Name:       ar.Name,
+		Parameters: ar.Parameters,
 		Metadata:   metadata,
 		StatusHook: fmt.Sprintf("%s/service/notifications/jobs/adminjob/%d",
-			config.InternalCoreURL(), gr.ID),
+			config.InternalCoreURL(), ar.ID),
 	}
 	return jobData, nil
 }
 
 // IsPeriodic ...
-func (gr *GCReq) IsPeriodic() bool {
-	return gr.JobKind() == job.JobKindPeriodic
+func (ar *AdminJobReq) IsPeriodic() bool {
+	return ar.JobKind() == job.JobKindPeriodic
 }
 
 // JobKind ...
-func (gr *GCReq) JobKind() string {
-	switch gr.Schedule.Type {
+func (ar *AdminJobReq) JobKind() string {
+	switch ar.Schedule.Type {
 	case ScheduleDaily, ScheduleWeekly:
 		return job.JobKindPeriodic
 	case ScheduleManual:
@@ -133,8 +134,8 @@ func (gr *GCReq) JobKind() string {
 }
 
 // CronString ...
-func (gr *GCReq) CronString() string {
-	str, err := json.Marshal(gr.Schedule)
+func (ar *AdminJobReq) CronString() string {
+	str, err := json.Marshal(ar.Schedule)
 	if err != nil {
 		log.Debugf("failed to marshal json error, %v", err)
 		return ""
