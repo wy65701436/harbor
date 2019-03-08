@@ -22,16 +22,20 @@ import (
 	"github.com/astaxie/beego/validation"
 	"github.com/goharbor/harbor/src/common/job"
 	"github.com/goharbor/harbor/src/common/job/models"
-	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
+	"github.com/robfig/cron"
 )
 
 const (
+	// ScheduleHourly : 'Hourly'
+	ScheduleHourly = "Hourly"
 	// ScheduleDaily : 'Daily'
 	ScheduleDaily = "Daily"
 	// ScheduleWeekly : 'Weekly'
 	ScheduleWeekly = "Weekly"
+	// ScheduleCustom : 'Custom'
+	ScheduleCustom = "Custom"
 	// ScheduleManual : 'Manual'
 	ScheduleManual = "Manual"
 	// ScheduleNone : 'None'
@@ -49,12 +53,10 @@ type AdminJobReq struct {
 
 // ScheduleParam defines the parameter of schedule trigger
 type ScheduleParam struct {
-	// Daily, Weekly, Manual, None
+	// Daily, Weekly, Custom, Manual, None
 	Type string `json:"type"`
-	// Optional, only used when type is 'weekly'
-	Weekday int8 `json:"weekday"`
-	// The time offset with the UTC 00:00 in seconds
-	Offtime int64 `json:"offtime"`
+	// The cron string of scheduled job
+	Cron string `json:"cron"`
 }
 
 // type AdminJobRep struct { holds the response of query gc
@@ -76,9 +78,9 @@ func (ar *AdminJobReq) Valid(v *validation.Validation) {
 		return
 	}
 	switch ar.Schedule.Type {
-	case ScheduleDaily, ScheduleWeekly:
-		if ar.Schedule.Offtime < 0 || ar.Schedule.Offtime > 3600*24 {
-			v.SetError("offtime", fmt.Sprintf("Invalid schedule trigger parameter offtime: %d", ar.Schedule.Offtime))
+	case ScheduleHourly, ScheduleDaily, ScheduleWeekly, ScheduleCustom:
+		if _, err := cron.Parse(ar.Schedule.Cron); err != nil {
+			v.SetError("cron", fmt.Sprintf("Invalid schedule trigger parameter cron: %s", ar.Schedule.Cron))
 		}
 	case ScheduleManual, ScheduleNone:
 	default:
@@ -87,33 +89,22 @@ func (ar *AdminJobReq) Valid(v *validation.Validation) {
 }
 
 // ToJob converts request to a job reconiged by job service.
-func (ar *AdminJobReq) ToJob() (*models.JobData, error) {
+func (ar *AdminJobReq) ToJob() *models.JobData {
 	metadata := &models.JobMetadata{
 		JobKind: ar.JobKind(),
+		Cron:    ar.Schedule.Cron,
 		// GC job must be unique ...
 		IsUnique: true,
 	}
 
-	switch ar.Schedule.Type {
-	case ScheduleDaily:
-		h, m, s := utils.ParseOfftime(ar.Schedule.Offtime)
-		metadata.Cron = fmt.Sprintf("%d %d %d * * *", s, m, h)
-	case ScheduleWeekly:
-		h, m, s := utils.ParseOfftime(ar.Schedule.Offtime)
-		metadata.Cron = fmt.Sprintf("%d %d %d * * %d", s, m, h, ar.Schedule.Weekday%7)
-	case ScheduleManual, ScheduleNone:
-	default:
-		return nil, fmt.Errorf("unsupported schedule trigger type: %s", ar.Schedule.Type)
-	}
-
 	jobData := &models.JobData{
-		Name:       ar.Name,
+		Name:       job.ImageGC,
 		Parameters: ar.Parameters,
 		Metadata:   metadata,
 		StatusHook: fmt.Sprintf("%s/service/notifications/jobs/adminjob/%d",
 			config.InternalCoreURL(), ar.ID),
 	}
-	return jobData, nil
+	return jobData
 }
 
 // IsPeriodic ...
@@ -124,7 +115,7 @@ func (ar *AdminJobReq) IsPeriodic() bool {
 // JobKind ...
 func (ar *AdminJobReq) JobKind() string {
 	switch ar.Schedule.Type {
-	case ScheduleDaily, ScheduleWeekly:
+	case ScheduleHourly, ScheduleDaily, ScheduleWeekly, ScheduleCustom:
 		return job.JobKindPeriodic
 	case ScheduleManual:
 		return job.JobKindGeneric

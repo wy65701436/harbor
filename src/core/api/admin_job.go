@@ -209,11 +209,7 @@ func (aj *AJAPI) submitAdminJob(ajr *models.AdminJobReq) {
 		return
 	}
 	ajr.ID = id
-	job, err := ajr.ToJob()
-	if err != nil {
-		aj.HandleInternalServerError(fmt.Sprintf("%v", err))
-		return
-	}
+	job := ajr.ToJob()
 
 	// submit job to jobservice
 	log.Debugf("submitting admin job to jobservice")
