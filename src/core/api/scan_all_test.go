@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var adminJob001 apilib.AdminJobReq
-var adminJob001schdeule apilib.ScheduleParam
+var adminJob002 apilib.AdminJobReq
+var adminJob002schdeule apilib.ScheduleParam
 
-func TestGCPost(t *testing.T) {
+func TestScanAllPost(t *testing.T) {
 
 	assert := assert.New(t)
 	apiTest := newHarborAPI()
@@ -25,7 +25,7 @@ func TestGCPost(t *testing.T) {
 	}
 }
 
-func TestGCGet(t *testing.T) {
+func TestScanAllGet(t *testing.T) {
 	assert := assert.New(t)
 	apiTest := newHarborAPI()
 
