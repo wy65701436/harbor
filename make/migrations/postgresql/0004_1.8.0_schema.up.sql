@@ -13,6 +13,15 @@ CREATE TABLE robot (
 
 CREATE TRIGGER robot_update_time_at_modtime BEFORE UPDATE ON robot FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
 
+/*add clipassword table*/
+CREATE TABLE clipassword (
+ id SERIAL PRIMARY KEY NOT NULL,
+ user_id int NOT NULL,
+ password varchar(40) NOT NULL,
+ salt varchar(40) DEFAULT NULL,
+ creation_time timestamp default CURRENT_TIMESTAMP
+);
+
 /*add master role*/
 INSERT INTO role (role_code, name) VALUES ('DRWS', 'master');
 
@@ -24,3 +33,4 @@ WHERE j.policy_id = p.id AND p.deleted = TRUE;
 /*delete replication policy which has been marked as "deleted"*/
 DELETE FROM replication_policy AS p
 WHERE p.deleted = TRUE;
+

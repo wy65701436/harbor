@@ -15,29 +15,22 @@
 package models
 
 import (
-	"github.com/astaxie/beego/orm"
+	"time"
 )
 
-func init() {
-	orm.RegisterModel(new(RepTarget),
-		new(RepPolicy),
-		new(RepJob),
-		new(User),
-		new(Project),
-		new(Role),
-		new(AccessLog),
-		new(ScanJob),
-		new(RepoRecord),
-		new(ImgScanOverview),
-		new(ClairVulnTimestamp),
-		new(WatchItem),
-		new(ProjectMetadata),
-		new(ConfigEntry),
-		new(Label),
-		new(ResourceLabel),
-		new(UserGroup),
-		new(AdminJob),
-		new(JobLog),
-		new(Robot),
-		new(Clipassword))
+// ClipasswordTable is the name of table in DB that holds the robot object
+const ClipasswordTable = "clipassword"
+
+// Clipassword holds the details of a clipassword.
+type Clipassword struct {
+	ID           int64     `orm:"pk;auto;column(id)" json:"id"`
+	UserID       int       `orm:"column(user_id)" json:"user_id"`
+	Password     string    `orm:"column(password)" json:"password"`
+	Salt         string    `orm:"column(salt)" json:"-"`
+	CreationTime time.Time `orm:"column(creation_time);auto_now_add" json:"creation_time"`
+}
+
+// TableName ...
+func (cli *Clipassword) TableName() string {
+	return ClipasswordTable
 }

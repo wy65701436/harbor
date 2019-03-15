@@ -29,6 +29,7 @@ import (
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
+	"github.com/pkg/errors"
 )
 
 // UserAPI handles request to /api/users/{}
@@ -429,6 +430,76 @@ func (ua *UserAPI) ListUserPermissions() {
 	ua.Data["json"] = results
 	ua.ServeJSON()
 	return
+}
+
+// CreateCliPwd ...
+func (ua *UserAPI) CreateCliPwd() {
+	if !ua.modifiable() {
+		ua.RenderError(http.StatusForbidden, fmt.Sprintf("User with ID: %d is not modifiable", ua.userID))
+		return
+	}
+
+	clipwd, err := dao.GetClipasswordByUserId(ua.userID)
+	if err != nil {
+		ua.HandleInternalServerError(fmt.Sprintf("failed to get clipassword %d: %v", ua.userID, err))
+		return
+	}
+	if clipwd != nil {
+		ua.SendConflictError(errors.New("Cannot create multiple clipassword"))
+		return
+	}
+
+	newclipwd := models.Clipassword{
+		UserID: ua.userID,
+	}
+
+	id, err := dao.AddClipassword(&newclipwd)
+	if err != nil {
+		if err == dao.ErrDupRows {
+			ua.HandleConflict()
+			return
+		}
+		ua.HandleInternalServerError(fmt.Sprintf("failed to create robot account: %v", err))
+		return
+	}
+
+	ua.Redirect(http.StatusCreated, strconv.FormatInt(id, 10))
+	ua.ServeJSON()
+}
+
+// GetCliPwd ...
+func (ua *UserAPI) GetCliPwd() {
+	if !ua.modifiable() {
+		ua.RenderError(http.StatusForbidden, fmt.Sprintf("User with ID: %d is not modifiable", ua.userID))
+		return
+	}
+
+	clipwd, err := dao.GetClipasswordByUserId(ua.userID)
+	if err != nil {
+		ua.HandleInternalServerError(fmt.Sprintf("failed to get clipassword %d: %v", ua.userID, err))
+		return
+	}
+	if clipwd == nil {
+		ua.HandleNotFound(fmt.Sprintf("user %d clipassword not found", ua.userID))
+		return
+	}
+
+	ua.Data["json"] = clipwd
+	ua.ServeJSON()
+}
+
+// DeleteCliPwd ...
+func (ua *UserAPI) DeleteCliPwd() {
+	if !ua.modifiable() {
+		ua.RenderError(http.StatusForbidden, fmt.Sprintf("User with ID: %d is not modifiable", ua.userID))
+		return
+	}
+
+	err := dao.DeleteClipasswordByUserId(ua.userID)
+	if err != nil {
+		ua.SendInternalServerError(err)
+		return
+	}
 }
 
 // modifiable returns whether the modify is allowed based on current auth mode and context
