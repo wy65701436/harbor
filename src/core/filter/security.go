@@ -39,6 +39,12 @@ import (
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/core/promgr/pmsdriver/admiral"
 	"strings"
+
+	k8s_client_v1beta1 "k8s.io/client-go/kubernetes/typed/authentication/v1beta1"
+	k8s_api_v1beta1 "k8s.io/api/authentication/v1beta1"
+	k8s_rest "k8s.io/client-go/rest"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ContextValueKey for content value
@@ -100,6 +106,7 @@ func Init() {
 	// standalone
 	reqCtxModifiers = []ReqCtxModifier{
 		&secretReqCtxModifier{config.SecretStore},
+		&authProxyReqCtxModifier{},
 		&robotAuthReqCtxModifier{},
 		&basicAuthReqCtxModifier{},
 		&sessionReqCtxModifier{},
@@ -191,6 +198,54 @@ func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	pm := config.GlobalProjectMgr
 	securCtx := robotCtx.NewSecurityContext(robot, pm, htk.Claims.(*token.RobotClaims).Access)
 	setSecurCtxAndPM(ctx.Request, securCtx, pm)
+	return true
+}
+
+type authProxyReqCtxModifier struct{}
+
+func (ap *authProxyReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
+	proxyUserName, proxyPwd, ok := ctx.Request.BasicAuth()
+	if !ok {
+		return false
+	}
+	if !ap.matchAuthProxyUserName(proxyUserName) {
+		log.Infof("User name doesn't meet the auth proxy name pattern")
+		return false
+	}
+	k8sCfg := k8s_rest.Config{
+		Host:        "https://10.192.113.170:8443/wcp/tokenreview",
+		BearerToken: proxyPwd,
+	}
+	k8s_auth_client, err := k8s_client_v1beta1.NewForConfig(&k8sCfg)
+	if err != nil {
+		log.Error("fail to create auth client for k8s")
+		return false
+	}
+
+	typeMeta := metav1.TypeMeta{
+		Kind:       "TokenReview",
+		APIVersion: "authentication.k8s.io/v1beta1",
+	}
+
+	spec := k8s_api_v1beta1.TokenReviewSpec{
+		Token: proxyPwd,
+	}
+
+	token_review_request := k8s_api_v1beta1.TokenReview{
+		TypeMeta: typeMeta,
+		Spec: spec,
+	}
+
+	token_review_response, err := k8s_auth_client.TokenReviews().Create(&token_review_request)
+	if err != nil {
+		log.Error("fail to auth the token review, %v", err)
+		return false
+	}
+	log.Infof(fmt.Sprintf("%v ", token_review_response))
+	return true
+}
+
+func (ap *authProxyReqCtxModifier) matchAuthProxyUserName(name string) bool {
 	return true
 }
 
@@ -402,3 +457,5 @@ func GetProjectManager(req *http.Request) (promgr.ProjectManager, error) {
 
 	return p, nil
 }
+
+
