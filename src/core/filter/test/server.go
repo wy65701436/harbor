@@ -66,7 +66,7 @@ func NewAuthProxyTestServer() (*httptest.Server, error) {
 			Status: status{
 				true,
 				userInfo{
-					Username: review.Status.User.Username,
+					Username: "administrator@vsphere.local",
 					UID:      review.Status.User.UID,
 					Groups:   review.Status.User.Groups,
 					Extra:    extra,
