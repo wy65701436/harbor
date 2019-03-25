@@ -131,6 +131,7 @@ var (
 		{Name: "uaa_verify_cert", Scope: UserScope, Group: UAAGroup, EnvKey: "UAA_VERIFY_CERT", DefaultValue: "false", ItemType: &BoolType{}, Editable: false},
 
 		{Name: common.HTTPAuthProxyEndpoint, Scope: UserScope, Group: HTTPAuthGroup, EnvKey: "HTTP_AUTHPROXY_ENDPOINT", DefaultValue: "", ItemType: &StringType{}, Editable: false},
+		{Name: common.HTTPAuthProxyTokenReviewEndpoint, Scope: UserScope, Group: HTTPAuthGroup, EnvKey: "HTTP_AUTHPROXY_TOKENREVIEW_ENDPOINT", DefaultValue: "", ItemType: &StringType{}, Editable: false},
 		{Name: common.HTTPAuthProxySkipCertVerify, Scope: UserScope, Group: HTTPAuthGroup, EnvKey: "HTTP_AUTHPROXY_SKIP_CERT_VERIFY", DefaultValue: "false", ItemType: &BoolType{}, Editable: false},
 		{Name: common.HTTPAuthProxyAlwaysOnboard, Scope: UserScope, Group: HTTPAuthGroup, EnvKey: "HTTP_AUTHPROXY_ALWAYS_ONBOARD", DefaultValue: "false", ItemType: &BoolType{}, Editable: false},
 
