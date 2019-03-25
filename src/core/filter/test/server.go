@@ -1,12 +1,12 @@
 package test
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"k8s.io/api/authentication/v1beta1"
 	"net/http"
 	"net/http/httptest"
-	"k8s.io/api/authentication/v1beta1"
-	"io/ioutil"
-	"fmt"
-	"encoding/json"
 	"net/url"
 )
 
@@ -88,4 +88,3 @@ func NewAuthProxyTestServer() (*httptest.Server, error) {
 
 	return server, nil
 }
-

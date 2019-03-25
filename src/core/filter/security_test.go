@@ -44,7 +44,6 @@ import (
 	"github.com/goharbor/harbor/src/common"
 
 	fiter_test "github.com/goharbor/harbor/src/core/filter/test"
-
 )
 
 func TestMain(m *testing.M) {
