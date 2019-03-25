@@ -268,3 +268,38 @@ func CleanUser(id int64) error {
 	}
 	return nil
 }
+
+// OnBoardOIDCUser onboard oidc user will check exist of sub in the ID token, and add new user and metadata.
+func OnBoardOIDCUser(username string) error {
+	u, err := GetUser(models.User{
+		Username: username,
+	})
+	log.Debugf("Check if user %s is super user", username)
+	if err != nil {
+		return err
+	}
+
+	var userSub string
+
+	// user exist, then to check user's sub
+	if u != nil {
+		userMetadatas, err := GetOIDCUserMetadata(u.UserID, "sub")
+		if err != nil {
+			return err
+		}
+
+		m := map[string]string{}
+		for _, userMeta := range userMetadatas {
+			m[userMeta.Name] = userMeta.Value
+		}
+
+		userSub = m["sub"]
+		if userSub == "" {
+			return errors.New(fmt.Sprintf("has no sub for the onboarded oidc user %s", u.Username))
+		}
+	} else {
+
+	}
+
+	return nil
+}

@@ -43,7 +43,7 @@ func UpdateOIDCUserMetadata(meta *models.OIDCUserMetaData) error {
 }
 
 // GetOIDCUserMetadata returns the metadata of a oidc user.
-func GetOIDCUserMetadata(userID int64, name ...string) ([]*models.OIDCUserMetaData, error) {
+func GetOIDCUserMetadata(userID int, name ...string) ([]*models.OIDCUserMetaData, error) {
 	oidcUserMetas := []*models.OIDCUserMetaData{}
 	params := make([]interface{}, 1)
 
