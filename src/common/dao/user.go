@@ -299,10 +299,10 @@ func OnBoardOIDCUser(username, sub string) error {
 		if userSub != sub {
 			err := UpdateOIDCUserMetadata(&models.OIDCUserMetaData{
 				UserID: u.UserID,
-				Name: "sub",
-				Value: sub,
+				Name:   "sub",
+				Value:  sub,
 			})
-			if err != nil{
+			if err != nil {
 				return err
 			}
 		}
@@ -322,8 +322,8 @@ func OnBoardOIDCUser(username, sub string) error {
 		}
 		userMeta := models.OIDCUserMetaData{
 			UserID: int(userID),
-			Name: "sub",
-			Value: sub,
+			Name:   "sub",
+			Value:  sub,
 		}
 		_, err = o.Insert(&userMeta)
 		if err != nil {

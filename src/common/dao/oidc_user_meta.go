@@ -29,8 +29,8 @@ func AddOIDCUserMetadata(meta *models.OIDCUserMetaData) error {
 				 values (?, ?, ?, ?, ?)`
 	_, err := GetOrmer().Raw(sql, meta.UserID, meta.Name, meta.Value,
 		now, now).Exec()
-	return err}
-
+	return err
+}
 
 // UpdateOIDCUserMetadata updates metadata of a oidc user
 func UpdateOIDCUserMetadata(meta *models.OIDCUserMetaData) error {
