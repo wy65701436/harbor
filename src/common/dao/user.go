@@ -270,18 +270,17 @@ func CleanUser(id int64) error {
 }
 
 // OnBoardOIDCUser onboard oidc user will check exist of sub in the ID token, and add new user and metadata.
-func OnBoardOIDCUser(username string) error {
+func OnBoardOIDCUser(username, sub string) error {
 	u, err := GetUser(models.User{
 		Username: username,
 	})
-	log.Debugf("Check if user %s is super user", username)
+	log.Debugf("Check if user %s exist", username)
 	if err != nil {
 		return err
 	}
 
-	var userSub string
-
-	// user exist, then to check user's sub
+	// If user exists, then to check user's sub
+	// If user doesn't exist, then to onboard user.
 	if u != nil {
 		userMetadatas, err := GetOIDCUserMetadata(u.UserID, "sub")
 		if err != nil {
@@ -293,12 +292,48 @@ func OnBoardOIDCUser(username string) error {
 			m[userMeta.Name] = userMeta.Value
 		}
 
-		userSub = m["sub"]
+		userSub := m["sub"]
 		if userSub == "" {
 			return errors.New(fmt.Sprintf("has no sub for the onboarded oidc user %s", u.Username))
 		}
+		if userSub != sub {
+			err := UpdateOIDCUserMetadata(&models.OIDCUserMetaData{
+				UserID: u.UserID,
+				Name: "sub",
+				Value: sub,
+			})
+			if err != nil{
+				return err
+			}
+		}
 	} else {
-
+		o := GetOrmer()
+		err := o.Begin()
+		if err != nil {
+			return err
+		}
+		user := models.User{
+			Username: username,
+		}
+		userID, err := o.Insert(&user)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		userMeta := models.OIDCUserMetaData{
+			UserID: int(userID),
+			Name: "sub",
+			Value: sub,
+		}
+		_, err = o.Insert(&userMeta)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		err = o.Commit()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
