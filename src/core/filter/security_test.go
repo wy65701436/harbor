@@ -146,7 +146,7 @@ func TestAutoProxyReqCtxModifier(t *testing.T) {
 		common.HTTPAuthProxyAlwaysOnboard:       "true",
 		common.HTTPAuthProxySkipCertVerify:      "true",
 		common.HTTPAuthProxyEndpoint:            "https://auth.proxy/suffix",
-		common.HTTPAuthProxyTokenReviewEndpoint: server.URL + "/authproxy/tokenreview",
+		common.HTTPAuthProxyTokenReviewEndpoint: server.URL,
 		common.AUTHMode:                         common.HTTPAuth,
 	}
 
@@ -157,7 +157,7 @@ func TestAutoProxyReqCtxModifier(t *testing.T) {
 		Endpoint:            "https://auth.proxy/suffix",
 		AlwaysOnBoard:       true,
 		SkipCertVerify:      true,
-		TokenReviewEndpoint: "https://127.0.0.1/authproxy/tokenreview",
+		TokenReviewEndpoint: server.URL,
 	})
 
 	err = dao.OnBoardUser(&models.User{
