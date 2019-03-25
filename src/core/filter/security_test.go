@@ -42,6 +42,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/goharbor/harbor/src/common"
+	"github.com/goharbor/harbor/src/common/dao"
 
 	fiter_test "github.com/goharbor/harbor/src/core/filter/test"
 )
@@ -142,6 +143,7 @@ func TestAutoProxyReqCtxModifier(t *testing.T) {
 		common.HTTPAuthProxySkipCertVerify:      "true",
 		common.HTTPAuthProxyEndpoint:            "https://auth.proxy/suffix",
 		common.HTTPAuthProxyTokenReviewEndpoint: "https://127.0.0.1/authproxy/tokenreview",
+		common.AUTHMode:                         common.DBAuth,
 	}
 
 	config.Upload(c)
@@ -157,12 +159,17 @@ func TestAutoProxyReqCtxModifier(t *testing.T) {
 	_, err := fiter_test.NewAuthProxyTestServer()
 	assert.Nil(t, err)
 
+	err = dao.OnBoardUser(&models.User{
+		Username: "administrator@vsphere.local",
+	})
+	assert.Nil(t, err)
+
 	req, err := http.NewRequest(http.MethodGet,
 		"http://127.0.0.1/service/token", nil)
 	if err != nil {
 		t.Fatalf("failed to create request: %v", req)
 	}
-	req.SetBasicAuth("tokenreview$admin", "Harbor12345")
+	req.SetBasicAuth("tokenreview$administrator@vsphere.local", "reviEwt0k3n")
 	ctx, err := newContext(req)
 	if err != nil {
 		t.Fatalf("failed to crate context: %v", err)

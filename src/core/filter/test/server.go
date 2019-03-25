@@ -64,7 +64,7 @@ func NewAuthProxyTestServer() (*httptest.Server, error) {
 			Kind:       "TokenReview",
 			APIVersion: v1beta1.SchemeGroupVersion.String(),
 			Status: status{
-				review.Status.Authenticated,
+				true,
 				userInfo{
 					Username: review.Status.User.Username,
 					UID:      review.Status.User.UID,
