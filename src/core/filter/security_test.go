@@ -143,7 +143,7 @@ func TestAutoProxyReqCtxModifier(t *testing.T) {
 		common.HTTPAuthProxySkipCertVerify:      "true",
 		common.HTTPAuthProxyEndpoint:            "https://auth.proxy/suffix",
 		common.HTTPAuthProxyTokenReviewEndpoint: "https://127.0.0.1/authproxy/tokenreview",
-		common.AUTHMode:                         common.DBAuth,
+		common.AUTHMode:                         common.HTTPAuth,
 	}
 
 	config.Upload(c)
