@@ -211,15 +211,18 @@ func (ap *authProxyReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	authMode, err := config.AuthMode()
 	if err != nil {
 		log.Errorf("fail to get auth mode, %v", err)
+		log.Info("1111111111")
 		return false
 	}
 	if authMode != common.HTTPAuth {
+		log.Info("22222222222")
 		return false
 	}
 
 	// only support docker login
 	if ctx.Request.URL.Path != "/service/token" {
 		log.Debug("Auth proxy modifier only handles docker login request.")
+		log.Info("333333333333")
 		return false
 	}
 
@@ -230,12 +233,14 @@ func (ap *authProxyReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 
 	rawUserName, match := ap.matchAuthProxyUserName(proxyUserName)
 	if !match {
+		log.Info("4444444444")
 		log.Errorf("User name %s doesn't meet the auth proxy name pattern", proxyUserName)
 		return false
 	}
 
 	httpAuthProxyConf, err := config.HTTPAuthProxySetting()
 	if err != nil {
+		log.Info("55555555555")
 		log.Errorf("fail to get auth proxy settings, %v", err)
 		return false
 	}
@@ -254,6 +259,7 @@ func (ap *authProxyReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	}
 	authClient, err := rest.RESTClientFor(authClientCfg)
 	if err != nil {
+		log.Info("666666666")
 		log.Errorf("fail to create auth client, %v", err)
 		return false
 	}
@@ -271,6 +277,7 @@ func (ap *authProxyReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 	res := authClient.Post().Body(tokenReviewRequest).Do()
 	err = res.Error()
 	if err != nil {
+		log.Info("7777777777")
 		log.Errorf("fail to POST auth request, %v", err)
 		return false
 	}
