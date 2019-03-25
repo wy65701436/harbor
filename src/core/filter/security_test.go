@@ -138,11 +138,15 @@ func TestRobotReqCtxModifier(t *testing.T) {
 
 func TestAutoProxyReqCtxModifier(t *testing.T) {
 
+	server, err := fiter_test.NewAuthProxyTestServer()
+	assert.Nil(t, err)
+	defer server.Close()
+
 	c := map[string]interface{}{
 		common.HTTPAuthProxyAlwaysOnboard:       "true",
 		common.HTTPAuthProxySkipCertVerify:      "true",
 		common.HTTPAuthProxyEndpoint:            "https://auth.proxy/suffix",
-		common.HTTPAuthProxyTokenReviewEndpoint: "https://127.0.0.1/authproxy/tokenreview",
+		common.HTTPAuthProxyTokenReviewEndpoint: server.URL + "/authproxy/tokenreview",
 		common.AUTHMode:                         common.HTTPAuth,
 	}
 
@@ -155,9 +159,6 @@ func TestAutoProxyReqCtxModifier(t *testing.T) {
 		SkipCertVerify:      true,
 		TokenReviewEndpoint: "https://127.0.0.1/authproxy/tokenreview",
 	})
-
-	_, err := fiter_test.NewAuthProxyTestServer()
-	assert.Nil(t, err)
 
 	err = dao.OnBoardUser(&models.User{
 		Username: "administrator@vsphere.local",
