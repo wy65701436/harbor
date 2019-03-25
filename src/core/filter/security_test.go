@@ -155,7 +155,7 @@ func TestAutoProxyReqCtxModifier(t *testing.T) {
 	})
 
 	_, err := fiter_test.NewAuthProxyTestServer()
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 
 	req, err := http.NewRequest(http.MethodGet,
 		"http://127.0.0.1/service/token", nil)
