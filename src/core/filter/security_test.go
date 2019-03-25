@@ -40,6 +40,11 @@ import (
 	"github.com/goharbor/harbor/src/core/promgr"
 	driver_local "github.com/goharbor/harbor/src/core/promgr/pmsdriver/local"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/goharbor/harbor/src/common"
+
+	fiter_test "github.com/goharbor/harbor/src/core/filter/test"
+
 )
 
 func TestMain(m *testing.M) {
@@ -129,6 +134,44 @@ func TestRobotReqCtxModifier(t *testing.T) {
 	modifier := &robotAuthReqCtxModifier{}
 	modified := modifier.Modify(ctx)
 	assert.False(t, modified)
+}
+
+func TestAutoProxyReqCtxModifier(t *testing.T) {
+
+	c := map[string]interface{}{
+		common.HTTPAuthProxyAlwaysOnboard:       "true",
+		common.HTTPAuthProxySkipCertVerify:      "true",
+		common.HTTPAuthProxyEndpoint:            "https://auth.proxy/suffix",
+		common.HTTPAuthProxyTokenReviewEndpoint: "https://127.0.0.1/authproxy/tokenreview",
+	}
+
+	config.Upload(c)
+	v, e := config.HTTPAuthProxySetting()
+	assert.Nil(t, e)
+	assert.Equal(t, *v, models.HTTPAuthProxy{
+		Endpoint:            "https://auth.proxy/suffix",
+		AlwaysOnBoard:       true,
+		SkipCertVerify:      true,
+		TokenReviewEndpoint: "https://127.0.0.1/authproxy/tokenreview",
+	})
+
+	_, err := fiter_test.NewAuthProxyTestServer()
+	assert.NotNil(t, err)
+
+	req, err := http.NewRequest(http.MethodGet,
+		"http://127.0.0.1/service/token", nil)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", req)
+	}
+	req.SetBasicAuth("tokenreview$admin", "Harbor12345")
+	ctx, err := newContext(req)
+	if err != nil {
+		t.Fatalf("failed to crate context: %v", err)
+	}
+
+	modifier := &authProxyReqCtxModifier{}
+	modified := modifier.Modify(ctx)
+	assert.True(t, modified)
 }
 
 func TestBasicAuthReqCtxModifier(t *testing.T) {
