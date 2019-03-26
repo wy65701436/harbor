@@ -269,7 +269,7 @@ func CleanUser(id int64) error {
 	return nil
 }
 
-// OnBoardOIDCUser onboard oidc user will check exist of sub in the ID token, and add new user and metadata.
+// OnBoardOIDCUser onboard OIDC user, insert use to harbor_user and sub into oidc_user_metadata
 func OnBoardOIDCUser(username, sub string) error {
 	u, err := GetUser(models.User{
 		Username: username,
@@ -279,8 +279,8 @@ func OnBoardOIDCUser(username, sub string) error {
 		return err
 	}
 
-	// If user exists, then to check user's sub
-	// If user doesn't exist, then to onboard user.
+	// If user exists, then check user's sub
+	// If user doesn't exist, then onboard user.
 	if u != nil {
 		userMetadatas, err := GetOIDCUserMetadata(u.UserID, "sub")
 		if err != nil {

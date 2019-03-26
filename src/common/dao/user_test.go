@@ -90,3 +90,28 @@ func TestOnBoardUser(t *testing.T) {
 	assert.True(u.UserID == id)
 	CleanUser(int64(id))
 }
+
+func TestOnBoardOIDCUser(t *testing.T) {
+	assert := assert.New(t)
+
+	err := OnBoardOIDCUser("oidcuser1", "oidcsub1")
+	assert.Nil(err)
+	user, err := GetUser(models.User{
+		Username: "oidcuser1",
+	})
+	assert.Nil(err)
+	assert.Equal(t, user.Username, "oidcuser1")
+
+	err = OnBoardOIDCUser("oidcuser1", "oidcsub2")
+	assert.Nil(err)
+
+	metas, err := GetOIDCUserMetadata(user.UserID, "sub", "oidcsub2")
+	assert.Nil(err)
+
+	m := map[string]string{}
+	for _, userMeta := range metas {
+		m[userMeta.Name] = userMeta.Value
+	}
+	assert.Equal(t, m["sub"], "oidcsub2")
+
+}
