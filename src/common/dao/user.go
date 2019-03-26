@@ -282,7 +282,7 @@ func OnBoardOIDCUser(username, sub string) error {
 	// If user exists, then check user's sub
 	// If user doesn't exist, then onboard user.
 	if u != nil {
-		userMetadatas, err := GetOIDCUserMetadata(u.UserID, "sub")
+		userMetadatas, err := GetOIDCUser(u)
 		if err != nil {
 			return err
 		}
@@ -297,7 +297,7 @@ func OnBoardOIDCUser(username, sub string) error {
 			return errors.New(fmt.Sprintf("has no sub for the onboarded oidc user %s", u.Username))
 		}
 		if userSub != sub {
-			err := UpdateOIDCUserMetadata(&models.OIDCUserMetaData{
+			err := UpdateOIDCUserMetadata(&models.OIDCUser{
 				UserID: u.UserID,
 				Name:   "sub",
 				Value:  sub,
@@ -320,7 +320,7 @@ func OnBoardOIDCUser(username, sub string) error {
 			log.Error(fmt.Errorf("fail to insert user, %v", err))
 			o.Rollback()
 		}
-		userMeta := models.OIDCUserMetaData{
+		userMeta := models.OIDCUser{
 			UserID: int(userID),
 			Name:   "sub",
 			Value:  sub,

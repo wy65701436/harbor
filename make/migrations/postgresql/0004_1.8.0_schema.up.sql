@@ -13,15 +13,17 @@ CREATE TABLE robot (
 
 CREATE TRIGGER robot_update_time_at_modtime BEFORE UPDATE ON robot FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
 
-CREATE TABLE oidc_user_matadata (
+CREATE TABLE oidc_user (
  id SERIAL NOT NULL,
  user_id int NOT NULL,
- name varchar(255) NOT NULL,
- value varchar(255),
+ secret varchar(255) NOT NULL,
+  /*
+ Subject - Identifier for the End-User at the Issuer.
+ */
+ sub varchar(255),
  creation_time timestamp default CURRENT_TIMESTAMP,
  update_time timestamp default CURRENT_TIMESTAMP,
  PRIMARY KEY (id),
- CONSTRAINT unique_user_id_and_name UNIQUE (user_id,name),
  FOREIGN KEY (user_id) REFERENCES harbor_user(user_id)
 );
 

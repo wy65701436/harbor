@@ -27,25 +27,25 @@ func TestOIDCUserMetaDaoMethods(t *testing.T) {
 	value1 := "value1"
 	name2 := "key2"
 	value2 := "value2"
-	meta1 := &models.OIDCUserMetaData{
+	meta1 := &models.OIDCUser{
 		UserID: 1,
 		Name:   name1,
 		Value:  value1,
 	}
-	meta2 := &models.OIDCUserMetaData{
+	meta2 := &models.OIDCUser{
 		UserID: 1,
 		Name:   name2,
 		Value:  value2,
 	}
 	// test add
-	require.Nil(t, AddOIDCUserMetadata(meta1))
+	require.Nil(t, AddOIDCUser(meta1))
 	defer func() {
 		// clean up
 		_, err := GetOrmer().Raw(`delete from oidc_user_metadata
 			where user_id = 1 and name = ?`, name1).Exec()
 		require.Nil(t, err)
 	}()
-	require.Nil(t, AddOIDCUserMetadata(meta2))
+	require.Nil(t, AddOIDCUser(meta2))
 	defer func() {
 		// clean up
 		_, err := GetOrmer().Raw(`delete from oidc_user_metadata
@@ -57,7 +57,7 @@ func TestOIDCUserMetaDaoMethods(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, 2, len(metas))
 
-	m := map[string]*models.OIDCUserMetaData{}
+	m := map[string]*models.OIDCUser{}
 	for _, meta := range metas {
 		m[meta.Name] = meta
 	}
@@ -78,7 +78,7 @@ func TestOIDCUserMetaDaoMethods(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, 2, len(metas))
 
-	m = map[string]*models.OIDCUserMetaData{}
+	m = map[string]*models.OIDCUser{}
 	for _, meta := range metas {
 		m[meta.Name] = meta
 	}

@@ -4,11 +4,11 @@ import (
 	"time"
 )
 
-type OIDCUserMetaData struct {
+type OIDCUser struct {
 	ID           int64     `orm:"pk;auto;column(id)" json:"id"`
 	UserID       int       `orm:"column(user_id)" json:"user_id"`
-	Name         string    `orm:"column(name)" json:"name"`
-	Value        string    `orm:"column(value)" json:"value"`
+	Secret       string    `orm:"column(secret)" json:"secret"`
+	Sub          string    `orm:"column(Sub)" json:"sub"`
 	CreationTime time.Time `orm:"column(creation_time);auto_now_add" json:"creation_time"`
 	UpdateTime   time.Time `orm:"column(update_time);auto_now" json:"update_time"`
 }

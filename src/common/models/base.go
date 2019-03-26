@@ -39,5 +39,5 @@ func init() {
 		new(AdminJob),
 		new(JobLog),
 		new(Robot),
-		new(OIDCUserMetaData))
+		new(OIDCUser))
 }

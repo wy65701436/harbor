@@ -15,56 +15,67 @@
 package dao
 
 import (
-	"fmt"
 	"time"
+	"strings"
 
 	"github.com/goharbor/harbor/src/common/models"
+	"github.com/astaxie/beego/orm"
 )
 
-// AddOIDCUserMetadata adds metadata for a oidc user
-func AddOIDCUserMetadata(meta *models.OIDCUserMetaData) error {
+// AddOIDCUser adds a oidc user
+func AddOIDCUser(meta *models.OIDCUser) (int64, error) {
 	now := time.Now()
-	sql := `insert into oidc_user_metadata
-				(user_id, name, value, creation_time, update_time)
-				 values (?, ?, ?, ?, ?)`
-	_, err := GetOrmer().Raw(sql, meta.UserID, meta.Name, meta.Value,
-		now, now).Exec()
-	return err
+	meta.CreationTime = now
+	meta.UpdateTime = now
+	id, err := GetOrmer().Insert(meta)
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			return 0, ErrDupRows
+		}
+		return 0, err
+	}
+	return id, nil
 }
 
-// UpdateOIDCUserMetadata updates metadata of a oidc user
-func UpdateOIDCUserMetadata(meta *models.OIDCUserMetaData) error {
-	sql := `update oidc_user_metadata 
-				set value = ?, update_time = ? 
-				where user_id = ? and name = ?`
-	_, err := GetOrmer().Raw(sql, meta.Value, time.Now(), meta.UserID,
-		meta.Name).Exec()
-	return err
-}
-
-// GetOIDCUserMetadata returns the metadata of a oidc user.
-func GetOIDCUserMetadata(userID int, name ...string) ([]*models.OIDCUserMetaData, error) {
-	oidcUserMetas := []*models.OIDCUserMetaData{}
-	params := make([]interface{}, 1)
-
-	sql := `select * from oidc_user_metadata 
-				where user_id = ?`
-	params = append(params, userID)
-
-	if len(name) > 0 {
-		sql += fmt.Sprintf(` and name in ( %s )`, paramPlaceholder(len(name)))
-		params = append(params, name)
+// GetOIDCUserByID ...
+func GetOIDCUserByID(id int64) (*models.OIDCUser, error) {
+	oidcUser := &models.OIDCUser{
+		ID: id,
+	}
+	if err := GetOrmer().Read(oidcUser); err != nil {
+		if err == orm.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
 	}
 
-	_, err := GetOrmer().Raw(sql, params).QueryRows(&oidcUserMetas)
-	return oidcUserMetas, err
+	return oidcUser, nil
 }
 
-// ListOIDCUserMetadata ...
-func ListOIDCUserMetadata(name, value string) ([]*models.OIDCUserMetaData, error) {
-	sql := `select * from oidc_user_metadata 
-				where name = ? and value = ?`
-	metadatas := []*models.OIDCUserMetaData{}
-	_, err := GetOrmer().Raw(sql, name, value).QueryRows(&metadatas)
-	return metadatas, err
+// GetOIDCUserByID ...
+func GetOIDCUserByUserID(id int) (*models.OIDCUser, error) {
+	oidcUser := &models.OIDCUser{
+		UserID: id,
+	}
+	if err := GetOrmer().Read(oidcUser); err != nil {
+		if err == orm.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return oidcUser, nil
+}
+
+// UpdateOIDCUser ...
+func UpdateOIDCUser(oidcUser *models.OIDCUser) error {
+	oidcUser.UpdateTime = time.Now()
+	_, err := GetOrmer().Update(oidcUser)
+	return err
+}
+
+// DeleteOIDCUser ...
+func DeleteOIDCUser(id int64) error {
+	_, err := GetOrmer().QueryTable(&models.OIDCUser{}).Filter("ID", id).Delete()
+	return err
 }
