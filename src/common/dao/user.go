@@ -317,8 +317,8 @@ func OnBoardOIDCUser(username, sub string) error {
 		}
 		userID, err := o.Insert(&user)
 		if err != nil {
+			log.Error(fmt.Errorf("fail to insert user, %v", err))
 			o.Rollback()
-			return err
 		}
 		userMeta := models.OIDCUserMetaData{
 			UserID: int(userID),
@@ -327,13 +327,10 @@ func OnBoardOIDCUser(username, sub string) error {
 		}
 		_, err = o.Insert(&userMeta)
 		if err != nil {
+			log.Error(fmt.Errorf("fail to insert oidc user meta, %v", err))
 			o.Rollback()
-			return err
 		}
-		err = o.Commit()
-		if err != nil {
-			return err
-		}
+		o.Commit()
 	}
 
 	return nil
