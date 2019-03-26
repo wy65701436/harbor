@@ -105,13 +105,9 @@ func TestOnBoardOIDCUser(t *testing.T) {
 	err = OnBoardOIDCUser("oidcuser1", "oidcsub2")
 	assert.Nil(err)
 
-	metas, err := GetOIDCUserMetadata(user.UserID, "sub", "oidcsub2")
+	oidcUser, err := GetOIDCUserByUserID(user.UserID)
 	assert.Nil(err)
 
-	m := map[string]string{}
-	for _, userMeta := range metas {
-		m[userMeta.Name] = userMeta.Value
-	}
-	assert.Equal(t, m["sub"], "oidcsub2")
+	assert.Equal(t, oidcUser.Sub, "oidcsub2")
 
 }

@@ -15,11 +15,11 @@
 package dao
 
 import (
-	"time"
 	"strings"
+	"time"
 
-	"github.com/goharbor/harbor/src/common/models"
 	"github.com/astaxie/beego/orm"
+	"github.com/goharbor/harbor/src/common/models"
 )
 
 // AddOIDCUser adds a oidc user
@@ -53,18 +53,18 @@ func GetOIDCUserByID(id int64) (*models.OIDCUser, error) {
 }
 
 // GetOIDCUserByID ...
-func GetOIDCUserByUserID(id int) (*models.OIDCUser, error) {
-	oidcUser := &models.OIDCUser{
-		UserID: id,
-	}
-	if err := GetOrmer().Read(oidcUser); err != nil {
-		if err == orm.ErrNoRows {
-			return nil, nil
-		}
+func GetOIDCUserByUserID(userID int) (*models.OIDCUser, error) {
+	var oidcUsers []models.OIDCUser
+	n, err := GetOrmer().Raw(`select * from oidc_user where user_id = ? `, userID).QueryRows(&clis)
+	if err != nil {
 		return nil, err
 	}
 
-	return oidcUser, nil
+	if n == 0 {
+		return nil, nil
+	}
+
+	return &oidcUsers[0], nil
 }
 
 // UpdateOIDCUser ...

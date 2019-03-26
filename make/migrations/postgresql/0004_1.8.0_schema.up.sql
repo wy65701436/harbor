@@ -20,11 +20,12 @@ CREATE TABLE oidc_user (
   /*
  Subject - Identifier for the End-User at the Issuer.
  */
- sub varchar(255),
+ sub varchar(255) NOT NULL,
  creation_time timestamp default CURRENT_TIMESTAMP,
  update_time timestamp default CURRENT_TIMESTAMP,
  PRIMARY KEY (id),
- FOREIGN KEY (user_id) REFERENCES harbor_user(user_id)
+ FOREIGN KEY (user_id) REFERENCES harbor_user(user_id),
+ UNIQUE (sub)
 );
 
 CREATE TRIGGER odic_user_metadata_update_time_at_modtime BEFORE UPDATE ON oidc_user_matadata FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
