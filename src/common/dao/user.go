@@ -268,3 +268,70 @@ func CleanUser(id int64) error {
 	}
 	return nil
 }
+
+// OnBoardOIDCUser onboard OIDC user, insert use to harbor_user and sub into oidc_user_metadata
+func OnBoardOIDCUser(username, sub string) error {
+	u, err := GetUser(models.User{
+		Username: username,
+	})
+	log.Debugf("Check if user %s exist", username)
+	if err != nil {
+		return err
+	}
+
+	// If user exists, then check user's sub
+	// If user doesn't exist, then onboard user.
+	if u != nil {
+		userMetadatas, err := GetOIDCUserMetadata(u.UserID, "sub")
+		if err != nil {
+			return err
+		}
+
+		m := map[string]string{}
+		for _, userMeta := range userMetadatas {
+			m[userMeta.Name] = userMeta.Value
+		}
+
+		userSub := m["sub"]
+		if userSub == "" {
+			return errors.New(fmt.Sprintf("has no sub for the onboarded oidc user %s", u.Username))
+		}
+		if userSub != sub {
+			err := UpdateOIDCUserMetadata(&models.OIDCUserMetaData{
+				UserID: u.UserID,
+				Name:   "sub",
+				Value:  sub,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		o := GetOrmer()
+		err := o.Begin()
+		if err != nil {
+			return err
+		}
+		user := models.User{
+			Username: username,
+		}
+		userID, err := o.Insert(&user)
+		if err != nil {
+			log.Error(fmt.Errorf("fail to insert user, %v", err))
+			o.Rollback()
+		}
+		userMeta := models.OIDCUserMetaData{
+			UserID: int(userID),
+			Name:   "sub",
+			Value:  sub,
+		}
+		_, err = o.Insert(&userMeta)
+		if err != nil {
+			log.Error(fmt.Errorf("fail to insert oidc user meta, %v", err))
+			o.Rollback()
+		}
+		o.Commit()
+	}
+
+	return nil
+}
