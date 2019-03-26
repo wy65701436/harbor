@@ -28,7 +28,7 @@ CREATE TABLE oidc_user (
  UNIQUE (sub)
 );
 
-CREATE TRIGGER odic_user_metadata_update_time_at_modtime BEFORE UPDATE ON oidc_user_matadata FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
+CREATE TRIGGER odic_user_update_time_at_modtime BEFORE UPDATE ON oidc_user FOR EACH ROW EXECUTE PROCEDURE update_update_time_at_column();
 
 /*add master role*/
 INSERT INTO role (role_code, name) VALUES ('DRWS', 'master');
