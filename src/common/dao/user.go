@@ -289,7 +289,7 @@ func OnBoardOIDCUser(username, sub string) error {
 
 		oidcUserSub := oidcUser.Sub
 		if oidcUserSub == "" {
-			return errors.New(fmt.Sprintf("has no sub for the onboarded oidc user %s", u.Username))
+			return fmt.Errorf("has no sub for the onboarded oidc user %s", u.Username)
 		}
 		if oidcUserSub != sub {
 			err := UpdateOIDCUser(&models.OIDCUser{

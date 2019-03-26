@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// OIDCUser ...
 type OIDCUser struct {
 	ID           int64     `orm:"pk;auto;column(id)" json:"id"`
 	UserID       int       `orm:"column(user_id)" json:"user_id"`

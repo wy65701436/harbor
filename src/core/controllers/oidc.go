@@ -6,10 +6,12 @@ import (
 	"net/http"
 )
 
+// OIDCController ...
 type OIDCController struct {
 	beego.Controller
 }
 
+// Onboard ...
 func (o *OIDCController) Onboard() {
 	username := o.GetString("username")
 	if username == "" {

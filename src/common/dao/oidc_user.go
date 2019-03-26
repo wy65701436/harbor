@@ -52,7 +52,7 @@ func GetOIDCUserByID(id int64) (*models.OIDCUser, error) {
 	return oidcUser, nil
 }
 
-// GetOIDCUserByID ...
+// GetOIDCUserByUserID ...
 func GetOIDCUserByUserID(userID int) (*models.OIDCUser, error) {
 	var oidcUsers []models.OIDCUser
 	n, err := GetOrmer().Raw(`select * from oidc_user where user_id = ? `, userID).QueryRows(&oidcUsers)
