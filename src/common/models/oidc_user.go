@@ -13,3 +13,8 @@ type OIDCUser struct {
 	CreationTime time.Time `orm:"column(creation_time);auto_now_add" json:"creation_time"`
 	UpdateTime   time.Time `orm:"column(update_time);auto_now" json:"update_time"`
 }
+
+// TableName ...
+func (o *OIDCUser) TableName() string {
+	return "oidc_user"
+}
