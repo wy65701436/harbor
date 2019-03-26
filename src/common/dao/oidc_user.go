@@ -55,7 +55,7 @@ func GetOIDCUserByID(id int64) (*models.OIDCUser, error) {
 // GetOIDCUserByID ...
 func GetOIDCUserByUserID(userID int) (*models.OIDCUser, error) {
 	var oidcUsers []models.OIDCUser
-	n, err := GetOrmer().Raw(`select * from oidc_user where user_id = ? `, userID).QueryRows(&clis)
+	n, err := GetOrmer().Raw(`select * from oidc_user where user_id = ? `, userID).QueryRows(&oidcUsers)
 	if err != nil {
 		return nil, err
 	}
