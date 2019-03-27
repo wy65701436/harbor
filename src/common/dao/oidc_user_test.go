@@ -26,9 +26,11 @@ func TestOIDCUserMetaDaoMethods(t *testing.T) {
 
 	user111 := &models.User{
 		Username: "user111",
+		Email:    "user111@email.com",
 	}
 	user222 := &models.User{
 		Username: "user222",
+		Email:    "user222@email.com",
 	}
 	err := OnBoardUser(user111)
 	require.Nil(t, err)
