@@ -71,8 +71,9 @@ func TestOIDCUserMetaDaoMethods(t *testing.T) {
 
 	// test update
 	meta3 := &models.OIDCUser{
-		ID:  meta1.ID,
-		Sub: "newSub",
+		ID:     meta1.ID,
+		UserID: meta1.UserID,
+		Sub:    "newSub",
 	}
 	require.Nil(t, UpdateOIDCUser(meta3))
 	oidcUser1Update, err := GetOIDCUserByID(meta1.ID)
