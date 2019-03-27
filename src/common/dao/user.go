@@ -287,14 +287,10 @@ func OnBoardOIDCUser(username, sub string) error {
 			return err
 		}
 
-		oidcUserSub := oidcUser.Sub
-		if oidcUserSub == "" {
-			return fmt.Errorf("has no sub for the onboarded oidc user %s", u.Username)
-		}
-		if oidcUserSub != sub {
+		if oidcUser.Sub != sub {
 			err := UpdateOIDCUser(&models.OIDCUser{
-				UserID: u.UserID,
-				Sub:    sub,
+				ID:  oidcUser.ID,
+				Sub: sub,
 			})
 			if err != nil {
 				return err

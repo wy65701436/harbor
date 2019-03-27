@@ -100,7 +100,7 @@ func TestOnBoardOIDCUser(t *testing.T) {
 		Username: "oidcuser1",
 	})
 	assert.Nil(err)
-	assert.Equal(t, user.Username, "oidcuser1")
+	assert.Equal(user.Username, "oidcuser1")
 
 	err = OnBoardOIDCUser("oidcuser1", "oidcsub2")
 	assert.Nil(err)
@@ -108,6 +108,6 @@ func TestOnBoardOIDCUser(t *testing.T) {
 	oidcUser, err := GetOIDCUserByUserID(user.UserID)
 	assert.Nil(err)
 
-	assert.Equal(t, oidcUser.Sub, "oidcsub2")
+	assert.Equal(oidcUser.Sub, "oidcsub2")
 
 }

@@ -25,14 +25,14 @@ import (
 func TestOIDCUserMetaDaoMethods(t *testing.T) {
 
 	meta1 := &models.OIDCUser{
-		UserID: 1,
-		Sub:    "QWE123123RT",
-		Secret: "QWEQWE",
+		UserID: 111,
+		Sub:    "QWE123123RT1",
+		Secret: "QWEQWE1",
 	}
 	meta2 := &models.OIDCUser{
-		UserID: 2,
-		Sub:    "QWE123123RT",
-		Secret: "QWEQWE",
+		UserID: 222,
+		Sub:    "QWE123123RT2",
+		Secret: "QWEQWE2",
 	}
 
 	// test add
@@ -40,31 +40,29 @@ func TestOIDCUserMetaDaoMethods(t *testing.T) {
 	require.Nil(t, err)
 	defer func() {
 		// clean up
-		_, err := GetOrmer().Raw(`delete from oidc_user
-			where user_id = 1`).Exec()
+		err := DeleteOIDCUser(meta1.ID)
 		require.Nil(t, err)
 	}()
 	_, err = AddOIDCUser(meta2)
 	require.Nil(t, err)
 	defer func() {
 		// clean up
-		_, err := GetOrmer().Raw(`delete from oidc_user
-			where user_id = 2`).Exec()
+		err := DeleteOIDCUser(meta2.ID)
 		require.Nil(t, err)
 	}()
 
 	// test get
-	oidcUser1, err := GetOIDCUserByID(1)
+	oidcUser1, err := GetOIDCUserByID(111)
 	require.Nil(t, err)
-	assert.Equal(t, 1, oidcUser1.UserID)
+	assert.Equal(t, 111, oidcUser1.UserID)
 
 	// test update
-	userMeta := models.OIDCUser{
-		UserID: 1,
-		Sub:    "newSub",
+	meta3 := &models.OIDCUser{
+		ID:  meta1.ID,
+		Sub: "newSub",
 	}
-	require.Nil(t, UpdateOIDCUser(&userMeta))
-	oidcUser1Update, err := GetOIDCUserByID(1)
+	require.Nil(t, UpdateOIDCUser(meta3))
+	oidcUser1Update, err := GetOIDCUserByID(meta1.ID)
 	require.Nil(t, err)
 	assert.Equal(t, "newSub", oidcUser1Update.Sub)
 
