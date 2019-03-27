@@ -15,11 +15,13 @@
 package dao
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/goharbor/harbor/src/common/models"
+	"github.com/goharbor/harbor/src/common/utils/log"
 )
 
 // AddOIDCUser adds a oidc user
@@ -78,4 +80,63 @@ func UpdateOIDCUser(oidcUser *models.OIDCUser) error {
 func DeleteOIDCUser(id int64) error {
 	_, err := GetOrmer().QueryTable(&models.OIDCUser{}).Filter("ID", id).Delete()
 	return err
+}
+
+// OnBoardOIDCUser onboard OIDC user, insert use to harbor_user and sub into oidc_user_metadata
+func OnBoardOIDCUser(username, email, sub, secret string) error {
+	u, err := GetUser(models.User{
+		Username: username,
+	})
+	log.Debugf("Check if user %s exist", username)
+	if err != nil {
+		return err
+	}
+
+	// If user exists, then check user's sub
+	// If user doesn't exist, then onboard user.
+	if u != nil {
+		oidcUser, err := GetOIDCUserByUserID(u.UserID)
+		if err != nil {
+			return err
+		}
+
+		if oidcUser.Sub != sub {
+			err := UpdateOIDCUser(&models.OIDCUser{
+				ID:     oidcUser.ID,
+				UserID: u.UserID,
+				Sub:    sub,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		o := GetOrmer()
+		err := o.Begin()
+		if err != nil {
+			return err
+		}
+		user := models.User{
+			Username: username,
+			Email:    email,
+		}
+		userID, err := o.Insert(&user)
+		if err != nil {
+			log.Error(fmt.Errorf("fail to insert user, %v", err))
+			o.Rollback()
+		}
+		oidcUser := models.OIDCUser{
+			UserID: int(userID),
+			Sub:    sub,
+			Secret: secret,
+		}
+		_, err = o.Insert(&oidcUser)
+		if err != nil {
+			log.Error(fmt.Errorf("fail to insert oidc user meta, %v", err))
+			o.Rollback()
+		}
+		o.Commit()
+	}
+
+	return nil
 }

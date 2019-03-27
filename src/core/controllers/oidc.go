@@ -24,9 +24,11 @@ func (o *OIDCController) Onboard() {
 	}
 
 	// TODO get secret with secret manager.
+	// TODO get email from ID token.
 	secret := ""
+	email := ""
 
-	err := dao.OnBoardOIDCUser(username, userSub.(string), secret)
+	err := dao.OnBoardOIDCUser(username, userSub.(string), secret, email)
 	if err != nil {
 		o.CustomAbort(http.StatusInternalServerError, "fail to onboard OIDC user")
 	}
