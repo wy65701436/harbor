@@ -270,7 +270,7 @@ func CleanUser(id int64) error {
 }
 
 // OnBoardOIDCUser onboard OIDC user, insert use to harbor_user and sub into oidc_user_metadata
-func OnBoardOIDCUser(username, sub string) error {
+func OnBoardOIDCUser(username, sub, secret string) error {
 	u, err := GetUser(models.User{
 		Username: username,
 	})
@@ -289,8 +289,9 @@ func OnBoardOIDCUser(username, sub string) error {
 
 		if oidcUser.Sub != sub {
 			err := UpdateOIDCUser(&models.OIDCUser{
-				ID:  oidcUser.ID,
-				Sub: sub,
+				ID:     oidcUser.ID,
+				UserID: u.UserID,
+				Sub:    sub,
 			})
 			if err != nil {
 				return err
@@ -310,11 +311,12 @@ func OnBoardOIDCUser(username, sub string) error {
 			log.Error(fmt.Errorf("fail to insert user, %v", err))
 			o.Rollback()
 		}
-		userMeta := models.OIDCUser{
+		oidcUser := models.OIDCUser{
 			UserID: int(userID),
 			Sub:    sub,
+			Secret: secret,
 		}
-		_, err = o.Insert(&userMeta)
+		_, err = o.Insert(&oidcUser)
 		if err != nil {
 			log.Error(fmt.Errorf("fail to insert oidc user meta, %v", err))
 			o.Rollback()

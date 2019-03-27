@@ -24,19 +24,30 @@ import (
 
 func TestOIDCUserMetaDaoMethods(t *testing.T) {
 
+	user111 := &models.User{
+		Username: "user111",
+	}
+	user222 := &models.User{
+		Username: "user222",
+	}
+	err := OnBoardUser(user111)
+	require.Nil(t, err)
+	err = OnBoardUser(user222)
+	require.Nil(t, err)
+
 	meta1 := &models.OIDCUser{
-		UserID: 111,
+		UserID: user111.UserID,
 		Sub:    "QWE123123RT1",
 		Secret: "QWEQWE1",
 	}
 	meta2 := &models.OIDCUser{
-		UserID: 222,
+		UserID: user222.UserID,
 		Sub:    "QWE123123RT2",
 		Secret: "QWEQWE2",
 	}
 
 	// test add
-	_, err := AddOIDCUser(meta1)
+	_, err = AddOIDCUser(meta1)
 	require.Nil(t, err)
 	defer func() {
 		// clean up
@@ -52,9 +63,9 @@ func TestOIDCUserMetaDaoMethods(t *testing.T) {
 	}()
 
 	// test get
-	oidcUser1, err := GetOIDCUserByID(111)
+	oidcUser1, err := GetOIDCUserByID(meta1.ID)
 	require.Nil(t, err)
-	assert.Equal(t, 111, oidcUser1.UserID)
+	assert.Equal(t, meta1.UserID, oidcUser1.UserID)
 
 	// test update
 	meta3 := &models.OIDCUser{

@@ -23,7 +23,10 @@ func (o *OIDCController) Onboard() {
 		o.CustomAbort(http.StatusInternalServerError, "User sub is blank.")
 	}
 
-	err := dao.OnBoardOIDCUser(username, userSub.(string))
+	// TODO get secret with secret manager.
+	secret := ""
+
+	err := dao.OnBoardOIDCUser(username, userSub.(string), secret)
 	if err != nil {
 		o.CustomAbort(http.StatusInternalServerError, "fail to onboard OIDC user")
 	}
