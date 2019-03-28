@@ -24,7 +24,6 @@ CREATE TABLE oidc_user (
  creation_time timestamp default CURRENT_TIMESTAMP,
  update_time timestamp default CURRENT_TIMESTAMP,
  PRIMARY KEY (id),
- FOREIGN KEY (user_id) REFERENCES harbor_user(user_id),
  UNIQUE (sub)
 );
 
