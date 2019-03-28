@@ -90,3 +90,24 @@ func TestOnBoardUser(t *testing.T) {
 	assert.True(u.UserID == id)
 	CleanUser(int64(id))
 }
+
+func TestOnBoardOIDCUser(t *testing.T) {
+	assert := assert.New(t)
+
+	err := OnBoardOIDCUser("oidcuser1", "oidcuser1@email.com", "oidcsub1", "oidcsec1")
+	assert.Nil(err)
+	user, err := GetUser(models.User{
+		Username: "oidcuser1",
+	})
+	assert.Nil(err)
+	assert.Equal(user.Username, "oidcuser1")
+
+	err = OnBoardOIDCUser("oidcuser1", "oidcuser1@email.com", "oidcsub2", "oidcsec2")
+	assert.Nil(err)
+
+	oidcUser, err := GetOIDCUserByUserID(user.UserID)
+	assert.Nil(err)
+
+	assert.Equal(oidcUser.Sub, "oidcsub2")
+
+}
