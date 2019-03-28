@@ -143,5 +143,5 @@ func TestAll(t *testing.T) {
 	r, _ = http.NewRequest("POST", "/c/OIDC", nil)
 	w = httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, r)
-	assert.Equal(int(500), w.Code, "/c/OIDC httpStatusCode should be 500")
+	assert.Equal(int(400), w.Code, "/c/OIDC httpStatusCode should be 400")
 }
