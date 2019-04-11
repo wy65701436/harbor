@@ -106,7 +106,6 @@ func initRouters() {
 
 	beego.Router("/api/replication/policies", &api.ReplicationPolicyAPI{}, "get:List;post:Create")
 	beego.Router("/api/replication/policies/:id([0-9]+)", &api.ReplicationPolicyAPI{}, "get:Get;put:Update;delete:Delete")
-	beego.Router("/api/replication/registry/:id([0-9]+)/namespace", &api.ReplicationNamespaceAPI{}, "get:Get")
 
 	beego.Router("/api/internal/configurations", &api.ConfigAPI{}, "get:GetInternalConfig;put:Put")
 	beego.Router("/api/configurations", &api.ConfigAPI{}, "get:Get;put:Put")
@@ -136,6 +135,8 @@ func initRouters() {
 	beego.Router("/api/registries/ping", &api.RegistryAPI{}, "post:Ping")
 	// we use "0" as the ID of the local Harbor registry, so don't add "([0-9]+)" in the path
 	beego.Router("/api/registries/:id/info", &api.RegistryAPI{}, "get:GetInfo")
+	beego.Router("/api/registries/:id/namespace", &api.RegistryAPI{}, "get:GetNamespace")
+
 
 	beego.Router("/v2/*", &controllers.RegistryProxy{}, "*:Handle")
 
