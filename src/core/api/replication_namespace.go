@@ -61,7 +61,7 @@ func (r *ReplicationNamespaceAPI) Get() {
 	} else if r.registryID == 0 {
 		registry = event.GetLocalRegistry()
 	} else {
-		r.HandleInternalServerError(fmt.Sprintf("failed to get registry %d: %v", r.registryID, err))
+		r.HandleInternalServerError(fmt.Sprintf("invalid registry ID: %d", r.registryID))
 		return
 	}
 

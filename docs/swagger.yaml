@@ -1746,6 +1746,39 @@ paths:
           description: Resource requested does not exist.
         '500':
           description: Unexpected internal errors.
+  /replication/replication/registry/{id}/namespace:
+    get:
+      summary: List namespaces of registry
+      description: |
+        This endpoint let user list namespaces of registry according to query.
+      parameters:
+      - name: id
+        in: query
+        type: integer
+        required: false
+        description: The registry ID.
+      - name: name
+        in: query
+        type: string
+        required: false
+        description: The name of namespace.
+      tags:
+      - Products
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Namespace'
+        '401':
+          description: User need to login first.
+        '404':
+          description: No registry found.
+        '403':
+          description: User has no privilege for the operation.
+        '500':
+          description: Unexpected internal errors.
   /replication/policies:
     get:
       summary: List replication policies
