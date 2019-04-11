@@ -134,7 +134,7 @@ func (a *adapter) ListNamespaces(npQuery *model.NamespaceQuery) ([]*model.Namesp
 
 	for _, pro := range projects {
 		nps = append(nps, &model.Namespace{
-			Name: pro.Name,
+			Name:     pro.Name,
 			Metadata: pro.Metadata,
 		})
 	}
