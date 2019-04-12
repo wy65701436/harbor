@@ -306,7 +306,6 @@ func (cra *ChartRepositoryAPI) UploadChartVersion() {
 	chartFN := req.FormValue("filename")
 	hlog.Info("---------")
 	hlog.Info(chartFN)
-	req.zzzzzzzzzz
 
 	// Directly proxy to the backend
 	chartController.ProxyTraffic(cra.Ctx.ResponseWriter, req)
