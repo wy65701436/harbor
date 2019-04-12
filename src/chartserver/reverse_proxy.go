@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	hlog "github.com/goharbor/harbor/src/common/utils/log"
+	"github.com/goharbor/harbor/src/replication/ng"
+	rep_event "github.com/goharbor/harbor/src/replication/ng/event"
+	"github.com/goharbor/harbor/src/replication/ng/model"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -85,6 +89,30 @@ func modifyResponse(res *http.Response) error {
 	if res.StatusCode >= http.StatusOK && res.StatusCode <= http.StatusTemporaryRedirect {
 		return nil
 	}
+
+	// Send to the notification to replication handler
+	// Todo: it used as the replacement of webhook, will be removed when webhook to be introduced.
+	go func() {
+		e := &rep_event.Event{
+			Type: rep_event.EventTypeChartDelete,
+			Resource: &model.Resource{
+				Type: model.ResourceTypeChart,
+				Metadata: &model.ResourceMetadata{
+					Namespace: &model.Namespace{
+						Name: res.Request.URL.String(),
+					},
+					// Repository: &model.Repository{
+					//	Name: strings.TrimPrefix(repository, project+"/"),
+					// },
+					// For helm chart, vtags means version.
+					//Vtags: []string{version},
+				},
+			},
+		}
+		if err := ng.EventHandler.Handle(e); err != nil {
+			hlog.Errorf("failed to handle event: %v", err)
+		}
+	}()
 
 	// Detect the 401 code, if it is,overwrite it to 500.
 	// We also re-write the error content to structural error object

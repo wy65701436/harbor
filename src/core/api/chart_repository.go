@@ -300,6 +300,10 @@ func (cra *ChartRepositoryAPI) UploadChartVersion() {
 		}
 	}
 
+	hlog.Info("---------------")
+	hlog.Info(cra.Ctx.Request.URL)
+	hlog.Info("---------------")
+
 	// Directly proxy to the backend
 	chartController.ProxyTraffic(cra.Ctx.ResponseWriter, cra.Ctx.Request)
 }
