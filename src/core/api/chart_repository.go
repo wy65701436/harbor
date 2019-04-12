@@ -301,10 +301,12 @@ func (cra *ChartRepositoryAPI) UploadChartVersion() {
 	// set vtags for replication event.
 	file, header, err := cra.GetFile(formFieldNameForChart)
 	if err != nil {
-		hlog.Info(file)
-		hlog.Info(header.Filename)
-		hlog.Info("^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+		cra.SendInternalServerError(err)
+		return
 	}
+	hlog.Info(file)
+	hlog.Info(header.Filename)
+	hlog.Info("^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 	req := cra.Ctx.Request
 	ctx := context.WithValue(cra.Ctx.Request.Context(), "vtags", "test123")
 	req = req.WithContext(ctx)
