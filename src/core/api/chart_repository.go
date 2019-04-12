@@ -18,7 +18,6 @@ import (
 	"github.com/goharbor/harbor/src/common/rbac"
 	hlog "github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
-	"github.com/kraken/utils/log"
 )
 
 const (
@@ -65,8 +64,8 @@ func (cra *ChartRepositoryAPI) Prepare() {
 	// It may not exist
 	cra.namespace = strings.TrimSpace(cra.GetStringFromPath(namespaceParam))
 
-	log.Info("111111")
-	log.Info(cra.namespace)
+	hlog.Info("111111")
+	hlog.Info(cra.namespace)
 
 	// Check the existence of namespace
 	// Exclude the following URI
