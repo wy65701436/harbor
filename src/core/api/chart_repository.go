@@ -309,7 +309,7 @@ func (cra *ChartRepositoryAPI) UploadChartVersion() {
 	hlog.Info("---------------")
 
 	// Directly proxy to the backend
-	chartController.ProxyTraffic(cra.Ctx.ResponseWriter, cra.Ctx.Request)
+	chartController.ProxyTraffic(cra.Ctx.ResponseWriter, req)
 }
 
 // UploadChartProvFile handles POST /api/:repo/prov

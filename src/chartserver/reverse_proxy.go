@@ -87,8 +87,8 @@ func modifyResponse(res *http.Response) error {
 	hlog.Info("^^^^^^^^^^^^^^^^^")
 	//hlog.Info(res.Request.Body)
 	hlog.Info(res.StatusCode)
-	//hlog.Info(res.Request.Header)
-	hlog.Info(res.Request.Context().Value("test"))
+	hlog.Info(res.Request.Header)
+	hlog.Info(res.Request.Context())
 	hlog.Info("^^^^^^^^^^^^^^^^^")
 
 	// Accept cases
@@ -97,29 +97,31 @@ func modifyResponse(res *http.Response) error {
 		return nil
 	}
 
-	// Send to the notification to replication handler
-	// Todo: it used as the replacement of webhook, will be removed when webhook to be introduced.
-	go func() {
-		e := &rep_event.Event{
-			Type: rep_event.EventTypeChartDelete,
-			Resource: &model.Resource{
-				Type: model.ResourceTypeChart,
-				Metadata: &model.ResourceMetadata{
-					Namespace: &model.Namespace{
-						Name: res.Request.URL.String(),
+	// Upload chart success, then to the notification to replication handler
+	if res.StatusCode == http.StatusCreated {
+		// Todo: it used as the replacement of webhook, will be removed when webhook to be introduced.
+		go func() {
+			e := &rep_event.Event{
+				Type: rep_event.EventTypeChartDelete,
+				Resource: &model.Resource{
+					Type: model.ResourceTypeChart,
+					Metadata: &model.ResourceMetadata{
+						Namespace: &model.Namespace{
+							Name: res.Request.URL.String(),
+						},
+						// Repository: &model.Repository{
+						//	Name: strings.TrimPrefix(repository, project+"/"),
+						// },
+						// For helm chart, vtags means version.
+						//Vtags: []string{version},
 					},
-					// Repository: &model.Repository{
-					//	Name: strings.TrimPrefix(repository, project+"/"),
-					// },
-					// For helm chart, vtags means version.
-					//Vtags: []string{version},
 				},
-			},
-		}
-		if err := ng.EventHandler.Handle(e); err != nil {
-			hlog.Errorf("failed to handle event: %v", err)
-		}
-	}()
+			}
+			if err := ng.EventHandler.Handle(e); err != nil {
+				hlog.Errorf("failed to handle event: %v", err)
+			}
+		}()
+	}
 
 	// Detect the 401 code, if it is,overwrite it to 500.
 	// We also re-write the error content to structural error object
@@ -134,7 +136,7 @@ func modifyResponse(res *http.Response) error {
 			errorObj["error"] = fmt.Sprintf("%s: %s", res.Status, err.Error())
 		} else {
 			if err := json.Unmarshal(data, &errorObj); err != nil {
-				errorObj["error"] = string(data)
+				errorObj["erro r"] = string(data)
 			}
 		}
 	}
