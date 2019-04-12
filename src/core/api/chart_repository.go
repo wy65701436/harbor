@@ -274,7 +274,7 @@ func (cra *ChartRepositoryAPI) DeleteChartVersion() {
 
 // UploadChartVersion handles POST /api/:repo/charts
 func (cra *ChartRepositoryAPI) UploadChartVersion() {
-	hlog.Infof("Header of request of uploading chart: %#v, content-len=%d", cra.Ctx.Request.Header, cra.Ctx.Request.ContentLength)
+	hlog.Debugf("Header of request of uploading chart: %#v, content-len=%d", cra.Ctx.Request.Header, cra.Ctx.Request.ContentLength)
 
 	// Check access
 	if !cra.requireAccess(rbac.ActionCreate, rbac.ResourceHelmChartVersion) {
@@ -299,13 +299,15 @@ func (cra *ChartRepositoryAPI) UploadChartVersion() {
 	}
 
 	// set vtags for replication event.
+	file, header, err := cra.GetFile(formFieldNameForChart)
+	if err != nil {
+		hlog.Info(file)
+		hlog.Info(header.Filename)
+		hlog.Info("^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+	}
 	req := cra.Ctx.Request
 	ctx := context.WithValue(cra.Ctx.Request.Context(), "vtags", "test123")
 	req = req.WithContext(ctx)
-
-	chartFN := req.FormValue("filename")
-	hlog.Info("---------")
-	hlog.Info(chartFN)
 
 	// Directly proxy to the backend
 	chartController.ProxyTraffic(cra.Ctx.ResponseWriter, req)
@@ -438,10 +440,6 @@ func (cra *ChartRepositoryAPI) rewriteFileContent(files []formFile, request *htt
 	// Process files by key one by one
 	for _, f := range files {
 		mFile, mHeader, err := cra.GetFile(f.formField)
-		hlog.Info("*****************")
-		hlog.Info(mFile)
-		hlog.Info(mHeader)
-		hlog.Info("*****************")
 		// Handle error case by case
 		if err != nil {
 			formatedErr := fmt.Errorf("Get file content with multipart header from key '%s' failed with error: %s", f.formField, err.Error())
