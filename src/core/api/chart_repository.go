@@ -298,17 +298,22 @@ func (cra *ChartRepositoryAPI) UploadChartVersion() {
 		}
 	}
 
-	// set vtags for replication event.
-	file, header, err := cra.GetFile(formFieldNameForChart)
+	// set namespace/repository/version for replication event.
+	_, header, err := cra.GetFile(formFieldNameForChart)
 	if err != nil {
 		cra.SendInternalServerError(err)
 		return
 	}
-	hlog.Info(file)
-	hlog.Info(header.Filename)
-	hlog.Info("^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+
 	req := cra.Ctx.Request
-	ctx := context.WithValue(cra.Ctx.Request.Context(), "vtags", "test123")
+	charFileName := header.Filename
+	if !strings.HasSuffix(charFileName, ".tgz") {
+		cra.SendInternalServerError(fmt.Errorf("chart file expected %s to end with .tgz", charFileName))
+		return
+	}
+	charFileName = strings.TrimSuffix(charFileName, ".tgz")
+	// value sample : library-redis-4.0.3 (namespace-repository-version)
+	ctx := context.WithValue(cra.Ctx.Request.Context(), "chart_upload", cra.namespace+"-"+charFileName)
 	req = req.WithContext(ctx)
 
 	// Directly proxy to the backend
