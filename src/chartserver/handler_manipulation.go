@@ -86,11 +86,13 @@ func (c *Controller) DeleteChartVersion(namespace, chartName, version string) er
 					Repository: &model.Repository{
 						Name: chartName,
 					},
-					// For helm chart, vtags means version.
 					Vtags: []string{version},
 				},
 			},
 		}
+		log.Info("------------------")
+		log.Info("delete, %s, %s, %s", namespace, chartName, version)
+		log.Info("------------------")
 		if err := ng.EventHandler.Handle(e); err != nil {
 			log.Errorf("failed to handle event: %v", err)
 		}

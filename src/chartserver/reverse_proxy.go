@@ -115,6 +115,9 @@ func modifyResponse(res *http.Response) error {
 							},
 						},
 					}
+					hlog.Info("------------------")
+					hlog.Info("upload, %s, %s, %s", chartUploadSplitted[0], chartUploadSplitted[1], chartUploadSplitted[2])
+					hlog.Info("------------------")
 					if err := ng.EventHandler.Handle(e); err != nil {
 						hlog.Errorf("failed to handle event: %v", err)
 					}
