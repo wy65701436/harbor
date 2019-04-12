@@ -274,7 +274,7 @@ func (cra *ChartRepositoryAPI) DeleteChartVersion() {
 
 // UploadChartVersion handles POST /api/:repo/charts
 func (cra *ChartRepositoryAPI) UploadChartVersion() {
-	hlog.Debugf("Header of request of uploading chart: %#v, content-len=%d", cra.Ctx.Request.Header, cra.Ctx.Request.ContentLength)
+	hlog.Infof("Header of request of uploading chart: %#v, content-len=%d", cra.Ctx.Request.Header, cra.Ctx.Request.ContentLength)
 
 	// Check access
 	if !cra.requireAccess(rbac.ActionCreate, rbac.ResourceHelmChartVersion) {
