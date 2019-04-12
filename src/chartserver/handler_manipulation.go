@@ -83,9 +83,6 @@ func (c *Controller) DeleteChartVersion(namespace, chartName, version string) er
 					Namespace: &model.Namespace{
 						Name: namespace,
 					},
-					// Repository: &model.Repository{
-					//	Name: strings.TrimPrefix(repository, project+"/"),
-					// },
 					// For helm chart, vtags means version.
 					Vtags: []string{version},
 				},

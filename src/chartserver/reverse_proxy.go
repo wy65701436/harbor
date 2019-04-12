@@ -92,6 +92,12 @@ func modifyResponse(res *http.Response) error {
 
 	// Send to the notification to replication handler
 	// Todo: it used as the replacement of webhook, will be removed when webhook to be introduced.
+	hlog.Info("^^^^^^^^^^^^^^^^^")
+	hlog.Info(res.Request.Body)
+	hlog.Info(res.Request.Header)
+	hlog.Info(res.Request.Context())
+	hlog.Info("^^^^^^^^^^^^^^^^^")
+
 	go func() {
 		e := &rep_event.Event{
 			Type: rep_event.EventTypeChartDelete,

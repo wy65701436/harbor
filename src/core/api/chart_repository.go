@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -63,9 +64,6 @@ func (cra *ChartRepositoryAPI) Prepare() {
 	// Try to extract namespace for parameter of path
 	// It may not exist
 	cra.namespace = strings.TrimSpace(cra.GetStringFromPath(namespaceParam))
-
-	hlog.Info("111111")
-	hlog.Info(cra.namespace)
 
 	// Check the existence of namespace
 	// Exclude the following URI
@@ -302,6 +300,10 @@ func (cra *ChartRepositoryAPI) UploadChartVersion() {
 
 	hlog.Info("---------------")
 	hlog.Info(cra.Ctx.Request.URL)
+	hlog.Info(cra.Ctx.Request.Body)
+	req := cra.Ctx.Request
+	ctx := context.WithValue(cra.Ctx.Request.Context(), "version", "test123")
+	req = req.WithContext(ctx)
 	hlog.Info("---------------")
 
 	// Directly proxy to the backend
