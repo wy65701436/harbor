@@ -84,6 +84,13 @@ func director(target *url.URL, cred *Credential, req *http.Request) {
 
 // Modify the http response
 func modifyResponse(res *http.Response) error {
+	hlog.Info("^^^^^^^^^^^^^^^^^")
+	//hlog.Info(res.Request.Body)
+	hlog.Info(res.StatusCode)
+	hlog.Info(res.Request.Header)
+	hlog.Info(res.Request.Context())
+	hlog.Info("^^^^^^^^^^^^^^^^^")
+
 	// Accept cases
 	// Success or redirect
 	if res.StatusCode >= http.StatusOK && res.StatusCode <= http.StatusTemporaryRedirect {
@@ -92,12 +99,6 @@ func modifyResponse(res *http.Response) error {
 
 	// Send to the notification to replication handler
 	// Todo: it used as the replacement of webhook, will be removed when webhook to be introduced.
-	hlog.Info("^^^^^^^^^^^^^^^^^")
-	hlog.Info(res.Request.Body)
-	hlog.Info(res.Request.Header)
-	hlog.Info(res.Request.Context())
-	hlog.Info("^^^^^^^^^^^^^^^^^")
-
 	go func() {
 		e := &rep_event.Event{
 			Type: rep_event.EventTypeChartDelete,
