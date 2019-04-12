@@ -7,6 +7,10 @@ import (
 	"strings"
 
 	"github.com/ghodss/yaml"
+	"github.com/goharbor/harbor/src/common/utils/log"
+	"github.com/goharbor/harbor/src/replication/ng"
+	rep_event "github.com/goharbor/harbor/src/replication/ng/event"
+	"github.com/goharbor/harbor/src/replication/ng/model"
 	helm_repo "k8s.io/helm/pkg/repo"
 )
 
@@ -63,7 +67,36 @@ func (c *Controller) DeleteChartVersion(namespace, chartName, version string) er
 
 	url := fmt.Sprintf("%s/%s/%s", c.APIPrefix(namespace), chartName, version)
 
-	return c.apiClient.DeleteContent(url)
+	err := c.apiClient.DeleteContent(url)
+	if err != nil {
+		return err
+	}
+
+	// send notification to replication handler
+	// Todo: it used as the replacement of webhook, will be removed when webhook to be introduced.
+	go func() {
+		e := &rep_event.Event{
+			Type: rep_event.EventTypeChartDelete,
+			Resource: &model.Resource{
+				Type: model.ResourceTypeChart,
+				Metadata: &model.ResourceMetadata{
+					Namespace: &model.Namespace{
+						Name: namespace,
+					},
+					// Repository: &model.Repository{
+					//	Name: strings.TrimPrefix(repository, project+"/"),
+					// },
+					// For helm chart, vtags means version.
+					Vtags: []string{version},
+				},
+			},
+		}
+		if err := ng.EventHandler.Handle(e); err != nil {
+			log.Errorf("failed to handle event: %v", err)
+		}
+	}()
+
+	return nil
 }
 
 // GetChartVersion returns the summary of the specified chart version.
