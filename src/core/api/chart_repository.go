@@ -298,15 +298,14 @@ func (cra *ChartRepositoryAPI) UploadChartVersion() {
 		}
 	}
 
-	hlog.Info("---------------")
-	hlog.Info(cra.Ctx.Request.URL)
-	//hlog.Info(cra.Ctx.Request.Body)
-	//body, _ := ioutil.ReadAll(cra.Ctx.Request.Body)
-	//hlog.Info(body)
+	// set vtags for replication event.
 	req := cra.Ctx.Request
-	ctx := context.WithValue(cra.Ctx.Request.Context(), "version", "test123")
+	ctx := context.WithValue(cra.Ctx.Request.Context(), "vtags", "test123")
 	req = req.WithContext(ctx)
-	hlog.Info("---------------")
+
+	chartFN := req.FormValue("filename")
+	hlog.Info("---------")
+	hlog.Info(chartFN)
 
 	// Directly proxy to the backend
 	chartController.ProxyTraffic(cra.Ctx.ResponseWriter, req)

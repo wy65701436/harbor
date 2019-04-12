@@ -84,13 +84,6 @@ func director(target *url.URL, cred *Credential, req *http.Request) {
 
 // Modify the http response
 func modifyResponse(res *http.Response) error {
-	hlog.Info("^^^^^^^^^^^^^^^^^")
-	//hlog.Info(res.Request.Body)
-	hlog.Info(res.StatusCode)
-	hlog.Info(res.Request.Header)
-	hlog.Info(res.Request.Context())
-	hlog.Info("^^^^^^^^^^^^^^^^^")
-
 	// Accept cases
 	// Success or redirect
 	if res.StatusCode >= http.StatusOK && res.StatusCode <= http.StatusTemporaryRedirect {
@@ -109,11 +102,8 @@ func modifyResponse(res *http.Response) error {
 						Namespace: &model.Namespace{
 							Name: res.Request.URL.String(),
 						},
-						// Repository: &model.Repository{
-						//	Name: strings.TrimPrefix(repository, project+"/"),
-						// },
 						// For helm chart, vtags means version.
-						//Vtags: []string{version},
+						Vtags: []string{res.Request.Context().Value("vtags").(string)},
 					},
 				},
 			}
