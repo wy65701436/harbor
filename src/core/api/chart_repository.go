@@ -301,8 +301,8 @@ func (cra *ChartRepositoryAPI) UploadChartVersion() {
 	hlog.Info("---------------")
 	hlog.Info(cra.Ctx.Request.URL)
 	//hlog.Info(cra.Ctx.Request.Body)
-	body, _ := ioutil.ReadAll(cra.Ctx.Request.Body)
-	hlog.Info(body)
+	//body, _ := ioutil.ReadAll(cra.Ctx.Request.Body)
+	//hlog.Info(body)
 	req := cra.Ctx.Request
 	ctx := context.WithValue(cra.Ctx.Request.Context(), "version", "test123")
 	req = req.WithContext(ctx)

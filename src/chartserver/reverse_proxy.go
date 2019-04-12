@@ -87,8 +87,8 @@ func modifyResponse(res *http.Response) error {
 	hlog.Info("^^^^^^^^^^^^^^^^^")
 	//hlog.Info(res.Request.Body)
 	hlog.Info(res.StatusCode)
-	hlog.Info(res.Request.Header)
-	hlog.Info(res.Request.Context())
+	//hlog.Info(res.Request.Header)
+	hlog.Info(res.Request.Context().Value("test"))
 	hlog.Info("^^^^^^^^^^^^^^^^^")
 
 	// Accept cases
