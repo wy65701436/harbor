@@ -78,6 +78,10 @@ func (h *handler) Handle(event *Event) error {
 	log.Info("^^^^^^^^^^^^^^^^^^^^")
 
 	for _, policy := range policies {
+		log.Info("^^^^^^^^^^^^^^^^^^^^")
+		log.Info(policy.Filters[0].Type)
+		log.Info(policy.Filters[0].Value)
+		log.Info("^^^^^^^^^^^^^^^^^^^^")
 		if err := PopulateRegistries(h.registryMgr, policy); err != nil {
 			return err
 		}
