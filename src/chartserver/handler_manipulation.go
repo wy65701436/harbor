@@ -8,9 +8,9 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/goharbor/harbor/src/common/utils/log"
-	"github.com/goharbor/harbor/src/replication/ng"
-	rep_event "github.com/goharbor/harbor/src/replication/ng/event"
-	"github.com/goharbor/harbor/src/replication/ng/model"
+	"github.com/goharbor/harbor/src/replication"
+	rep_event "github.com/goharbor/harbor/src/replication/event"
+	"github.com/goharbor/harbor/src/replication/model"
 	helm_repo "k8s.io/helm/pkg/repo"
 )
 
@@ -78,7 +78,8 @@ func (c *Controller) DeleteChartVersion(namespace, chartName, version string) er
 		e := &rep_event.Event{
 			Type: rep_event.EventTypeChartDelete,
 			Resource: &model.Resource{
-				Type: model.ResourceTypeChart,
+				Type:    model.ResourceTypeChart,
+				Deleted: true,
 				Metadata: &model.ResourceMetadata{
 					Namespace: &model.Namespace{
 						Name: namespace,
@@ -93,7 +94,7 @@ func (c *Controller) DeleteChartVersion(namespace, chartName, version string) er
 		log.Info("------------------")
 		log.Info("delete, %s, %s, %s", namespace, chartName, version)
 		log.Info("------------------")
-		if err := ng.EventHandler.Handle(e); err != nil {
+		if err := replication.EventHandler.Handle(e); err != nil {
 			log.Errorf("failed to handle event: %v", err)
 		}
 	}()

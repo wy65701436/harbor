@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	hlog "github.com/goharbor/harbor/src/common/utils/log"
-	"github.com/goharbor/harbor/src/replication/ng"
-	rep_event "github.com/goharbor/harbor/src/replication/ng/event"
-	"github.com/goharbor/harbor/src/replication/ng/model"
+	"github.com/goharbor/harbor/src/replication"
+	rep_event "github.com/goharbor/harbor/src/replication/event"
+	"github.com/goharbor/harbor/src/replication/model"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -123,7 +123,7 @@ func modifyResponse(res *http.Response) error {
 					hlog.Info("------------------")
 					hlog.Info("upload, %s, %s, %s", chartUploadSplitted[0], chartUploadSplitted[1], chartUploadSplitted[2])
 					hlog.Info("------------------")
-					if err := ng.EventHandler.Handle(e); err != nil {
+					if err := replication.EventHandler.Handle(e); err != nil {
 						hlog.Errorf("failed to handle event: %v", err)
 					}
 				}()
