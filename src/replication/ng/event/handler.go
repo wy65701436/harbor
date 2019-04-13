@@ -74,7 +74,8 @@ func (h *handler) Handle(event *Event) error {
 
 	log.Info("^^^^^^^^^^^^^^^^^^^^")
 	log.Info(event.Type)
-	log.Info(event.Resource.Registry)
+	log.Info(event.Resource.Metadata.Namespace.Name)
+	log.Info(policies)
 	log.Info("^^^^^^^^^^^^^^^^^^^^")
 
 	for _, policy := range policies {
