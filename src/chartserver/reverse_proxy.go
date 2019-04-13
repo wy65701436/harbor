@@ -90,6 +90,11 @@ func modifyResponse(res *http.Response) error {
 		return nil
 	}
 
+	hlog.Info("===================")
+	hlog.Info(res.StatusCode)
+	hlog.Info(res.Request.Context().Value("chart_upload").(string))
+	hlog.Info("===================")
+
 	// Upload chart success, then to the notification to replication handler
 	if res.StatusCode == http.StatusCreated {
 		// 201 and has chart_upload(namespace-repository-version) context
