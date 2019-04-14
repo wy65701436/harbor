@@ -119,24 +119,33 @@ func filterResources(resources []*model.Resource, filters []*model.Filter) ([]*m
 			switch filter.Type {
 			case model.FilterTypeResource:
 				resourceType, ok := filter.Value.(string)
+				log.Info("1111111111111111")
+				log.Info(resourceType)
 				if !ok {
 					return nil, fmt.Errorf("%v is not a valid string", filter.Value)
 				}
 				if model.ResourceType(resourceType) != resource.Type {
+					log.Info("1111111111111111false")
+					log.Info(resourceType)
 					match = false
 					break FILTER_LOOP
 				}
 			case model.FilterTypeName:
 				pattern, ok := filter.Value.(string)
+				log.Info("22222222222222222")
+				log.Info(pattern)
 				if !ok {
 					return nil, fmt.Errorf("%v is not a valid string", filter.Value)
 				}
 				if resource.Metadata == nil {
+					log.Info("22222222222222222false")
 					match = false
 					break FILTER_LOOP
 				}
 				// TODO filter only the repository part?
 				m, err := util.Match(pattern, resource.Metadata.GetResourceName())
+				log.Info(resource.Metadata.GetResourceName())
+				log.Info(m)
 				if err != nil {
 					return nil, err
 				}
@@ -145,7 +154,9 @@ func filterResources(resources []*model.Resource, filters []*model.Filter) ([]*m
 					break FILTER_LOOP
 				}
 			case model.FilterTypeTag:
+				log.Info("33333333333333")
 				pattern, ok := filter.Value.(string)
+				log.Info(pattern)
 				if !ok {
 					return nil, fmt.Errorf("%v is not a valid string", filter.Value)
 				}
@@ -155,7 +166,9 @@ func filterResources(resources []*model.Resource, filters []*model.Filter) ([]*m
 				}
 				var versions []string
 				for _, version := range resource.Metadata.Vtags {
+					log.Info(version)
 					m, err := util.Match(pattern, version)
+					log.Info(m)
 					if err != nil {
 						return nil, err
 					}
