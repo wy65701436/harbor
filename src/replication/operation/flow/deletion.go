@@ -51,6 +51,11 @@ func (d *deletionFlow) Run(interface{}) (int, error) {
 	for _, resource := range d.resources {
 		resource.Registry = d.policy.SrcRegistry
 	}
+	filers := d.policy.Filters
+	for _, fileter := range filers {
+		log.Info(fileter.Type)
+		log.Info(fileter.Value)
+	}
 	srcResources, err := filterResources(d.resources, d.policy.Filters)
 	if err != nil {
 		return 0, err
