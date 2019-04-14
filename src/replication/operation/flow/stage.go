@@ -118,10 +118,12 @@ func filterResources(resources []*model.Resource, filters []*model.Filter) ([]*m
 		for _, filter := range filters {
 			switch filter.Type {
 			case model.FilterTypeResource:
-				resourceType, ok := filter.Value.(string)
+				resourceType, ok := filter.Value.(model.ResourceType)
 				log.Info("1111111111111111")
 				log.Info(resourceType)
 				if !ok {
+					log.Info("1234567")
+					log.Info(ok)
 					return nil, fmt.Errorf("%v is not a valid string", filter.Value)
 				}
 				if model.ResourceType(resourceType) != resource.Type {
