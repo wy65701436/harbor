@@ -95,6 +95,11 @@ func fetchResources(adapter adp.Adapter, policy *model.Policy) ([]*model.Resourc
 				return nil, fmt.Errorf("the adapter doesn't implement the ChartRegistry interface")
 			}
 			res, err = reg.FetchCharts(policy.SrcNamespaces, filters)
+			log.Info("========")
+			log.Info(len(res))
+			for _, item := range res {
+				log.Info(item.Type)
+			}
 		} else {
 			return nil, fmt.Errorf("unsupported resource type %s", typ)
 		}
