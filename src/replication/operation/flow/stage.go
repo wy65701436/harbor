@@ -100,6 +100,7 @@ func fetchResources(adapter adp.Adapter, policy *model.Policy) ([]*model.Resourc
 			for _, item := range res {
 				log.Info(item.Type)
 			}
+			log.Info("========")
 		} else {
 			return nil, fmt.Errorf("unsupported resource type %s", typ)
 		}
