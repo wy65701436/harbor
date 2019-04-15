@@ -84,16 +84,17 @@ func director(target *url.URL, cred *Credential, req *http.Request) {
 
 // Modify the http response
 func modifyResponse(res *http.Response) error {
-	// Accept cases
-	// Success or redirect
-	if res.StatusCode >= http.StatusOK && res.StatusCode <= http.StatusTemporaryRedirect {
-		return nil
-	}
 
 	hlog.Info("===================")
 	hlog.Info(res.StatusCode)
 	hlog.Info(res.Request.Context().Value("chart_upload").(string))
 	hlog.Info("===================")
+
+	// Accept cases
+	// Success or redirect
+	if res.StatusCode >= http.StatusOK && res.StatusCode <= http.StatusTemporaryRedirect {
+		return nil
+	}
 
 	// Upload chart success, then to the notification to replication handler
 	if res.StatusCode == http.StatusCreated {
