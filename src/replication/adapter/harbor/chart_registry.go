@@ -25,6 +25,7 @@ import (
 
 	common_http "github.com/goharbor/harbor/src/common/http"
 	"github.com/goharbor/harbor/src/common/utils"
+	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/replication/model"
 )
 
@@ -85,7 +86,17 @@ func (a *adapter) FetchCharts(namespaces []string, filters []*model.Filter) ([]*
 		if err := a.client.Get(url, &charts); err != nil {
 			return nil, err
 		}
+		for _, item := range charts {
+			log.Info("-------")
+			log.Info(item.Name)
+			log.Info("-------")
+		}
 		charts, err := filterCharts(charts, filters)
+		for _, item := range charts {
+			log.Info("-------")
+			log.Info(item.Name)
+			log.Info("-------")
+		}
 		if err != nil {
 			return nil, err
 		}
