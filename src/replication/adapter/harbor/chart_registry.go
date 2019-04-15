@@ -24,7 +24,6 @@ import (
 	"strings"
 
 	common_http "github.com/goharbor/harbor/src/common/http"
-	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/replication/model"
 )
@@ -43,12 +42,12 @@ func (c *chart) Match(filters []*model.Filter) (bool, error) {
 		}
 	}
 	// trim the project part
-	_, name := utils.ParseRepository(c.Name)
+	//_, name := utils.ParseRepository(c.Name)
 	item := &FilterItem{
-		Value: name,
+		Value: c.Name,
 	}
 	log.Info("in match ..............")
-	log.Info(name)
+	log.Info(c.Name)
 	log.Info(len(supportedFilters))
 	for _, item := range supportedFilters {
 		log.Info(item.Type)
