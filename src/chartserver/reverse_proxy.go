@@ -85,17 +85,6 @@ func director(target *url.URL, cred *Credential, req *http.Request) {
 // Modify the http response
 func modifyResponse(res *http.Response) error {
 
-	hlog.Info("===================")
-	hlog.Info(res.StatusCode)
-	hlog.Info(res.Request.Context().Value("chart_upload").(string))
-	hlog.Info("===================")
-
-	// Accept cases
-	// Success or redirect
-	if res.StatusCode >= http.StatusOK && res.StatusCode <= http.StatusTemporaryRedirect {
-		return nil
-	}
-
 	// Upload chart success, then to the notification to replication handler
 	if res.StatusCode == http.StatusCreated {
 		// 201 and has chart_upload(namespace-repository-version) context
@@ -121,15 +110,18 @@ func modifyResponse(res *http.Response) error {
 							},
 						},
 					}
-					hlog.Info("------------------")
-					hlog.Info("upload, %s, %s, %s", chartUploadSplitted[0], chartUploadSplitted[1], chartUploadSplitted[2])
-					hlog.Info("------------------")
 					if err := replication.EventHandler.Handle(e); err != nil {
 						hlog.Errorf("failed to handle event: %v", err)
 					}
 				}()
 			}
 		}
+	}
+
+	// Accept cases
+	// Success or redirect
+	if res.StatusCode >= http.StatusOK && res.StatusCode <= http.StatusTemporaryRedirect {
+		return nil
 	}
 
 	// Detect the 401 code, if it is,overwrite it to 500.
