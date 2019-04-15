@@ -92,6 +92,8 @@ func (a *adapter) FetchCharts(namespaces []string, filters []*model.Filter) ([]*
 			log.Info("-------")
 		}
 		charts, err := filterCharts(charts, filters)
+		log.Info("^^^^^^^^^^^^^")
+		log.Info(len(charts))
 		for _, item := range charts {
 			log.Info("-------")
 			log.Info(item.Name)
