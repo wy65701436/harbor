@@ -47,6 +47,10 @@ func (c *chart) Match(filters []*model.Filter) (bool, error) {
 	item := &FilterItem{
 		Value: name,
 	}
+	log.Info("in match ..............")
+	log.Info(name)
+	log.Info(len(supportedFilters))
+	log.Info("in match ..............")
 	return item.Match(supportedFilters)
 }
 
@@ -86,19 +90,7 @@ func (a *adapter) FetchCharts(namespaces []string, filters []*model.Filter) ([]*
 		if err := a.client.Get(url, &charts); err != nil {
 			return nil, err
 		}
-		for _, item := range charts {
-			log.Info("-------")
-			log.Info(item.Name)
-			log.Info("-------")
-		}
 		charts, err := filterCharts(charts, filters)
-		log.Info("^^^^^^^^^^^^^")
-		log.Info(len(charts))
-		for _, item := range charts {
-			log.Info("-------")
-			log.Info(item.Name)
-			log.Info("-------")
-		}
 		if err != nil {
 			return nil, err
 		}
@@ -257,7 +249,10 @@ func parseChartName(name string) (string, string, error) {
 func filterCharts(charts []*chart, filters []*model.Filter) ([]*chart, error) {
 	result := []*chart{}
 	for _, chart := range charts {
+		log.Info("----------")
+		log.Info(chart.Name)
 		match, err := chart.Match(filters)
+		log.Info(match)
 		if err != nil {
 			return nil, err
 		}
