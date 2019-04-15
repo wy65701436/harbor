@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	hlog "github.com/goharbor/harbor/src/common/utils/log"
+	"github.com/goharbor/harbor/src/replication"
+	rep_event "github.com/goharbor/harbor/src/replication/event"
+	"github.com/goharbor/harbor/src/replication/model"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -84,6 +88,47 @@ func modifyResponse(res *http.Response) error {
 	// Success or redirect
 	if res.StatusCode >= http.StatusOK && res.StatusCode <= http.StatusTemporaryRedirect {
 		return nil
+	}
+
+	hlog.Info("===================")
+	hlog.Info(res.StatusCode)
+	hlog.Info(res.Request.Context().Value("chart_upload").(string))
+	hlog.Info("===================")
+
+	// Upload chart success, then to the notification to replication handler
+	if res.StatusCode == http.StatusCreated {
+		// 201 and has chart_upload(namespace-repository-version) context
+		// means this response is for uploading chart success.
+		chartUpload := res.Request.Context().Value("chart_upload").(string)
+		if chartUpload != "" {
+			chartUploadSplitted := strings.Split(chartUpload, "-")
+			if len(chartUploadSplitted) == 3 {
+				// Todo: it used as the replacement of webhook, will be removed when webhook to be introduced.
+				go func() {
+					e := &rep_event.Event{
+						Type: rep_event.EventTypeChartUpload,
+						Resource: &model.Resource{
+							Type: model.ResourceTypeChart,
+							Metadata: &model.ResourceMetadata{
+								Namespace: &model.Namespace{
+									Name: chartUploadSplitted[0],
+								},
+								Repository: &model.Repository{
+									Name: chartUploadSplitted[1],
+								},
+								Vtags: []string{chartUploadSplitted[2]},
+							},
+						},
+					}
+					hlog.Info("------------------")
+					hlog.Info("upload, %s, %s, %s", chartUploadSplitted[0], chartUploadSplitted[1], chartUploadSplitted[2])
+					hlog.Info("------------------")
+					if err := replication.EventHandler.Handle(e); err != nil {
+						hlog.Errorf("failed to handle event: %v", err)
+					}
+				}()
+			}
+		}
 	}
 
 	// Detect the 401 code, if it is,overwrite it to 500.
