@@ -50,6 +50,10 @@ func (c *chart) Match(filters []*model.Filter) (bool, error) {
 	log.Info("in match ..............")
 	log.Info(name)
 	log.Info(len(supportedFilters))
+	for _, item := range supportedFilters {
+		log.Info(item.Type)
+		log.Info(item.Value)
+	}
 	log.Info("in match ..............")
 	return item.Match(supportedFilters)
 }
