@@ -235,6 +235,13 @@ func (aj *AJAPI) submit(ajr *models.AdminJobReq) {
 
 	// submit job to job service
 	log.Debugf("submitting admin job to job service")
+	log.Info("=================================")
+	log.Infof(job.Name)
+	log.Infof(job.Metadata.JobKind)
+	for _, item := range job.Parameters {
+		log.Info(item)
+	}
+	log.Info("=================================")
 	uuid, err := utils_core.GetJobServiceClient().SubmitJob(job)
 	if err != nil {
 		if err := dao.DeleteAdminJob(id); err != nil {
