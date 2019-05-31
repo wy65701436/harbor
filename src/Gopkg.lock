@@ -101,6 +101,14 @@
   version = "v1.7.0"
 
 [[projects]]
+  branch = "containous-fork"
+  digest = "1:fbaff5c4bca9f809164c9831850df7b0a11ad754cf14145335c4d54e7b5aa680"
+  name = "github.com/containous/alice"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d83ebdd94cbdbcd9c6c6a22e1a0cde05e55d9d90"
+
+[[projects]]
   digest = "1:f6e5e1bc64c2908167e6aa9a1fe0c084d515132a1c63ad5b6c84036aa06dc0c1"
   name = "github.com/coreos/go-oidc"
   packages = ["."]
@@ -748,6 +756,7 @@
     "github.com/casbin/casbin/model",
     "github.com/casbin/casbin/persist",
     "github.com/casbin/casbin/util",
+    "github.com/containous/alice",
     "github.com/coreos/go-oidc",
     "github.com/dghubble/sling",
     "github.com/dgrijalva/jwt-go",

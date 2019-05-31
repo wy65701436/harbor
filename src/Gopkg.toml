@@ -135,3 +135,7 @@ ignored = ["github.com/goharbor/harbor/tests*"]
 [[constraint]]
   name = "github.com/docker/notary"
   version = "=0.6.1"
+
+[[constraint]]
+  branch = "containous-fork"
+  name = "github.com/containous/alice"
