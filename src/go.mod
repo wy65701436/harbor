@@ -20,6 +20,7 @@ require (
 	github.com/casbin/casbin v1.7.0
 	github.com/cenkalti/backoff v2.1.1+incompatible // indirect
 	github.com/cloudflare/cfssl v0.0.0-20190510060611-9c027c93ba9e // indirect
+	github.com/containous/alice v0.0.0-20171023064455-03f45bd4b7da
 	github.com/coreos/go-oidc v2.0.0+incompatible
 	github.com/dghubble/sling v1.1.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
