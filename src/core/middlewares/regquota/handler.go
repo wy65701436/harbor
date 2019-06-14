@@ -53,7 +53,7 @@ func (bh regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occured when to Unmarshal Manifest %v", err)), http.StatusInternalServerError)
+	http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occured when to Unmarshal Manifest")), http.StatusInternalServerError)
 	return
 
 	bh.next.ServeHTTP(rw, req)
