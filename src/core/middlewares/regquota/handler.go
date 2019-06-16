@@ -49,12 +49,10 @@ func (bh regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Infof("manifest digest... %s", imageDigest)
 			log.Infof("manifest size... %v", imageSize)
 			req.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+			http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occured when to Unmarshal Manifest")), http.StatusInternalServerError)
 			return
 		}
 	}
-
-	http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occured when to Unmarshal Manifest")), http.StatusInternalServerError)
-	return
 
 	bh.next.ServeHTTP(rw, req)
 }
