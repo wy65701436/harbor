@@ -7,7 +7,6 @@ import (
 	"github.com/goharbor/harbor/src/core/middlewares/listrepo"
 	"github.com/goharbor/harbor/src/core/middlewares/multiplmanifest"
 	"github.com/goharbor/harbor/src/core/middlewares/readonly"
-	"github.com/goharbor/harbor/src/core/middlewares/regquota"
 	"github.com/goharbor/harbor/src/core/middlewares/url"
 	"github.com/goharbor/harbor/src/core/middlewares/vulnerable"
 	"net/http"
@@ -55,14 +54,14 @@ func (b *ChainBuilder) getMiddleware(mName string) (alice.Constructor, error) {
 			return url.New(next)
 		}
 	}
-	if mName == REGQUOTA {
-		if middleware != nil {
-			return nil, errors.New("middleware is not nil")
-		}
-		middleware = func(next http.Handler) (http.Handler, error) {
-			return regquota.New(next)
-		}
-	}
+	//if mName == REGQUOTA {
+	//	if middleware != nil {
+	//		return nil, errors.New("middleware is not nil")
+	//	}
+	//	middleware = func(next http.Handler) (http.Handler, error) {
+	//		return regquota.New(next)
+	//	}
+	//}
 	if mName == MUITIPLEMANIFEST {
 		if middleware != nil {
 			return nil, errors.New("middleware is not nil")
