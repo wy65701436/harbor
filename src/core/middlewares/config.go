@@ -12,4 +12,4 @@ const (
 )
 
 // sequential organization
-var Middlewares = []string{READONLY, URL, MUITIPLEMANIFEST, LISTREPO, CONTENTTRUST, VULNERABLE}
+var Middlewares = []string{READONLY, URL, REGQUOTA, MUITIPLEMANIFEST, LISTREPO, CONTENTTRUST, VULNERABLE}
