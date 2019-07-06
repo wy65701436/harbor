@@ -15,45 +15,54 @@
 package redis
 
 import (
+	"fmt"
 	"time"
+
+	"github.com/garyburd/redigo/redis"
+	"gopkg.in/redsync.v1"
 )
 
-const (
-	lockCmd = `return redis.call('SET', KEYS[1], ARGV[1], 'NX', 'PX', ARGV[2])`
-	unlockCmd = `if redis.call("get",KEYS[1]) == ARGV[1] then return redis.call("del",KEYS[1]) else return 0 end`
-	dialConnectionTimeout = 30 * time.Second
-	dialReadTimeout       = time.Minute + 10*time.Second
-	dialWriteTimeout      = 10 * time.Second
-)
+func newPool(server string) *redis.Pool {
+	return &redis.Pool{
+		MaxIdle:     3,
+		IdleTimeout: 240 * time.Second,
 
-type
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", server)
+			if err != nil {
+				return nil, err
+			}
+			return c, err
+		},
 
-func Lock(key, value string, timeoutMs int) (bool, error) {
-	r := pool.Get()
-	defer r.Close()
-
-	cmd := redis.NewScript(1, lockCmd)
-	if res, err := cmd.Do(r, key, value, timeoutMs); err != nil {
-		return false, err
-	} else {
-		return res == "OK", nil
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
 	}
 }
 
-// Unlock attempts to remove the lock on a key so long as the value matches.
-// If the lock cannot be removed, either because the key has already expired or
-// because the value was incorrect, an error will be returned.
-func Unlock(key, value string) error {
-	r := pool.Get()
-	defer r.Close()
-
-	cmd := redis.NewScript(1, unlockCmd}
-	if res, err := redis.Int(cmd.Do(r, key, value)); err != nil {
-		return err
-	} else if res != 1 {
-		return errors.New("Unlock failed, key or secret incorrect")
+func newPools(servers []string) []redsync.Pool {
+	pools := []redsync.Pool{}
+	for _, server := range servers {
+		pool := newPool(server)
+		pools = append(pools, pool)
 	}
 
-	// Success
-	return nil
+	return pools
+}
+
+func main() {
+	pools := newPools([]string{"127.0.0.1:6379", "127.0.0.1:6378", "127.0.0.1:6377"})
+	rs := redsync.New(pools)
+	m := rs.NewMutex("/lock")
+
+	err := m.Lock()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("lock success")
+	unlockRes := m.Unlock()
+	fmt.Println("unlock result: ", unlockRes)
+
 }
