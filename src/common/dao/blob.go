@@ -33,7 +33,7 @@ func GetBlob(digest string) (*models.Blob, error) {
 		return nil, fmt.Errorf("failed to get blob for digest %s, error: %v", digest, err)
 	}
 	if len(b) == 0 {
-		log.Infof("No blob found for digest %d, returning empty.", digest)
+		log.Infof("No blob found for digest %s, returning empty.", digest)
 		return &models.Blob{}, nil
 	} else if len(b) > 1 {
 		log.Infof("Multiple blob found for digest %s", digest)
