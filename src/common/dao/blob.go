@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
-	"github.com/pkg/errors"
 	"strings"
 	"time"
 )
