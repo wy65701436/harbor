@@ -40,37 +40,43 @@ func New(next http.Handler) http.Handler {
 
 // ServeHTTP ...
 func (bqh blobQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodPut {
-		match, _ := util.MatchPutBlobURL(req)
-		if match {
-			log.Infof("hhhhhhhhhhhhhhhhhhhhhhhhh")
-			log.Infof("%v", req.Header)
-			log.Infof("%v", req.Header.Get("Content-Length"))
-			log.Infof("hhhhhhhhhhhhhhhhhhhhhhhhh")
-			dgstStr := req.FormValue("digest")
-			if dgstStr == "" {
-				http.Error(rw, util.MarshalError("InternalServerError", "blob digest missing"), http.StatusInternalServerError)
-				return
-			}
-			dgst, err := digest.Parse(dgstStr)
-			if err != nil {
-				http.Error(rw, util.MarshalError("InternalServerError", "blob digest parsing failed"), http.StatusInternalServerError)
-				return
-			}
-			// ToDo lock digest with redis
-
-			// ToDo read placeholder from config
-			state, err := hmacKey("placeholder").unpackUploadState(req.FormValue("_state"))
-			if err != nil {
-				http.Error(rw, util.MarshalError("InternalServerError", "failed to decode state"), http.StatusInternalServerError)
-				return
-			}
-			log.Infof("we need to insert blob data into DB.")
-			log.Infof("blob digest, %v", dgst)
-			log.Infof("blob size, %v", state.Offset)
+	matchPutBlob, _ := util.MatchPutBlobURL(req)
+	if matchPutBlob {
+		log.Infof("hhhhhhhhhhhhhhhhhhhhhhhhh")
+		log.Infof("%v", req.Header)
+		log.Infof("%v", req.Header.Get("Content-Length"))
+		log.Infof("hhhhhhhhhhhhhhhhhhhhhhhhh")
+		dgstStr := req.FormValue("digest")
+		if dgstStr == "" {
+			http.Error(rw, util.MarshalError("InternalServerError", "blob digest missing"), http.StatusInternalServerError)
+			return
 		}
+		dgst, err := digest.Parse(dgstStr)
+		if err != nil {
+			http.Error(rw, util.MarshalError("InternalServerError", "blob digest parsing failed"), http.StatusInternalServerError)
+			return
+		}
+		// ToDo lock digest with redis
 
+		// ToDo read placeholder from config
+		state, err := hmacKey("placeholder").unpackUploadState(req.FormValue("_state"))
+		if err != nil {
+			http.Error(rw, util.MarshalError("InternalServerError", "failed to decode state"), http.StatusInternalServerError)
+			return
+		}
+		log.Infof("we need to insert blob data into DB.")
+		log.Infof("blob digest, %v", dgst)
+		log.Infof("blob size, %v", state.Offset)
 	}
+
+	matchPatchBlob, _ := util.MatchPatchBlobURL(req)
+	if matchPatchBlob {
+		log.Infof("hhhhhhhhhhhhhhhhhhhhhhhhh")
+		log.Infof("%v", req.Header)
+		log.Infof("%v", req.Header.Get("Content-Length"))
+		log.Infof("hhhhhhhhhhhhhhhhhhhhhhhhh")
+	}
+
 	bqh.next.ServeHTTP(rw, req)
 }
 
