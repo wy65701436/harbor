@@ -43,6 +43,10 @@ func (bqh blobQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 	if req.Method == http.MethodPut {
 		match, _ := util.MatchPutBlobURL(req)
 		if match {
+			log.Infof("hhhhhhhhhhhhhhhhhhhhhhhhh")
+			log.Infof("%v", req.Header)
+			log.Infof("%v", req.Header.Get("Content-Length"))
+			log.Infof("hhhhhhhhhhhhhhhhhhhhhhhhh")
 			dgstStr := req.FormValue("digest")
 			if dgstStr == "" {
 				http.Error(rw, util.MarshalError("InternalServerError", "blob digest missing"), http.StatusInternalServerError)
