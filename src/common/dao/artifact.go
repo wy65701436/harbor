@@ -75,7 +75,7 @@ func ListArtifacts(query *models.ArtifactQuery) ([]*models.Artifact, error) {
 }
 
 func getArtifactQuerySetter(query *models.ArtifactQuery) orm.QuerySeter {
-	qs := GetOrmer().QueryTable(&models.ArtifactQuery{})
+	qs := GetOrmer().QueryTable(&models.Artifact{})
 	if query.ProjectID != 0 {
 		qs = qs.Filter("ProjectID", query.ProjectID)
 	}
