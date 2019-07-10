@@ -135,13 +135,8 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 
 // tryLockTag locks tag with redis ...
 func (rqh *regQuotaHandler) tryLockTag(request *http.Request) (*common_redis.Mutex, error) {
-	redisUrl, err := config.RegistryURL()
-	if err != nil {
-		log.Warningf("Error occurred when to lock tag with redis %v", err)
-		return nil, err
-	}
 	con, err := redis.DialURL(
-		redisUrl,
+		config.GetRedisOfRegURL(),
 		redis.DialConnectTimeout(dialConnectionTimeout),
 		redis.DialReadTimeout(dialReadTimeout),
 		redis.DialWriteTimeout(dialWriteTimeout),
