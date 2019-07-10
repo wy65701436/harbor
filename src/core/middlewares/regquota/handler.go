@@ -172,7 +172,7 @@ func (rqh *regQuotaHandler) getProjectID(name string) (int64, error) {
 
 func (rqh *regQuotaHandler) tagExist() (bool, error) {
 	artifactQuery := &models.ArtifactQuery{
-		ProjectID: rqh.mfInfo.ProjectID,
+		PID: rqh.mfInfo.ProjectID,
 	}
 	afs, err := dao.ListArtifacts(artifactQuery)
 	if err != nil {
@@ -190,7 +190,7 @@ func (rqh *regQuotaHandler) tagExist() (bool, error) {
 
 func (rqh *regQuotaHandler) mfExist() (bool, error) {
 	artifactQuery := &models.ArtifactQuery{
-		ProjectID: rqh.mfInfo.ProjectID,
+		PID: rqh.mfInfo.ProjectID,
 	}
 	afs, err := dao.ListArtifacts(artifactQuery)
 	if err != nil {
