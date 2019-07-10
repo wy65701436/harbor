@@ -16,9 +16,11 @@ package util
 
 import (
 	"encoding/json"
+	"github.com/docker/distribution"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/clair"
 	"github.com/goharbor/harbor/src/common/utils/log"
+	common_redis "github.com/goharbor/harbor/src/common/utils/redis"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"net/http"
@@ -37,6 +39,8 @@ const (
 	// TokenUsername ...
 	// TODO: temp solution, remove after vmware/harbor#2242 is resolved.
 	TokenUsername = "harbor-core"
+	// MFInfokKey the context key for image tag redis lock
+	MFInfokKey = contextKey("ManifestLock")
 )
 
 // ImageInfo ...
@@ -45,6 +49,18 @@ type ImageInfo struct {
 	Reference   string
 	ProjectName string
 	Digest      string
+}
+
+// MfInfo ...
+type MfInfo struct {
+	ProjectID  int64
+	Repository string
+	Tag        string
+	Digest     string
+	Size       int64
+	Exist      bool
+	TagLock    *common_redis.Mutex
+	Refrerence []distribution.Descriptor
 }
 
 // JSONError wraps a concrete Code and Message, it's readable for docker deamon.

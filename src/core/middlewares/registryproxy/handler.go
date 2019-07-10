@@ -15,13 +15,19 @@
 package registryproxy
 
 import (
+	"github.com/goharbor/harbor/src/common/dao"
+	"github.com/goharbor/harbor/src/common/models"
+	"github.com/goharbor/harbor/src/common/quota"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
+	"github.com/pkg/errors"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type proxyHandler struct {
@@ -81,27 +87,16 @@ func director(target *url.URL, req *http.Request) {
 
 // Modify the http response
 func modifyResponse(res *http.Response) error {
-
 	if res.Request.Method == http.MethodPut {
-		// PUT manifest
-		matchMF, _, _ := util.MatchManifestURL(res.Request)
+		matchMF, _, _ := util.MatchPushManifest(res.Request)
 		if matchMF {
-			if res.StatusCode == http.StatusCreated {
-				log.Infof("we need to insert data here ... ")
-			} else if res.StatusCode >= 202 || res.StatusCode <= 511 {
-				log.Infof("we need to roll back data here ... ")
-			}
+			return handlerPutManifest(res)
 		}
-
-		// PUT blob
 		matchBB, _ := util.MatchPutBlobURL(res.Request)
 		if matchBB {
-			if res.StatusCode != http.StatusCreated {
-				log.Infof("we need to rollback DB and unlock digest ... ")
-			}
+			return handlerPutBlob(res)
 		}
 	}
-
 	return nil
 }
 
@@ -115,6 +110,91 @@ func singleJoiningSlash(a, b string) string {
 		return a + "/" + b
 	}
 	return a + b
+}
+
+func handlerPutManifest(res *http.Response) error {
+	mfInfo := res.Request.Context().Value(util.MFInfokKey)
+	mf, ok := mfInfo.(*util.MfInfo)
+	if !ok {
+		return errors.New("failed to convert manifest information context into MfInfo.")
+	}
+	// 201
+	if res.StatusCode == http.StatusCreated {
+		af := &models.Artifact{
+			PID:      mf.ProjectID,
+			Repo:     mf.Repository,
+			Tag:      mf.Tag,
+			Digest:   mf.Digest,
+			PushTime: time.Now(),
+			Kind:     "Docker-Image",
+		}
+		_, err := dao.AddArtifact(af)
+		if err != nil {
+			log.Errorf("Error to add artifact, %v", err)
+			return err
+		}
+
+		afnbs := []*models.ArtifactAndBlob{}
+		for _, d := range mf.Refrerence {
+			afnb := &models.ArtifactAndBlob{
+				DigestAF:   mf.Digest,
+				DigestBlob: d.Digest.String(),
+			}
+			afnbs = append(afnbs, afnb)
+		}
+
+		if err := dao.AddArtifactNBlobs(afnbs); err != nil {
+			log.Errorf("Error to add artifact and blobs, %v", err)
+			return err
+		}
+
+	} else if res.StatusCode >= 202 || res.StatusCode <= 511 {
+		success := subtractResources(mf)
+		if !success {
+			return errors.New("Error to release resource booked for the manifest")
+		}
+	}
+
+	if mf.Exist {
+		_, err := mf.TagLock.Free()
+		if err != nil {
+			log.Errorf("Error to unlock in response handler, %v", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func handlerPutBlob(res *http.Response) error {
+	if res.StatusCode != http.StatusCreated {
+		log.Infof("we need to rollback DB and unlock digest ... ")
+	}
+	return nil
+}
+
+func subtractResources(mfInfo *util.MfInfo) bool {
+	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(mfInfo.ProjectID, 10))
+	if err != nil {
+		log.Errorf("Error occurred when to new quota manager %v", err)
+		return false
+	}
+	var quotaRes quota.ResourceList
+	if mfInfo.Exist {
+		quotaRes = quota.ResourceList{
+			quota.ResourceStorage: mfInfo.Size,
+		}
+	} else {
+		quotaRes = quota.ResourceList{
+			quota.ResourceStorage: mfInfo.Size,
+			quota.ResourceCount:   1,
+		}
+	}
+	if err := quotaMgr.SubtractResources(quotaRes); err != nil {
+		log.Errorf("Cannot get quota for the manifest %v", err)
+		return false
+	}
+	return true
 }
 
 // ServeHTTP ...

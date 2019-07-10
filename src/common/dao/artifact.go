@@ -15,6 +15,7 @@
 package dao
 
 import (
+	"github.com/astaxie/beego/orm"
 	"github.com/goharbor/harbor/src/common/models"
 	"strings"
 	"time"
@@ -57,4 +58,26 @@ func DeleteByTag(projectID int, repo, tag string) error {
 		return err
 	}
 	return nil
+}
+
+// ListArtifacts list artifacts according to the query conditions
+func ListArtifacts(query *models.ArtifactQuery) ([]*models.Artifact, error) {
+	qs := getArtifactQuerySetter(query)
+	if query.Size > 0 {
+		qs = qs.Limit(query.Size)
+		if query.Page > 0 {
+			qs = qs.Offset((query.Page - 1) * query.Size)
+		}
+	}
+	afs := []*models.Artifact{}
+	_, err := qs.All(&afs)
+	return afs, err
+}
+
+func getArtifactQuerySetter(query *models.ArtifactQuery) orm.QuerySeter {
+	qs := GetOrmer().QueryTable(&models.ArtifactQuery{})
+	if query.ProjectID != 0 {
+		qs = qs.Filter("ProjectID", query.ProjectID)
+	}
+	return qs
 }
