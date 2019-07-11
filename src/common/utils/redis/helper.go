@@ -80,7 +80,7 @@ func (rm *Mutex) Require() (bool, error) {
 
 // require get the redis lock, for details, just refer to https://redis.io/topics/distlock
 func (rm *Mutex) require() (bool, error) {
-	reply, err := redis.String(rm.conn.Do("SET", rm.key, rm.value, "NX", "PX", int(rm.opts.expiry/time.Millisecond)))
+	reply, err := redis.String(rm.Conn.Do("SET", rm.key, rm.value, "NX", "PX", int(rm.opts.expiry/time.Millisecond)))
 	if err != nil {
 		return false, err
 	}
@@ -90,7 +90,7 @@ func (rm *Mutex) require() (bool, error) {
 // Free releases the lock, for details, just refer to https://redis.io/topics/distlock
 func (rm *Mutex) Free() (bool, error) {
 	script := redis.NewScript(1, unlockScript)
-	resp, err := redis.Int(script.Do(rm.conn, rm.key, rm.value))
+	resp, err := redis.Int(script.Do(rm.Conn, rm.key, rm.value))
 	if err != nil {
 		return false, err
 	}
