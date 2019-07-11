@@ -70,6 +70,14 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 			mediaType == schema1.MediaTypeSignedManifest ||
 			mediaType == schema2.MediaTypeManifest {
 
+			tagLock, err := rqh.tryLockTag()
+			if err != nil {
+				log.Warningf("Error occurred when to lock tag %s:%s with digest %v", repository, tag, err)
+				http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to lock tag %s:%s with digest %v", repository, tag, err)), http.StatusInternalServerError)
+				return
+			}
+			rqh.mfInfo.TagLock = tagLock
+
 			data, err := ioutil.ReadAll(req.Body)
 			if err != nil {
 				log.Warningf("Error occurred when to copy manifest body %v", err)
@@ -89,6 +97,7 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 			rqh.mfInfo.Size = desc.Size
 			log.Infof("manifest digest... %s", rqh.mfInfo.Digest)
 			log.Infof("manifest size... %v", rqh.mfInfo.Size)
+			log.Infof("manifest References... %v", rqh.mfInfo.Refrerence)
 
 			projectID, err := rqh.getProjectID(strings.Split(repository, "/")[0])
 			if err != nil {
@@ -98,25 +107,6 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 			rqh.mfInfo.ProjectID = projectID
 			mfExist, err := rqh.artifactExist("digest")
 			if !mfExist {
-				con, err := redis.DialURL(
-					config.GetRedisOfRegURL(),
-					redis.DialConnectTimeout(dialConnectionTimeout),
-					redis.DialReadTimeout(dialReadTimeout),
-					redis.DialWriteTimeout(dialWriteTimeout),
-				)
-				if err != nil {
-					log.Warningf("Error occurred when to build redis connection %v", err)
-					http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to build redis connection %v", err)), http.StatusInternalServerError)
-					return
-				}
-
-				tagLock, err := rqh.tryLockTag(con)
-				if err != nil {
-					log.Warningf("Error occurred when to lock tag %s:%s with digest %v", repository, tag, err)
-					http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to lock tag %s:%s with digest %v", repository, tag, err)), http.StatusInternalServerError)
-					return
-				}
-				rqh.mfInfo.TagLock = tagLock
 
 				tagExist, err := rqh.artifactExist("tag")
 				if err != nil {
@@ -138,9 +128,6 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 
 			}
 
-			log.Info("11111111111111111111")
-			log.Info(mfInfo)
-			log.Info("11111111111111111111")
 			*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, mfInfo)))
 		}
 
@@ -150,7 +137,16 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 }
 
 // tryLockTag locks tag with redis ...
-func (rqh *regQuotaHandler) tryLockTag(con redis.Conn) (*common_redis.Mutex, error) {
+func (rqh *regQuotaHandler) tryLockTag() (*common_redis.Mutex, error) {
+	con, err := redis.DialURL(
+		config.GetRedisOfRegURL(),
+		redis.DialConnectTimeout(dialConnectionTimeout),
+		redis.DialReadTimeout(dialReadTimeout),
+		redis.DialWriteTimeout(dialWriteTimeout),
+	)
+	if err != nil {
+		return nil, err
+	}
 	tagLock := common_redis.New(con, rqh.mfInfo.Repository+":"+rqh.mfInfo.Tag, common_util.GenerateRandomString())
 	success, err := tagLock.Require()
 	if err != nil {

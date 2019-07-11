@@ -155,17 +155,15 @@ func handlerPutManifest(res *http.Response) error {
 		}
 	}
 
-	if mf.Exist {
+	defer func() {
 		_, err := mf.TagLock.Free()
 		if err != nil {
 			log.Errorf("Error to unlock in response handler, %v", err)
-			return err
 		}
 		if err := mf.TagLock.Conn.Close(); err != nil {
 			log.Errorf("Error to close redis connection in response handler, %v", err)
-			return err
 		}
-	}
+	}()
 
 	return nil
 }
