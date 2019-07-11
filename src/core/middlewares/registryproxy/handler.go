@@ -118,8 +118,8 @@ func handlerPutManifest(res *http.Response) error {
 	if !ok {
 		return errors.New("failed to convert manifest information context into MfInfo.")
 	}
-	// 201 and new
-	if res.StatusCode == http.StatusCreated && !mf.Exist {
+	// 201
+	if res.StatusCode == http.StatusCreated {
 		af := &models.Artifact{
 			PID:      mf.ProjectID,
 			Repo:     mf.Repository,

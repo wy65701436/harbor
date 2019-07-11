@@ -201,6 +201,7 @@ func (rqh *regQuotaHandler) tryRequireQuota() error {
 	} else if rqh.mfInfo.DigestChanged {
 		quotaRes = quota.ResourceList{
 			quota.ResourceStorage: rqh.mfInfo.Size,
+			quota.ResourceCount:   0,
 		}
 	}
 
