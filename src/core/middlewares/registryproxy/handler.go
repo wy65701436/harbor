@@ -128,10 +128,21 @@ func handlerPutManifest(res *http.Response) error {
 			PushTime: time.Now(),
 			Kind:     "Docker-Image",
 		}
-		_, err := dao.AddArtifact(af)
-		if err != nil {
-			log.Errorf("Error to add artifact, %v", err)
-			return err
+
+		// insert of update
+		if !mf.Exist {
+			_, err := dao.AddArtifact(af)
+			if err != nil {
+				log.Errorf("Error to add artifact, %v", err)
+				return err
+			}
+		}
+		if mf.DigestChanged {
+			err := dao.UpdateArtifactDigest(af)
+			if err != nil {
+				log.Errorf("Error to add artifact, %v", err)
+				return err
+			}
 		}
 
 		if !mf.Exist || mf.DigestChanged {

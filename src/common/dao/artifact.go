@@ -25,7 +25,7 @@ import (
 func AddArtifact(af *models.Artifact) (int64, error) {
 	now := time.Now()
 	af.CreationTime = now
-	id, err := GetOrmer().InsertOrUpdate(af, "digest")
+	id, err := GetOrmer().Insert(af)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			return 0, ErrDupRows
@@ -33,6 +33,12 @@ func AddArtifact(af *models.Artifact) (int64, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+// UpdateArtifactDigest
+func UpdateArtifactDigest(af *models.Artifact) error {
+	_, err := GetOrmer().Update(af, "digest")
+	return err
 }
 
 // DeleteArtifact ...
