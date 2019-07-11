@@ -81,8 +81,6 @@ func (rm *Mutex) Require() (bool, error) {
 // require get the redis lock, for details, just refer to https://redis.io/topics/distlock
 func (rm *Mutex) require() (bool, error) {
 	reply, err := redis.String(rm.Conn.Do("SET", rm.key, rm.value, "NX", "PX", int(rm.opts.expiry/time.Millisecond)))
-	log.Info("2222222222")
-	log.Info(reply)
 	if err != nil {
 		log.Info(err)
 		return false, err

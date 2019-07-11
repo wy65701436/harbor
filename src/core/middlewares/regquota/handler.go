@@ -59,11 +59,11 @@ func New(next http.Handler) http.Handler {
 func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	match, repository, tag := util.MatchPushManifest(req)
 	if match {
-		mfInfo := util.MfInfo{
+		mfInfo := &util.MfInfo{
 			Repository: repository,
 			Tag:        tag,
 		}
-		rqh.mfInfo = &mfInfo
+		rqh.mfInfo = mfInfo
 
 		mediaType := req.Header.Get("Content-Type")
 		if mediaType == schema1.MediaTypeManifest ||
@@ -138,6 +138,9 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 
 			}
 
+			log.Info("11111111111111111111")
+			log.Info(mfInfo)
+			log.Info("11111111111111111111")
 			*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, mfInfo)))
 		}
 
