@@ -149,8 +149,8 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 // tryLockTag locks tag with redis ...
 func (rqh *regQuotaHandler) tryLockTag(con redis.Conn) (*common_redis.Mutex, error) {
 	tagLock := common_redis.New(con, rqh.mfInfo.Repository+":"+rqh.mfInfo.Tag, common_util.GenerateRandomString())
-	lockSuccess, err := tagLock.Require()
-	if !lockSuccess {
+	_, err := tagLock.Require()
+	if err != nil {
 		return nil, err
 	}
 	return tagLock, nil

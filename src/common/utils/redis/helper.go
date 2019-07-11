@@ -70,9 +70,8 @@ func (rm *Mutex) Require() (bool, error) {
 			break
 		}
 		if err != nil || !isRequired {
-			continue
+			time.Sleep(rm.opts.retryDelay)
 		}
-		time.Sleep(rm.opts.retryDelay)
 	}
 
 	return isRequired, err
