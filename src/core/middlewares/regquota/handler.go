@@ -30,6 +30,7 @@ import (
 	common_redis "github.com/goharbor/harbor/src/common/utils/redis"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -131,7 +132,7 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 					if err != nil {
 						log.Warningf("Error to unlock tag: %s, with error: %v ", rqh.mfInfo.Tag, err)
 					}
-					log.Warningf("Cannot get quota for the manifest %v", err)
+					log.Errorf("Cannot get quota for the manifest %v", err)
 					http.Error(rw, util.MarshalError("StatusNotAcceptable", fmt.Sprintf("Cannot get quota for the manifest %v", err)), http.StatusNotAcceptable)
 					return
 				}
@@ -149,9 +150,14 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 // tryLockTag locks tag with redis ...
 func (rqh *regQuotaHandler) tryLockTag(con redis.Conn) (*common_redis.Mutex, error) {
 	tagLock := common_redis.New(con, rqh.mfInfo.Repository+":"+rqh.mfInfo.Tag, common_util.GenerateRandomString())
-	_, err := tagLock.Require()
+	success, err := tagLock.Require()
+	log.Info("111111111111")
+	log.Info(err)
 	if err != nil {
 		return nil, err
+	}
+	if !success {
+		return nil, fmt.Errorf("unable to lock tag: %s ", rqh.mfInfo.Repository+":"+rqh.mfInfo.Tag)
 	}
 	return tagLock, nil
 }

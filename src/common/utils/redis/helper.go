@@ -18,6 +18,7 @@ import (
 	"errors"
 	"github.com/garyburd/redigo/redis"
 	"github.com/goharbor/harbor/src/common/utils"
+	"github.com/goharbor/harbor/src/common/utils/log"
 	"time"
 )
 
@@ -81,8 +82,12 @@ func (rm *Mutex) Require() (bool, error) {
 func (rm *Mutex) require() (bool, error) {
 	reply, err := redis.String(rm.Conn.Do("SET", rm.key, rm.value, "NX", "PX", int(rm.opts.expiry/time.Millisecond)))
 	if err != nil {
+		log.Info("2222222222")
+		log.Info(err)
 		return false, err
 	}
+
+	log.Info(reply)
 	return reply == "OK", nil
 }
 
