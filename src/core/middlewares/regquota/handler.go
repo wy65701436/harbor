@@ -95,6 +95,8 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 			rqh.mfInfo.Refrerence = manifest.References()
 			rqh.mfInfo.Digest = desc.Digest.String()
 			rqh.mfInfo.Size = desc.Size
+			log.Infof("manifest url... %s", req.URL.Path)
+			log.Infof("manifest content type... %s", mediaType)
 			log.Infof("manifest digest... %s", rqh.mfInfo.Digest)
 			log.Infof("manifest size... %v", rqh.mfInfo.Size)
 			log.Infof("manifest References... %v", rqh.mfInfo.Refrerence)
