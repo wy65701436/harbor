@@ -117,7 +117,7 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 				http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to check Manifest existence %v", err)), http.StatusInternalServerError)
 				return
 			}
-			if exist {
+			if !exist {
 				err = rqh.tryRequireQuota()
 				if err != nil {
 					rqh.tryFreeTag()
