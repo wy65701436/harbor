@@ -168,6 +168,7 @@ func (rqh *regQuotaHandler) tryFreeTag() {
 	}
 }
 
+// check the existence of a artifact, if exist, the method will return the artifact model
 func (rqh *regQuotaHandler) imageExist() (exist bool, af *models.Artifact, err error) {
 	artifactQuery := &models.ArtifactQuery{
 		PID:  rqh.mfInfo.ProjectID,
