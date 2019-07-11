@@ -22,9 +22,6 @@ import (
 )
 
 var (
-	// ErrLock ...
-	ErrLock = errors.New("error to require the redis lock")
-
 	// ErrUnLock ...
 	ErrUnLock = errors.New("error to release the redis lock")
 )
