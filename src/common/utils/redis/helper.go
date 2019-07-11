@@ -44,7 +44,7 @@ end
 
 // Mutex ...
 type Mutex struct {
-	conn  redis.Conn
+	Conn  redis.Conn
 	key   string
 	value string
 	opts  Options

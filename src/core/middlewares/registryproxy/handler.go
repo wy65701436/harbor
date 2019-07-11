@@ -144,7 +144,7 @@ func handlerPutManifest(res *http.Response) error {
 		}
 
 		if err := dao.AddArtifactNBlobs(afnbs); err != nil {
-			log.Errorf("Error to add artifact and blobs, %v", err)
+			log.Errorf("Error to add artifact and blobs in proxy response handler, %v", err)
 			return err
 		}
 
@@ -159,6 +159,10 @@ func handlerPutManifest(res *http.Response) error {
 		_, err := mf.TagLock.Free()
 		if err != nil {
 			log.Errorf("Error to unlock in response handler, %v", err)
+			return err
+		}
+		if err := mf.TagLock.Conn.Close(); err != nil {
+			log.Errorf("Error to close redis connection in response handler, %v", err)
 			return err
 		}
 	}

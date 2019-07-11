@@ -96,9 +96,21 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 				return
 			}
 			rqh.mfInfo.ProjectID = projectID
-			mfExist, err := rqh.mfExist()
+			mfExist, err := rqh.artifactExist("digest")
 			if !mfExist {
-				tagLock, err := rqh.tryLockTag(req)
+				con, err := redis.DialURL(
+					config.GetRedisOfRegURL(),
+					redis.DialConnectTimeout(dialConnectionTimeout),
+					redis.DialReadTimeout(dialReadTimeout),
+					redis.DialWriteTimeout(dialWriteTimeout),
+				)
+				if err != nil {
+					log.Warningf("Error occurred when to build redis connection %v", err)
+					http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to build redis connection %v", err)), http.StatusInternalServerError)
+					return
+				}
+
+				tagLock, err := rqh.tryLockTag(con)
 				if err != nil {
 					log.Warningf("Error occurred when to lock tag %s:%s with digest %v", repository, tag, err)
 					http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to lock tag %s:%s with digest %v", repository, tag, err)), http.StatusInternalServerError)
@@ -106,7 +118,7 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 				}
 				rqh.mfInfo.TagLock = tagLock
 
-				tagExist, err := rqh.tagExist()
+				tagExist, err := rqh.artifactExist("tag")
 				if err != nil {
 					log.Warningf("Error occurred when to check Manifest existence %v", err)
 					http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to check Manifest existence %v", err)), http.StatusInternalServerError)
@@ -134,18 +146,7 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 }
 
 // tryLockTag locks tag with redis ...
-func (rqh *regQuotaHandler) tryLockTag(request *http.Request) (*common_redis.Mutex, error) {
-	con, err := redis.DialURL(
-		config.GetRedisOfRegURL(),
-		redis.DialConnectTimeout(dialConnectionTimeout),
-		redis.DialReadTimeout(dialReadTimeout),
-		redis.DialWriteTimeout(dialWriteTimeout),
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer con.Close()
-
+func (rqh *regQuotaHandler) tryLockTag(con redis.Conn) (*common_redis.Mutex, error) {
 	tagLock := common_redis.New(con, rqh.mfInfo.Repository+":"+rqh.mfInfo.Tag, common_util.GenerateRandomString())
 	lockSuccess, err := tagLock.Require()
 	if !lockSuccess {
@@ -154,18 +155,7 @@ func (rqh *regQuotaHandler) tryLockTag(request *http.Request) (*common_redis.Mut
 	return tagLock, nil
 }
 
-func (rqh *regQuotaHandler) getProjectID(name string) (int64, error) {
-	project, err := dao.GetProjectByName(name)
-	if err != nil {
-		return 0, err
-	}
-	if project != nil {
-		return project.ProjectID, nil
-	}
-	return 0, fmt.Errorf("project %s is not found", name)
-}
-
-func (rqh *regQuotaHandler) tagExist() (bool, error) {
+func (rqh *regQuotaHandler) artifactExist(byType string) (bool, error) {
 	artifactQuery := &models.ArtifactQuery{
 		PID: rqh.mfInfo.ProjectID,
 	}
@@ -176,26 +166,14 @@ func (rqh *regQuotaHandler) tagExist() (bool, error) {
 	}
 
 	for _, af := range afs {
-		if af.Repo == rqh.mfInfo.Repository && af.Tag == rqh.mfInfo.Tag {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-func (rqh *regQuotaHandler) mfExist() (bool, error) {
-	artifactQuery := &models.ArtifactQuery{
-		PID: rqh.mfInfo.ProjectID,
-	}
-	afs, err := dao.ListArtifacts(artifactQuery)
-	if err != nil {
-		log.Errorf("Error occurred when to get project ID %v", err)
-		return false, err
-	}
-
-	for _, af := range afs {
-		if af.Digest == rqh.mfInfo.Digest {
-			return true, nil
+		if byType == "tag" {
+			if af.Repo == rqh.mfInfo.Repository && af.Tag == rqh.mfInfo.Tag {
+				return true, nil
+			}
+		} else if byType == "digest" {
+			if af.Digest == rqh.mfInfo.Digest {
+				return true, nil
+			}
 		}
 	}
 	return false, nil
@@ -224,4 +202,15 @@ func (rqh *regQuotaHandler) tryRequireQuota(quotaSize int64, tagExist bool) bool
 		return false
 	}
 	return true
+}
+
+func (rqh *regQuotaHandler) getProjectID(name string) (int64, error) {
+	project, err := dao.GetProjectByName(name)
+	if err != nil {
+		return 0, err
+	}
+	if project != nil {
+		return project.ProjectID, nil
+	}
+	return 0, fmt.Errorf("project %s is not found", name)
 }
