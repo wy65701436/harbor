@@ -53,14 +53,15 @@ type ImageInfo struct {
 
 // MfInfo ...
 type MfInfo struct {
-	ProjectID  int64
-	Repository string
-	Tag        string
-	Digest     string
-	Size       int64
-	Exist      bool
-	TagLock    *common_redis.Mutex
-	Refrerence []distribution.Descriptor
+	ProjectID     int64
+	Repository    string
+	Tag           string
+	Digest        string
+	DigestChanged bool
+	Size          int64
+	Exist         bool
+	TagLock       *common_redis.Mutex
+	Refrerence    []distribution.Descriptor
 }
 
 // JSONError wraps a concrete Code and Message, it's readable for docker deamon.

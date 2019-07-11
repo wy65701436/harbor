@@ -118,8 +118,8 @@ func handlerPutManifest(res *http.Response) error {
 	if !ok {
 		return errors.New("failed to convert manifest information context into MfInfo.")
 	}
-	// 201
-	if res.StatusCode == http.StatusCreated {
+	// 201 and new
+	if res.StatusCode == http.StatusCreated && !mf.Exist {
 		af := &models.Artifact{
 			PID:      mf.ProjectID,
 			Repo:     mf.Repository,
@@ -134,18 +134,19 @@ func handlerPutManifest(res *http.Response) error {
 			return err
 		}
 
-		afnbs := []*models.ArtifactAndBlob{}
-		for _, d := range mf.Refrerence {
-			afnb := &models.ArtifactAndBlob{
-				DigestAF:   mf.Digest,
-				DigestBlob: d.Digest.String(),
+		if !mf.Exist || mf.DigestChanged {
+			afnbs := []*models.ArtifactAndBlob{}
+			for _, d := range mf.Refrerence {
+				afnb := &models.ArtifactAndBlob{
+					DigestAF:   mf.Digest,
+					DigestBlob: d.Digest.String(),
+				}
+				afnbs = append(afnbs, afnb)
 			}
-			afnbs = append(afnbs, afnb)
-		}
-
-		if err := dao.AddArtifactNBlobs(afnbs); err != nil {
-			log.Errorf("Error to add artifact and blobs in proxy response handler, %v", err)
-			return err
+			if err := dao.AddArtifactNBlobs(afnbs); err != nil {
+				log.Errorf("Error to add artifact and blobs in proxy response handler, %v", err)
+				return err
+			}
 		}
 
 	} else if res.StatusCode >= 202 || res.StatusCode <= 511 {
@@ -176,22 +177,29 @@ func handlerPutBlob(res *http.Response) error {
 }
 
 func subtractResources(mfInfo *util.MfInfo) bool {
+	var quotaRes quota.ResourceList
+	quotaRes = quota.ResourceList{
+		quota.ResourceStorage: 0,
+		quota.ResourceCount:   0,
+	}
+
+	if !mfInfo.Exist {
+		quotaRes = quota.ResourceList{
+			quota.ResourceStorage: mfInfo.Size,
+			quota.ResourceCount:   1,
+		}
+	} else if mfInfo.DigestChanged {
+		quotaRes = quota.ResourceList{
+			quota.ResourceStorage: mfInfo.Size,
+		}
+	}
+
 	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(mfInfo.ProjectID, 10))
 	if err != nil {
 		log.Errorf("Error occurred when to new quota manager %v", err)
 		return false
 	}
-	var quotaRes quota.ResourceList
-	if mfInfo.Exist {
-		quotaRes = quota.ResourceList{
-			quota.ResourceStorage: mfInfo.Size,
-		}
-	} else {
-		quotaRes = quota.ResourceList{
-			quota.ResourceStorage: mfInfo.Size,
-			quota.ResourceCount:   1,
-		}
-	}
+
 	if err := quotaMgr.SubtractResources(quotaRes); err != nil {
 		log.Errorf("Cannot get quota for the manifest %v", err)
 		return false

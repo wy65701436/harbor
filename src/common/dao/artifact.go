@@ -25,7 +25,7 @@ import (
 func AddArtifact(af *models.Artifact) (int64, error) {
 	now := time.Now()
 	af.CreationTime = now
-	id, err := GetOrmer().Insert(af)
+	id, err := GetOrmer().InsertOrUpdate(af)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			return 0, ErrDupRows
@@ -78,6 +78,12 @@ func getArtifactQuerySetter(query *models.ArtifactQuery) orm.QuerySeter {
 	qs := GetOrmer().QueryTable(&models.Artifact{})
 	if query.PID != 0 {
 		qs = qs.Filter("PID", query.PID)
+	}
+	if len(query.Repo) > 0 {
+		qs = qs.Filter("Repo", query.Repo)
+	}
+	if len(query.Tag) > 0 {
+		qs = qs.Filter("Tag", query.Tag)
 	}
 	return qs
 }

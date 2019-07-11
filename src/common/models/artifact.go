@@ -24,6 +24,8 @@ func (af *Artifact) TableName() string {
 
 // ArtifactQuery ...
 type ArtifactQuery struct {
-	PID int64
+	PID  int64
+	Repo string
+	Tag  string
 	Pagination
 }
