@@ -125,8 +125,8 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 					return
 				}
 
-				hasEnoughQuota := rqh.tryRequireQuota(desc.Size, tagExist)
-				if !hasEnoughQuota {
+				err = rqh.tryRequireQuota(tagExist)
+				if err != nil {
 					_, err := rqh.mfInfo.TagLock.Free()
 					if err != nil {
 						log.Warningf("Error to unlock tag: %s, with error: %v ", rqh.mfInfo.Tag, err)
@@ -135,6 +135,7 @@ func (rqh *regQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 					http.Error(rw, util.MarshalError("StatusNotAcceptable", fmt.Sprintf("Cannot get quota for the manifest %v", err)), http.StatusNotAcceptable)
 					return
 				}
+
 			}
 
 			*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, mfInfo)))
@@ -179,29 +180,29 @@ func (rqh *regQuotaHandler) artifactExist(byType string) (bool, error) {
 	return false, nil
 }
 
-func (rqh *regQuotaHandler) tryRequireQuota(quotaSize int64, tagExist bool) bool {
+func (rqh *regQuotaHandler) tryRequireQuota(tagExist bool) error {
 	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(rqh.mfInfo.ProjectID, 10))
 	if err != nil {
 		log.Errorf("Error occurred when to new quota manager %v", err)
-		return false
+		return err
 	}
 	var quotaRes quota.ResourceList
 	if tagExist {
 		quotaRes = quota.ResourceList{
-			quota.ResourceStorage: quotaSize,
+			quota.ResourceStorage: rqh.mfInfo.Size,
 		}
 	} else {
 		quotaRes = quota.ResourceList{
-			quota.ResourceStorage: quotaSize,
+			quota.ResourceStorage: rqh.mfInfo.Size,
 			quota.ResourceCount:   1,
 		}
 	}
 
 	if err := quotaMgr.AddResources(quotaRes); err != nil {
 		log.Errorf("Cannot get quota for the manifest %v", err)
-		return false
+		return err
 	}
-	return true
+	return nil
 }
 
 func (rqh *regQuotaHandler) getProjectID(name string) (int64, error) {
