@@ -30,7 +30,6 @@ import (
 	common_redis "github.com/goharbor/harbor/src/common/utils/redis"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 	"strconv"
