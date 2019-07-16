@@ -23,8 +23,8 @@ const (
 	CONTENTTRUST     = "contenttrust"
 	VULNERABLE       = "vulnerable"
 	REGQUOTA         = "regquota"
-	BLOBQUOTA        = "blobquota"
+	SIZEQUOTA        = "sizequota"
 )
 
 // Middlewares with sequential organization
-var Middlewares = []string{READONLY, URL, MUITIPLEMANIFEST, LISTREPO, CONTENTTRUST, VULNERABLE, BLOBQUOTA, REGQUOTA}
+var Middlewares = []string{READONLY, URL, MUITIPLEMANIFEST, LISTREPO, CONTENTTRUST, VULNERABLE, SIZEQUOTA, REGQUOTA}

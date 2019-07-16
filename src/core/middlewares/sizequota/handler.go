@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package blobquota
+package sizequota
 
 import (
 	"crypto/hmac"
@@ -39,35 +39,55 @@ func New(next http.Handler) http.Handler {
 }
 
 // ServeHTTP ...
-func (bqh blobQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	if req.Method == http.MethodPut {
-		match, _ := util.MatchPutBlobURL(req)
-		if match {
-			dgstStr := req.FormValue("digest")
-			if dgstStr == "" {
-				http.Error(rw, util.MarshalError("InternalServerError", "blob digest missing"), http.StatusInternalServerError)
-				return
-			}
-			dgst, err := digest.Parse(dgstStr)
-			if err != nil {
-				http.Error(rw, util.MarshalError("InternalServerError", "blob digest parsing failed"), http.StatusInternalServerError)
-				return
-			}
-			// ToDo lock digest with redis
-
-			// ToDo read placeholder from config
-			state, err := hmacKey("placeholder").unpackUploadState(req.FormValue("_state"))
-			if err != nil {
-				http.Error(rw, util.MarshalError("InternalServerError", "failed to decode state"), http.StatusInternalServerError)
-				return
-			}
-			log.Infof("we need to insert blob data into DB.")
-			log.Infof("blob digest, %v", dgst)
-			log.Infof("blob size, %v", state.Offset)
-		}
-
+func (bqh *blobQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	matchPatchBlob, _ := util.MatchPatchBlobURL(req)
+	if matchPatchBlob {
+		bqh.handlePatchBlob(rw, req)
 	}
+
+	matchPutBlob, _ := util.MatchPutBlobURL(req)
+	if matchPutBlob {
+		bqh.handlePutBlob(rw, req)
+	}
+
 	bqh.next.ServeHTTP(rw, req)
+}
+
+func (bqh *blobQuotaHandler) handlePatchBlob(rw http.ResponseWriter, req *http.Request) error {
+	ct := req.Header.Get("Content-Type")
+	if ct != "" && ct != "application/octet-stream" {
+		return errors.New("unsupported content type")
+	}
+
+	log.Info("111111111111111111")
+	log.Info(req.Header.Get("Content-Length"))
+	log.Info("111111111111111111")
+
+	return nil
+}
+
+func (bqh *blobQuotaHandler) handlePutBlob(rw http.ResponseWriter, req *http.Request) {
+	dgstStr := req.FormValue("digest")
+	if dgstStr == "" {
+		http.Error(rw, util.MarshalError("InternalServerError", "blob digest missing"), http.StatusInternalServerError)
+		return
+	}
+	dgst, err := digest.Parse(dgstStr)
+	if err != nil {
+		http.Error(rw, util.MarshalError("InternalServerError", "blob digest parsing failed"), http.StatusInternalServerError)
+		return
+	}
+	// ToDo lock digest with redis
+
+	// ToDo read placeholder from config
+	state, err := hmacKey("placeholder").unpackUploadState(req.FormValue("_state"))
+	if err != nil {
+		http.Error(rw, util.MarshalError("InternalServerError", "failed to decode state"), http.StatusInternalServerError)
+		return
+	}
+	log.Infof("we need to insert blob data into DB.")
+	log.Infof("blob digest, %v", dgst)
+	log.Infof("blob size, %v", state.Offset)
 }
 
 // blobUploadState captures the state serializable state of the blob upload.

@@ -106,6 +106,24 @@ func MatchPutBlobURL(req *http.Request) (bool, string) {
 	return false, ""
 }
 
+// MatchPatchBlobURL ...
+func MatchPatchBlobURL(req *http.Request) (bool, string) {
+	if req.Method != http.MethodPatch {
+		return false, ""
+	}
+	re, err := regexp.Compile(blobURLPattern)
+	if err != nil {
+		log.Errorf("error to match put blob url, %v", err)
+		return false, ""
+	}
+	s := re.FindStringSubmatch(req.URL.Path)
+	if len(s) == 2 {
+		s[1] = strings.TrimSuffix(s[1], "/")
+		return true, s[1]
+	}
+	return false, ""
+}
+
 // MatchPullManifest checks if the request looks like a request to pull manifest.  If it is returns the image and tag/sha256 digest as 2nd and 3rd return values
 func MatchPullManifest(req *http.Request) (bool, string, string) {
 	if req.Method != http.MethodGet {
