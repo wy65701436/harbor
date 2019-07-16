@@ -62,7 +62,7 @@ func (bqh *blobQuotaHandler) handlePatchBlob(rw http.ResponseWriter, req *http.R
 	log.Info("111111111111111111")
 	log.Info(req.Header.Get("Content-Length"))
 	log.Info(req.Header)
-	log.Info(req.URL.String())
+	log.Info(req.URL.Path)
 	log.Info("111111111111111111")
 
 	return nil
