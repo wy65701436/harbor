@@ -15,20 +15,31 @@
 package sizequota
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/json"
+	"fmt"
+	"github.com/garyburd/redigo/redis"
+	"github.com/goharbor/harbor/src/common/quota"
+	common_util "github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
+	common_redis "github.com/goharbor/harbor/src/common/utils/redis"
+	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 )
 
+const (
+	dialConnectionTimeout = 30 * time.Second
+	dialReadTimeout       = time.Minute + 10*time.Second
+	dialWriteTimeout      = 10 * time.Second
+)
+
 type blobQuotaHandler struct {
-	next http.Handler
+	next     http.Handler
+	blobInfo *util.BlobInfo
 }
 
 // New ...
@@ -40,14 +51,16 @@ func New(next http.Handler) http.Handler {
 
 // ServeHTTP ...
 func (bqh *blobQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	matchPatchBlob, _ := util.MatchPatchBlobURL(req)
+	matchPatchBlob, repository := util.MatchPatchBlobURL(req)
 	if matchPatchBlob {
+		bqh.blobInfo.Repository = repository
 		bqh.handlePatchBlob(rw, req)
 	}
 
-	matchPutBlob, _ := util.MatchPutBlobURL(req)
+	matchPutBlob, repository := util.MatchPutBlobURL(req)
 	if matchPutBlob {
-		bqh.handlePutBlob(rw, req)
+		bqh.blobInfo.Repository = repository
+		bqh.handlePutBlobComplete(rw, req)
 	}
 
 	bqh.next.ServeHTTP(rw, req)
@@ -59,84 +72,206 @@ func (bqh *blobQuotaHandler) handlePatchBlob(rw http.ResponseWriter, req *http.R
 		return errors.New("unsupported content type")
 	}
 
-	log.Info("111111111111111111")
-	log.Info(req.Header.Get("Content-Length"))
-	log.Info(req.Header)
-	log.Info(req.URL.Path)
-	log.Info("111111111111111111")
+	bqh.blobInfo.UUID = getUUID(req.URL.Path)
+	if bqh.blobInfo.UUID != "" {
+		tempSize, err := strconv.ParseInt(req.Header.Get("Content-Length"), 10, 64)
+		if err != nil {
+			return err
+		}
+		success, err := bqh.setBunkSize(tempSize)
+		if err != nil {
+			return err
+		}
+		if !success {
+			// ToDo what to do here
+		}
+	}
 
 	return nil
 }
 
-func (bqh *blobQuotaHandler) handlePutBlob(rw http.ResponseWriter, req *http.Request) {
+func (bqh *blobQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *http.Request) error {
+	defer func() {
+		if bqh.blobInfo.UUID != "" {
+			_, err := bqh.removeUUID()
+			if err != nil {
+				log.Warningf("error occurred when remove UUID for blob, %v", err)
+			}
+		}
+	}()
+
 	dgstStr := req.FormValue("digest")
 	if dgstStr == "" {
-		http.Error(rw, util.MarshalError("InternalServerError", "blob digest missing"), http.StatusInternalServerError)
-		return
+		return errors.New("blob digest missing")
 	}
 	dgst, err := digest.Parse(dgstStr)
 	if err != nil {
-		http.Error(rw, util.MarshalError("InternalServerError", "blob digest parsing failed"), http.StatusInternalServerError)
-		return
+		return errors.New("blob digest parsing failed")
 	}
-	// ToDo lock digest with redis
-
-	// ToDo read placeholder from config
-	state, err := hmacKey("placeholder").unpackUploadState(req.FormValue("_state"))
+	bqh.blobInfo.Digest = dgst.String()
+	bqh.blobInfo.UUID = getUUID(req.URL.Path)
+	projectID, err := util.GetProjectID(strings.Split(bqh.blobInfo.Repository, "/")[0])
 	if err != nil {
-		http.Error(rw, util.MarshalError("InternalServerError", "failed to decode state"), http.StatusInternalServerError)
-		return
+		return err
 	}
-	log.Infof("we need to insert blob data into DB.")
-	log.Infof("blob digest, %v", dgst)
-	log.Infof("blob size, %v", state.Offset)
+	bqh.blobInfo.ProjectID = projectID
+
+	digestLock, err := bqh.tryLockDigest()
+	if err != nil {
+		return err
+	}
+	bqh.blobInfo.DigestLock = digestLock
+
+	blobExist, err := bqh.blobExist()
+	if err != nil {
+		return err
+	}
+
+	if !blobExist {
+		size, err := bqh.getBlobSize()
+		if err != nil {
+			return err
+		}
+		quotaRes := &quota.ResourceList{
+			quota.ResourceStorage: size,
+		}
+		err = util.TryRequireQuota(bqh.blobInfo.ProjectID, quotaRes)
+		if err != nil {
+			bqh.tryFreeDigest()
+			log.Errorf("cannot get quota for the blob %v", err)
+			return err
+		}
+		bqh.blobInfo.Quota = quotaRes
+	}
+
+	return nil
 }
 
-// blobUploadState captures the state serializable state of the blob upload.
-type blobUploadState struct {
-	// name is the primary repository under which the blob will be linked.
-	Name string
-
-	// UUID identifies the upload.
-	UUID string
-
-	// offset contains the current progress of the upload.
-	Offset int64
-
-	// StartedAt is the original start time of the upload.
-	StartedAt time.Time
+func getUUID(path string) string {
+	strs := strings.Split(path, "/")
+	return strs[len(strs)-1]
 }
 
-type hmacKey string
+// check the existence of a blob in project
+func (bqh *blobQuotaHandler) blobExist() (exist bool, err error) {
+	return false, nil
+}
 
-var errInvalidSecret = errors.New("invalid secret")
-
-// unpackUploadState unpacks and validates the blob upload state from the
-// token, using the hmacKey secret.
-func (secret hmacKey) unpackUploadState(token string) (blobUploadState, error) {
-	var state blobUploadState
-
-	tokenBytes, err := base64.URLEncoding.DecodeString(token)
+func (bqh *blobQuotaHandler) removeUUID() (bool, error) {
+	con, err := redis.DialURL(
+		config.GetRedisOfRegURL(),
+		redis.DialConnectTimeout(dialConnectionTimeout),
+		redis.DialReadTimeout(dialReadTimeout),
+		redis.DialWriteTimeout(dialWriteTimeout),
+	)
 	if err != nil {
-		return state, err
+		return false, err
 	}
-	mac := hmac.New(sha256.New, []byte(secret))
+	defer con.Close()
 
-	if len(tokenBytes) < mac.Size() {
-		return state, errInvalidSecret
+	exists, err := redis.Int(con.Do("EXISTS", bqh.blobInfo.UUID))
+	if err != nil {
+		return false, err
+	}
+	if exists == 1 {
+		res, err := redis.Int(con.Do("DEL", bqh.blobInfo.UUID))
+		if err != nil {
+			return false, err
+		}
+		return res == 1, nil
+	}
+	return true, nil
+}
+
+// set the temp size for uuid.
+func (bqh *blobQuotaHandler) setBunkSize(size int64) (bool, error) {
+	con, err := redis.DialURL(
+		config.GetRedisOfRegURL(),
+		redis.DialConnectTimeout(dialConnectionTimeout),
+		redis.DialReadTimeout(dialReadTimeout),
+		redis.DialWriteTimeout(dialWriteTimeout),
+	)
+	if err != nil {
+		return false, err
 	}
 
-	macBytes := tokenBytes[:mac.Size()]
-	messageBytes := tokenBytes[mac.Size():]
+	defer con.Close()
 
-	mac.Write(messageBytes)
-	if !hmac.Equal(mac.Sum(nil), macBytes) {
-		return state, errInvalidSecret
+	exists, err := redis.Int(con.Do("EXISTS", size))
+	if err != nil {
+		return false, err
+	}
+	if exists == 1 {
+		curSize, err := redis.Int(con.Do("GET", bqh.blobInfo.UUID))
+		if err != nil {
+			return false, err
+		}
+		size += int64(curSize)
+	}
+	setRes, err := redis.String(con.Do("SET", bqh.blobInfo.UUID, size))
+	if err != nil {
+		return false, err
 	}
 
-	if err := json.Unmarshal(messageBytes, &state); err != nil {
-		return state, err
+	return setRes == "OK", nil
+
+}
+
+// get blob size for complete blob request
+func (bqh *blobQuotaHandler) getBlobSize() (int64, error) {
+	con, err := redis.DialURL(
+		config.GetRedisOfRegURL(),
+		redis.DialConnectTimeout(dialConnectionTimeout),
+		redis.DialReadTimeout(dialReadTimeout),
+		redis.DialWriteTimeout(dialWriteTimeout),
+	)
+	if err != nil {
+		return 0, err
 	}
 
-	return state, nil
+	defer con.Close()
+
+	exists, err := redis.Int(con.Do("EXISTS", bqh.blobInfo.UUID))
+	if err != nil {
+		return 0, err
+	}
+	if exists == 1 {
+		size, err := redis.Int64(con.Do("GET", bqh.blobInfo.UUID))
+		if err != nil {
+			return 0, err
+		}
+		return size, nil
+	}
+
+	return 0, errors.New("cannot get blob size")
+
+}
+
+// tryLockDigest locks blob with redis ...
+func (bqh *blobQuotaHandler) tryLockDigest() (*common_redis.Mutex, error) {
+	con, err := redis.DialURL(
+		config.GetRedisOfRegURL(),
+		redis.DialConnectTimeout(dialConnectionTimeout),
+		redis.DialReadTimeout(dialReadTimeout),
+		redis.DialWriteTimeout(dialWriteTimeout),
+	)
+	if err != nil {
+		return nil, err
+	}
+	digestLock := common_redis.New(con, bqh.blobInfo.Repository+":"+bqh.blobInfo.Digest, common_util.GenerateRandomString())
+	success, err := digestLock.Require()
+	if err != nil {
+		return nil, err
+	}
+	if !success {
+		return nil, fmt.Errorf("unable to lock digest: %s, %s ", bqh.blobInfo.Repository, bqh.blobInfo.Digest)
+	}
+	return digestLock, nil
+}
+
+func (bqh *blobQuotaHandler) tryFreeDigest() {
+	_, err := bqh.blobInfo.DigestLock.Free()
+	if err != nil {
+		log.Warningf("Error to unlock digest: %s,%s with error: %v ", bqh.blobInfo.Repository, bqh.blobInfo.Digest, err)
+	}
 }

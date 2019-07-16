@@ -16,19 +16,28 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
+	"github.com/goharbor/harbor/src/common/quota"
 	"github.com/goharbor/harbor/src/common/utils/clair"
 	"github.com/goharbor/harbor/src/common/utils/log"
+	common_redis "github.com/goharbor/harbor/src/common/utils/redis"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/pkg/scan/whitelist"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
 type contextKey string
+
+// ErrRequireQuota ...
+var ErrRequireQuota = errors.New("cannot get quota on project for request")
 
 const (
 	manifestURLPattern = `^/v2/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)manifests/([\w][\w.:-]{0,127})`
@@ -46,6 +55,18 @@ type ImageInfo struct {
 	Reference   string
 	ProjectName string
 	Digest      string
+}
+
+// BlobInfo ...
+type BlobInfo struct {
+	UUID       string
+	ProjectID  int64
+	Repository string
+	Tag        string
+	Digest     string
+	DigestLock *common_redis.Mutex
+	// Quota is the resource applied for the manifest upload request.
+	Quota *quota.ResourceList
 }
 
 // JSONError wraps a concrete Code and Message, it's readable for docker deamon.
@@ -208,4 +229,30 @@ func NewPMSPolicyChecker(pm promgr.ProjectManager) PolicyChecker {
 // GetPolicyChecker ...
 func GetPolicyChecker() PolicyChecker {
 	return NewPMSPolicyChecker(config.GlobalProjectMgr)
+}
+
+// TryRequireQuota ...
+func TryRequireQuota(projectID int64, quotaRes *quota.ResourceList) error {
+	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(projectID, 10))
+	if err != nil {
+		log.Errorf("Error occurred when to new quota manager %v", err)
+		return err
+	}
+	if err := quotaMgr.AddResources(*quotaRes); err != nil {
+		log.Errorf("Cannot get quota for the manifest %v", err)
+		return ErrRequireQuota
+	}
+	return nil
+}
+
+// GetProjectID ...
+func GetProjectID(name string) (int64, error) {
+	project, err := dao.GetProjectByName(name)
+	if err != nil {
+		return 0, err
+	}
+	if project != nil {
+		return project.ProjectID, nil
+	}
+	return 0, fmt.Errorf("project %s is not found", name)
 }
