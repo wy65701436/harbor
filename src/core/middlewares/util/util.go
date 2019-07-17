@@ -311,7 +311,7 @@ func GetBlobSize(conn redis.Conn, uuid string) (int64, error) {
 		}
 		return size, nil
 	}
-	return 0, errors.New("cannot get blob size")
+	return 0, nil
 }
 
 // GetProjectID ...
