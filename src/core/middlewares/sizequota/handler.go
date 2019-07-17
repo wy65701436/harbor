@@ -123,7 +123,7 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 		//		log.Warningf("error occurred when remove UUID for blob, %v", err)
 		//	}
 		//}
-		con.Close()
+		//con.Close()
 	}()
 
 	dgstStr := req.FormValue("digest")
