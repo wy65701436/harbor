@@ -16,6 +16,7 @@ package sizequota
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema1"
@@ -62,6 +63,8 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 		sqh.blobInfo.Repository = repository
 		sqh.handlePutManifest(rw, req)
 	}
+
+	*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, bb)))
 
 	sqh.next.ServeHTTP(rw, req)
 }
