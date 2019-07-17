@@ -246,14 +246,12 @@ func handlePatchBlob(res *http.Response) error {
 
 		uuid := res.Header.Get("Docker-Upload-UUID")
 		cl, err := strconv.ParseInt(res.Request.Header.Get("Content-Length"), 10, 64)
-		log.Info("^^^^^^^^^^^^^^^^^^^")
-		log.Info(cl)
-		log.Info("^^^^^^^^^^^^^^^^^^^")
 		if err != nil {
 			return err
 		}
 		success, err := setBunkSize(con, uuid, cl)
 		if err != nil {
+			log.Infof("^^^^ %v", err)
 			return err
 		}
 		if !success {
@@ -269,6 +267,8 @@ func setBunkSize(conn redis.Conn, uuid string, size int64) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	log.Infof("^^^^ ***** %s", uuid)
+	log.Infof("^^^^ ***** %s", size)
 	setRes, err := redis.String(conn.Do("SET", uuid, size))
 	if err != nil {
 		return false, err
