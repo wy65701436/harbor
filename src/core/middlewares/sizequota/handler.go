@@ -53,7 +53,7 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	bb := &util.BlobInfo{}
 	sqh.blobInfo = bb
 
-	matchPutBlob, repository := util.MatchPatchBlobURL(req)
+	matchPutBlob, repository := util.MatchPutBlobURL(req)
 	if matchPutBlob {
 		sqh.blobInfo.Repository = repository
 		sqh.handlePutBlobComplete(rw, req)
