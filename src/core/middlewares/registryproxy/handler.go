@@ -256,6 +256,7 @@ func handlePatchBlob(res *http.Response) error {
 		}
 		if !success {
 			//ToDo discuss what to do here.
+			log.Infof(" ^^^^^^^^^^^ ")
 		}
 	}
 	return nil
@@ -273,6 +274,7 @@ func setBunkSize(conn redis.Conn, uuid string, size int64) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	log.Infof("^^^^ ***** %s", setRes)
 
 	return setRes == "OK", nil
 }
