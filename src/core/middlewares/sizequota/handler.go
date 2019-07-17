@@ -141,6 +141,10 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 	if err != nil {
 		return err
 	}
+	log.Infof(" ^^^^^^^^^^^^^ ")
+	log.Info(sqh.blobInfo.UUID)
+	log.Info(size)
+	log.Infof(" ^^^^^^^^^^^^^ ")
 	sqh.blobInfo.Size = size
 	return sqh.requireQuota(con)
 
@@ -167,7 +171,7 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 
 	if !blobExist {
 		quotaRes := &quota.ResourceList{
-			quota.ResourceStorage: sqh.blobInfo.Size,
+			quota.ResourceStorage: 100,
 		}
 		err = util.TryRequireQuota(sqh.blobInfo.ProjectID, quotaRes)
 		if err != nil {
