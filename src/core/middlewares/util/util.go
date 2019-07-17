@@ -18,6 +18,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/docker/distribution"
+	"github.com/garyburd/redigo/redis"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/quota"
@@ -32,6 +34,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type contextKey string
@@ -47,6 +50,17 @@ const (
 	// TokenUsername ...
 	// TODO: temp solution, remove after vmware/harbor#2242 is resolved.
 	TokenUsername = "harbor-core"
+	// MFInfokKey the context key for image tag redis lock
+	MFInfokKey = contextKey("ManifestInfo")
+	// BBInfokKey the context key for image tag redis lock
+	BBInfokKey = contextKey("BlobInfo")
+
+	// DialConnectionTimeout ...
+	DialConnectionTimeout = 30 * time.Second
+	// DialReadTimeout ...
+	DialReadTimeout = time.Minute + 10*time.Second
+	// DialWriteTimeout ...
+	DialWriteTimeout = 10 * time.Second
 )
 
 // ImageInfo ...
@@ -59,12 +73,36 @@ type ImageInfo struct {
 
 // BlobInfo ...
 type BlobInfo struct {
-	UUID       string
+	UUID        string
+	ProjectID   int64
+	ContentType string
+	Size        int64
+	Repository  string
+	Tag         string
+	Digest      string
+	DigestLock  *common_redis.Mutex
+	// Quota is the resource applied for the manifest upload request.
+	Quota *quota.ResourceList
+}
+
+// MfInfo ...
+type MfInfo struct {
+	// basic information of a manifest
 	ProjectID  int64
 	Repository string
 	Tag        string
 	Digest     string
-	DigestLock *common_redis.Mutex
+
+	// Exist is to index the existing of the manifest in DB. If false, it's an new image for uploading.
+	Exist bool
+	// DigestChanged true means the manifest exists but digest is changed.
+	// Probably it's a new image with existing repo/tag name or overwrite.
+	DigestChanged bool
+
+	// used to block multiple push on same image.
+	TagLock    *common_redis.Mutex
+	Refrerence []distribution.Descriptor
+
 	// Quota is the resource applied for the manifest upload request.
 	Quota *quota.ResourceList
 }
@@ -243,6 +281,37 @@ func TryRequireQuota(projectID int64, quotaRes *quota.ResourceList) error {
 		return ErrRequireQuota
 	}
 	return nil
+}
+
+// TryFreeQuota used to release resource for failure case
+func TryFreeQuota(projectID int64, qres *quota.ResourceList) bool {
+	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(projectID, 10))
+	if err != nil {
+		log.Errorf("Error occurred when to new quota manager %v", err)
+		return false
+	}
+
+	if err := quotaMgr.SubtractResources(*qres); err != nil {
+		log.Errorf("Cannot get quota for the manifest %v", err)
+		return false
+	}
+	return true
+}
+
+// GetBlobSize blob size with UUID in redis
+func GetBlobSize(conn redis.Conn, uuid string) (int64, error) {
+	exists, err := redis.Int(conn.Do("EXISTS", uuid))
+	if err != nil {
+		return 0, err
+	}
+	if exists == 1 {
+		size, err := redis.Int64(conn.Do("GET", uuid))
+		if err != nil {
+			return 0, err
+		}
+		return size, nil
+	}
+	return 0, errors.New("cannot get blob size")
 }
 
 // GetProjectID ...

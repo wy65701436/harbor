@@ -15,7 +15,11 @@
 package sizequota
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/docker/distribution"
+	"github.com/docker/distribution/manifest/schema1"
+	"github.com/docker/distribution/manifest/schema2"
 	"github.com/garyburd/redigo/redis"
 	"github.com/goharbor/harbor/src/common/quota"
 	common_util "github.com/goharbor/harbor/src/common/utils"
@@ -25,79 +29,95 @@ import (
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 )
 
-const (
-	dialConnectionTimeout = 30 * time.Second
-	dialReadTimeout       = time.Minute + 10*time.Second
-	dialWriteTimeout      = 10 * time.Second
-)
-
-type blobQuotaHandler struct {
+type sizeQuotaHandler struct {
 	next     http.Handler
 	blobInfo *util.BlobInfo
 }
 
 // New ...
 func New(next http.Handler) http.Handler {
-	return &blobQuotaHandler{
+	return &sizeQuotaHandler{
 		next: next,
 	}
 }
 
 // ServeHTTP ...
-func (bqh *blobQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	matchPatchBlob, repository := util.MatchPatchBlobURL(req)
-	if matchPatchBlob {
-		bqh.blobInfo.Repository = repository
-		bqh.handlePatchBlob(rw, req)
-	}
+func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	bb := &util.BlobInfo{}
+	sqh.blobInfo = bb
 
 	matchPutBlob, repository := util.MatchPutBlobURL(req)
 	if matchPutBlob {
-		bqh.blobInfo.Repository = repository
-		bqh.handlePutBlobComplete(rw, req)
+		sqh.blobInfo.Repository = repository
+		sqh.handlePutBlobComplete(rw, req)
 	}
 
-	bqh.next.ServeHTTP(rw, req)
+	matchMF, repository, _ := util.MatchPushManifest(req)
+	if matchMF {
+		sqh.blobInfo.Repository = repository
+		sqh.handlePutManifest(rw, req)
+	}
+
+	sqh.next.ServeHTTP(rw, req)
 }
 
-func (bqh *blobQuotaHandler) handlePatchBlob(rw http.ResponseWriter, req *http.Request) error {
-	ct := req.Header.Get("Content-Type")
-	if ct != "" && ct != "application/octet-stream" {
-		return errors.New("unsupported content type")
+func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http.Request) error {
+	con, err := redis.DialURL(
+		config.GetRedisOfRegURL(),
+		redis.DialConnectTimeout(util.DialConnectionTimeout),
+		redis.DialReadTimeout(util.DialReadTimeout),
+		redis.DialWriteTimeout(util.DialWriteTimeout),
+	)
+	if err != nil {
+		return err
 	}
+	defer con.Close()
 
-	bqh.blobInfo.UUID = getUUID(req.URL.Path)
-	if bqh.blobInfo.UUID != "" {
-		tempSize, err := strconv.ParseInt(req.Header.Get("Content-Length"), 10, 64)
+	mediaType := req.Header.Get("Content-Type")
+	if mediaType == schema1.MediaTypeManifest ||
+		mediaType == schema1.MediaTypeSignedManifest ||
+		mediaType == schema2.MediaTypeManifest {
+		data, err := ioutil.ReadAll(req.Body)
 		if err != nil {
+			log.Warningf("Error occurred when to copy manifest body %v", err)
 			return err
 		}
-		success, err := bqh.setBunkSize(tempSize)
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(data))
+		_, desc, err := distribution.UnmarshalManifest(mediaType, data)
 		if err != nil {
+			log.Warningf("Error occurred when to Unmarshal Manifest %v", err)
 			return err
 		}
-		if !success {
-			// ToDo what to do here
-		}
+		sqh.blobInfo.Digest = desc.Digest.String()
 	}
 
-	return nil
+	return sqh.requireQuota(con)
 }
 
-func (bqh *blobQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *http.Request) error {
+func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *http.Request) error {
+	con, err := redis.DialURL(
+		config.GetRedisOfRegURL(),
+		redis.DialConnectTimeout(util.DialConnectionTimeout),
+		redis.DialReadTimeout(util.DialReadTimeout),
+		redis.DialWriteTimeout(util.DialWriteTimeout),
+	)
+	if err != nil {
+		return err
+	}
+
 	defer func() {
-		if bqh.blobInfo.UUID != "" {
-			_, err := bqh.removeUUID()
+		if sqh.blobInfo.UUID != "" {
+			_, err := sqh.removeUUID(con)
 			if err != nil {
 				log.Warningf("error occurred when remove UUID for blob, %v", err)
 			}
 		}
+		con.Close()
 	}()
 
 	dgstStr := req.FormValue("digest")
@@ -108,73 +128,66 @@ func (bqh *blobQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 	if err != nil {
 		return errors.New("blob digest parsing failed")
 	}
-	bqh.blobInfo.Digest = dgst.String()
-	bqh.blobInfo.UUID = getUUID(req.URL.Path)
-	projectID, err := util.GetProjectID(strings.Split(bqh.blobInfo.Repository, "/")[0])
+
+	sqh.blobInfo.Digest = dgst.String()
+	sqh.blobInfo.UUID = getUUID(req.URL.Path)
+	return sqh.requireQuota(con)
+
+}
+
+func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
+	projectID, err := util.GetProjectID(strings.Split(sqh.blobInfo.Repository, "/")[0])
 	if err != nil {
 		return err
 	}
-	bqh.blobInfo.ProjectID = projectID
+	sqh.blobInfo.ProjectID = projectID
 
-	digestLock, err := bqh.tryLockDigest()
+	digestLock, err := sqh.tryLockDigest(conn)
 	if err != nil {
 		return err
 	}
-	bqh.blobInfo.DigestLock = digestLock
+	sqh.blobInfo.DigestLock = digestLock
 
-	blobExist, err := bqh.blobExist()
+	blobExist, err := sqh.blobExist()
 	if err != nil {
+		sqh.tryFreeDigest()
 		return err
 	}
 
 	if !blobExist {
-		size, err := bqh.getBlobSize()
+		size, err := util.GetBlobSize(conn, sqh.blobInfo.UUID)
 		if err != nil {
+			sqh.tryFreeDigest()
 			return err
 		}
+		sqh.blobInfo.Size = size
 		quotaRes := &quota.ResourceList{
 			quota.ResourceStorage: size,
 		}
-		err = util.TryRequireQuota(bqh.blobInfo.ProjectID, quotaRes)
+		err = util.TryRequireQuota(sqh.blobInfo.ProjectID, quotaRes)
 		if err != nil {
-			bqh.tryFreeDigest()
+			sqh.tryFreeDigest()
 			log.Errorf("cannot get quota for the blob %v", err)
 			return err
 		}
-		bqh.blobInfo.Quota = quotaRes
+		sqh.blobInfo.Quota = quotaRes
 	}
 
 	return nil
 }
 
-func getUUID(path string) string {
-	strs := strings.Split(path, "/")
-	return strs[len(strs)-1]
-}
-
 // check the existence of a blob in project
-func (bqh *blobQuotaHandler) blobExist() (exist bool, err error) {
+func (sqh *sizeQuotaHandler) blobExist() (exist bool, err error) {
 	return false, nil
 }
 
-func (bqh *blobQuotaHandler) removeUUID() (bool, error) {
-	con, err := redis.DialURL(
-		config.GetRedisOfRegURL(),
-		redis.DialConnectTimeout(dialConnectionTimeout),
-		redis.DialReadTimeout(dialReadTimeout),
-		redis.DialWriteTimeout(dialWriteTimeout),
-	)
-	if err != nil {
-		return false, err
-	}
-	defer con.Close()
-
-	exists, err := redis.Int(con.Do("EXISTS", bqh.blobInfo.UUID))
+func (sqh *sizeQuotaHandler) removeUUID(conn redis.Conn) (bool, error) {
+	exists, err := redis.Int(conn.Do("EXISTS", sqh.blobInfo.UUID))
 	if err != nil {
 		return false, err
 	}
 	if exists == 1 {
-		res, err := redis.Int(con.Do("DEL", bqh.blobInfo.UUID))
+		res, err := redis.Int(conn.Do("DEL", sqh.blobInfo.UUID))
 		if err != nil {
 			return false, err
 		}
@@ -183,95 +196,28 @@ func (bqh *blobQuotaHandler) removeUUID() (bool, error) {
 	return true, nil
 }
 
-// set the temp size for uuid.
-func (bqh *blobQuotaHandler) setBunkSize(size int64) (bool, error) {
-	con, err := redis.DialURL(
-		config.GetRedisOfRegURL(),
-		redis.DialConnectTimeout(dialConnectionTimeout),
-		redis.DialReadTimeout(dialReadTimeout),
-		redis.DialWriteTimeout(dialWriteTimeout),
-	)
-	if err != nil {
-		return false, err
-	}
-
-	defer con.Close()
-
-	exists, err := redis.Int(con.Do("EXISTS", size))
-	if err != nil {
-		return false, err
-	}
-	if exists == 1 {
-		curSize, err := redis.Int(con.Do("GET", bqh.blobInfo.UUID))
-		if err != nil {
-			return false, err
-		}
-		size += int64(curSize)
-	}
-	setRes, err := redis.String(con.Do("SET", bqh.blobInfo.UUID, size))
-	if err != nil {
-		return false, err
-	}
-
-	return setRes == "OK", nil
-
-}
-
-// get blob size for complete blob request
-func (bqh *blobQuotaHandler) getBlobSize() (int64, error) {
-	con, err := redis.DialURL(
-		config.GetRedisOfRegURL(),
-		redis.DialConnectTimeout(dialConnectionTimeout),
-		redis.DialReadTimeout(dialReadTimeout),
-		redis.DialWriteTimeout(dialWriteTimeout),
-	)
-	if err != nil {
-		return 0, err
-	}
-
-	defer con.Close()
-
-	exists, err := redis.Int(con.Do("EXISTS", bqh.blobInfo.UUID))
-	if err != nil {
-		return 0, err
-	}
-	if exists == 1 {
-		size, err := redis.Int64(con.Do("GET", bqh.blobInfo.UUID))
-		if err != nil {
-			return 0, err
-		}
-		return size, nil
-	}
-
-	return 0, errors.New("cannot get blob size")
-
-}
-
 // tryLockDigest locks blob with redis ...
-func (bqh *blobQuotaHandler) tryLockDigest() (*common_redis.Mutex, error) {
-	con, err := redis.DialURL(
-		config.GetRedisOfRegURL(),
-		redis.DialConnectTimeout(dialConnectionTimeout),
-		redis.DialReadTimeout(dialReadTimeout),
-		redis.DialWriteTimeout(dialWriteTimeout),
-	)
-	if err != nil {
-		return nil, err
-	}
-	digestLock := common_redis.New(con, bqh.blobInfo.Repository+":"+bqh.blobInfo.Digest, common_util.GenerateRandomString())
+func (sqh *sizeQuotaHandler) tryLockDigest(conn redis.Conn) (*common_redis.Mutex, error) {
+	digestLock := common_redis.New(conn, sqh.blobInfo.Repository+":"+sqh.blobInfo.Digest, common_util.GenerateRandomString())
 	success, err := digestLock.Require()
 	if err != nil {
 		return nil, err
 	}
 	if !success {
-		return nil, fmt.Errorf("unable to lock digest: %s, %s ", bqh.blobInfo.Repository, bqh.blobInfo.Digest)
+		return nil, fmt.Errorf("unable to lock digest: %s, %s ", sqh.blobInfo.Repository, sqh.blobInfo.Digest)
 	}
 	return digestLock, nil
 }
 
-func (bqh *blobQuotaHandler) tryFreeDigest() {
-	_, err := bqh.blobInfo.DigestLock.Free()
+func (sqh *sizeQuotaHandler) tryFreeDigest() {
+	_, err := sqh.blobInfo.DigestLock.Free()
 	if err != nil {
-		log.Warningf("Error to unlock digest: %s,%s with error: %v ", bqh.blobInfo.Repository, bqh.blobInfo.Digest, err)
+		log.Warningf("Error to unlock digest: %s,%s with error: %v ", sqh.blobInfo.Repository, sqh.blobInfo.Digest, err)
 	}
+}
+
+// put blob path: /v2/<name>/blobs/uploads/<uuid>
+func getUUID(path string) string {
+	strs := strings.Split(path, "/")
+	return strs[len(strs)-1]
 }

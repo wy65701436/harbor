@@ -17,10 +17,10 @@ package middlewares
 import (
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/middlewares/contenttrust"
+	"github.com/goharbor/harbor/src/core/middlewares/countquota"
 	"github.com/goharbor/harbor/src/core/middlewares/listrepo"
 	"github.com/goharbor/harbor/src/core/middlewares/multiplmanifest"
 	"github.com/goharbor/harbor/src/core/middlewares/readonly"
-	"github.com/goharbor/harbor/src/core/middlewares/regquota"
 	"github.com/goharbor/harbor/src/core/middlewares/sizequota"
 	"github.com/goharbor/harbor/src/core/middlewares/url"
 	"github.com/goharbor/harbor/src/core/middlewares/vulnerable"
@@ -65,8 +65,8 @@ func (b *DefaultCreator) geMiddleware(mName string) alice.Constructor {
 		LISTREPO:         func(next http.Handler) http.Handler { return listrepo.New(next) },
 		CONTENTTRUST:     func(next http.Handler) http.Handler { return contenttrust.New(next) },
 		VULNERABLE:       func(next http.Handler) http.Handler { return vulnerable.New(next) },
-		REGQUOTA:         func(next http.Handler) http.Handler { return regquota.New(next) },
 		SIZEQUOTA:        func(next http.Handler) http.Handler { return sizequota.New(next) },
+		COUNTQUOTA:       func(next http.Handler) http.Handler { return countquota.New(next) },
 	}
 	return middlewares[mName]
 }

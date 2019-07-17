@@ -15,13 +15,19 @@
 package registryproxy
 
 import (
+	"github.com/garyburd/redigo/redis"
+	"github.com/goharbor/harbor/src/common/dao"
+	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
+	"github.com/pkg/errors"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type proxyHandler struct {
@@ -81,27 +87,18 @@ func director(target *url.URL, req *http.Request) {
 
 // Modify the http response
 func modifyResponse(res *http.Response) error {
-
-	if res.Request.Method == http.MethodPut {
-		// PUT manifest
-		matchMF, _, _ := util.MatchManifestURL(res.Request)
-		if matchMF {
-			if res.StatusCode == http.StatusCreated {
-				log.Infof("we need to insert data here ... ")
-			} else if res.StatusCode >= 202 || res.StatusCode <= 511 {
-				log.Infof("we need to roll back data here ... ")
-			}
-		}
-
-		// PUT blob
-		matchBB, _ := util.MatchPutBlobURL(res.Request)
-		if matchBB {
-			if res.StatusCode != http.StatusCreated {
-				log.Infof("we need to rollback DB and unlock digest ... ")
-			}
-		}
+	matchMF, _, _ := util.MatchPushManifest(res.Request)
+	if matchMF {
+		return handlePutManifest(res)
 	}
-
+	matchBB, _ := util.MatchPutBlobURL(res.Request)
+	if matchBB {
+		return handlePutBlob(res)
+	}
+	matchPatchBlob, _ := util.MatchPatchBlobURL(res.Request)
+	if matchPatchBlob {
+		return handlePatchBlob(res)
+	}
 	return nil
 }
 
@@ -115,6 +112,166 @@ func singleJoiningSlash(a, b string) string {
 		return a + "/" + b
 	}
 	return a + b
+}
+
+func handlePutManifest(res *http.Response) error {
+	mfInfo := res.Request.Context().Value(util.MFInfokKey)
+	mf, ok := mfInfo.(*util.MfInfo)
+	if !ok {
+		return errors.New("failed to convert manifest information context into MfInfo")
+	}
+
+	defer func() {
+		_, err := mf.TagLock.Free()
+		if err != nil {
+			log.Errorf("Error to unlock in response handler, %v", err)
+		}
+		if err := mf.TagLock.Conn.Close(); err != nil {
+			log.Errorf("Error to close redis connection in response handler, %v", err)
+		}
+	}()
+
+	// 201
+	if res.StatusCode == http.StatusCreated {
+		af := &models.Artifact{
+			PID:      mf.ProjectID,
+			Repo:     mf.Repository,
+			Tag:      mf.Tag,
+			Digest:   mf.Digest,
+			PushTime: time.Now(),
+			Kind:     "Docker-Image",
+		}
+
+		// insert or update
+		if !mf.Exist {
+			_, err := dao.AddArtifact(af)
+			if err != nil {
+				log.Errorf("Error to add artifact, %v", err)
+				return err
+			}
+		}
+		if mf.DigestChanged {
+			err := dao.UpdateArtifactDigest(af)
+			if err != nil {
+				log.Errorf("Error to add artifact, %v", err)
+				return err
+			}
+		}
+
+		if !mf.Exist || mf.DigestChanged {
+			afnbs := []*models.ArtifactAndBlob{}
+			self := &models.ArtifactAndBlob{
+				DigestAF:   mf.Digest,
+				DigestBlob: mf.Digest,
+			}
+			afnbs = append(afnbs, self)
+			for _, d := range mf.Refrerence {
+				afnb := &models.ArtifactAndBlob{
+					DigestAF:   mf.Digest,
+					DigestBlob: d.Digest.String(),
+				}
+				afnbs = append(afnbs, afnb)
+			}
+			if err := dao.AddArtifactNBlobs(afnbs); err != nil {
+				log.Errorf("Error to add artifact and blobs in proxy response handler, %v", err)
+				return err
+			}
+		}
+
+	} else if res.StatusCode >= 300 || res.StatusCode <= 511 {
+		if !mf.Exist {
+			success := util.TryFreeQuota(mf.ProjectID, mf.Quota)
+			if !success {
+				return errors.New("Error to release resource booked for the manifest")
+			}
+		}
+	}
+
+	return nil
+}
+
+// handle put blob complete request
+// 1, add blob into DB if success
+// 2, roll back resource if failure.
+func handlePutBlob(res *http.Response) error {
+	bbInfo := res.Request.Context().Value(util.BBInfokKey)
+	bb, ok := bbInfo.(*util.BlobInfo)
+	if !ok {
+		return errors.New("failed to convert blob information context into BBInfo")
+	}
+
+	defer func() {
+		_, err := bb.DigestLock.Free()
+		if err != nil {
+			log.Errorf("Error to unlock in response handler, %v", err)
+		}
+		if err := bb.DigestLock.Conn.Close(); err != nil {
+			log.Errorf("Error to close redis connection in response handler, %v", err)
+		}
+	}()
+
+	if res.StatusCode != http.StatusCreated {
+		blob := &models.Blob{
+			Digest:       bb.Digest,
+			ContentType:  bb.ContentType,
+			Size:         bb.Size,
+			CreationTime: time.Now(),
+		}
+		_, err := dao.AddBlob(blob)
+		if err != nil {
+			return err
+		}
+	} else if res.StatusCode >= 300 || res.StatusCode <= 511 {
+		success := util.TryFreeQuota(bb.ProjectID, bb.Quota)
+		if !success {
+			return errors.New("Error to release resource booked for the manifest")
+		}
+	}
+	return nil
+}
+
+// Do record bunk size on success, registry will return an 202 for PATCH success, and with an UUID.
+func handlePatchBlob(res *http.Response) error {
+	if res.StatusCode == http.StatusAccepted {
+		con, err := redis.DialURL(
+			config.GetRedisOfRegURL(),
+			redis.DialConnectTimeout(util.DialConnectionTimeout),
+			redis.DialReadTimeout(util.DialReadTimeout),
+			redis.DialWriteTimeout(util.DialWriteTimeout),
+		)
+		if err != nil {
+			return err
+		}
+		defer con.Close()
+
+		uuid := res.Header.Get("Docker-Upload-UUID")
+		cl, err := strconv.ParseInt(res.Request.Header.Get("Content-Length"), 10, 64)
+		if err != nil {
+			return err
+		}
+		success, err := setBunkSize(con, uuid, cl)
+		if err != nil {
+			return err
+		}
+		if !success {
+			//ToDo discuss what to do here.
+		}
+	}
+	return nil
+}
+
+// set the temp size for uuid.
+func setBunkSize(conn redis.Conn, uuid string, size int64) (bool, error) {
+	size, err := util.GetBlobSize(conn, uuid)
+	if err != nil {
+		return false, err
+	}
+	setRes, err := redis.String(conn.Do("SET", uuid, size))
+	if err != nil {
+		return false, err
+	}
+
+	return setRes == "OK", nil
 }
 
 // ServeHTTP ...
