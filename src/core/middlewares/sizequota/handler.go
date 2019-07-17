@@ -117,12 +117,12 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 	}
 
 	defer func() {
-		//if sqh.blobInfo.UUID != "" {
-		//	_, err := sqh.removeUUID(con)
-		//	if err != nil {
-		//		log.Warningf("error occurred when remove UUID for blob, %v", err)
-		//	}
-		//}
+		if sqh.blobInfo.UUID != "" {
+			_, err := sqh.removeUUID(con)
+			if err != nil {
+				log.Warningf("error occurred when remove UUID for blob, %v", err)
+			}
+		}
 		//con.Close()
 	}()
 
@@ -141,10 +141,6 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 	if err != nil {
 		return err
 	}
-	log.Infof(" ^^^^^^^^^^^^^ ")
-	log.Info(sqh.blobInfo.UUID)
-	log.Info(size)
-	log.Infof(" ^^^^^^^^^^^^^ ")
 	sqh.blobInfo.Size = size
 	return sqh.requireQuota(con)
 
@@ -173,6 +169,10 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 		quotaRes := &quota.ResourceList{
 			quota.ResourceStorage: 100,
 		}
+		log.Infof(" ^^^^^^^^^^^^^ ")
+		log.Info(sqh.blobInfo.ProjectID)
+		log.Info(quotaRes)
+		log.Infof(" ^^^^^^^^^^^^^ ")
 		err = util.TryRequireQuota(sqh.blobInfo.ProjectID, quotaRes)
 		if err != nil {
 			sqh.tryFreeDigest()
