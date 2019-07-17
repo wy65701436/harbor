@@ -59,11 +59,11 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 		sqh.handlePutBlobComplete(rw, req)
 	}
 
-	matchMF, repository, _ := util.MatchPushManifest(req)
-	if matchMF {
-		sqh.blobInfo.Repository = repository
-		sqh.handlePutManifest(rw, req)
-	}
+	//matchMF, repository, _ := util.MatchPushManifest(req)
+	//if matchMF {
+	//	sqh.blobInfo.Repository = repository
+	//	sqh.handlePutManifest(rw, req)
+	//}
 
 	*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, bb)))
 
@@ -117,12 +117,12 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 	}
 
 	defer func() {
-		if sqh.blobInfo.UUID != "" {
-			_, err := sqh.removeUUID(con)
-			if err != nil {
-				log.Warningf("error occurred when remove UUID for blob, %v", err)
-			}
-		}
+		//if sqh.blobInfo.UUID != "" {
+		//	_, err := sqh.removeUUID(con)
+		//	if err != nil {
+		//		log.Warningf("error occurred when remove UUID for blob, %v", err)
+		//	}
+		//}
 		con.Close()
 	}()
 
@@ -137,6 +137,9 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 
 	sqh.blobInfo.Digest = dgst.String()
 	sqh.blobInfo.UUID = getUUID(req.URL.Path)
+	log.Info("111111111111111")
+	log.Info(sqh.blobInfo.UUID)
+	log.Info("111111111111111")
 	size, err := util.GetBlobSize(con, sqh.blobInfo.UUID)
 	if err != nil {
 		return err
