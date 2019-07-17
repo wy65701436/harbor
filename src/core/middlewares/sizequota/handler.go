@@ -22,6 +22,7 @@ import (
 	"github.com/docker/distribution/manifest/schema1"
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/garyburd/redigo/redis"
+	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/quota"
 	common_util "github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
@@ -97,9 +98,11 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 			return err
 		}
 		sqh.blobInfo.Digest = desc.Digest.String()
+		sqh.blobInfo.Size = desc.Size
+		return sqh.requireQuota(con)
 	}
 
-	return sqh.requireQuota(con)
+	return errors.New("unsupported content type")
 }
 
 func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *http.Request) error {
@@ -134,6 +137,11 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 
 	sqh.blobInfo.Digest = dgst.String()
 	sqh.blobInfo.UUID = getUUID(req.URL.Path)
+	size, err := util.GetBlobSize(con, sqh.blobInfo.UUID)
+	if err != nil {
+		return err
+	}
+	sqh.blobInfo.Size = size
 	return sqh.requireQuota(con)
 
 }
@@ -158,14 +166,8 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 	}
 
 	if !blobExist {
-		size, err := util.GetBlobSize(conn, sqh.blobInfo.UUID)
-		if err != nil {
-			sqh.tryFreeDigest()
-			return err
-		}
-		sqh.blobInfo.Size = size
 		quotaRes := &quota.ResourceList{
-			quota.ResourceStorage: size,
+			quota.ResourceStorage: sqh.blobInfo.Size,
 		}
 		err = util.TryRequireQuota(sqh.blobInfo.ProjectID, quotaRes)
 		if err != nil {
@@ -181,7 +183,7 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 
 // check the existence of a blob in project
 func (sqh *sizeQuotaHandler) blobExist() (exist bool, err error) {
-	return false, nil
+	return dao.HasBlobInProject(sqh.blobInfo.ProjectID, sqh.blobInfo.Digest)
 }
 
 func (sqh *sizeQuotaHandler) removeUUID(conn redis.Conn) (bool, error) {

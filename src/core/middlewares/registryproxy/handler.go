@@ -210,7 +210,7 @@ func handlePutBlob(res *http.Response) error {
 		}
 	}()
 
-	if res.StatusCode != http.StatusCreated {
+	if res.StatusCode == http.StatusCreated {
 		blob := &models.Blob{
 			Digest:       bb.Digest,
 			ContentType:  bb.ContentType,
