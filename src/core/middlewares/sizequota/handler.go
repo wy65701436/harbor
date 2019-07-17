@@ -137,9 +137,6 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 
 	sqh.blobInfo.Digest = dgst.String()
 	sqh.blobInfo.UUID = getUUID(req.URL.Path)
-	log.Info("111111111111111")
-	log.Info(sqh.blobInfo.UUID)
-	log.Info("111111111111111")
 	size, err := util.GetBlobSize(con, sqh.blobInfo.UUID)
 	if err != nil {
 		return err

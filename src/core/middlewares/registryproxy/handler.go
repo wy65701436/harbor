@@ -251,7 +251,6 @@ func handlePatchBlob(res *http.Response) error {
 		}
 		success, err := setBunkSize(con, uuid, cl)
 		if err != nil {
-			log.Infof("^^^^ %v", err)
 			return err
 		}
 		if !success {
@@ -264,18 +263,15 @@ func handlePatchBlob(res *http.Response) error {
 
 // set the temp size for uuid.
 func setBunkSize(conn redis.Conn, uuid string, size int64) (bool, error) {
-	size, err := util.GetBlobSize(conn, uuid)
+	sizeInRedis, err := util.GetBlobSize(conn, uuid)
 	if err != nil {
 		return false, err
 	}
-	log.Infof("^^^^ ***** %s", uuid)
-	log.Infof("^^^^ ***** %s", size)
+	size += sizeInRedis
 	setRes, err := redis.String(conn.Do("SET", uuid, size))
 	if err != nil {
 		return false, err
 	}
-	log.Infof("^^^^ ***** %s", setRes)
-
 	return setRes == "OK", nil
 }
 
