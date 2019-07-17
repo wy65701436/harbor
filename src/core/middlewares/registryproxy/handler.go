@@ -246,6 +246,9 @@ func handlePatchBlob(res *http.Response) error {
 
 		uuid := res.Header.Get("Docker-Upload-UUID")
 		cl, err := strconv.ParseInt(res.Request.Header.Get("Content-Length"), 10, 64)
+		log.Info("^^^^^^^^^^^^^^^^^^^")
+		log.Info(cl)
+		log.Info("^^^^^^^^^^^^^^^^^^^")
 		if err != nil {
 			return err
 		}
