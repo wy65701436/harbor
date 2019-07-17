@@ -165,18 +165,10 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 		return err
 	}
 
-	log.Info("11111111111111111111")
-	log.Info(blobExist)
-	log.Info("11111111111111111111")
-
 	if !blobExist {
 		quotaRes := &quota.ResourceList{
 			quota.ResourceStorage: sqh.blobInfo.Size,
 		}
-		log.Infof(" ^^^^^^^^^^^^^ ")
-		log.Info(sqh.blobInfo.ProjectID)
-		log.Info(quotaRes)
-		log.Infof(" ^^^^^^^^^^^^^ ")
 		err = util.TryRequireQuota(sqh.blobInfo.ProjectID, quotaRes)
 		if err != nil {
 			sqh.tryFreeDigest()
