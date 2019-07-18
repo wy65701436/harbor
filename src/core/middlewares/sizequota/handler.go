@@ -90,13 +90,11 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 		mediaType == schema1.MediaTypeSignedManifest ||
 		mediaType == schema2.MediaTypeManifest {
 
-		log.Info("^^^^^^^^^^^^^^^^^")
 		con, err := util.GetRegRedisCon()
 		if err != nil {
 			log.Infof("failed to get registry redis connection, %v", err)
 			return err
 		}
-		log.Info("^^^^^^^^^^^^^^^^^")
 
 		data, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -114,7 +112,6 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 			log.Warningf("Error occurred when to get project ID %v", err)
 			return err
 		}
-		log.Info("^^^^^^^^^^^^^^^^^")
 
 		sqh.mfInfo.ProjectID = projectID
 		sqh.mfInfo.Refrerence = manifest.References()
@@ -127,7 +124,6 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 		if err := sqh.requireQuota(con); err != nil {
 			return err
 		}
-		log.Info("^^^^^^^^^^^^^^^^^")
 
 		*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, sqh.mfInfo)))
 		*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, sqh.blobInfo)))
@@ -178,14 +174,12 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 }
 
 func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
-	log.Info("111 ^^^^^^^^^^^^^^^^^^")
 	projectID, err := util.GetProjectID(strings.Split(sqh.blobInfo.Repository, "/")[0])
 	if err != nil {
 		return err
 	}
 	sqh.blobInfo.ProjectID = projectID
 
-	log.Info("111 ^^^^^^^^^^^^^^^^^^")
 	digestLock, err := sqh.tryLockBlob(conn)
 	if err != nil {
 		log.Infof("failed to lock digest in redis, %v", err)
@@ -193,19 +187,16 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 	}
 	sqh.blobInfo.DigestLock = digestLock
 
-	log.Info("111 ^^^^^^^^^^^^^^^^^^")
 	blobExist, err := dao.HasBlobInProject(sqh.blobInfo.ProjectID, sqh.blobInfo.Digest)
 	if err != nil {
 		sqh.tryFreeBlob()
 		return err
 	}
-	log.Info("111 ^^^^^^^^^^^^^^^^^^")
 
 	if !blobExist {
 		quotaRes := &quota.ResourceList{
 			quota.ResourceStorage: sqh.blobInfo.Size,
 		}
-		log.Info("111 ^^^^^^^^^^^^^^^^^^")
 		err = util.TryRequireQuota(sqh.blobInfo.ProjectID, quotaRes)
 		if err != nil {
 			log.Infof("project id, %d, size %d", sqh.blobInfo.ProjectID, sqh.blobInfo.Size)
@@ -236,11 +227,8 @@ func (sqh *sizeQuotaHandler) removeUUID(conn redis.Conn) (bool, error) {
 
 // tryLockBlob locks blob with redis ...
 func (sqh *sizeQuotaHandler) tryLockBlob(conn redis.Conn) (*common_redis.Mutex, error) {
-	log.Info("tryLockBlob ............")
 	digestLock := common_redis.New(conn, sqh.blobInfo.Repository+":"+sqh.blobInfo.Digest, common_util.GenerateRandomString())
 	success, err := digestLock.Require()
-	log.Infof("tryLockBlob ............ %s", success)
-	log.Infof("tryLockBlob ............ %v", err)
 	if err != nil {
 		return nil, err
 	}

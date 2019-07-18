@@ -231,6 +231,7 @@ func handlePutBlob(res *http.Response) error {
 		}
 		_, err := dao.AddBlob(blob)
 		if err != nil {
+			log.Infof(" ********* %v", blob.Digest)
 			return err
 		}
 	} else if res.StatusCode >= 300 || res.StatusCode <= 511 {
@@ -252,6 +253,11 @@ func handlePatchBlob(res *http.Response) error {
 		defer con.Close()
 
 		uuid := res.Header.Get("Docker-Upload-UUID")
+
+		log.Info(" ^^^^^^^^^^^^^^^ ")
+		log.Infof("%v", res.Request.Header.Get("Content-Length"))
+		log.Info(" ^^^^^^^^^^^^^^^ ")
+
 		cl, err := strconv.ParseInt(res.Request.Header.Get("Content-Length"), 10, 64)
 		if err != nil {
 			return err
