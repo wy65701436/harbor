@@ -131,6 +131,8 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 
 		*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, sqh.mfInfo)))
 		*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, sqh.blobInfo)))
+
+		return nil
 	}
 
 	return fmt.Errorf("unsupported content type for manifest: %s", mediaType)
