@@ -226,7 +226,6 @@ func handlePutBlob(res *http.Response) error {
 			}
 			_, err := dao.AddBlob(blob)
 			if err != nil {
-				log.Infof(" ********* %v", blob.Digest)
 				return err
 			}
 		}

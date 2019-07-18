@@ -51,6 +51,13 @@ func New(next http.Handler) http.Handler {
 // ServeHTTP ...
 func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
+	matchPatchBlob, _ := util.MatchPatchBlobURL(req)
+	if matchPatchBlob {
+		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^ ")
+		log.Infof("%v", req.Header)
+		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^ ")
+	}
+
 	matchPutBlob, repository := util.MatchPutBlobURL(req)
 	if matchPutBlob {
 		bb := &util.BlobInfo{}
