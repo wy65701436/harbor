@@ -79,8 +79,12 @@ type BlobInfo struct {
 	Size        int64
 	Repository  string
 	Tag         string
-	Digest      string
-	DigestLock  *common_redis.Mutex
+
+	// Exist is to index the existing of the manifest in DB. If false, it's an new image for uploading.
+	Exist bool
+
+	Digest     string
+	DigestLock *common_redis.Mutex
 	// Quota is the resource applied for the manifest upload request.
 	Quota *quota.ResourceList
 }

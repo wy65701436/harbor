@@ -89,10 +89,6 @@ func director(target *url.URL, req *http.Request) {
 func modifyResponse(res *http.Response) error {
 	matchPushManifest, _, _ := util.MatchPushManifest(res.Request)
 	if matchPushManifest {
-		err := handlePutBlob(res)
-		if err != nil {
-			log.Error(err)
-		}
 		return handlePutManifest(res)
 	}
 	matchPutBlob, _ := util.MatchPutBlobURL(res.Request)
@@ -223,16 +219,18 @@ func handlePutBlob(res *http.Response) error {
 	}()
 
 	if res.StatusCode == http.StatusCreated {
-		blob := &models.Blob{
-			Digest:       bb.Digest,
-			ContentType:  bb.ContentType,
-			Size:         bb.Size,
-			CreationTime: time.Now(),
-		}
-		_, err := dao.AddBlob(blob)
-		if err != nil {
-			log.Infof(" ********* %v", blob.Digest)
-			return err
+		if !bb.Exist {
+			blob := &models.Blob{
+				Digest:       bb.Digest,
+				ContentType:  bb.ContentType,
+				Size:         bb.Size,
+				CreationTime: time.Now(),
+			}
+			_, err := dao.AddBlob(blob)
+			if err != nil {
+				log.Infof(" ********* %v", blob.Digest)
+				return err
+			}
 		}
 	} else if res.StatusCode >= 300 || res.StatusCode <= 511 {
 		success := util.TryFreeQuota(bb.ProjectID, bb.Quota)

@@ -192,6 +192,7 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 		sqh.tryFreeBlob()
 		return err
 	}
+	sqh.blobInfo.Exist = blobExist
 
 	if !blobExist {
 		quotaRes := &quota.ResourceList{
