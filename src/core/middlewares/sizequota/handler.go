@@ -90,10 +90,13 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 		mediaType == schema1.MediaTypeSignedManifest ||
 		mediaType == schema2.MediaTypeManifest {
 
+		log.Info("^^^^^^^^^^^^^^^^^")
 		con, err := util.GetRegRedisCon()
 		if err != nil {
+			log.Infof("failed to get registry redis connection, %v", err)
 			return err
 		}
+		log.Info("^^^^^^^^^^^^^^^^^")
 
 		data, err := ioutil.ReadAll(req.Body)
 		if err != nil {
@@ -111,6 +114,7 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 			log.Warningf("Error occurred when to get project ID %v", err)
 			return err
 		}
+		log.Info("^^^^^^^^^^^^^^^^^")
 
 		sqh.mfInfo.ProjectID = projectID
 		sqh.mfInfo.Refrerence = manifest.References()
@@ -123,6 +127,7 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 		if err := sqh.requireQuota(con); err != nil {
 			return err
 		}
+		log.Info("^^^^^^^^^^^^^^^^^")
 
 		*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, sqh.mfInfo)))
 		*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, sqh.blobInfo)))
@@ -179,6 +184,7 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 
 	digestLock, err := sqh.tryLockBlob(conn)
 	if err != nil {
+		log.Infof("failed to lock digest in redis, %v", err)
 		return err
 	}
 	sqh.blobInfo.DigestLock = digestLock
