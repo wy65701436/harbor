@@ -314,6 +314,20 @@ func GetBlobSize(conn redis.Conn, uuid string) (int64, error) {
 	return 0, nil
 }
 
+// SetBunkSize sets the temp size for blob bunk with its uuid.
+func SetBunkSize(conn redis.Conn, uuid string, size int64) (bool, error) {
+	sizeInRedis, err := GetBlobSize(conn, uuid)
+	if err != nil {
+		return false, err
+	}
+	size += sizeInRedis
+	setRes, err := redis.String(conn.Do("SET", uuid, size))
+	if err != nil {
+		return false, err
+	}
+	return setRes == "OK", nil
+}
+
 // GetProjectID ...
 func GetProjectID(name string) (int64, error) {
 	project, err := dao.GetProjectByName(name)
@@ -324,4 +338,14 @@ func GetProjectID(name string) (int64, error) {
 		return project.ProjectID, nil
 	}
 	return 0, fmt.Errorf("project %s is not found", name)
+}
+
+// GetRegRedisCon ...
+func GetRegRedisCon() (redis.Conn, error) {
+	return redis.DialURL(
+		config.GetRedisOfRegURL(),
+		redis.DialConnectTimeout(DialConnectionTimeout),
+		redis.DialReadTimeout(DialReadTimeout),
+		redis.DialWriteTimeout(DialWriteTimeout),
+	)
 }

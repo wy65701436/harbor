@@ -57,7 +57,6 @@ func HasBlobInProject(projectID int64, digest string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	log.Infof("^^^^^^^^^^^^^^^^ %v", num)
 	if num == 0 {
 		return false, nil
 	}

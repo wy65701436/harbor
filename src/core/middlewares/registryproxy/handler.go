@@ -15,7 +15,7 @@
 package registryproxy
 
 import (
-	"github.com/garyburd/redigo/redis"
+	"fmt"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
@@ -87,12 +87,16 @@ func director(target *url.URL, req *http.Request) {
 
 // Modify the http response
 func modifyResponse(res *http.Response) error {
-	matchMF, _, _ := util.MatchPushManifest(res.Request)
-	if matchMF {
+	matchPushManifest, _, _ := util.MatchPushManifest(res.Request)
+	if matchPushManifest {
+		err := handlePutBlob(res)
+		if err != nil {
+			log.Error(err)
+		}
 		return handlePutManifest(res)
 	}
-	matchBB, _ := util.MatchPutBlobURL(res.Request)
-	if matchBB {
+	matchPutBlob, _ := util.MatchPutBlobURL(res.Request)
+	if matchPutBlob {
 		return handlePutBlob(res)
 	}
 	matchPatchBlob, _ := util.MatchPatchBlobURL(res.Request)
@@ -120,7 +124,6 @@ func handlePutManifest(res *http.Response) error {
 	if !ok {
 		return errors.New("failed to convert manifest information context into MfInfo")
 	}
-
 	defer func() {
 		_, err := mf.TagLock.Free()
 		if err != nil {
@@ -199,7 +202,6 @@ func handlePutBlob(res *http.Response) error {
 	if !ok {
 		return errors.New("failed to convert blob information context into BBInfo")
 	}
-
 	defer func() {
 		_, err := bb.DigestLock.Free()
 		if err != nil {
@@ -224,7 +226,7 @@ func handlePutBlob(res *http.Response) error {
 	} else if res.StatusCode >= 300 || res.StatusCode <= 511 {
 		success := util.TryFreeQuota(bb.ProjectID, bb.Quota)
 		if !success {
-			return errors.New("Error to release resource booked for the manifest")
+			return fmt.Errorf("Error to release resource booked for the blob, %d, digest: %s ", bb.ProjectID, bb.Digest)
 		}
 	}
 	return nil
@@ -233,12 +235,7 @@ func handlePutBlob(res *http.Response) error {
 // Do record bunk size on success, registry will return an 202 for PATCH success, and with an UUID.
 func handlePatchBlob(res *http.Response) error {
 	if res.StatusCode == http.StatusAccepted {
-		con, err := redis.DialURL(
-			config.GetRedisOfRegURL(),
-			redis.DialConnectTimeout(util.DialConnectionTimeout),
-			redis.DialReadTimeout(util.DialReadTimeout),
-			redis.DialWriteTimeout(util.DialWriteTimeout),
-		)
+		con, err := util.GetRegRedisCon()
 		if err != nil {
 			return err
 		}
@@ -249,30 +246,16 @@ func handlePatchBlob(res *http.Response) error {
 		if err != nil {
 			return err
 		}
-		success, err := setBunkSize(con, uuid, cl)
+		success, err := util.SetBunkSize(con, uuid, cl)
 		if err != nil {
 			return err
 		}
 		if !success {
 			//ToDo discuss what to do here.
-			log.Infof(" ^^^^^^^^^^^ ")
+			log.Warningf(" ^^^^^^^^^^^ Fail to set bunk: %s size: %d in redis, it causes unable to set correct quota for the artifact.", uuid, cl)
 		}
 	}
 	return nil
-}
-
-// set the temp size for uuid.
-func setBunkSize(conn redis.Conn, uuid string, size int64) (bool, error) {
-	sizeInRedis, err := util.GetBlobSize(conn, uuid)
-	if err != nil {
-		return false, err
-	}
-	size += sizeInRedis
-	setRes, err := redis.String(conn.Do("SET", uuid, size))
-	if err != nil {
-		return false, err
-	}
-	return setRes == "OK", nil
 }
 
 // ServeHTTP ...
