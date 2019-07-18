@@ -51,9 +51,10 @@ func New(next http.Handler) http.Handler {
 
 // ServeHTTP ...
 func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	result, _ := httputil.DumpRequest(req, true)
 
 	fmt.Println(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-	fmt.Printf("%s", httputil.DumpRequest(req, true))
+	fmt.Printf("%s", result)
 	fmt.Println(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 
 	//matchPatchBlob, _ := util.MatchPatchBlobURL(req)
