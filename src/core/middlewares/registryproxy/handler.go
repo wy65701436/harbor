@@ -134,6 +134,16 @@ func handlePutManifest(res *http.Response) error {
 		}
 	}()
 
+	if !mf.Exist || mf.DigestChanged {
+		err := handlePutBlob(res)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	return internalManifest(mf, res)
+}
+
+func internalManifest(mf *util.MfInfo, res *http.Response) error {
 	// 201
 	if res.StatusCode == http.StatusCreated {
 		af := &models.Artifact{

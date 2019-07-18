@@ -57,7 +57,11 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 		sqh.blobInfo = bb
 		sqh.blobInfo.Repository = repository
 
-		sqh.handlePutBlobComplete(rw, req)
+		if err := sqh.handlePutBlobComplete(rw, req); err != nil {
+			log.Warningf("Error occurred when to handle put blob %v", err)
+			http.Error(rw, util.MarshalError("InternalError", "Error occurred when to handle put blob"), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	matchPushMF, repository, tag := util.MatchPushManifest(req)
@@ -70,7 +74,11 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 		sqh.mfInfo.Repository = repository
 		sqh.mfInfo.Tag = tag
 
-		sqh.handlePutManifest(rw, req)
+		if err := sqh.handlePutManifest(rw, req); err != nil {
+			log.Warningf("Error occurred when to handle put manifest %v", err)
+			http.Error(rw, util.MarshalError("InternalError", "Error occurred when to handle put manifest"), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	sqh.next.ServeHTTP(rw, req)
@@ -187,6 +195,7 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 		}
 		err = util.TryRequireQuota(sqh.blobInfo.ProjectID, quotaRes)
 		if err != nil {
+			log.Infof("project id, %d, size %d", sqh.blobInfo.ProjectID, sqh.blobInfo.Size)
 			sqh.tryFreeBlob()
 			log.Errorf("cannot get quota for the blob %v", err)
 			return err
