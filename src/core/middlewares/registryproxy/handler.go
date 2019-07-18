@@ -130,11 +130,9 @@ func handlePutManifest(res *http.Response) error {
 		}
 	}()
 
-	if !mf.Exist || mf.DigestChanged {
-		err := handlePutBlob(res)
-		if err != nil {
-			log.Error(err)
-		}
+	err := handlePutBlob(res)
+	if err != nil {
+		log.Error(err)
 	}
 	return internalManifest(mf, res)
 }
@@ -251,11 +249,6 @@ func handlePatchBlob(res *http.Response) error {
 		defer con.Close()
 
 		uuid := res.Header.Get("Docker-Upload-UUID")
-
-		log.Info(" ^^^^^^^^^^^^^^^ ")
-		log.Infof("%v", res.Request.Header.Get("Content-Length"))
-		log.Info(" ^^^^^^^^^^^^^^^ ")
-
 		cl, err := strconv.ParseInt(res.Request.Header.Get("Content-Length"), 10, 64)
 		if err != nil {
 			return err
