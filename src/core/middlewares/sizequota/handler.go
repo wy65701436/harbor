@@ -32,6 +32,7 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 )
 
@@ -54,8 +55,7 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	matchPatchBlob, _ := util.MatchPatchBlobURL(req)
 	if matchPatchBlob {
 		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^ ")
-		log.Infof("%v", req.Header)
-		log.Infof("%v", req.URL.Path)
+		log.Infof("%v", httputil.DumpRequest(req, true))
 		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^ ")
 	}
 
