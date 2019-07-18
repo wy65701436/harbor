@@ -55,6 +55,7 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	if matchPatchBlob {
 		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^ ")
 		log.Infof("%v", req.Header)
+		log.Infof("%v", req.URL.Path)
 		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^ ")
 	}
 
