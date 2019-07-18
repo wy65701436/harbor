@@ -32,7 +32,6 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"strings"
 )
 
@@ -51,11 +50,11 @@ func New(next http.Handler) http.Handler {
 
 // ServeHTTP ...
 func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	result, _ := httputil.DumpRequest(req, true)
-
-	fmt.Println(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-	fmt.Printf("%s", result)
-	fmt.Println(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+	//result, _ := httputil.DumpRequest(req, true)
+	//
+	//fmt.Println(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+	//fmt.Printf("%s", result)
+	//fmt.Println(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 
 	//matchPatchBlob, _ := util.MatchPatchBlobURL(req)
 	//if matchPatchBlob {
