@@ -87,6 +87,11 @@ func director(target *url.URL, req *http.Request) {
 
 // Modify the http response
 func modifyResponse(res *http.Response) error {
+
+	fmt.Println(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+	fmt.Printf("%s", httputil.DumpResponse(res, true))
+	fmt.Println(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+
 	matchPushManifest, _, _ := util.MatchPushManifest(res.Request)
 	if matchPushManifest {
 		return handlePutManifest(res)
