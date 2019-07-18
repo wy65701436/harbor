@@ -77,16 +77,15 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 }
 
 func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http.Request) error {
-	con, err := util.GetRegRedisCon()
-	if err != nil {
-		return err
-	}
-	defer con.Close()
-
 	mediaType := req.Header.Get("Content-Type")
 	if mediaType == schema1.MediaTypeManifest ||
 		mediaType == schema1.MediaTypeSignedManifest ||
 		mediaType == schema2.MediaTypeManifest {
+
+		con, err := util.GetRegRedisCon()
+		if err != nil {
+			return err
+		}
 
 		data, err := ioutil.ReadAll(req.Body)
 		if err != nil {

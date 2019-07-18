@@ -205,10 +205,10 @@ func handlePutBlob(res *http.Response) error {
 	defer func() {
 		_, err := bb.DigestLock.Free()
 		if err != nil {
-			log.Errorf("Error to unlock in response handler, %v", err)
+			log.Errorf("Error to unlock blob digest:%s in response handler, %v", bb.Digest, err)
 		}
 		if err := bb.DigestLock.Conn.Close(); err != nil {
-			log.Errorf("Error to close redis connection in response handler, %v", err)
+			log.Errorf("Error to close redis connection in put blob response handler, %v", err)
 		}
 	}()
 
