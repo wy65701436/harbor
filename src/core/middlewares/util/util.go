@@ -16,7 +16,10 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/docker/distribution"
+	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/quota"
 	"github.com/goharbor/harbor/src/common/utils/clair"
@@ -28,10 +31,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
 type contextKey string
+
+// ErrRequireQuota ...
+var ErrRequireQuota = errors.New("cannot get quota on project for request")
 
 const (
 	manifestURLPattern = `^/v2/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)manifests/([\w][\w.:-]{0,127})`
@@ -41,8 +48,10 @@ const (
 	// TokenUsername ...
 	// TODO: temp solution, remove after vmware/harbor#2242 is resolved.
 	TokenUsername = "harbor-core"
-	// MFInfokKey the context key for image tag redis lock
-	MFInfokKey = contextKey("ManifestLock")
+	// MFInfokKey the context key for manifest
+	MFInfokKey = contextKey("ManifestInfp")
+	// BBInfokKey the context key for blob
+	BBInfokKey = contextKey("BlobInfo")
 )
 
 // ImageInfo ...
@@ -56,10 +65,12 @@ type ImageInfo struct {
 // MfInfo ...
 type MfInfo struct {
 	// basic information of a manifest
-	ProjectID  int64
-	Repository string
-	Tag        string
-	Digest     string
+	ProjectID   int64
+	Repository  string
+	Tag         string
+	Digest      string
+	Size        int64
+	ContentType string
 
 	// Exist is to index the existing of the manifest in DB. If false, it's an new image for uploading.
 	Exist bool
@@ -70,6 +81,19 @@ type MfInfo struct {
 	// used to block multiple push on same image.
 	TagLock    *common_redis.Mutex
 	Refrerence []distribution.Descriptor
+
+	// Quota is the resource applied for the manifest upload request.
+	Quota *quota.ResourceList
+}
+
+// BlobInfo ...
+type BlobInfo struct {
+	ProjectID  int64
+	Size       int64
+	Repository string
+	Digest     string
+
+	ContentType string
 
 	// Quota is the resource applied for the manifest upload request.
 	Quota *quota.ResourceList
@@ -217,4 +241,45 @@ func NewPMSPolicyChecker(pm promgr.ProjectManager) PolicyChecker {
 // GetPolicyChecker ...
 func GetPolicyChecker() PolicyChecker {
 	return NewPMSPolicyChecker(config.GlobalProjectMgr)
+}
+
+// TryRequireQuota ...
+func TryRequireQuota(projectID int64, quotaRes *quota.ResourceList) error {
+	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(projectID, 10))
+	if err != nil {
+		log.Errorf("Error occurred when to new quota manager %v", err)
+		return err
+	}
+	if err := quotaMgr.AddResources(*quotaRes); err != nil {
+		log.Errorf("Cannot get quota for the manifest %v", err)
+		return ErrRequireQuota
+	}
+	return nil
+}
+
+// TryFreeQuota used to release resource for failure case
+func TryFreeQuota(projectID int64, qres *quota.ResourceList) bool {
+	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(projectID, 10))
+	if err != nil {
+		log.Errorf("Error occurred when to new quota manager %v", err)
+		return false
+	}
+
+	if err := quotaMgr.SubtractResources(*qres); err != nil {
+		log.Errorf("Cannot get quota for the manifest %v", err)
+		return false
+	}
+	return true
+}
+
+// GetProjectID ...
+func GetProjectID(name string) (int64, error) {
+	project, err := dao.GetProjectByName(name)
+	if err != nil {
+		return 0, err
+	}
+	if project != nil {
+		return project.ProjectID, nil
+	}
+	return 0, fmt.Errorf("project %s is not found", name)
 }

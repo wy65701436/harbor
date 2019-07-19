@@ -17,7 +17,6 @@ package registryproxy
 import (
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
-	"github.com/goharbor/harbor/src/common/quota"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
@@ -25,7 +24,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -145,6 +143,16 @@ func handlerPutManifest(res *http.Response) error {
 				log.Errorf("Error to add artifact, %v", err)
 				return err
 			}
+			blob := &models.Blob{
+				Digest:       af.Digest,
+				ContentType:  mf.ContentType,
+				Size:         mf.Size,
+				CreationTime: time.Now(),
+			}
+			_, err := dao.AddBlob(blob)
+			if err != nil {
+				log.Warning(err)
+			}
 		}
 		if mf.DigestChanged {
 			err := dao.UpdateArtifactDigest(af)
@@ -156,6 +164,11 @@ func handlerPutManifest(res *http.Response) error {
 
 		if !mf.Exist || mf.DigestChanged {
 			afnbs := []*models.ArtifactAndBlob{}
+			self := &models.ArtifactAndBlob{
+				DigestAF:   mf.Digest,
+				DigestBlob: mf.Digest,
+			}
+			afnbs = append(afnbs, self)
 			for _, d := range mf.Refrerence {
 				afnb := &models.ArtifactAndBlob{
 					DigestAF:   mf.Digest,
@@ -171,7 +184,7 @@ func handlerPutManifest(res *http.Response) error {
 
 	} else if res.StatusCode >= 300 || res.StatusCode <= 511 {
 		if !mf.Exist {
-			success := subtractResources(mf)
+			success := util.TryFreeQuota(mf.ProjectID, mf.Quota)
 			if !success {
 				return errors.New("Error to release resource booked for the manifest")
 			}
@@ -181,26 +194,35 @@ func handlerPutManifest(res *http.Response) error {
 	return nil
 }
 
+// return the 1kb borrowed by put blob request
 func handlerPutBlob(res *http.Response) error {
-	if res.StatusCode != http.StatusCreated {
-		log.Infof("we need to rollback DB and unlock digest ... ")
+	bbInfo := res.Request.Context().Value(util.BBInfokKey)
+	bb, ok := bbInfo.(*util.BlobInfo)
+	if !ok {
+		return errors.New("failed to convert blob information context into BBInfo")
+	}
+
+	defer func() {
+		success := util.TryFreeQuota(bb.ProjectID, bb.Quota)
+		if !success {
+			log.Errorf("error to release resource booked for the blob: %d, %s", bb.ProjectID, bb.Digest)
+		}
+	}()
+
+	if res.StatusCode == http.StatusCreated {
+		// For multiple push, only one insert will success.
+		blob := &models.Blob{
+			Digest:       bb.Digest,
+			ContentType:  bb.ContentType,
+			Size:         bb.Size,
+			CreationTime: time.Now(),
+		}
+		_, err := dao.AddBlob(blob)
+		if err != nil {
+			log.Warning(err)
+		}
 	}
 	return nil
-}
-
-// used to release resource for failure case
-func subtractResources(mfInfo *util.MfInfo) bool {
-	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(mfInfo.ProjectID, 10))
-	if err != nil {
-		log.Errorf("Error occurred when to new quota manager %v", err)
-		return false
-	}
-
-	if err := quotaMgr.SubtractResources(*mfInfo.Quota); err != nil {
-		log.Errorf("Cannot get quota for the manifest %v", err)
-		return false
-	}
-	return true
 }
 
 // ServeHTTP ...
