@@ -250,8 +250,8 @@ func handlePatchBlob(res *http.Response) error {
 		uuid := res.Header.Get("Docker-Upload-UUID")
 
 		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-		log.Infof("%v ", res.Request.Header)
-		log.Infof(res.Request.Header.Get("Content-Length"))
+		log.Infof("%v ", res.Header)
+		log.Infof(res.Header.Get("Content-Length"))
 		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 
 		cl, err := strconv.ParseInt(res.Request.Header.Get("Content-Length"), 10, 64)
