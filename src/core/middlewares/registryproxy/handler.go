@@ -115,6 +115,13 @@ func singleJoiningSlash(a, b string) string {
 }
 
 func handlePutManifest(res *http.Response) error {
+
+	// treat manifest as a blob, it needs to insert blob info.
+	err := handlePutBlob(res)
+	if err != nil {
+		log.Error(err)
+	}
+
 	mfInfo := res.Request.Context().Value(util.MFInfokKey)
 	mf, ok := mfInfo.(*util.MfInfo)
 	if !ok {
@@ -130,14 +137,6 @@ func handlePutManifest(res *http.Response) error {
 		}
 	}()
 
-	err := handlePutBlob(res)
-	if err != nil {
-		log.Error(err)
-	}
-	return internalManifest(mf, res)
-}
-
-func internalManifest(mf *util.MfInfo, res *http.Response) error {
 	// 201
 	if res.StatusCode == http.StatusCreated {
 		af := &models.Artifact{
@@ -230,9 +229,11 @@ func handlePutBlob(res *http.Response) error {
 			}
 		}
 	} else if res.StatusCode >= 300 || res.StatusCode <= 511 {
-		success := util.TryFreeQuota(bb.ProjectID, bb.Quota)
-		if !success {
-			return fmt.Errorf("Error to release resource booked for the blob, %d, digest: %s ", bb.ProjectID, bb.Digest)
+		if !bb.Exist {
+			success := util.TryFreeQuota(bb.ProjectID, bb.Quota)
+			if !success {
+				return fmt.Errorf("Error to release resource booked for the blob, %d, digest: %s ", bb.ProjectID, bb.Digest)
+			}
 		}
 	}
 	return nil
@@ -240,32 +241,40 @@ func handlePutBlob(res *http.Response) error {
 
 // Do record bunk size on success, registry will return an 202 for PATCH success, and with an UUID.
 func handlePatchBlob(res *http.Response) error {
-	if res.StatusCode == http.StatusAccepted {
-		con, err := util.GetRegRedisCon()
-		if err != nil {
-			return err
-		}
-		defer con.Close()
+	if res.StatusCode != http.StatusAccepted {
+		return nil
+	}
 
-		uuid := res.Header.Get("Docker-Upload-UUID")
+	con, err := util.GetRegRedisCon()
+	if err != nil {
+		return err
+	}
+	defer con.Close()
 
-		// Range: Range indicating the current progress of the upload.
-		// https://github.com/opencontainers/distribution-spec/blob/master/spec.md#get-blob-upload
-		patchRange := res.Header.Get("Range")
-		endRange := strings.Split(patchRange, "-")[1]
+	uuid := res.Header.Get("Docker-Upload-UUID")
+	if uuid == "" {
+		return fmt.Errorf("no UUID in the patch blob response, the request path %s ", res.Request.URL.Path)
+	}
 
-		size, err := strconv.ParseInt(endRange, 10, 64)
-		if err != nil {
-			return err
-		}
-		success, err := util.SetBunkSize(con, uuid, size)
-		if err != nil {
-			return err
-		}
-		if !success {
-			//ToDo discuss what to do here.
-			log.Warningf(" ^^^^^^^^^^^ Fail to set bunk: %s size: %d in redis, it causes unable to set correct quota for the artifact.", uuid, size)
-		}
+	// Range: Range indicating the current progress of the upload.
+	// https://github.com/opencontainers/distribution-spec/blob/master/spec.md#get-blob-upload
+	patchRange := res.Header.Get("Range")
+	if uuid == "" {
+		return fmt.Errorf("no Range in the patch blob response, the request path %s ", res.Request.URL.Path)
+	}
+
+	endRange := strings.Split(patchRange, "-")[1]
+	size, err := strconv.ParseInt(endRange, 10, 64)
+	if err != nil {
+		return err
+	}
+	success, err := util.SetBunkSize(con, uuid, size)
+	if err != nil {
+		return err
+	}
+	if !success {
+		//ToDo discuss what to do here.
+		log.Warningf(" ^^^^^^^^^^^ Fail to set bunk: %s size: %d in redis, it causes unable to set correct quota for the artifact.", uuid, size)
 	}
 	return nil
 }

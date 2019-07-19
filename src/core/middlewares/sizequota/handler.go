@@ -59,7 +59,8 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 		if err := sqh.handlePutBlobComplete(rw, req); err != nil {
 			log.Warningf("Error occurred when to handle put blob %v", err)
-			http.Error(rw, util.MarshalError("InternalError", "Error occurred when to handle put blob"), http.StatusInternalServerError)
+			http.Error(rw, util.MarshalError("InternalError", "Error occurred when to handle put blob"),
+				http.StatusInternalServerError)
 			return
 		}
 	}
@@ -76,7 +77,8 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 		if err := sqh.handlePutManifest(rw, req); err != nil {
 			log.Warningf("Error occurred when to handle put manifest %v", err)
-			http.Error(rw, util.MarshalError("InternalError", "Error occurred when to handle put manifest"), http.StatusInternalServerError)
+			http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle put manifest: %v", err)),
+				http.StatusInternalServerError)
 			return
 		}
 	}
@@ -135,6 +137,7 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 }
 
 func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *http.Request) error {
+	// the redis connection will be closed in the put response.
 	con, err := util.GetRegRedisCon()
 	if err != nil {
 		return err
@@ -142,7 +145,7 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 
 	defer func() {
 		if sqh.blobInfo.UUID != "" {
-			_, err := sqh.removeUUID(con)
+			_, err := sqh.rmBlobUploadUUID(con)
 			if err != nil {
 				log.Warningf("error occurred when remove UUID for blob, %v", err)
 			}
@@ -211,21 +214,6 @@ func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
 	return nil
 }
 
-func (sqh *sizeQuotaHandler) removeUUID(conn redis.Conn) (bool, error) {
-	exists, err := redis.Int(conn.Do("EXISTS", sqh.blobInfo.UUID))
-	if err != nil {
-		return false, err
-	}
-	if exists == 1 {
-		res, err := redis.Int(conn.Do("DEL", sqh.blobInfo.UUID))
-		if err != nil {
-			return false, err
-		}
-		return res == 1, nil
-	}
-	return true, nil
-}
-
 // tryLockBlob locks blob with redis ...
 func (sqh *sizeQuotaHandler) tryLockBlob(conn redis.Conn) (*common_redis.Mutex, error) {
 	digestLock := common_redis.New(conn, sqh.blobInfo.Repository+":"+sqh.blobInfo.Digest, common_util.GenerateRandomString())
@@ -244,6 +232,21 @@ func (sqh *sizeQuotaHandler) tryFreeBlob() {
 	if err != nil {
 		log.Warningf("Error to unlock digest: %s,%s with error: %v ", sqh.blobInfo.Repository, sqh.blobInfo.Digest, err)
 	}
+}
+
+func (sqh *sizeQuotaHandler) rmBlobUploadUUID(conn redis.Conn) (bool, error) {
+	exists, err := redis.Int(conn.Do("EXISTS", sqh.blobInfo.UUID))
+	if err != nil {
+		return false, err
+	}
+	if exists == 1 {
+		res, err := redis.Int(conn.Do("DEL", sqh.blobInfo.UUID))
+		if err != nil {
+			return false, err
+		}
+		return res == 1, nil
+	}
+	return true, nil
 }
 
 // put blob path: /v2/<name>/blobs/uploads/<uuid>

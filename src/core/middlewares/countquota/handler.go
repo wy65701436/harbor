@@ -15,7 +15,6 @@
 package countquota
 
 import (
-	"errors"
 	"fmt"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
@@ -26,9 +25,6 @@ import (
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"net/http"
 )
-
-// ErrRequireQuota ...
-var ErrRequireQuota = errors.New("cannot get quota on project for request")
 
 type countQuotaHandler struct {
 	next   http.Handler
@@ -82,7 +78,7 @@ func (cqh *countQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Reques
 			if err != nil {
 				cqh.tryFreeTag()
 				log.Errorf("Cannot get quota for the manifest %v", err)
-				if err == ErrRequireQuota {
+				if err == util.ErrRequireQuota {
 					http.Error(rw, util.MarshalError("StatusNotAcceptable", "Your request is reject as not enough quota."), http.StatusNotAcceptable)
 					return
 				}
