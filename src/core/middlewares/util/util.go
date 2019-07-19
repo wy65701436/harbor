@@ -320,11 +320,6 @@ func GetBlobSize(conn redis.Conn, uuid string) (int64, error) {
 
 // SetBunkSize sets the temp size for blob bunk with its uuid.
 func SetBunkSize(conn redis.Conn, uuid string, size int64) (bool, error) {
-	sizeInRedis, err := GetBlobSize(conn, uuid)
-	if err != nil {
-		return false, err
-	}
-	size += sizeInRedis
 	setRes, err := redis.String(conn.Do("SET", uuid, size))
 	if err != nil {
 		return false, err

@@ -249,22 +249,22 @@ func handlePatchBlob(res *http.Response) error {
 
 		uuid := res.Header.Get("Docker-Upload-UUID")
 
-		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-		log.Infof("%v ", res.Header)
-		log.Infof(res.Header.Get("Content-Length"))
-		log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+		// Range: Range indicating the current progress of the upload.
+		// https://github.com/opencontainers/distribution-spec/blob/master/spec.md#get-blob-upload
+		patchRange := res.Header.Get("Range")
+		endRange := strings.Split(patchRange, "-")[1]
 
-		cl, err := strconv.ParseInt(res.Request.Header.Get("Content-Length"), 10, 64)
+		size, err := strconv.ParseInt(endRange, 10, 64)
 		if err != nil {
 			return err
 		}
-		success, err := util.SetBunkSize(con, uuid, cl)
+		success, err := util.SetBunkSize(con, uuid, size)
 		if err != nil {
 			return err
 		}
 		if !success {
 			//ToDo discuss what to do here.
-			log.Warningf(" ^^^^^^^^^^^ Fail to set bunk: %s size: %d in redis, it causes unable to set correct quota for the artifact.", uuid, cl)
+			log.Warningf(" ^^^^^^^^^^^ Fail to set bunk: %s size: %d in redis, it causes unable to set correct quota for the artifact.", uuid, size)
 		}
 	}
 	return nil
