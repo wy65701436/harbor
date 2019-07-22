@@ -15,6 +15,7 @@
 package countquota
 
 import (
+	"context"
 	"fmt"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
@@ -27,8 +28,7 @@ import (
 )
 
 type countQuotaHandler struct {
-	next   http.Handler
-	mfInfo *util.MfInfo
+	next http.Handler
 }
 
 // New ...
@@ -44,39 +44,38 @@ func (cqh *countQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Reques
 	if match {
 		mfInfo := req.Context().Value(util.MFInfokKey)
 		mf, ok := mfInfo.(*util.MfInfo)
-		cqh.mfInfo = mf
 		if !ok {
 			http.Error(rw, util.MarshalError("InternalServerError", "Failed to get manifest infor from context"), http.StatusInternalServerError)
 			return
 		}
 
-		tagLock, err := cqh.tryLockTag()
+		tagLock, err := cqh.tryLockTag(mf)
 		if err != nil {
 			log.Warningf("Error occurred when to lock tag %s:%s with digest %v", repository, tag, err)
 			http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to lock tag %s:%s with digest %v", repository, tag, err)), http.StatusInternalServerError)
 			return
 		}
-		cqh.mfInfo.TagLock = tagLock
+		mf.TagLock = tagLock
 
-		imageExist, af, err := cqh.imageExist()
+		imageExist, af, err := cqh.imageExist(mf)
 		if err != nil {
-			cqh.tryFreeTag()
+			cqh.tryFreeTag(mf)
 			log.Warningf("Error occurred when to check Manifest existence by repo and tag name %v", err)
 			http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to check Manifest existence %v", err)), http.StatusInternalServerError)
 			return
 		}
-		cqh.mfInfo.Exist = imageExist
+		mf.Exist = imageExist
 		if imageExist {
-			if af.Digest != cqh.mfInfo.Digest {
-				cqh.mfInfo.DigestChanged = true
+			if af.Digest != mf.Digest {
+				mf.DigestChanged = true
 			}
 		} else {
 			quotaRes := &quota.ResourceList{
 				quota.ResourceCount: 1,
 			}
-			err := util.TryRequireQuota(cqh.mfInfo.ProjectID, quotaRes)
+			err := util.TryRequireQuota(mf.ProjectID, quotaRes)
 			if err != nil {
-				cqh.tryFreeTag()
+				cqh.tryFreeTag(mf)
 				log.Errorf("Cannot get quota for the manifest %v", err)
 				if err == util.ErrRequireQuota {
 					http.Error(rw, util.MarshalError("StatusNotAcceptable", "Your request is reject as not enough quota."), http.StatusNotAcceptable)
@@ -85,43 +84,44 @@ func (cqh *countQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Reques
 				http.Error(rw, util.MarshalError("InternalServerError", fmt.Sprintf("Error occurred when to require quota for the manifest %v", err)), http.StatusInternalServerError)
 				return
 			}
-			cqh.mfInfo.Quota = quotaRes
+			mf.Quota = quotaRes
 		}
+		*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, mfInfo)))
 	}
 
 	cqh.next.ServeHTTP(rw, req)
 }
 
 // tryLockTag locks tag with redis ...
-func (cqh *countQuotaHandler) tryLockTag() (*common_redis.Mutex, error) {
+func (cqh *countQuotaHandler) tryLockTag(mfInfo *util.MfInfo) (*common_redis.Mutex, error) {
 	con, err := util.GetRegRedisCon()
 	if err != nil {
 		return nil, err
 	}
-	tagLock := common_redis.New(con, cqh.mfInfo.Repository+":"+cqh.mfInfo.Tag, common_util.GenerateRandomString())
+	tagLock := common_redis.New(con, "Quota::manifest-lock::"+mfInfo.Repository+":"+mfInfo.Tag, common_util.GenerateRandomString())
 	success, err := tagLock.Require()
 	if err != nil {
 		return nil, err
 	}
 	if !success {
-		return nil, fmt.Errorf("unable to lock tag: %s ", cqh.mfInfo.Repository+":"+cqh.mfInfo.Tag)
+		return nil, fmt.Errorf("unable to lock tag: %s ", mfInfo.Repository+":"+mfInfo.Tag)
 	}
 	return tagLock, nil
 }
 
-func (cqh *countQuotaHandler) tryFreeTag() {
-	_, err := cqh.mfInfo.TagLock.Free()
+func (cqh *countQuotaHandler) tryFreeTag(mfInfo *util.MfInfo) {
+	_, err := mfInfo.TagLock.Free()
 	if err != nil {
-		log.Warningf("Error to unlock tag: %s, with error: %v ", cqh.mfInfo.Tag, err)
+		log.Warningf("Error to unlock tag: %s, with error: %v ", mfInfo.Tag, err)
 	}
 }
 
 // check the existence of a artifact, if exist, the method will return the artifact model
-func (cqh *countQuotaHandler) imageExist() (exist bool, af *models.Artifact, err error) {
+func (cqh *countQuotaHandler) imageExist(mfInfo *util.MfInfo) (exist bool, af *models.Artifact, err error) {
 	artifactQuery := &models.ArtifactQuery{
-		PID:  cqh.mfInfo.ProjectID,
-		Repo: cqh.mfInfo.Repository,
-		Tag:  cqh.mfInfo.Tag,
+		PID:  mfInfo.ProjectID,
+		Repo: mfInfo.Repository,
+		Tag:  mfInfo.Tag,
 	}
 	afs, err := dao.ListArtifacts(artifactQuery)
 	if err != nil {

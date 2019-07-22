@@ -179,6 +179,10 @@ func handlePutManifest(res *http.Response) error {
 				afnbs = append(afnbs, afnb)
 			}
 			if err := dao.AddArtifactNBlobs(afnbs); err != nil {
+				if strings.Contains(err.Error(), dao.ErrDupRows.Error()) {
+					log.Warning("the artifact and blobs have already in the DB, it maybe an existing image with different tag")
+					return nil
+				}
 				log.Errorf("Error to add artifact and blobs in proxy response handler, %v", err)
 				return err
 			}

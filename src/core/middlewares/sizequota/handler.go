@@ -36,9 +36,7 @@ import (
 )
 
 type sizeQuotaHandler struct {
-	next     http.Handler
-	blobInfo *util.BlobInfo
-	mfInfo   *util.MfInfo
+	next http.Handler
 }
 
 // New ...
@@ -53,11 +51,10 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 	matchPutBlob, repository := util.MatchPutBlobURL(req)
 	if matchPutBlob {
-		bb := &util.BlobInfo{}
-		sqh.blobInfo = bb
-		sqh.blobInfo.Repository = repository
+		bb := util.BlobInfo{}
+		bb.Repository = repository
 
-		if err := sqh.handlePutBlobComplete(rw, req); err != nil {
+		if err := sqh.handlePutBlobComplete(req, &bb); err != nil {
 			log.Warningf("Error occurred when to handle put blob %v", err)
 			http.Error(rw, util.MarshalError("InternalError", "Error occurred when to handle put blob"),
 				http.StatusInternalServerError)
@@ -67,15 +64,13 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 
 	matchPushMF, repository, tag := util.MatchPushManifest(req)
 	if matchPushMF {
-		bb := &util.BlobInfo{}
-		sqh.blobInfo = bb
-		mfInfo := &util.MfInfo{}
-		sqh.mfInfo = mfInfo
-		sqh.blobInfo.Repository = repository
-		sqh.mfInfo.Repository = repository
-		sqh.mfInfo.Tag = tag
+		bb := util.BlobInfo{}
+		mfInfo := util.MfInfo{}
+		bb.Repository = repository
+		mfInfo.Repository = repository
+		mfInfo.Tag = tag
 
-		if err := sqh.handlePutManifest(rw, req); err != nil {
+		if err := sqh.handlePutManifest(req, &bb, &mfInfo); err != nil {
 			log.Warningf("Error occurred when to handle put manifest %v", err)
 			http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle put manifest: %v", err)),
 				http.StatusInternalServerError)
@@ -86,7 +81,7 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	sqh.next.ServeHTTP(rw, req)
 }
 
-func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http.Request) error {
+func (sqh *sizeQuotaHandler) handlePutManifest(req *http.Request, blobInfo *util.BlobInfo, mfInfo *util.MfInfo) error {
 	mediaType := req.Header.Get("Content-Type")
 	if mediaType == schema1.MediaTypeManifest ||
 		mediaType == schema1.MediaTypeSignedManifest ||
@@ -109,26 +104,26 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 			log.Warningf("Error occurred when to Unmarshal Manifest %v", err)
 			return err
 		}
-		projectID, err := util.GetProjectID(strings.Split(sqh.mfInfo.Repository, "/")[0])
+		projectID, err := util.GetProjectID(strings.Split(mfInfo.Repository, "/")[0])
 		if err != nil {
 			log.Warningf("Error occurred when to get project ID %v", err)
 			return err
 		}
 
-		sqh.mfInfo.ProjectID = projectID
-		sqh.mfInfo.Refrerence = manifest.References()
-		sqh.mfInfo.Digest = desc.Digest.String()
-		sqh.blobInfo.ProjectID = projectID
-		sqh.blobInfo.Digest = desc.Digest.String()
-		sqh.blobInfo.Size = desc.Size
-		sqh.blobInfo.ContentType = mediaType
+		mfInfo.ProjectID = projectID
+		mfInfo.Refrerence = manifest.References()
+		mfInfo.Digest = desc.Digest.String()
+		blobInfo.ProjectID = projectID
+		blobInfo.Digest = desc.Digest.String()
+		blobInfo.Size = desc.Size
+		blobInfo.ContentType = mediaType
 
-		if err := sqh.requireQuota(con); err != nil {
+		if err := requireQuota(con, blobInfo); err != nil {
 			return err
 		}
 
-		*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, sqh.mfInfo)))
-		*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, sqh.blobInfo)))
+		*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, mfInfo)))
+		*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, blobInfo)))
 
 		return nil
 	}
@@ -136,7 +131,7 @@ func (sqh *sizeQuotaHandler) handlePutManifest(rw http.ResponseWriter, req *http
 	return fmt.Errorf("unsupported content type for manifest: %s", mediaType)
 }
 
-func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *http.Request) error {
+func (sqh *sizeQuotaHandler) handlePutBlobComplete(req *http.Request, blobInfo *util.BlobInfo) error {
 	// the redis connection will be closed in the put response.
 	con, err := util.GetRegRedisCon()
 	if err != nil {
@@ -144,8 +139,8 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 	}
 
 	defer func() {
-		if sqh.blobInfo.UUID != "" {
-			_, err := sqh.rmBlobUploadUUID(con)
+		if blobInfo.UUID != "" {
+			_, err := rmBlobUploadUUID(con, blobInfo.UUID)
 			if err != nil {
 				log.Warningf("error occurred when remove UUID for blob, %v", err)
 			}
@@ -161,86 +156,86 @@ func (sqh *sizeQuotaHandler) handlePutBlobComplete(rw http.ResponseWriter, req *
 		return errors.New("blob digest parsing failed")
 	}
 
-	sqh.blobInfo.Digest = dgst.String()
-	sqh.blobInfo.UUID = getUUID(req.URL.Path)
-	size, err := util.GetBlobSize(con, sqh.blobInfo.UUID)
+	blobInfo.Digest = dgst.String()
+	blobInfo.UUID = getUUID(req.URL.Path)
+	size, err := util.GetBlobSize(con, blobInfo.UUID)
 	if err != nil {
 		return err
 	}
-	sqh.blobInfo.Size = size
-	if err := sqh.requireQuota(con); err != nil {
+	blobInfo.Size = size
+	if err := requireQuota(con, blobInfo); err != nil {
 		return err
 	}
-	*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, sqh.blobInfo)))
+	*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, blobInfo)))
 	return nil
 
 }
 
-func (sqh *sizeQuotaHandler) requireQuota(conn redis.Conn) error {
-	projectID, err := util.GetProjectID(strings.Split(sqh.blobInfo.Repository, "/")[0])
+func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
+	projectID, err := util.GetProjectID(strings.Split(blobInfo.Repository, "/")[0])
 	if err != nil {
 		return err
 	}
-	sqh.blobInfo.ProjectID = projectID
+	blobInfo.ProjectID = projectID
 
-	digestLock, err := sqh.tryLockBlob(conn)
+	digestLock, err := tryLockBlob(conn, blobInfo)
 	if err != nil {
 		log.Infof("failed to lock digest in redis, %v", err)
 		return err
 	}
-	sqh.blobInfo.DigestLock = digestLock
+	blobInfo.DigestLock = digestLock
 
-	blobExist, err := dao.HasBlobInProject(sqh.blobInfo.ProjectID, sqh.blobInfo.Digest)
+	blobExist, err := dao.HasBlobInProject(blobInfo.ProjectID, blobInfo.Digest)
 	if err != nil {
-		sqh.tryFreeBlob()
+		tryFreeBlob(blobInfo)
 		return err
 	}
-	sqh.blobInfo.Exist = blobExist
+	blobInfo.Exist = blobExist
 
 	if !blobExist {
 		quotaRes := &quota.ResourceList{
-			quota.ResourceStorage: sqh.blobInfo.Size,
+			quota.ResourceStorage: blobInfo.Size,
 		}
-		err = util.TryRequireQuota(sqh.blobInfo.ProjectID, quotaRes)
+		err = util.TryRequireQuota(blobInfo.ProjectID, quotaRes)
 		if err != nil {
-			log.Infof("project id, %d, size %d", sqh.blobInfo.ProjectID, sqh.blobInfo.Size)
-			sqh.tryFreeBlob()
+			log.Infof("project id, %d, size %d", blobInfo.ProjectID, blobInfo.Size)
+			tryFreeBlob(blobInfo)
 			log.Errorf("cannot get quota for the blob %v", err)
 			return err
 		}
-		sqh.blobInfo.Quota = quotaRes
+		blobInfo.Quota = quotaRes
 	}
 
 	return nil
 }
 
 // tryLockBlob locks blob with redis ...
-func (sqh *sizeQuotaHandler) tryLockBlob(conn redis.Conn) (*common_redis.Mutex, error) {
-	digestLock := common_redis.New(conn, sqh.blobInfo.Repository+":"+sqh.blobInfo.Digest, common_util.GenerateRandomString())
+func tryLockBlob(conn redis.Conn, blobInfo *util.BlobInfo) (*common_redis.Mutex, error) {
+	digestLock := common_redis.New(conn, "Quota::blob-lock::"+blobInfo.Repository+":"+blobInfo.Digest, common_util.GenerateRandomString())
 	success, err := digestLock.Require()
 	if err != nil {
 		return nil, err
 	}
 	if !success {
-		return nil, fmt.Errorf("unable to lock digest: %s, %s ", sqh.blobInfo.Repository, sqh.blobInfo.Digest)
+		return nil, fmt.Errorf("unable to lock digest: %s, %s ", blobInfo.Repository, blobInfo.Digest)
 	}
 	return digestLock, nil
 }
 
-func (sqh *sizeQuotaHandler) tryFreeBlob() {
-	_, err := sqh.blobInfo.DigestLock.Free()
+func tryFreeBlob(blobInfo *util.BlobInfo) {
+	_, err := blobInfo.DigestLock.Free()
 	if err != nil {
-		log.Warningf("Error to unlock digest: %s,%s with error: %v ", sqh.blobInfo.Repository, sqh.blobInfo.Digest, err)
+		log.Warningf("Error to unlock digest: %s,%s with error: %v ", blobInfo.Repository, blobInfo.Digest, err)
 	}
 }
 
-func (sqh *sizeQuotaHandler) rmBlobUploadUUID(conn redis.Conn) (bool, error) {
-	exists, err := redis.Int(conn.Do("EXISTS", sqh.blobInfo.UUID))
+func rmBlobUploadUUID(conn redis.Conn, UUID string) (bool, error) {
+	exists, err := redis.Int(conn.Do("EXISTS", UUID))
 	if err != nil {
 		return false, err
 	}
 	if exists == 1 {
-		res, err := redis.Int(conn.Do("DEL", sqh.blobInfo.UUID))
+		res, err := redis.Int(conn.Do("DEL", UUID))
 		if err != nil {
 			return false, err
 		}
