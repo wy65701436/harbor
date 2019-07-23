@@ -107,6 +107,24 @@ func TestMatchPutBlob(t *testing.T) {
 	assert.False(res3, "%s %v is not a request to put blob", req3.Method, req3.URL)
 }
 
+func TestMatchMountBlobURL(t *testing.T) {
+	assert := assert.New(t)
+	req1, _ := http.NewRequest("POST", "http://127.0.0.1:5000/v2/library/ubuntu/blobs/uploads/?mount=digtest123&from=test-repo", nil)
+	res1, repo1, mount, from := MatchMountBlobURL(req1)
+	assert.True(res1, "%s %v is not a request to mount blob", req1.Method, req1.URL)
+	assert.Equal("library/ubuntu", repo1)
+	assert.Equal("digtest123", mount)
+	assert.Equal("test-repo", from)
+
+	req2, _ := http.NewRequest("PATCH", "http://127.0.0.1:5000/v2/library/ubuntu/blobs/uploads/?mount=digtest123&from=test-repo", nil)
+	res2, _, _, _ := MatchMountBlobURL(req2)
+	assert.False(res2, "%s %v is a request to mount blob", req2.Method, req2.URL)
+
+	req3, _ := http.NewRequest("PUT", "http://127.0.0.1:5000/v2/library/ubuntu/blobs/uploads/?mount=digtest123&from=test-repo", nil)
+	res3, _, _, _ := MatchMountBlobURL(req3)
+	assert.False(res3, "%s %v is not a request to put blob", req3.Method, req3.URL)
+}
+
 func TestMatchPushManifest(t *testing.T) {
 	assert := assert.New(t)
 	req1, _ := http.NewRequest("POST", "http://127.0.0.1:5000/v2/library/ubuntu/manifests/14.04", nil)

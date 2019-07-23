@@ -99,6 +99,10 @@ func modifyResponse(res *http.Response) error {
 	if matchPatchBlob {
 		return handlePatchBlob(res)
 	}
+	matchMountBlob, _, _, _ := util.MatchMountBlobURL(res.Request)
+	if matchMountBlob {
+		return handlePutBlob(res)
+	}
 	return nil
 }
 
