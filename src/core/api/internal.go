@@ -69,3 +69,12 @@ func (ia *InternalAPI) RenameAdmin() {
 	log.Debugf("The super user has been renamed to: %s", newName)
 	ia.DestroySession()
 }
+
+// DumpRegistry ...
+func (ia *InternalAPI) DumpRegistry() {
+	err := DumpRegistry(ia.ProjectMgr)
+	if err != nil {
+		ia.SendInternalServerError(err)
+		return
+	}
+}

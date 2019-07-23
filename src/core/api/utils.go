@@ -105,6 +105,23 @@ func SyncRegistry(pm promgr.ProjectManager) error {
 	return nil
 }
 
+// DumpRegistry dumps the registry data, and compute quoto for each project, then to update harbor DB(quota_usage).
+func DumpRegistry() error {
+	log.Infof("Start dumping repositories from registry to DB... ")
+
+	reposInRegistry, err := catalog()
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	for _, item := range reposInRegistry {
+		log.Infof(item)
+	}
+
+	return nil
+}
+
 func catalog() ([]string, error) {
 	repositories := []string{}
 

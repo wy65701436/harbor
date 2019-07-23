@@ -163,4 +163,6 @@ func main() {
 	}
 	// go proxy.StartProxy()
 	beego.Run()
+
+	api.DumpRegistry()
 }
