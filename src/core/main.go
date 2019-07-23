@@ -162,11 +162,9 @@ func main() {
 		log.Errorf("init proxy error, %v", err)
 	}
 	// go proxy.StartProxy()
-	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	if err := api.DumpRegistry(); err != nil {
 		log.Error(err)
 	}
-	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 
 	beego.Run()
 }

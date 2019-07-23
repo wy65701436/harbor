@@ -16,6 +16,8 @@ package api
 
 import (
 	"fmt"
+	"github.com/docker/distribution/manifest/schema1"
+	"github.com/docker/distribution/manifest/schema2"
 	"net/http"
 	"sort"
 	"strings"
@@ -115,9 +117,67 @@ func DumpRegistry() error {
 		return err
 	}
 
+	// repoMap : project_name : repo list
+	repoMap := make(map[string][]string)
 	for _, item := range reposInRegistry {
-		log.Infof(item)
+		projectName := strings.Split(item, "/")[0]
+		_, exist := repoMap[projectName]
+		if !exist {
+			repoMap[projectName] = []string{item}
+		} else {
+			repos := repoMap[projectName]
+			repos = append(repos, item)
+			repoMap[projectName] = repos
+		}
 	}
+
+	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+	log.Info(repoMap)
+	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+
+	// blobMap : project: digest: size
+	projectMap := make(map[string]map[string]int64)
+
+	for k, v := range repoMap {
+		blobMap := make(map[string]int64)
+		projectMap[k] = blobMap
+		for _, repo := range v {
+			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
+			if err != nil {
+				log.Errorf("Failed to create repo client.")
+				return err
+			}
+			tags, err := repoClient.ListTag()
+			if err != nil {
+				log.Errorf("Failed to list tags for repo: %s", repo)
+				return err
+			}
+			for _, tag := range tags {
+				_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
+					schema1.MediaTypeManifest,
+					schema1.MediaTypeSignedManifest,
+					schema2.MediaTypeManifest,
+				})
+				if err != nil {
+					return err
+				}
+				manifest, _, err := registry.UnMarshal(mediaType, payload)
+				if err != nil {
+					return err
+				}
+				for _, layer := range manifest.References() {
+					_, exist := blobMap[layer.Digest.String()]
+					if !exist {
+						blobMap[layer.Digest.String()] = layer.Size
+					}
+				}
+			}
+		}
+	}
+
+	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+	log.Info(projectMap)
+	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
 	return nil
 }
