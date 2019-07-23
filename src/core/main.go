@@ -164,5 +164,9 @@ func main() {
 	// go proxy.StartProxy()
 	beego.Run()
 
-	api.DumpRegistry()
+	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+	if err := api.DumpRegistry(); err != nil {
+		log.Error(err)
+	}
+	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 }
