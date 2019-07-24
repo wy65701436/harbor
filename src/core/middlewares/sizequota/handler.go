@@ -55,10 +55,12 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 			http.StatusInternalServerError)
 		return
 	}
-	sqh.next.ServeHTTP(rw, req)
+	sizeResW := util.NewCustmoResponseWriter(rw)
+	sqh.next.ServeHTTP(sizeResW, req)
 	// handler response
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	log.Info(rw.Header())
+	log.Info(sizeResW.Status())
 	log.Info(req.URL.Path)
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	if err := sqh.handleResponse(rw); err != nil {
