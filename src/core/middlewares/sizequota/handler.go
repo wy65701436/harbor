@@ -68,7 +68,7 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	}
 }
 
-func getInteceptor(req *http.Request) util.RegInteceptor {
+func getInteceptor(req *http.Request) util.RegInterceptor {
 	// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
 	matchMountBlob, repository, mount, _ := util.MatchMountBlobURL(req)
 	if matchMountBlob {

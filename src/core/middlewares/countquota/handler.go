@@ -58,7 +58,7 @@ func (cqh *countQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Reques
 	}
 }
 
-func getInteceptor(req *http.Request) util.RegInteceptor {
+func getInteceptor(req *http.Request) util.RegInterceptor {
 	// PUT /v2/<name>/manifests/<reference>
 	matchPushMF, repository, tag := util.MatchPushManifest(req)
 	if matchPushMF {

@@ -50,7 +50,6 @@ func (w *CustmoResponseWriter) Write(p []byte) (n int, err error) {
 // WriteHeader ...
 func (w *CustmoResponseWriter) WriteHeader(code int) {
 	w.ResponseWriter.WriteHeader(code)
-	// Check after in case there's error handling in the wrapped ResponseWriter.
 	if w.wroteHeader {
 		return
 	}

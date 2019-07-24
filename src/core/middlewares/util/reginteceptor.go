@@ -18,8 +18,8 @@ import (
 	"net/http"
 )
 
-// RegInteceptor ...
-type RegInteceptor interface {
+// RegInterceptor ...
+type RegInterceptor interface {
 	HandleRequest(req *http.Request) error
 	HandleResponse(rw CustmoResponseWriter, req *http.Request) error
 }
