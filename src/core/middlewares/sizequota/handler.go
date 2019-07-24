@@ -15,9 +15,11 @@
 package sizequota
 
 import (
+	"errors"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/goharbor/harbor/src/common/dao"
+	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/quota"
 	common_util "github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
@@ -25,6 +27,7 @@ import (
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type sizeQuotaHandler struct {
@@ -47,7 +50,7 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	}
 
 	// handler request
-	if err := sizeInteceptor.handleRequest(req); err != nil {
+	if err := sizeInteceptor.HandleRequest(req); err != nil {
 		log.Warningf("Error occurred when to handle request in size quota handler: %v", err)
 		http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle request in size quota handler: %v", err)),
 			http.StatusInternalServerError)
@@ -57,7 +60,7 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	sqh.next.ServeHTTP(sizeResW, req)
 
 	// handler response
-	if err := sizeInteceptor.handleResponse(*sizeResW, req); err != nil {
+	if err := sizeInteceptor.HandleResponse(*sizeResW, req); err != nil {
 		log.Warningf("Error occurred when to handle response in size quota handler: %v", err)
 		http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle response in size quota handler: %v", err)),
 			http.StatusInternalServerError)
@@ -65,7 +68,7 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	}
 }
 
-func getInteceptor(req *http.Request) SizeInteceptor {
+func getInteceptor(req *http.Request) util.RegInteceptor {
 	// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
 	matchMountBlob, repository, mount, _ := util.MatchMountBlobURL(req)
 	if matchMountBlob {
@@ -93,6 +96,13 @@ func getInteceptor(req *http.Request) SizeInteceptor {
 		mfInfo.Tag = tag
 		return NewPutManifestInterceptor(&bb, &mfInfo)
 	}
+
+	// PATCH /v2/<name>/blobs/uploads/<uuid>
+	matchPatchBlob, _ := util.MatchPatchBlobURL(req)
+	if matchPatchBlob {
+		return NewPatchBlobInterceptor()
+	}
+
 	return nil
 }
 
@@ -131,6 +141,49 @@ func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
 		blobInfo.Quota = quotaRes
 	}
 
+	return nil
+}
+
+// handle put blob complete request
+// 1, add blob into DB if success
+// 2, roll back resource if failure.
+func handleBlobCommon(rw util.CustmoResponseWriter, req *http.Request) error {
+	bbInfo := req.Context().Value(util.BBInfokKey)
+	bb, ok := bbInfo.(*util.BlobInfo)
+	if !ok {
+		return errors.New("failed to convert blob information context into BBInfo")
+	}
+	defer func() {
+		_, err := bb.DigestLock.Free()
+		if err != nil {
+			log.Errorf("Error to unlock blob digest:%s in response handler, %v", bb.Digest, err)
+		}
+		if err := bb.DigestLock.Conn.Close(); err != nil {
+			log.Errorf("Error to close redis connection in put blob response handler, %v", err)
+		}
+	}()
+
+	if rw.Status() == http.StatusCreated {
+		if !bb.Exist {
+			blob := &models.Blob{
+				Digest:       bb.Digest,
+				ContentType:  bb.ContentType,
+				Size:         bb.Size,
+				CreationTime: time.Now(),
+			}
+			_, err := dao.AddBlob(blob)
+			if err != nil {
+				return err
+			}
+		}
+	} else if rw.Status() >= 300 || rw.Status() <= 511 {
+		if !bb.Exist {
+			success := util.TryFreeQuota(bb.ProjectID, bb.Quota)
+			if !success {
+				return fmt.Errorf("Error to release resource booked for the blob, %d, digest: %s ", bb.ProjectID, bb.Digest)
+			}
+		}
+	}
 	return nil
 }
 

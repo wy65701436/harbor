@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package sizequota
+package util
 
 import (
-	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"net/http"
 )
 
-type SizeInteceptor interface {
-	handleRequest(req *http.Request) error
-	handleResponse(rw util.CustmoResponseWriter, req *http.Request) error
+// RegInteceptor ...
+type RegInteceptor interface {
+	HandleRequest(req *http.Request) error
+	HandleResponse(rw CustmoResponseWriter, req *http.Request) error
 }

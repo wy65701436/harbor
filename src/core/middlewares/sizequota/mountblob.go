@@ -35,7 +35,8 @@ func NewMountBlobInterceptor(blobInfo *util.BlobInfo) *MountBlobInterceptor {
 	}
 }
 
-func (mbi *MountBlobInterceptor) handleRequest(req *http.Request) error {
+// HandleRequest ...
+func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
 	tProjectID, err := util.GetProjectID(strings.Split(mbi.blobInfo.Repository, "/")[0])
 	if err != nil {
 		return fmt.Errorf("error occurred when to get target project %s, %v", tProjectID, err)
@@ -59,6 +60,7 @@ func (mbi *MountBlobInterceptor) handleRequest(req *http.Request) error {
 	return nil
 }
 
-func (mbi *MountBlobInterceptor) handleResponse(rw util.CustmoResponseWriter, req *http.Request) error {
-	return nil
+// HandleResponse ...
+func (mbi *MountBlobInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) error {
+	return handleBlobCommon(rw, req)
 }

@@ -17,14 +17,10 @@ package sizequota
 import (
 	"context"
 	"errors"
-	"fmt"
-	"github.com/goharbor/harbor/src/common/dao"
-	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/opencontainers/go-digest"
 	"net/http"
-	"time"
 )
 
 // PutManifestInterceptor ...
@@ -39,7 +35,7 @@ func NewPutBlobInterceptor(blobInfo *util.BlobInfo) *PutBlobInterceptor {
 	}
 }
 
-func (pbi *PutBlobInterceptor) handleRequest(req *http.Request) error {
+func (pbi *PutBlobInterceptor) HandleRequest(req *http.Request) error {
 	// the redis connection will be closed in the put response.
 	con, err := util.GetRegRedisCon()
 	if err != nil {
@@ -78,42 +74,6 @@ func (pbi *PutBlobInterceptor) handleRequest(req *http.Request) error {
 	return nil
 }
 
-func (pbi *PutBlobInterceptor) handleResponse(rw util.CustmoResponseWriter, req *http.Request) error {
-	bbInfo := req.Context().Value(util.BBInfokKey)
-	bb, ok := bbInfo.(*util.BlobInfo)
-	if !ok {
-		return errors.New("failed to convert blob information context into BBInfo")
-	}
-	defer func() {
-		_, err := bb.DigestLock.Free()
-		if err != nil {
-			log.Errorf("Error to unlock blob digest:%s in response handler, %v", bb.Digest, err)
-		}
-		if err := bb.DigestLock.Conn.Close(); err != nil {
-			log.Errorf("Error to close redis connection in put blob response handler, %v", err)
-		}
-	}()
-
-	if rw.Status() == http.StatusCreated {
-		if !bb.Exist {
-			blob := &models.Blob{
-				Digest:       bb.Digest,
-				ContentType:  bb.ContentType,
-				Size:         bb.Size,
-				CreationTime: time.Now(),
-			}
-			_, err := dao.AddBlob(blob)
-			if err != nil {
-				return err
-			}
-		}
-	} else if rw.Status() >= 300 || rw.Status() <= 511 {
-		if !bb.Exist {
-			success := util.TryFreeQuota(bb.ProjectID, bb.Quota)
-			if !success {
-				return fmt.Errorf("Error to release resource booked for the blob, %d, digest: %s ", bb.ProjectID, bb.Digest)
-			}
-		}
-	}
-	return nil
+func (pbi *PutBlobInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) error {
+	return handleBlobCommon(rw, req)
 }
