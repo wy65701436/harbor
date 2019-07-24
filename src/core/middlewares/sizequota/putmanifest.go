@@ -94,7 +94,7 @@ func (pmi *PutManifestInterceptor) HandleRequest(req *http.Request) error {
 }
 
 // HandleResponse ...
-func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) {
+func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustomResponseWriter, req *http.Request) {
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	log.Info(rw.Status())
 	log.Info(rw.Header())

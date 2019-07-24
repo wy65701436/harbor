@@ -37,7 +37,7 @@ func (pbi *PatchBlobInterceptor) HandleRequest(req *http.Request) error {
 }
 
 // HandleResponse record the upload process with Range attribute, set it into redis with UUID as the key
-func (pbi *PatchBlobInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) {
+func (pbi *PatchBlobInterceptor) HandleResponse(rw util.CustomResponseWriter, req *http.Request) {
 	if rw.Status() != http.StatusAccepted {
 		return
 	}

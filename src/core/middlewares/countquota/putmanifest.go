@@ -86,7 +86,7 @@ func (pmi *PutManifestInterceptor) HandleRequest(req *http.Request) error {
 	return nil
 }
 
-func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) {
+func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustomResponseWriter, req *http.Request) {
 	mfInfo := req.Context().Value(util.MFInfokKey)
 	mf, ok := mfInfo.(*util.MfInfo)
 	if !ok {

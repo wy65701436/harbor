@@ -18,29 +18,29 @@ import (
 	"net/http"
 )
 
-type CustmoResponseWriter struct {
+type CustomResponseWriter struct {
 	http.ResponseWriter
 	status      int
 	wroteHeader bool
 }
 
-// NewCustmoResponseWriter ...
-func NewCustmoResponseWriter(w http.ResponseWriter) *CustmoResponseWriter {
-	return &CustmoResponseWriter{ResponseWriter: w}
+// NewCustomResponseWriter ...
+func NewCustomResponseWriter(w http.ResponseWriter) *CustomResponseWriter {
+	return &CustomResponseWriter{ResponseWriter: w}
 }
 
 // Status ...
-func (w *CustmoResponseWriter) Status() int {
+func (w *CustomResponseWriter) Status() int {
 	return w.status
 }
 
 // Satisfy the http.ResponseWriter interface
-func (w CustmoResponseWriter) Header() http.Header {
+func (w CustomResponseWriter) Header() http.Header {
 	return w.ResponseWriter.Header()
 }
 
 // Write ...
-func (w *CustmoResponseWriter) Write(p []byte) (n int, err error) {
+func (w *CustomResponseWriter) Write(p []byte) (n int, err error) {
 	if !w.wroteHeader {
 		w.WriteHeader(http.StatusOK)
 	}
@@ -48,7 +48,7 @@ func (w *CustmoResponseWriter) Write(p []byte) (n int, err error) {
 }
 
 // WriteHeader ...
-func (w *CustmoResponseWriter) WriteHeader(code int) {
+func (w *CustomResponseWriter) WriteHeader(code int) {
 	w.ResponseWriter.WriteHeader(code)
 	if w.wroteHeader {
 		return

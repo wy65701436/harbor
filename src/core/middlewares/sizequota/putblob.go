@@ -74,7 +74,7 @@ func (pbi *PutBlobInterceptor) HandleRequest(req *http.Request) error {
 	return nil
 }
 
-func (pbi *PutBlobInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) {
+func (pbi *PutBlobInterceptor) HandleResponse(rw util.CustomResponseWriter, req *http.Request) {
 	if err := HandleBlobCommon(rw, req); err != nil {
 		log.Error(err)
 	}

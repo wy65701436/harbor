@@ -46,11 +46,10 @@ func (cqh *countQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Reques
 			http.StatusInternalServerError)
 		return
 	}
-	countResW := util.NewCustmoResponseWriter(rw)
-	cqh.next.ServeHTTP(countResW, req)
+	cqh.next.ServeHTTP(rw, req)
 
 	// handler response
-	countInteceptor.HandleResponse(*countResW, req)
+	countInteceptor.HandleResponse(rw.(util.CustomResponseWriter), req)
 }
 
 func getInteceptor(req *http.Request) util.RegInterceptor {

@@ -24,5 +24,5 @@ type RegInterceptor interface {
 	HandleRequest(req *http.Request) error
 
 	// HandleResponse won't return any error
-	HandleResponse(rw CustmoResponseWriter, req *http.Request)
+	HandleResponse(rw CustomResponseWriter, req *http.Request)
 }

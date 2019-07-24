@@ -56,11 +56,10 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 			http.StatusInternalServerError)
 		return
 	}
-	sizeResW := util.NewCustmoResponseWriter(rw)
-	sqh.next.ServeHTTP(sizeResW, req)
+	sqh.next.ServeHTTP(rw, req)
 
 	// handler response
-	sizeInteceptor.HandleResponse(*sizeResW, req)
+	sizeInteceptor.HandleResponse(rw.(util.CustomResponseWriter), req)
 }
 
 func getInteceptor(req *http.Request) util.RegInterceptor {
@@ -142,7 +141,7 @@ func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
 // HandleBlobCommon handles put blob complete request
 // 1, add blob into DB if success
 // 2, roll back resource if failure.
-func HandleBlobCommon(rw util.CustmoResponseWriter, req *http.Request) error {
+func HandleBlobCommon(rw util.CustomResponseWriter, req *http.Request) error {
 	bbInfo := req.Context().Value(util.BBInfokKey)
 	bb, ok := bbInfo.(*util.BlobInfo)
 	if !ok {
