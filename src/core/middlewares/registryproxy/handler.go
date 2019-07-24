@@ -87,6 +87,7 @@ func director(target *url.URL, req *http.Request) {
 
 // Modify the http response
 func modifyResponse(res *http.Response) error {
+	res.Header.Set("Quota-Status-Code", strconv.Itoa(res.StatusCode))
 	matchPushManifest, _, _ := util.MatchPushManifest(res.Request)
 	if matchPushManifest {
 		return handlePutManifest(res)
