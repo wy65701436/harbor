@@ -23,7 +23,7 @@ import (
 	"strings"
 )
 
-// MountBlobInterceptor ...
+// PutManifestInterceptor ...
 type MountBlobInterceptor struct {
 	blobInfo *util.BlobInfo
 }
@@ -59,6 +59,6 @@ func (mbi *MountBlobInterceptor) handleRequest(req *http.Request) error {
 	return nil
 }
 
-func (mbi *MountBlobInterceptor) handleResponse(rw http.ResponseWriter) error {
+func (mbi *MountBlobInterceptor) handleResponse(rw util.CustmoResponseWriter, req *http.Request) error {
 	return nil
 }

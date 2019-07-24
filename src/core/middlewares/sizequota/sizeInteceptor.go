@@ -15,10 +15,11 @@
 package sizequota
 
 import (
+	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"net/http"
 )
 
 type SizeInteceptor interface {
 	handleRequest(req *http.Request) error
-	handleResponse(rw http.ResponseWriter) error
+	handleResponse(rw util.CustmoResponseWriter, req *http.Request) error
 }

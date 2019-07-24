@@ -15,12 +15,7 @@
 package sizequota
 
 import (
-	"bytes"
-	"context"
 	"fmt"
-	"github.com/docker/distribution"
-	"github.com/docker/distribution/manifest/schema1"
-	"github.com/docker/distribution/manifest/schema2"
 	"github.com/garyburd/redigo/redis"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/quota"
@@ -28,9 +23,6 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/log"
 	common_redis "github.com/goharbor/harbor/src/common/utils/redis"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
-	"github.com/opencontainers/go-digest"
-	"github.com/pkg/errors"
-	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -48,8 +40,14 @@ func New(next http.Handler) http.Handler {
 
 // ServeHTTP ...
 func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	sizeInteceptor := getInteceptor(req)
+	if sizeInteceptor == nil {
+		sqh.next.ServeHTTP(rw, req)
+		return
+	}
+
 	// handler request
-	if err := sqh.handleRequest(req); err != nil {
+	if err := sizeInteceptor.handleRequest(req); err != nil {
 		log.Warningf("Error occurred when to handle request in size quota handler: %v", err)
 		http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle request in size quota handler: %v", err)),
 			http.StatusInternalServerError)
@@ -57,13 +55,9 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	}
 	sizeResW := util.NewCustmoResponseWriter(rw)
 	sqh.next.ServeHTTP(sizeResW, req)
+
 	// handler response
-	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-	log.Info(rw.Header())
-	log.Info(sizeResW.Status())
-	log.Info(req.URL.Path)
-	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-	if err := sqh.handleResponse(rw); err != nil {
+	if err := sizeInteceptor.handleResponse(*sizeResW, req); err != nil {
 		log.Warningf("Error occurred when to handle response in size quota handler: %v", err)
 		http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle response in size quota handler: %v", err)),
 			http.StatusInternalServerError)
@@ -71,15 +65,14 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 	}
 }
 
-func (sqh *sizeQuotaHandler) handleRequest(req *http.Request) error {
+func getInteceptor(req *http.Request) SizeInteceptor {
 	// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
 	matchMountBlob, repository, mount, _ := util.MatchMountBlobURL(req)
 	if matchMountBlob {
 		bb := util.BlobInfo{}
 		bb.Repository = repository
 		bb.Digest = mount
-		mountBlobInterceptor := NewMountBlobInterceptor(&bb)
-		return mountBlobInterceptor.handleRequest(req)
+		return NewMountBlobInterceptor(&bb)
 	}
 
 	// PUT /v2/<name>/blobs/uploads/<uuid>?digest=<digest>
@@ -87,7 +80,7 @@ func (sqh *sizeQuotaHandler) handleRequest(req *http.Request) error {
 	if matchPutBlob {
 		bb := util.BlobInfo{}
 		bb.Repository = repository
-		return sqh.handlePutBlobRequest(req, &bb)
+		return NewPutBlobInterceptor(&bb)
 	}
 
 	// PUT /v2/<name>/manifests/<reference>
@@ -98,154 +91,9 @@ func (sqh *sizeQuotaHandler) handleRequest(req *http.Request) error {
 		bb.Repository = repository
 		mfInfo.Repository = repository
 		mfInfo.Tag = tag
-		return sqh.handlePutManifestRequest(req, &bb, &mfInfo)
+		return NewPutManifestInterceptor(&bb, &mfInfo)
 	}
 	return nil
-}
-
-func (sqh *sizeQuotaHandler) handleResponse(rw http.ResponseWriter) error {
-	//// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
-	//matchMountBlob, repository, mount, _ := util.MatchMountBlobURL(rw.)
-	//if matchMountBlob {
-	//	bb := util.BlobInfo{}
-	//	bb.Repository = repository
-	//	bb.Digest = mount
-	//	return sqh.handlePostBlobRequest(req, &bb)
-	//}
-	//
-	//// PUT /v2/<name>/blobs/uploads/<uuid>?digest=<digest>
-	//matchPutBlob, repository := util.MatchPutBlobURL(req)
-	//if matchPutBlob {
-	//	bb := util.BlobInfo{}
-	//	bb.Repository = repository
-	//	return sqh.handlePutBlobRequest(req, &bb)
-	//}
-	//
-	//// PUT /v2/<name>/manifests/<reference>
-	//matchPushMF, repository, tag := util.MatchPushManifest(req)
-	//if matchPushMF {
-	//	bb := util.BlobInfo{}
-	//	mfInfo := util.MfInfo{}
-	//	bb.Repository = repository
-	//	mfInfo.Repository = repository
-	//	mfInfo.Tag = tag
-	//	return sqh.handlePutManifestRequest(req, &bb, &mfInfo)
-	//}
-	return nil
-}
-
-func (sqh *sizeQuotaHandler) handlePostBlobRequest(req *http.Request, blobInfo *util.BlobInfo) error {
-	tProjectID, err := util.GetProjectID(strings.Split(blobInfo.Repository, "/")[0])
-	if err != nil {
-		return fmt.Errorf("error occurred when to get target project %s, %v", tProjectID, err)
-	}
-	blob, err := dao.GetBlob(blobInfo.Digest)
-	if err != nil {
-		return err
-	}
-	if blob == nil {
-		return fmt.Errorf("the blob in the mount request with digest: %s doesn't exist", blobInfo.Digest)
-	}
-	blobInfo.Size = blob.Size
-	con, err := util.GetRegRedisCon()
-	if err != nil {
-		return err
-	}
-	if err := requireQuota(con, blobInfo); err != nil {
-		return err
-	}
-	*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, blobInfo)))
-	return nil
-}
-
-func (sqh *sizeQuotaHandler) handlePutManifestRequest(req *http.Request, blobInfo *util.BlobInfo, mfInfo *util.MfInfo) error {
-	mediaType := req.Header.Get("Content-Type")
-	if mediaType == schema1.MediaTypeManifest ||
-		mediaType == schema1.MediaTypeSignedManifest ||
-		mediaType == schema2.MediaTypeManifest {
-
-		con, err := util.GetRegRedisCon()
-		if err != nil {
-			log.Infof("failed to get registry redis connection, %v", err)
-			return err
-		}
-
-		data, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			log.Warningf("Error occurred when to copy manifest body %v", err)
-			return err
-		}
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(data))
-		manifest, desc, err := distribution.UnmarshalManifest(mediaType, data)
-		if err != nil {
-			log.Warningf("Error occurred when to Unmarshal Manifest %v", err)
-			return err
-		}
-		projectID, err := util.GetProjectID(strings.Split(mfInfo.Repository, "/")[0])
-		if err != nil {
-			log.Warningf("Error occurred when to get project ID %v", err)
-			return err
-		}
-
-		mfInfo.ProjectID = projectID
-		mfInfo.Refrerence = manifest.References()
-		mfInfo.Digest = desc.Digest.String()
-		blobInfo.ProjectID = projectID
-		blobInfo.Digest = desc.Digest.String()
-		blobInfo.Size = desc.Size
-		blobInfo.ContentType = mediaType
-
-		if err := requireQuota(con, blobInfo); err != nil {
-			return err
-		}
-
-		*req = *(req.WithContext(context.WithValue(req.Context(), util.MFInfokKey, mfInfo)))
-		*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, blobInfo)))
-
-		return nil
-	}
-
-	return fmt.Errorf("unsupported content type for manifest: %s", mediaType)
-}
-
-func (sqh *sizeQuotaHandler) handlePutBlobRequest(req *http.Request, blobInfo *util.BlobInfo) error {
-	// the redis connection will be closed in the put response.
-	con, err := util.GetRegRedisCon()
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if blobInfo.UUID != "" {
-			_, err := rmBlobUploadUUID(con, blobInfo.UUID)
-			if err != nil {
-				log.Warningf("error occurred when remove UUID for blob, %v", err)
-			}
-		}
-	}()
-
-	dgstStr := req.FormValue("digest")
-	if dgstStr == "" {
-		return errors.New("blob digest missing")
-	}
-	dgst, err := digest.Parse(dgstStr)
-	if err != nil {
-		return errors.New("blob digest parsing failed")
-	}
-
-	blobInfo.Digest = dgst.String()
-	blobInfo.UUID = getUUID(req.URL.Path)
-	size, err := util.GetBlobSize(con, blobInfo.UUID)
-	if err != nil {
-		return err
-	}
-	blobInfo.Size = size
-	if err := requireQuota(con, blobInfo); err != nil {
-		return err
-	}
-	*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, blobInfo)))
-	return nil
-
 }
 
 func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
@@ -288,7 +136,8 @@ func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
 
 // tryLockBlob locks blob with redis ...
 func tryLockBlob(conn redis.Conn, blobInfo *util.BlobInfo) (*common_redis.Mutex, error) {
-	digestLock := common_redis.New(conn, "Quota::blob-lock::"+blobInfo.Repository+":"+blobInfo.Digest, common_util.GenerateRandomString())
+	// Quota::blob-lock::projectname::digtest
+	digestLock := common_redis.New(conn, "Quota::blob-lock::"+strings.Split(blobInfo.Repository, "/")[0]+":"+blobInfo.Digest, common_util.GenerateRandomString())
 	success, err := digestLock.Require()
 	if err != nil {
 		return nil, err

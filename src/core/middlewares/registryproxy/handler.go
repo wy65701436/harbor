@@ -87,15 +87,14 @@ func director(target *url.URL, req *http.Request) {
 
 // Modify the http response
 func modifyResponse(res *http.Response) error {
-	res.Header.Set("Quota-Status-Code", strconv.Itoa(res.StatusCode))
 	matchPushManifest, _, _ := util.MatchPushManifest(res.Request)
 	if matchPushManifest {
 		return handlePutManifest(res)
 	}
-	matchPutBlob, _ := util.MatchPutBlobURL(res.Request)
-	if matchPutBlob {
-		return handlePutBlob(res)
-	}
+	//matchPutBlob, _ := util.MatchPutBlobURL(res.Request)
+	//if matchPutBlob {
+	//	return handlePutBlob(res)
+	//}
 	matchPatchBlob, _ := util.MatchPatchBlobURL(res.Request)
 	if matchPatchBlob {
 		return handlePatchBlob(res)
