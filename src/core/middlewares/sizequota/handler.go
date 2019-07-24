@@ -48,34 +48,47 @@ func New(next http.Handler) http.Handler {
 
 // ServeHTTP ...
 func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	// handler request
+	if err := sqh.handleRequest(req); err != nil {
+		log.Warningf("Error occurred when to handle request in size quota handler: %v", err)
+		http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle request in size quota handler: %v", err)),
+			http.StatusInternalServerError)
+		return
+	}
+	sqh.next.ServeHTTP(rw, req)
+	// handler response
+	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+	log.Info(rw.Header())
+	log.Info(req.URL.Path)
+	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+	if err := sqh.handleResponse(rw); err != nil {
+		log.Warningf("Error occurred when to handle response in size quota handler: %v", err)
+		http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle response in size quota handler: %v", err)),
+			http.StatusInternalServerError)
+		return
+	}
+}
 
+func (sqh *sizeQuotaHandler) handleRequest(req *http.Request) error {
+	// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
 	matchMountBlob, repository, mount, _ := util.MatchMountBlobURL(req)
 	if matchMountBlob {
 		bb := util.BlobInfo{}
 		bb.Repository = repository
 		bb.Digest = mount
-
-		if err := sqh.handlePostBlob(req, &bb); err != nil {
-			log.Warningf("Error occurred when to handle post blob %v", err)
-			http.Error(rw, util.MarshalError("InternalError", "Error occurred when to handle post blob"),
-				http.StatusInternalServerError)
-			return
-		}
+		mountBlobInterceptor := NewMountBlobInterceptor(&bb)
+		return mountBlobInterceptor.handleRequest(req)
 	}
 
+	// PUT /v2/<name>/blobs/uploads/<uuid>?digest=<digest>
 	matchPutBlob, repository := util.MatchPutBlobURL(req)
 	if matchPutBlob {
 		bb := util.BlobInfo{}
 		bb.Repository = repository
-
-		if err := sqh.handlePutBlobComplete(req, &bb); err != nil {
-			log.Warningf("Error occurred when to handle put blob %v", err)
-			http.Error(rw, util.MarshalError("InternalError", "Error occurred when to handle put blob"),
-				http.StatusInternalServerError)
-			return
-		}
+		return sqh.handlePutBlobRequest(req, &bb)
 	}
 
+	// PUT /v2/<name>/manifests/<reference>
 	matchPushMF, repository, tag := util.MatchPushManifest(req)
 	if matchPushMF {
 		bb := util.BlobInfo{}
@@ -83,20 +96,43 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 		bb.Repository = repository
 		mfInfo.Repository = repository
 		mfInfo.Tag = tag
-
-		if err := sqh.handlePutManifest(req, &bb, &mfInfo); err != nil {
-			log.Warningf("Error occurred when to handle put manifest %v", err)
-			http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle put manifest: %v", err)),
-				http.StatusInternalServerError)
-			return
-		}
+		return sqh.handlePutManifestRequest(req, &bb, &mfInfo)
 	}
-
-	sqh.next.ServeHTTP(rw, req)
+	return nil
 }
 
-// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
-func (sqh *sizeQuotaHandler) handlePostBlob(req *http.Request, blobInfo *util.BlobInfo) error {
+func (sqh *sizeQuotaHandler) handleResponse(rw http.ResponseWriter) error {
+	//// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
+	//matchMountBlob, repository, mount, _ := util.MatchMountBlobURL(rw.)
+	//if matchMountBlob {
+	//	bb := util.BlobInfo{}
+	//	bb.Repository = repository
+	//	bb.Digest = mount
+	//	return sqh.handlePostBlobRequest(req, &bb)
+	//}
+	//
+	//// PUT /v2/<name>/blobs/uploads/<uuid>?digest=<digest>
+	//matchPutBlob, repository := util.MatchPutBlobURL(req)
+	//if matchPutBlob {
+	//	bb := util.BlobInfo{}
+	//	bb.Repository = repository
+	//	return sqh.handlePutBlobRequest(req, &bb)
+	//}
+	//
+	//// PUT /v2/<name>/manifests/<reference>
+	//matchPushMF, repository, tag := util.MatchPushManifest(req)
+	//if matchPushMF {
+	//	bb := util.BlobInfo{}
+	//	mfInfo := util.MfInfo{}
+	//	bb.Repository = repository
+	//	mfInfo.Repository = repository
+	//	mfInfo.Tag = tag
+	//	return sqh.handlePutManifestRequest(req, &bb, &mfInfo)
+	//}
+	return nil
+}
+
+func (sqh *sizeQuotaHandler) handlePostBlobRequest(req *http.Request, blobInfo *util.BlobInfo) error {
 	tProjectID, err := util.GetProjectID(strings.Split(blobInfo.Repository, "/")[0])
 	if err != nil {
 		return fmt.Errorf("error occurred when to get target project %s, %v", tProjectID, err)
@@ -120,7 +156,7 @@ func (sqh *sizeQuotaHandler) handlePostBlob(req *http.Request, blobInfo *util.Bl
 	return nil
 }
 
-func (sqh *sizeQuotaHandler) handlePutManifest(req *http.Request, blobInfo *util.BlobInfo, mfInfo *util.MfInfo) error {
+func (sqh *sizeQuotaHandler) handlePutManifestRequest(req *http.Request, blobInfo *util.BlobInfo, mfInfo *util.MfInfo) error {
 	mediaType := req.Header.Get("Content-Type")
 	if mediaType == schema1.MediaTypeManifest ||
 		mediaType == schema1.MediaTypeSignedManifest ||
@@ -170,7 +206,7 @@ func (sqh *sizeQuotaHandler) handlePutManifest(req *http.Request, blobInfo *util
 	return fmt.Errorf("unsupported content type for manifest: %s", mediaType)
 }
 
-func (sqh *sizeQuotaHandler) handlePutBlobComplete(req *http.Request, blobInfo *util.BlobInfo) error {
+func (sqh *sizeQuotaHandler) handlePutBlobRequest(req *http.Request, blobInfo *util.BlobInfo) error {
 	// the redis connection will be closed in the put response.
 	con, err := util.GetRegRedisCon()
 	if err != nil {
