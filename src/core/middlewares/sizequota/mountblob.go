@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/goharbor/harbor/src/common/dao"
+	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"net/http"
 	"strings"
@@ -61,6 +62,8 @@ func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
 }
 
 // HandleResponse ...
-func (mbi *MountBlobInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) error {
-	return handleBlobCommon(rw, req)
+func (mbi *MountBlobInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) {
+	if err := HandleBlobCommon(rw, req); err != nil {
+		log.Error(err)
+	}
 }

@@ -308,7 +308,7 @@ func TryRequireQuota(projectID int64, quotaRes *quota.ResourceList) error {
 		return err
 	}
 	if err := quotaMgr.AddResources(*quotaRes); err != nil {
-		log.Errorf("Cannot get quota for the manifest %v", err)
+		log.Errorf("cannot get quota for the project resource: %d, err: %v", projectID, err)
 		return ErrRequireQuota
 	}
 	return nil
@@ -323,7 +323,7 @@ func TryFreeQuota(projectID int64, qres *quota.ResourceList) bool {
 	}
 
 	if err := quotaMgr.SubtractResources(*qres); err != nil {
-		log.Errorf("Cannot get quota for the manifest %v", err)
+		log.Errorf("cannot release quota for the project resource: %d, err: %v", projectID, err)
 		return false
 	}
 	return true

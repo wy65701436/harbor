@@ -15,7 +15,6 @@
 package sizequota
 
 import (
-	"fmt"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"net/http"
@@ -38,41 +37,46 @@ func (pbi *PatchBlobInterceptor) HandleRequest(req *http.Request) error {
 }
 
 // HandleResponse record the upload process with Range attribute, set it into redis with UUID as the key
-func (pbi *PatchBlobInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) error {
+func (pbi *PatchBlobInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) {
 	if rw.Status() != http.StatusAccepted {
-		return nil
+		return
 	}
 
 	con, err := util.GetRegRedisCon()
 	if err != nil {
-		return err
+		log.Error(err)
+		return
 	}
 	defer con.Close()
 
 	uuid := rw.Header().Get("Docker-Upload-UUID")
 	if uuid == "" {
-		return fmt.Errorf("no UUID in the patch blob response, the request path %s ", req.URL.Path)
+		log.Errorf("no UUID in the patch blob response, the request path %s ", req.URL.Path)
+		return
 	}
 
 	// Range: Range indicating the current progress of the upload.
 	// https://github.com/opencontainers/distribution-spec/blob/master/spec.md#get-blob-upload
 	patchRange := rw.Header().Get("Range")
 	if uuid == "" {
-		return fmt.Errorf("no Range in the patch blob response, the request path %s ", req.URL.Path)
+		log.Errorf("no Range in the patch blob response, the request path %s ", req.URL.Path)
+		return
 	}
 
 	endRange := strings.Split(patchRange, "-")[1]
 	size, err := strconv.ParseInt(endRange, 10, 64)
 	if err != nil {
-		return err
+		log.Error(err)
+		return
 	}
 	success, err := util.SetBunkSize(con, uuid, size)
 	if err != nil {
-		return err
+		log.Error(err)
+		return
 	}
 	if !success {
 		// ToDo discuss what to do here.
 		log.Warningf(" T_T: Fail to set bunk: %s size: %d in redis, it causes unable to set correct quota for the artifact.", uuid, size)
 	}
-	return nil
+	return
 }

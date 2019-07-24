@@ -32,15 +32,13 @@ import (
 
 // PutManifestInterceptor ...
 type PutManifestInterceptor struct {
-	blobInfo *util.BlobInfo
-	mfInfo   *util.MfInfo
+	mfInfo *util.MfInfo
 }
 
 // NewPutManifestInterceptor ...
-func NewPutManifestInterceptor(blobInfo *util.BlobInfo, mfInfo *util.MfInfo) *PutManifestInterceptor {
+func NewPutManifestInterceptor(mfInfo *util.MfInfo) *PutManifestInterceptor {
 	return &PutManifestInterceptor{
-		blobInfo: blobInfo,
-		mfInfo:   mfInfo,
+		mfInfo: mfInfo,
 	}
 }
 
@@ -88,12 +86,12 @@ func (pmi *PutManifestInterceptor) HandleRequest(req *http.Request) error {
 	return nil
 }
 
-func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) error {
-
+func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) {
 	mfInfo := req.Context().Value(util.MFInfokKey)
 	mf, ok := mfInfo.(*util.MfInfo)
 	if !ok {
-		return errors.New("failed to convert manifest information context into MfInfo")
+		log.Error("failed to convert manifest information context into MfInfo")
+		return
 	}
 	defer func() {
 		_, err := mf.TagLock.Free()
@@ -121,14 +119,14 @@ func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustmoResponseWriter, 
 			_, err := dao.AddArtifact(af)
 			if err != nil {
 				log.Errorf("Error to add artifact, %v", err)
-				return err
+				return
 			}
 		}
 		if mf.DigestChanged {
 			err := dao.UpdateArtifactDigest(af)
 			if err != nil {
 				log.Errorf("Error to add artifact, %v", err)
-				return err
+				return
 			}
 		}
 
@@ -149,10 +147,10 @@ func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustmoResponseWriter, 
 			if err := dao.AddArtifactNBlobs(afnbs); err != nil {
 				if strings.Contains(err.Error(), dao.ErrDupRows.Error()) {
 					log.Warning("the artifact and blobs have already in the DB, it maybe an existing image with different tag")
-					return nil
+					return
 				}
 				log.Errorf("Error to add artifact and blobs in proxy response handler, %v", err)
-				return err
+				return
 			}
 		}
 
@@ -160,12 +158,13 @@ func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustmoResponseWriter, 
 		if !mf.Exist {
 			success := util.TryFreeQuota(mf.ProjectID, mf.Quota)
 			if !success {
-				return errors.New("error to release resource booked for the manifest")
+				log.Error("error to release resource booked for the manifest")
+				return
 			}
 		}
 	}
 
-	return nil
+	return
 }
 
 // tryLockTag locks tag with redis ...

@@ -42,6 +42,7 @@ func NewPutManifestInterceptor(blobInfo *util.BlobInfo, mfInfo *util.MfInfo) *Pu
 	}
 }
 
+// HandleRequest ...
 func (pmi *PutManifestInterceptor) HandleRequest(req *http.Request) error {
 	mediaType := req.Header.Get("Content-Type")
 	if mediaType == schema1.MediaTypeManifest ||
@@ -92,11 +93,15 @@ func (pmi *PutManifestInterceptor) HandleRequest(req *http.Request) error {
 	return fmt.Errorf("unsupported content type for manifest: %s", mediaType)
 }
 
-// HandleResponse treat manifest as a blob, it needs to insert blob info, but do not return error as it the manifest could be duplicate
-func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) error {
-	err := handleBlobCommon(rw, req)
-	if err != nil {
+// HandleResponse ...
+func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustmoResponseWriter, req *http.Request) {
+	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+	log.Info(rw.Status())
+	log.Info(rw.Header())
+	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+
+	if err := HandleBlobCommon(rw, req); err != nil {
 		log.Error(err)
+		return
 	}
-	return nil
 }

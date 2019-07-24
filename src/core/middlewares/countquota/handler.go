@@ -46,28 +46,21 @@ func (cqh *countQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Reques
 			http.StatusInternalServerError)
 		return
 	}
-	sizeResW := util.NewCustmoResponseWriter(rw)
-	cqh.next.ServeHTTP(sizeResW, req)
+	countResW := util.NewCustmoResponseWriter(rw)
+	cqh.next.ServeHTTP(countResW, req)
 
 	// handler response
-	if err := countInteceptor.HandleResponse(*sizeResW, req); err != nil {
-		log.Warningf("Error occurred when to handle response in count quota handler: %v", err)
-		http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle response in count quota handler: %v", err)),
-			http.StatusInternalServerError)
-		return
-	}
+	countInteceptor.HandleResponse(*countResW, req)
 }
 
 func getInteceptor(req *http.Request) util.RegInterceptor {
 	// PUT /v2/<name>/manifests/<reference>
 	matchPushMF, repository, tag := util.MatchPushManifest(req)
 	if matchPushMF {
-		bb := util.BlobInfo{}
 		mfInfo := util.MfInfo{}
-		bb.Repository = repository
 		mfInfo.Repository = repository
 		mfInfo.Tag = tag
-		return NewPutManifestInterceptor(&bb, &mfInfo)
+		return NewPutManifestInterceptor(&mfInfo)
 	}
 	return nil
 }

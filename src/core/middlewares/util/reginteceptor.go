@@ -20,6 +20,9 @@ import (
 
 // RegInterceptor ...
 type RegInterceptor interface {
+	// HandleRequest ...
 	HandleRequest(req *http.Request) error
-	HandleResponse(rw CustmoResponseWriter, req *http.Request) error
+
+	// HandleResponse won't return any error
+	HandleResponse(rw CustmoResponseWriter, req *http.Request)
 }
