@@ -18,6 +18,7 @@ import (
 	"net/http"
 )
 
+// CustomResponseWriter write the response code into the status
 type CustomResponseWriter struct {
 	http.ResponseWriter
 	status      int

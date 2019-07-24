@@ -95,11 +95,6 @@ func (pmi *PutManifestInterceptor) HandleRequest(req *http.Request) error {
 
 // HandleResponse ...
 func (pmi *PutManifestInterceptor) HandleResponse(rw util.CustomResponseWriter, req *http.Request) {
-	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-	log.Info(rw.Status())
-	log.Info(rw.Header())
-	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-
 	if err := HandleBlobCommon(rw, req); err != nil {
 		log.Error(err)
 		return
