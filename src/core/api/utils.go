@@ -122,15 +122,16 @@ type repo struct {
 	tags []tag
 }
 
-type project struct {
-	name     string
-	tagCount int64
-	repos    []repo
-}
-
-type alldata struct {
-	projects []project
-}
+//
+//type project struct {
+//	name     string
+//	tagCount int64
+//	repos    []repo
+//}
+//
+//type alldata struct {
+//	projects []project
+//}
 
 // DumpRegistry dumps the registry data, and compute quota for each project, then to update harbor DB(quota_usage).
 func DumpRegistry() error {
