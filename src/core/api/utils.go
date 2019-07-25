@@ -202,19 +202,11 @@ func DumpRegistry() error {
 				}
 			}
 		}
-	}
-
-	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
-	log.Info(projectMap)
-	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
-
-	for k, v := range projectMap {
-		log.Info(k)
-		projectSize := int64(0)
-		for _, size := range v {
-			projectSize += size
-		}
-
+		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+		log.Info(projectMap[k])
+		log.Info(projectQuotaCount)
+		log.Info(projectQuotaSize)
+		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 	}
 
 	return nil
