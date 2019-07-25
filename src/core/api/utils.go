@@ -107,7 +107,32 @@ func SyncRegistry(pm promgr.ProjectManager) error {
 	return nil
 }
 
-// DumpRegistry dumps the registry data, and compute quoto for each project, then to update harbor DB(quota_usage).
+type layer struct {
+	digest string
+	size   int64
+}
+
+type tag struct {
+	name   string
+	layers []layer
+}
+
+type repo struct {
+	name string
+	tags []tag
+}
+
+type project struct {
+	name     string
+	tagCount int64
+	repos    []repo
+}
+
+type alldata struct {
+	projects []project
+}
+
+// DumpRegistry dumps the registry data, and compute quota for each project, then to update harbor DB(quota_usage).
 func DumpRegistry() error {
 	log.Infof("Start dumping repositories from registry to DB... ")
 
@@ -141,6 +166,7 @@ func DumpRegistry() error {
 	for k, v := range repoMap {
 		blobMap := make(map[string]int64)
 		projectMap[k] = blobMap
+		tagCount := 0
 		for _, repo := range v {
 			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
 			if err != nil {
@@ -153,6 +179,7 @@ func DumpRegistry() error {
 				return err
 			}
 			for _, tag := range tags {
+				tagCount++
 				_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
 					schema1.MediaTypeManifest,
 					schema1.MediaTypeSignedManifest,
@@ -178,6 +205,15 @@ func DumpRegistry() error {
 	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 	log.Info(projectMap)
 	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+
+	for k, v := range projectMap {
+		log.Info(k)
+		projectSize := int64(0)
+		for _, size := range v {
+			projectSize += size
+		}
+
+	}
 
 	return nil
 }
