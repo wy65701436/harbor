@@ -166,7 +166,8 @@ func DumpRegistry() error {
 	for k, v := range repoMap {
 		blobMap := make(map[string]int64)
 		projectMap[k] = blobMap
-		tagCount := 0
+		projectQuotaCount := 0
+		projectQuotaSize := int64(0)
 		for _, repo := range v {
 			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
 			if err != nil {
@@ -179,7 +180,7 @@ func DumpRegistry() error {
 				return err
 			}
 			for _, tag := range tags {
-				tagCount++
+				projectQuotaCount++
 				_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
 					schema1.MediaTypeManifest,
 					schema1.MediaTypeSignedManifest,
@@ -196,6 +197,7 @@ func DumpRegistry() error {
 					_, exist := blobMap[layer.Digest.String()]
 					if !exist {
 						blobMap[layer.Digest.String()] = layer.Size
+						projectQuotaSize = projectQuotaSize + layer.Size
 					}
 				}
 			}
