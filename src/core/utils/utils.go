@@ -48,6 +48,16 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 	return registry.NewRepository(repository, endpoint, client)
 }
 
+type dumyHandler struct{}
+
+func (d *dumyHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	log.Info("it's a dump http handler")
+}
+
+func NewDumyHandler() http.Handler {
+	return &dumyHandler{}
+}
+
 // Transport holds information about base transport and modifiers
 type TransportWithMiddleware struct {
 	transport http.RoundTripper
@@ -63,11 +73,13 @@ func NewTransportWithMiddleware(transport http.RoundTripper) *TransportWithMiddl
 // RoundTrip ...
 func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, error) {
 
+	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	handlerChain := middlewares.New(middlewares.Middlewares).Create()
-	head := handlerChain.Then(nil)
+	head := handlerChain.Then(NewDumyHandler())
 	rw := httptest.NewRecorder()
 	customResW := util.NewCustomResponseWriter(rw)
 	head.ServeHTTP(customResW, req)
+	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 
 	resp, err := t.transport.RoundTrip(req)
 	if err != nil {
