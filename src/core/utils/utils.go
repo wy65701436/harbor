@@ -79,6 +79,8 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 		return nil, err
 	}
 
+	customResW.WriteHeader(resp.StatusCode)
+
 	log.Debugf("%d | %s %s", resp.StatusCode, req.Method, req.URL.String())
 
 	return resp, err

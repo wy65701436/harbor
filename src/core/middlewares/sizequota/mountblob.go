@@ -53,6 +53,7 @@ func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
 	}
 
 	log.Info("########################")
+	log.Info(blob.Size)
 	mbi.blobInfo.Size = blob.Size
 	con, err := util.GetRegRedisCon()
 	if err != nil {

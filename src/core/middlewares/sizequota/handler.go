@@ -113,6 +113,9 @@ func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
 		return err
 	}
 	blobInfo.ProjectID = projectID
+	log.Info("########################")
+	log.Info(blobInfo.ProjectID)
+	log.Info("########################")
 
 	digestLock, err := tryLockBlob(conn, blobInfo)
 	if err != nil {
@@ -127,6 +130,9 @@ func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
 		return err
 	}
 	blobInfo.Exist = blobExist
+	log.Info("########################")
+	log.Info(blobInfo.Exist)
+	log.Info("########################")
 	if blobExist {
 		return nil
 	}
