@@ -45,6 +45,7 @@ func New(next http.Handler) http.Handler {
 func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	sizeInteceptor := getInteceptor(req)
 	if sizeInteceptor == nil {
+		log.Info("*************")
 		sqh.next.ServeHTTP(rw, req)
 		return
 	}
@@ -63,6 +64,11 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 }
 
 func getInteceptor(req *http.Request) util.RegInterceptor {
+	log.Info(" @@@@@@@@@@@@@@@@@@@@@@@@")
+	log.Info(req.URL.Path)
+	log.Info(req.FormValue("mount"))
+	log.Info(req.FormValue("from"))
+	log.Info(" @@@@@@@@@@@@@@@@@@@@@@@@")
 	// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
 	matchMountBlob, repository, mount, _ := util.MatchMountBlobURL(req)
 	if matchMountBlob {
