@@ -16,6 +16,8 @@ package api
 
 import (
 	"fmt"
+	"github.com/docker/distribution/manifest/schema1"
+	"github.com/docker/distribution/manifest/schema2"
 	"net/http"
 	"sort"
 	"strings"
@@ -102,6 +104,114 @@ func SyncRegistry(pm promgr.ProjectManager) error {
 	}
 
 	log.Infof("Sync repositories from registry to DB is done.")
+	return nil
+}
+
+type layer struct {
+	digest string
+	size   int64
+}
+
+type tag struct {
+	name   string
+	layers []layer
+}
+
+type repo struct {
+	name string
+	tags []tag
+}
+
+//
+//type project struct {
+//	name     string
+//	tagCount int64
+//	repos    []repo
+//}
+//
+//type alldata struct {
+//	projects []project
+//}
+
+// DumpRegistry dumps the registry data, and compute quota for each project, then to update harbor DB(quota_usage).
+func DumpRegistry() error {
+	log.Infof("Start dumping repositories from registry to DB... ")
+
+	reposInRegistry, err := catalog()
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	// repoMap : project_name : repo list
+	repoMap := make(map[string][]string)
+	for _, item := range reposInRegistry {
+		projectName := strings.Split(item, "/")[0]
+		_, exist := repoMap[projectName]
+		if !exist {
+			repoMap[projectName] = []string{item}
+		} else {
+			repos := repoMap[projectName]
+			repos = append(repos, item)
+			repoMap[projectName] = repos
+		}
+	}
+
+	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+	log.Info(repoMap)
+	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+
+	// blobMap : project: digest: size
+	projectMap := make(map[string]map[string]int64)
+
+	for k, v := range repoMap {
+		blobMap := make(map[string]int64)
+		projectMap[k] = blobMap
+		projectQuotaCount := 0
+		projectQuotaSize := int64(0)
+		for _, repo := range v {
+			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
+			if err != nil {
+				log.Errorf("Failed to create repo client.")
+				return err
+			}
+			tags, err := repoClient.ListTag()
+			if err != nil {
+				log.Errorf("Failed to list tags for repo: %s", repo)
+				return err
+			}
+			for _, tag := range tags {
+				projectQuotaCount++
+				_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
+					schema1.MediaTypeManifest,
+					schema1.MediaTypeSignedManifest,
+					schema2.MediaTypeManifest,
+				})
+				if err != nil {
+					return err
+				}
+				manifest, desc, err := registry.UnMarshal(mediaType, payload)
+				if err != nil {
+					return err
+				}
+				projectQuotaSize = projectQuotaSize + desc.Size
+				for _, layer := range manifest.References() {
+					_, exist := blobMap[layer.Digest.String()]
+					if !exist {
+						blobMap[layer.Digest.String()] = layer.Size
+						projectQuotaSize = projectQuotaSize + layer.Size
+					}
+				}
+
+			}
+		}
+		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+		log.Info(projectMap[k])
+		log.Info(projectQuotaCount)
+		log.Info(projectQuotaSize)
+		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+	}
+
 	return nil
 }
 

@@ -169,6 +169,10 @@ func main() {
 	if err := middlewares.Init(); err != nil {
 		log.Errorf("init proxy error, %v", err)
 	}
+	// go proxy.StartProxy()
+	if err := api.DumpRegistry(); err != nil {
+		log.Error(err)
+	}
 
 	// go proxy.StartProxy()
 	beego.Run()
