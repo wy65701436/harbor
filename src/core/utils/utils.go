@@ -24,6 +24,7 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/registry/auth"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares"
+	"github.com/goharbor/harbor/src/core/middlewares/dumy"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/goharbor/harbor/src/core/service/token"
 	"net/http/httptest"
@@ -48,16 +49,6 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 	return registry.NewRepository(repository, endpoint, client)
 }
 
-type dumyHandler struct{}
-
-func (d *dumyHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	log.Info("it's a dump http handler")
-}
-
-func NewDumyHandler() http.Handler {
-	return &dumyHandler{}
-}
-
 // Transport holds information about base transport and modifiers
 type TransportWithMiddleware struct {
 	transport http.RoundTripper
@@ -75,11 +66,12 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	handlerChain := middlewares.New(middlewares.Middlewares).Create()
-	head := handlerChain.Then(NewDumyHandler())
+	head := handlerChain.Then(dumy.NewDumyHandler())
 	rw := httptest.NewRecorder()
 	customResW := util.NewCustomResponseWriter(rw)
 	head.ServeHTTP(customResW, req)
 	log.Info(req.URL.Path)
+	log.Info(req.Method)
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 
 	resp, err := t.transport.RoundTrip(req)

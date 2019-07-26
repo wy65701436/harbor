@@ -34,6 +34,7 @@ func New(next http.Handler) http.Handler {
 
 // ServeHTTP ...
 func (rh readonlyHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	log.Info("in readonly .....")
 	if config.ReadOnly() {
 		if req.Method == http.MethodDelete || req.Method == http.MethodPost || req.Method == http.MethodPatch || req.Method == http.MethodPut {
 			log.Warningf("The request is prohibited in readonly mode, url is: %s", req.URL.Path)
