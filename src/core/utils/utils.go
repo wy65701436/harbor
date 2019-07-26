@@ -23,7 +23,10 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/registry"
 	"github.com/goharbor/harbor/src/common/utils/registry/auth"
 	"github.com/goharbor/harbor/src/core/config"
+	"github.com/goharbor/harbor/src/core/middlewares"
+	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/goharbor/harbor/src/core/service/token"
+	"net/http/httptest"
 )
 
 // NewRepositoryClientForUI creates a repository client that can only be used to
@@ -38,11 +41,42 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 		UserAgent: "harbor-registry-client",
 	}
 	authorizer := auth.NewRawTokenAuthorizer(username, token.Registry)
-	transport := registry.NewTransport(http.DefaultTransport, authorizer, uam)
+	transport := registry.NewTransport(NewTransportWithMiddleware(http.DefaultTransport), authorizer, uam)
 	client := &http.Client{
 		Transport: transport,
 	}
 	return registry.NewRepository(repository, endpoint, client)
+}
+
+// Transport holds information about base transport and modifiers
+type TransportWithMiddleware struct {
+	transport http.RoundTripper
+}
+
+// NewTransport ...
+func NewTransportWithMiddleware(transport http.RoundTripper) *TransportWithMiddleware {
+	return &TransportWithMiddleware{
+		transport: transport,
+	}
+}
+
+// RoundTrip ...
+func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, error) {
+
+	handlerChain := middlewares.New(middlewares.Middlewares).Create()
+	head := handlerChain.Then(nil)
+	rw := httptest.NewRecorder()
+	customResW := util.NewCustomResponseWriter(rw)
+	head.ServeHTTP(customResW, req)
+
+	resp, err := t.transport.RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debugf("%d | %s %s", resp.StatusCode, req.Method, req.URL.String())
+
+	return resp, err
 }
 
 // WaitForManifestReady implements exponential sleeep to wait until manifest is ready in registry.

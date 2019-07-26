@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
-	coreutils "github.com/goharbor/harbor/src/core/utils"
 	"net/http"
 	"strings"
 )
@@ -46,24 +45,24 @@ func (uh urlHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		client, err := coreutils.NewRepositoryClientForUI(util.TokenUsername, repository)
-		if err != nil {
-			log.Errorf("Error creating repository Client: %v", err)
-			http.Error(rw, util.MarshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
-			return
-		}
-		digest, _, err := client.ManifestExist(reference)
-		if err != nil {
-			log.Errorf("Failed to get digest for reference: %s, error: %v", reference, err)
-			http.Error(rw, util.MarshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
-			return
-		}
+		//client, err := coreutils.NewRepositoryClientForUI(util.TokenUsername, repository)
+		//if err != nil {
+		//	log.Errorf("Error creating repository Client: %v", err)
+		//	http.Error(rw, util.MarshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
+		//	return
+		//}
+		//digest, _, err := client.ManifestExist(reference)
+		//if err != nil {
+		//	log.Errorf("Failed to get digest for reference: %s, error: %v", reference, err)
+		//	http.Error(rw, util.MarshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
+		//	return
+		//}
 
 		img := util.ImageInfo{
 			Repository:  repository,
 			Reference:   reference,
 			ProjectName: components[0],
-			Digest:      digest,
+			//Digest:      digest,
 		}
 
 		log.Debugf("image info of the request: %#v", img)
