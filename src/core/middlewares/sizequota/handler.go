@@ -45,7 +45,6 @@ func New(next http.Handler) http.Handler {
 func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	sizeInteceptor := getInteceptor(req)
 	if sizeInteceptor == nil {
-		log.Info("*************")
 		sqh.next.ServeHTTP(rw, req)
 		return
 	}
@@ -171,6 +170,11 @@ func HandleBlobCommon(rw util.CustomResponseWriter, req *http.Request) error {
 	if bb.Exist {
 		return nil
 	}
+
+	log.Info("RRRRRRRRRRRRRRRRRRRRR")
+	log.Info(req.URL.Path)
+	log.Info(rw.Status())
+	log.Info("RRRRRRRRRRRRRRRRRRRRR")
 
 	if rw.Status() == http.StatusCreated {
 		blob := &models.Blob{
