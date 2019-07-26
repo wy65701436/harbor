@@ -190,10 +190,11 @@ func DumpRegistry() error {
 				if err != nil {
 					return err
 				}
-				manifest, _, err := registry.UnMarshal(mediaType, payload)
+				manifest, desc, err := registry.UnMarshal(mediaType, payload)
 				if err != nil {
 					return err
 				}
+				projectQuotaSize = projectQuotaSize + desc.Size
 				for _, layer := range manifest.References() {
 					_, exist := blobMap[layer.Digest.String()]
 					if !exist {
@@ -201,6 +202,7 @@ func DumpRegistry() error {
 						projectQuotaSize = projectQuotaSize + layer.Size
 					}
 				}
+
 			}
 		}
 		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
