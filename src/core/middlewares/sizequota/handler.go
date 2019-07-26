@@ -68,9 +68,11 @@ func getInteceptor(req *http.Request) util.RegInterceptor {
 	log.Info(req.URL.Path)
 	log.Info(req.FormValue("mount"))
 	log.Info(req.FormValue("from"))
-	log.Info(" @@@@@@@@@@@@@@@@@@@@@@@@")
+
 	// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
 	matchMountBlob, repository, mount, _ := util.MatchMountBlobURL(req)
+	log.Info(matchMountBlob)
+	log.Info(" @@@@@@@@@@@@@@@@@@@@@@@@")
 	if matchMountBlob {
 		bb := util.BlobInfo{}
 		bb.Repository = repository

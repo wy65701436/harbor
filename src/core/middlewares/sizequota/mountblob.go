@@ -38,6 +38,8 @@ func NewMountBlobInterceptor(blobInfo *util.BlobInfo) *MountBlobInterceptor {
 
 // HandleRequest ...
 func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
+
+	log.Info("########################")
 	tProjectID, err := util.GetProjectID(strings.Split(mbi.blobInfo.Repository, "/")[0])
 	if err != nil {
 		return fmt.Errorf("error occurred when to get target project: %d, %v", tProjectID, err)
@@ -49,6 +51,8 @@ func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
 	if blob == nil {
 		return fmt.Errorf("the blob in the mount request with digest: %s doesn't exist", mbi.blobInfo.Digest)
 	}
+
+	log.Info("########################")
 	mbi.blobInfo.Size = blob.Size
 	con, err := util.GetRegRedisCon()
 	if err != nil {
@@ -57,6 +61,8 @@ func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
 	if err := requireQuota(con, mbi.blobInfo); err != nil {
 		return err
 	}
+
+	log.Info("########################")
 	*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, mbi.blobInfo)))
 	return nil
 }
