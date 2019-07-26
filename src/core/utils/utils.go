@@ -79,6 +79,7 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 	rw := httptest.NewRecorder()
 	customResW := util.NewCustomResponseWriter(rw)
 	head.ServeHTTP(customResW, req)
+	log.Info(req.URL.Path)
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 
 	resp, err := t.transport.RoundTrip(req)
