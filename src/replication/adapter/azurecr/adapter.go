@@ -13,6 +13,7 @@ import (
 	"github.com/goharbor/harbor/src/replication/adapter/native"
 	"github.com/goharbor/harbor/src/replication/model"
 	"github.com/goharbor/harbor/src/replication/util"
+	"net/http/httptest"
 )
 
 func init() {
@@ -106,9 +107,10 @@ func getClient(registry *model.Registry) (*http.Client, error) {
 		},
 		cred,
 	}
+	rw := httptest.NewRecorder()
 
 	client := &http.Client{
-		Transport: registry_pkg.NewTransport(transport, modifiers...),
+		Transport: registry_pkg.NewTransport(transport, rw, modifiers...),
 	}
 
 	return client, nil
