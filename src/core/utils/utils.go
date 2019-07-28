@@ -42,7 +42,9 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 		UserAgent: "harbor-registry-client",
 	}
 	authorizer := auth.NewRawTokenAuthorizer(username, token.Registry)
-	transport := registry.NewTransport(NewTransportWithMiddleware(http.DefaultTransport), authorizer, uam)
+	rw := httptest.NewRecorder()
+	customResW := util.NewCustomResponseWriter(rw)
+	transport := registry.NewTransport(NewTransportWithMiddleware(http.DefaultTransport, customResW), customResW, authorizer, uam)
 	client := &http.Client{
 		Transport: transport,
 	}
@@ -52,12 +54,14 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 // Transport holds information about base transport and modifiers
 type TransportWithMiddleware struct {
 	transport http.RoundTripper
+	w         http.ResponseWriter
 }
 
 // NewTransport ...
-func NewTransportWithMiddleware(transport http.RoundTripper) *TransportWithMiddleware {
+func NewTransportWithMiddleware(transport http.RoundTripper, w http.ResponseWriter) *TransportWithMiddleware {
 	return &TransportWithMiddleware{
 		transport: transport,
+		w:         w,
 	}
 }
 
@@ -67,9 +71,7 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	handlerChain := middlewares.New(middlewares.Middlewares).Create()
 	head := handlerChain.Then(dumy.NewDumyHandler())
-	rw := httptest.NewRecorder()
-	customResW := util.NewCustomResponseWriter(rw)
-	head.ServeHTTP(customResW, req)
+	head.ServeHTTP(t.w, req)
 	log.Info(req.URL.Path)
 	log.Info(req.Method)
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
@@ -78,10 +80,8 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 	if err != nil {
 		return nil, err
 	}
-	log.Info(" ----------------------- ")
-	log.Info(resp.StatusCode)
-	customResW.WriteHeader(resp.StatusCode)
-	log.Info(" ----------------------- ")
+
+	t.w.WriteHeader(resp.StatusCode)
 
 	log.Debugf("%d | %s %s", resp.StatusCode, req.Method, req.URL.String())
 

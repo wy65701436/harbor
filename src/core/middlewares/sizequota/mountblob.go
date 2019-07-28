@@ -70,6 +70,7 @@ func (mbi *MountBlobInterceptor) HandleResponse(rw util.CustomResponseWriter, re
 	log.Info("RRRRRRRRRRRRRRRRRRRRR")
 	log.Info(req.URL.Path)
 	log.Info(rw.Status())
+	log.Info(rw.Header())
 	log.Info("RRRRRRRRRRRRRRRRRRRRR")
 
 	if err := HandleBlobCommon(rw, req); err != nil {
