@@ -25,14 +25,12 @@ import (
 type Transport struct {
 	transport http.RoundTripper
 	modifiers []modifier.Modifier
-	w         http.ResponseWriter
 }
 
 // NewTransport ...
-func NewTransport(transport http.RoundTripper, w http.ResponseWriter, modifiers ...modifier.Modifier) *Transport {
+func NewTransport(transport http.RoundTripper, modifiers ...modifier.Modifier) *Transport {
 	return &Transport{
 		transport: transport,
-		w:         w,
 		modifiers: modifiers,
 	}
 }
@@ -49,8 +47,6 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	t.w.WriteHeader(resp.StatusCode)
 
 	log.Debugf("%d | %s %s", resp.StatusCode, req.Method, req.URL.String())
 

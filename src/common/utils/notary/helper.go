@@ -18,7 +18,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"path"
 	"strings"
@@ -35,7 +34,7 @@ import (
 	"github.com/theupdateframework/notary/trustpinning"
 	"github.com/theupdateframework/notary/tuf/data"
 
-	digest "github.com/opencontainers/go-digest"
+	"github.com/opencontainers/go-digest"
 )
 
 var (
@@ -84,8 +83,7 @@ func GetTargets(notaryEndpoint string, username string, fqRepo string) ([]model.
 	authorizer := &notaryAuthorizer{
 		token: t.Token,
 	}
-	rw := httptest.NewRecorder()
-	tr := registry.NewTransport(registry.GetHTTPTransport(), rw, authorizer)
+	tr := registry.NewTransport(registry.GetHTTPTransport(), authorizer)
 	gun := data.GUN(fqRepo)
 	notaryRepo, err := client.NewFileCachedRepository(notaryCachePath, gun, notaryEndpoint, tr, mockRetriever, trustPin)
 	if err != nil {

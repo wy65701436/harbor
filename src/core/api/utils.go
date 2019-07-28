@@ -17,7 +17,6 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"sort"
 	"strings"
 
@@ -247,11 +246,10 @@ func initRegistryClient() (r *registry.Registry, err error) {
 	if err := utils.TestTCPConn(addr, 60, 2); err != nil {
 		return nil, err
 	}
-	rw := httptest.NewRecorder()
 
 	authorizer := auth.NewRawTokenAuthorizer("harbor-core", token.Registry)
 	return registry.NewRegistry(endpoint, &http.Client{
-		Transport: registry.NewTransport(registry.GetHTTPTransport(), rw, authorizer),
+		Transport: registry.NewTransport(registry.GetHTTPTransport(), authorizer),
 	})
 }
 

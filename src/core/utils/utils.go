@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/goharbor/harbor/src/common/http/modifier"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/common/utils/registry"
 	"github.com/goharbor/harbor/src/common/utils/registry/auth"
@@ -44,7 +45,7 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 	authorizer := auth.NewRawTokenAuthorizer(username, token.Registry)
 	rw := httptest.NewRecorder()
 	customResW := util.NewCustomResponseWriter(rw)
-	transport := registry.NewTransport(NewTransportWithMiddleware(http.DefaultTransport, customResW), customResW, authorizer, uam)
+	transport := NewTransportWithMiddleware(http.DefaultTransport, customResW, authorizer, uam)
 	client := &http.Client{
 		Transport: transport,
 	}
@@ -55,13 +56,15 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 type TransportWithMiddleware struct {
 	transport http.RoundTripper
 	w         http.ResponseWriter
+	modifiers []modifier.Modifier
 }
 
 // NewTransport ...
-func NewTransportWithMiddleware(transport http.RoundTripper, w http.ResponseWriter) *TransportWithMiddleware {
+func NewTransportWithMiddleware(transport http.RoundTripper, w http.ResponseWriter, modifiers ...modifier.Modifier) *TransportWithMiddleware {
 	return &TransportWithMiddleware{
 		transport: transport,
 		w:         w,
+		modifiers: modifiers,
 	}
 }
 
@@ -75,6 +78,12 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 	log.Info(req.URL.Path)
 	log.Info(req.Method)
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+
+	for _, modifier := range t.modifiers {
+		if err := modifier.Modify(req); err != nil {
+			return nil, err
+		}
+	}
 
 	resp, err := t.transport.RoundTrip(req)
 	if err != nil {
