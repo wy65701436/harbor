@@ -18,6 +18,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path"
 	"strings"
@@ -83,7 +84,8 @@ func GetTargets(notaryEndpoint string, username string, fqRepo string) ([]model.
 	authorizer := &notaryAuthorizer{
 		token: t.Token,
 	}
-	tr := registry.NewTransport(registry.GetHTTPTransport(), authorizer)
+	rw := httptest.NewRecorder()
+	tr := registry.NewTransport(registry.GetHTTPTransport(), rw, authorizer)
 	gun := data.GUN(fqRepo)
 	notaryRepo, err := client.NewFileCachedRepository(notaryCachePath, gun, notaryEndpoint, tr, mockRetriever, trustPin)
 	if err != nil {
