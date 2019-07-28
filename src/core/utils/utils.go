@@ -43,7 +43,9 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 		UserAgent: "harbor-registry-client",
 	}
 	authorizer := auth.NewRawTokenAuthorizer(username, token.Registry)
-	transport := NewTransportWithMiddleware(http.DefaultTransport, authorizer, uam)
+	rw := httptest.NewRecorder()
+	customResW := util.NewCustomResponseWriter(rw)
+	transport := NewTransportWithMiddleware(http.DefaultTransport, customResW, authorizer, uam)
 	client := &http.Client{
 		Transport: transport,
 	}
@@ -53,14 +55,15 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 // Transport holds information about base transport and modifiers
 type TransportWithMiddleware struct {
 	transport http.RoundTripper
+	w         http.ResponseWriter
 	modifiers []modifier.Modifier
 }
 
 // NewTransport ...
-func NewTransportWithMiddleware(transport http.RoundTripper, modifiers ...modifier.Modifier) *TransportWithMiddleware {
+func NewTransportWithMiddleware(transport http.RoundTripper, w http.ResponseWriter, modifiers ...modifier.Modifier) *TransportWithMiddleware {
 	return &TransportWithMiddleware{
 		transport: transport,
-
+		w:         w,
 		modifiers: modifiers,
 	}
 }
@@ -69,10 +72,10 @@ func NewTransportWithMiddleware(transport http.RoundTripper, modifiers ...modifi
 func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-	handlerChain := middlewares.New(middlewares.Middlewares).Create()
-	head := handlerChain.Then(dumy.NewDumyHandler())
 	rw := httptest.NewRecorder()
 	customResW := util.NewCustomResponseWriter(rw)
+	handlerChain := middlewares.New(middlewares.Middlewares).Create()
+	head := handlerChain.Then(dumy.NewDumyHandler())
 	head.ServeHTTP(customResW, req)
 	log.Info(req.URL.Path)
 	log.Info(req.Method)
@@ -90,6 +93,7 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 	}
 
 	customResW.WriteHeader(resp.StatusCode)
+	t.w.WriteHeader(resp.StatusCode)
 
 	log.Infof("%d | %s %s", resp.StatusCode, req.Method, req.URL.String())
 
