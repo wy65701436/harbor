@@ -30,6 +30,7 @@ import (
 	adp "github.com/goharbor/harbor/src/replication/adapter"
 	"github.com/goharbor/harbor/src/replication/model"
 	"github.com/goharbor/harbor/src/replication/util"
+	"net/http/httptest"
 )
 
 func init() {
@@ -84,8 +85,10 @@ func NewAdapterWithCustomizedAuthorizer(registry *model.Registry, authorizer mod
 	if authorizer != nil {
 		modifiers = append(modifiers, authorizer)
 	}
+	rw := httptest.NewRecorder()
+
 	client := &http.Client{
-		Transport: registry_pkg.NewTransport(transport, modifiers...),
+		Transport: registry_pkg.NewTransport(transport, rw, modifiers...),
 	}
 	reg, err := registry_pkg.NewRegistry(registry.URL, client)
 	if err != nil {
