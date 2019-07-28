@@ -51,7 +51,6 @@ func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
 		return fmt.Errorf("the blob in the mount request with digest: %s doesn't exist", mbi.blobInfo.Digest)
 	}
 
-	log.Info(blob.Size)
 	mbi.blobInfo.Size = blob.Size
 	con, err := util.GetRegRedisCon()
 	if err != nil {

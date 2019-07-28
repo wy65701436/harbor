@@ -43,9 +43,7 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 		UserAgent: "harbor-registry-client",
 	}
 	authorizer := auth.NewRawTokenAuthorizer(username, token.Registry)
-	rw := httptest.NewRecorder()
-	customResW := util.NewCustomResponseWriter(rw)
-	transport := NewTransportWithMiddleware(http.DefaultTransport, customResW, authorizer, uam)
+	transport := NewTransportWithMiddleware(http.DefaultTransport, authorizer, uam)
 	client := &http.Client{
 		Transport: transport,
 	}
@@ -55,15 +53,14 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 // Transport holds information about base transport and modifiers
 type TransportWithMiddleware struct {
 	transport http.RoundTripper
-	w         http.ResponseWriter
 	modifiers []modifier.Modifier
 }
 
 // NewTransport ...
-func NewTransportWithMiddleware(transport http.RoundTripper, w http.ResponseWriter, modifiers ...modifier.Modifier) *TransportWithMiddleware {
+func NewTransportWithMiddleware(transport http.RoundTripper, modifiers ...modifier.Modifier) *TransportWithMiddleware {
 	return &TransportWithMiddleware{
 		transport: transport,
-		w:         w,
+
 		modifiers: modifiers,
 	}
 }
@@ -74,7 +71,9 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	handlerChain := middlewares.New(middlewares.Middlewares).Create()
 	head := handlerChain.Then(dumy.NewDumyHandler())
-	head.ServeHTTP(t.w, req)
+	rw := httptest.NewRecorder()
+	customResW := util.NewCustomResponseWriter(rw)
+	head.ServeHTTP(customResW, req)
 	log.Info(req.URL.Path)
 	log.Info(req.Method)
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
@@ -90,7 +89,7 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 		return nil, err
 	}
 
-	t.w.WriteHeader(resp.StatusCode)
+	customResW.WriteHeader(resp.StatusCode)
 
 	log.Infof("%d | %s %s", resp.StatusCode, req.Method, req.URL.String())
 
