@@ -39,7 +39,6 @@ func NewMountBlobInterceptor(blobInfo *util.BlobInfo) *MountBlobInterceptor {
 // HandleRequest ...
 func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
 
-	log.Info("########################")
 	tProjectID, err := util.GetProjectID(strings.Split(mbi.blobInfo.Repository, "/")[0])
 	if err != nil {
 		return fmt.Errorf("error occurred when to get target project: %d, %v", tProjectID, err)
@@ -52,7 +51,6 @@ func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
 		return fmt.Errorf("the blob in the mount request with digest: %s doesn't exist", mbi.blobInfo.Digest)
 	}
 
-	log.Info("########################")
 	log.Info(blob.Size)
 	mbi.blobInfo.Size = blob.Size
 	con, err := util.GetRegRedisCon()
@@ -63,13 +61,17 @@ func (mbi *MountBlobInterceptor) HandleRequest(req *http.Request) error {
 		return err
 	}
 
-	log.Info("########################")
 	*req = *(req.WithContext(context.WithValue(req.Context(), util.BBInfokKey, mbi.blobInfo)))
 	return nil
 }
 
 // HandleResponse ...
 func (mbi *MountBlobInterceptor) HandleResponse(rw util.CustomResponseWriter, req *http.Request) {
+	log.Info("RRRRRRRRRRRRRRRRRRRRR")
+	log.Info(req.URL.Path)
+	log.Info(rw.Status())
+	log.Info("RRRRRRRRRRRRRRRRRRRRR")
+
 	if err := HandleBlobCommon(rw, req); err != nil {
 		log.Error(err)
 	}

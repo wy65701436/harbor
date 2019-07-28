@@ -63,15 +63,12 @@ func (sqh *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request
 }
 
 func getInteceptor(req *http.Request) util.RegInterceptor {
-	log.Info(" @@@@@@@@@@@@@@@@@@@@@@@@")
 	log.Info(req.URL.Path)
 	log.Info(req.FormValue("mount"))
 	log.Info(req.FormValue("from"))
 
 	// POST /v2/<name>/blobs/uploads/?mount=<digest>&from=<repository name>
 	matchMountBlob, repository, mount, _ := util.MatchMountBlobURL(req)
-	log.Info(matchMountBlob)
-	log.Info(" @@@@@@@@@@@@@@@@@@@@@@@@")
 	if matchMountBlob {
 		bb := util.BlobInfo{}
 		bb.Repository = repository
@@ -113,9 +110,6 @@ func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
 		return err
 	}
 	blobInfo.ProjectID = projectID
-	log.Info("########################")
-	log.Info(blobInfo.ProjectID)
-	log.Info("########################")
 
 	digestLock, err := tryLockBlob(conn, blobInfo)
 	if err != nil {
@@ -130,9 +124,6 @@ func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
 		return err
 	}
 	blobInfo.Exist = blobExist
-	log.Info("########################")
-	log.Info(blobInfo.Exist)
-	log.Info("########################")
 	if blobExist {
 		return nil
 	}
@@ -148,9 +139,6 @@ func requireQuota(conn redis.Conn, blobInfo *util.BlobInfo) error {
 		log.Errorf("cannot get quota for the blob %v", err)
 		return err
 	}
-	log.Info("########################")
-	log.Info(quotaRes)
-	log.Info("########################")
 	blobInfo.Quota = quotaRes
 
 	return nil
@@ -179,11 +167,6 @@ func HandleBlobCommon(rw util.CustomResponseWriter, req *http.Request) error {
 	if bb.Exist {
 		return nil
 	}
-
-	log.Info("RRRRRRRRRRRRRRRRRRRRR")
-	log.Info(req.URL.Path)
-	log.Info(rw.Status())
-	log.Info("RRRRRRRRRRRRRRRRRRRRR")
 
 	if rw.Status() == http.StatusCreated {
 		blob := &models.Blob{
