@@ -45,7 +45,26 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 		UserAgent: "harbor-registry-client",
 	}
 	authorizer := auth.NewRawTokenAuthorizer(username, token.Registry)
-	transport := NewTransportWithMiddleware(http.DefaultTransport, authorizer, uam)
+	transport := registry.NewTransport(http.DefaultTransport, authorizer, uam)
+	client := &http.Client{
+		Transport: transport,
+	}
+	return registry.NewRepository(repository, endpoint, client)
+}
+
+// NewRepositoryClientForUIWithMiddler creates a repository client that can only be used to
+// access the internal registry with quota middle
+func NewRepositoryClientForUIWithMiddler(username, repository string) (*registry.Repository, error) {
+	endpoint, err := config.RegistryURL()
+	if err != nil {
+		return nil, err
+	}
+
+	uam := &auth.UserAgentModifier{
+		UserAgent: "harbor-registry-client",
+	}
+	authorizer := auth.NewRawTokenAuthorizer(username, token.Registry)
+	transport := NewTransportWithMiddleware(authorizer, uam)
 	client := &http.Client{
 		Transport: transport,
 	}
@@ -54,22 +73,18 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 
 // Transport holds information about base transport and modifiers
 type TransportWithMiddleware struct {
-	transport http.RoundTripper
 	modifiers []modifier.Modifier
 }
 
 // NewTransport ...
-func NewTransportWithMiddleware(transport http.RoundTripper, modifiers ...modifier.Modifier) *TransportWithMiddleware {
+func NewTransportWithMiddleware(modifiers ...modifier.Modifier) *TransportWithMiddleware {
 	return &TransportWithMiddleware{
-		transport: transport,
 		modifiers: modifiers,
 	}
 }
 
 // RoundTrip ...
 func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, error) {
-
-	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	for _, modifier := range t.modifiers {
 		if err := modifier.Modify(req); err != nil {
 			return nil, err
@@ -79,7 +94,6 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 	if ph == nil {
 		return nil, errors.New("get nil when to create proxy")
 	}
-
 	rw := httptest.NewRecorder()
 	customResW := util.NewCustomResponseWriter(rw)
 	handlerChain := middlewares.New(middlewares.MiddlewaresInternal).Create()
@@ -87,7 +101,6 @@ func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, 
 	head.ServeHTTP(customResW, req)
 
 	log.Infof("%d | %s %s", rw.Result().StatusCode, req.Method, req.URL.String())
-	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
 	return rw.Result(), nil
 }
 
