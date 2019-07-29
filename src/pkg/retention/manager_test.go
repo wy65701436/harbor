@@ -1,16 +1,18 @@
 package retention
 
 import (
-	"github.com/goharbor/harbor/src/pkg/retention/q"
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/goharbor/harbor/src/common/dao"
+	"github.com/goharbor/harbor/src/common/job"
 	"github.com/goharbor/harbor/src/pkg/retention/policy"
 	"github.com/goharbor/harbor/src/pkg/retention/policy/rule"
+	"github.com/goharbor/harbor/src/pkg/retention/q"
+	tjob "github.com/goharbor/harbor/src/testing/job"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMain(m *testing.M) {
@@ -21,7 +23,7 @@ func TestMain(m *testing.M) {
 func TestPolicy(t *testing.T) {
 	m := NewManager()
 	p1 := &policy.Metadata{
-		Algorithm: "OR",
+		Algorithm: "or",
 		Rules: []rule.Metadata{
 			{
 				ID:       1,
@@ -92,7 +94,7 @@ func TestPolicy(t *testing.T) {
 func TestExecution(t *testing.T) {
 	m := NewManager()
 	p1 := &policy.Metadata{
-		Algorithm: "OR",
+		Algorithm: "or",
 		Rules: []rule.Metadata{
 			{
 				ID:       1,
@@ -143,7 +145,6 @@ func TestExecution(t *testing.T) {
 	e1 := &Execution{
 		PolicyID:  policyID,
 		StartTime: time.Now(),
-		Status:    ExecutionStatusInProgress,
 		Trigger:   ExecutionTriggerManual,
 		DryRun:    false,
 	}
@@ -156,15 +157,6 @@ func TestExecution(t *testing.T) {
 	assert.NotNil(t, e1)
 	assert.EqualValues(t, id, e1.ID)
 
-	e1.Status = ExecutionStatusFailed
-	err = m.UpdateExecution(e1)
-	assert.Nil(t, err)
-
-	e1, err = m.GetExecution(id)
-	assert.Nil(t, err)
-	assert.NotNil(t, e1)
-	assert.EqualValues(t, ExecutionStatusFailed, e1.Status)
-
 	es, err := m.ListExecutions(policyID, nil)
 	assert.Nil(t, err)
 	assert.EqualValues(t, 1, len(es))
@@ -174,12 +166,18 @@ func TestTask(t *testing.T) {
 	m := NewManager()
 	task := &Task{
 		ExecutionID: 1,
+		JobID:       "1",
 		Status:      TaskStatusPending,
 		StartTime:   time.Now(),
 	}
 	// create
 	id, err := m.CreateTask(task)
 	require.Nil(t, err)
+
+	// get
+	tk, err := m.GetTask(id)
+	require.Nil(t, err)
+	assert.EqualValues(t, 1, tk.ExecutionID)
 
 	// update
 	task.ID = id
@@ -200,4 +198,12 @@ func TestTask(t *testing.T) {
 	task.Status = TaskStatusFailed
 	err = m.UpdateTask(task, "Status")
 	require.Nil(t, err)
+
+	// get task log
+	job.GlobalClient = &tjob.MockJobClient{
+		JobUUID: []string{"1"},
+	}
+	data, err := m.GetTaskLog(task.ID)
+	require.Nil(t, err)
+	assert.Equal(t, "some log", string(data))
 }
