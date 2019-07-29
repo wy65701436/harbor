@@ -17,6 +17,9 @@ package url
 import (
 	"context"
 	"fmt"
+	"github.com/goharbor/harbor/src/common/dao"
+	"github.com/goharbor/harbor/src/common/models"
+	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"net/http"
@@ -45,24 +48,38 @@ func (uh urlHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		//client, err := coreutils.NewRepositoryClientForUI(util.TokenUsername, repository)
-		//if err != nil {
-		//	log.Errorf("Error creating repository Client: %v", err)
-		//	http.Error(rw, util.MarshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
-		//	return
-		//}
-		//digest, _, err := client.ManifestExist(reference)
-		//if err != nil {
-		//	log.Errorf("Failed to get digest for reference: %s, error: %v", reference, err)
-		//	http.Error(rw, util.MarshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
-		//	return
-		//}
+		project := strings.Split(repository, "/")[0]
+		repo := strings.Split(repository, "/")[1]
+		projectID, err := util.GetProjectID(project)
+		if err != nil {
+			log.Errorf("Failed to get project ID for repository: %s, error: %v", repository, err)
+			http.Error(rw, util.MarshalError("StatusInternalServerError", fmt.Sprintf("Failed to get project ID for repository: %s, error: %v", repository, err)), http.StatusInternalServerError)
+			return
+		}
+
+		artifactQuery := &models.ArtifactQuery{
+			PID:  projectID,
+			Repo: repo,
+		}
+		pullByDigest := utils.IsDigest(reference)
+		if pullByDigest {
+			artifactQuery.Digest = reference
+		} else {
+			artifactQuery.Tag = reference
+		}
+
+		afs, err := dao.ListArtifacts(artifactQuery)
+		if len(afs) < 1 {
+			log.Errorf("Failed to get artifact for repository:reference %s:%s.", repository, reference)
+			http.Error(rw, util.MarshalError("StatusInternalServerError", fmt.Sprintf("Failed to get artifact for repository:reference %s:%s.", repository, reference)), http.StatusInternalServerError)
+			return
+		}
 
 		img := util.ImageInfo{
 			Repository:  repository,
 			Reference:   reference,
 			ProjectName: components[0],
-			//Digest:      digest,
+			Digest:      afs[0].Digest,
 		}
 
 		log.Debugf("image info of the request: %#v", img)
