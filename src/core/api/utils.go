@@ -107,32 +107,6 @@ func SyncRegistry(pm promgr.ProjectManager) error {
 	return nil
 }
 
-type layer struct {
-	digest string
-	size   int64
-}
-
-type tag struct {
-	name   string
-	layers []layer
-}
-
-type repo struct {
-	name string
-	tags []tag
-}
-
-//
-//type project struct {
-//	name     string
-//	tagCount int64
-//	repos    []repo
-//}
-//
-//type alldata struct {
-//	projects []project
-//}
-
 // DumpRegistry dumps the registry data, and compute quota for each project, then to update harbor DB(quota_usage).
 func DumpRegistry() error {
 	log.Infof("Start dumping repositories from registry to DB... ")
@@ -161,7 +135,7 @@ func DumpRegistry() error {
 	log.Info(repoMap)
 	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
-	// blobMap : project: digest: size
+	// blobMap : map[project: Map[digest]: size]
 	projectMap := make(map[string]map[string]int64)
 
 	for k, v := range repoMap {
