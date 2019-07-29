@@ -28,3 +28,6 @@ const (
 
 // Middlewares with sequential organization
 var Middlewares = []string{READONLY, URL, MUITIPLEMANIFEST, LISTREPO, CONTENTTRUST, VULNERABLE, SIZEQUOTA, COUNTQUOTA}
+
+// Middlewares with sequential organization
+var MiddlewaresInternal = []string{SIZEQUOTA, COUNTQUOTA}

@@ -25,7 +25,9 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/registry/auth"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares"
-	"github.com/goharbor/harbor/src/core/middlewares/dumy"
+
+	"errors"
+	"github.com/goharbor/harbor/src/core/middlewares/registryproxy"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/goharbor/harbor/src/core/service/token"
 	"net/http/httptest"
@@ -43,9 +45,7 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 		UserAgent: "harbor-registry-client",
 	}
 	authorizer := auth.NewRawTokenAuthorizer(username, token.Registry)
-	rw := httptest.NewRecorder()
-	customResW := util.NewCustomResponseWriter(rw)
-	transport := NewTransportWithMiddleware(http.DefaultTransport, customResW, authorizer, uam)
+	transport := NewTransportWithMiddleware(http.DefaultTransport, authorizer, uam)
 	client := &http.Client{
 		Transport: transport,
 	}
@@ -55,15 +55,13 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 // Transport holds information about base transport and modifiers
 type TransportWithMiddleware struct {
 	transport http.RoundTripper
-	w         http.ResponseWriter
 	modifiers []modifier.Modifier
 }
 
 // NewTransport ...
-func NewTransportWithMiddleware(transport http.RoundTripper, w http.ResponseWriter, modifiers ...modifier.Modifier) *TransportWithMiddleware {
+func NewTransportWithMiddleware(transport http.RoundTripper, modifiers ...modifier.Modifier) *TransportWithMiddleware {
 	return &TransportWithMiddleware{
 		transport: transport,
-		w:         w,
 		modifiers: modifiers,
 	}
 }
@@ -72,32 +70,25 @@ func NewTransportWithMiddleware(transport http.RoundTripper, w http.ResponseWrit
 func (t *TransportWithMiddleware) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-	rw := httptest.NewRecorder()
-	customResW := util.NewCustomResponseWriter(rw)
-	handlerChain := middlewares.New(middlewares.Middlewares).Create()
-	head := handlerChain.Then(dumy.NewDumyHandler())
-	head.ServeHTTP(customResW, req)
-	log.Info(req.URL.Path)
-	log.Info(req.Method)
-	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
-
 	for _, modifier := range t.modifiers {
 		if err := modifier.Modify(req); err != nil {
 			return nil, err
 		}
 	}
-
-	resp, err := t.transport.RoundTrip(req)
-	if err != nil {
-		return nil, err
+	ph := registryproxy.New()
+	if ph == nil {
+		return nil, errors.New("get nil when to create proxy")
 	}
 
-	customResW.WriteHeader(resp.StatusCode)
-	t.w.WriteHeader(resp.StatusCode)
+	rw := httptest.NewRecorder()
+	customResW := util.NewCustomResponseWriter(rw)
+	handlerChain := middlewares.New(middlewares.MiddlewaresInternal).Create()
+	head := handlerChain.Then(ph)
+	head.ServeHTTP(customResW, req)
 
-	log.Infof("%d | %s %s", resp.StatusCode, req.Method, req.URL.String())
-
-	return resp, err
+	log.Infof("%d | %s %s", rw.Result().StatusCode, req.Method, req.URL.String())
+	log.Info(" ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ")
+	return rw.Result(), nil
 }
 
 // WaitForManifestReady implements exponential sleeep to wait until manifest is ready in registry.
