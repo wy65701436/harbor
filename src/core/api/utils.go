@@ -25,6 +25,7 @@ import (
 	"github.com/goharbor/harbor/src/common/dao"
 	commonhttp "github.com/goharbor/harbor/src/common/http"
 	"github.com/goharbor/harbor/src/common/models"
+	"github.com/goharbor/harbor/src/common/quota"
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/common/utils/registry"
@@ -117,7 +118,7 @@ func DumpRegistry() error {
 		return err
 	}
 
-	// repoMap : project_name : repo list
+	// repoMap : map[project_name : []repo list]
 	repoMap := make(map[string][]string)
 	for _, item := range reposInRegistry {
 		projectName := strings.Split(item, "/")[0]
@@ -135,7 +136,7 @@ func DumpRegistry() error {
 	log.Info(repoMap)
 	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
-	// blobMap : map[project: Map[digest]: size]
+	// projectMap : map[project: Map[digest]: size]
 	projectMap := make(map[string]map[string]int64)
 
 	for k, v := range repoMap {
@@ -184,6 +185,17 @@ func DumpRegistry() error {
 		log.Info(projectQuotaCount)
 		log.Info(projectQuotaSize)
 		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+
+		// it needs to fix quota for project
+	}
+
+	return nil
+}
+
+func fixQuotaUsage(project string, count, size int64) error {
+	quotaRes := &quota.ResourceList{
+		quota.ResourceCount:   count,
+		quota.ResourceStorage: size,
 	}
 
 	return nil
