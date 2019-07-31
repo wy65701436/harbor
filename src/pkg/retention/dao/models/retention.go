@@ -41,22 +41,17 @@ type RetentionExecution struct {
 	PolicyID int64 `orm:"column(policy_id)"`
 	DryRun   bool
 	// manual, scheduled
-	Trigger    string
-	StartTime  time.Time
-	EndTime    time.Time `orm:"-"`
-	Status     string    `orm:"-"`
-	Total      int       `orm:"-"`
-	Succeed    int       `orm:"-"`
-	Failed     int       `orm:"-"`
-	InProgress int       `orm:"-"`
-	Stopped    int       `orm:"-"`
-	Pending    int       `orm:"-"`
+	Trigger   string
+	StartTime time.Time
+	EndTime   time.Time `orm:"-"`
+	Status    string    `orm:"-"`
 }
 
 // RetentionTask ...
 type RetentionTask struct {
 	ID          int64     `orm:"pk;auto;column(id)"`
 	ExecutionID int64     `orm:"column(execution_id)"`
+	Repository  string    `orm:"column(repository)"`
 	JobID       string    `orm:"column(job_id)"`
 	Status      string    `orm:"column(status)"`
 	StartTime   time.Time `orm:"column(start_time)"`

@@ -17,6 +17,7 @@ package utils
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"fmt"
@@ -37,7 +38,20 @@ func NewRepositoryClientForUI(username, repository string) (*registry.Repository
 	if err != nil {
 		return nil, err
 	}
+	return newRepositoryClient(endpoint, username, repository)
+}
 
+// NewRepositoryClientForLocal creates a repository client that can only be used to
+// access the internal registry with 127.0.0.1
+func NewRepositoryClientForLocal(username, repository string) (*registry.Repository, error) {
+	// The 127.0.0.1:8080 is not reachable as we do not enable core in UT env.
+	if os.Getenv("UTTEST") == "true" {
+		return NewRepositoryClientForUI(username, repository)
+	}
+	return newRepositoryClient(config.LocalCoreURL(), username, repository)
+}
+
+func newRepositoryClient(endpoint, username, repository string) (*registry.Repository, error) {
 	uam := &auth.UserAgentModifier{
 		UserAgent: "harbor-registry-client",
 	}

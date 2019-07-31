@@ -15,9 +15,18 @@
 package util
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/docker/distribution"
 	"github.com/garyburd/redigo/redis"
 	"github.com/goharbor/harbor/src/common/dao"
@@ -29,12 +38,6 @@ import (
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/pkg/scan/whitelist"
-	"net/http"
-	"net/http/httptest"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type contextKey string
@@ -45,6 +48,9 @@ var ErrRequireQuota = errors.New("cannot get quota on project for request")
 const (
 	manifestURLPattern = `^/v2/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)manifests/([\w][\w.:-]{0,127})`
 	blobURLPattern     = `^/v2/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)blobs/uploads/`
+
+	chartVersionInfoKey = contextKey("ChartVersionInfo")
+
 	// ImageInfoCtxKey the context key for image information
 	ImageInfoCtxKey = contextKey("ImageInfo")
 	// TokenUsername ...
@@ -62,6 +68,14 @@ const (
 	// DialWriteTimeout ...
 	DialWriteTimeout = 10 * time.Second
 )
+
+// ChartVersionInfo ...
+type ChartVersionInfo struct {
+	ProjectID int64
+	Namespace string
+	ChartName string
+	Version   string
+}
 
 // ImageInfo ...
 type ImageInfo struct {
@@ -368,10 +382,31 @@ func GetProjectID(name string) (int64, error) {
 
 // GetRegRedisCon ...
 func GetRegRedisCon() (redis.Conn, error) {
+	// FOR UT
+	if os.Getenv("UTTEST") == "true" {
+		return redis.Dial(
+			"tcp",
+			fmt.Sprintf("%s:%d", os.Getenv("REDIS_HOST"), 6379),
+			redis.DialConnectTimeout(DialConnectionTimeout),
+			redis.DialReadTimeout(DialReadTimeout),
+			redis.DialWriteTimeout(DialWriteTimeout),
+		)
+	}
 	return redis.DialURL(
 		config.GetRedisOfRegURL(),
 		redis.DialConnectTimeout(DialConnectionTimeout),
 		redis.DialReadTimeout(DialReadTimeout),
 		redis.DialWriteTimeout(DialWriteTimeout),
 	)
+}
+
+// ChartVersionInfoFromContext returns chart info from context
+func ChartVersionInfoFromContext(ctx context.Context) (*ChartVersionInfo, bool) {
+	info, ok := ctx.Value(chartVersionInfoKey).(*ChartVersionInfo)
+	return info, ok
+}
+
+// NewChartVersionInfoContext returns context with blob info
+func NewChartVersionInfoContext(ctx context.Context, info *ChartVersionInfo) context.Context {
+	return context.WithValue(ctx, chartVersionInfoKey, info)
 }
