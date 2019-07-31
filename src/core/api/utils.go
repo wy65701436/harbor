@@ -31,9 +31,12 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/registry"
 	"github.com/goharbor/harbor/src/common/utils/registry/auth"
 	"github.com/goharbor/harbor/src/core/config"
+	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/core/service/token"
 	coreutils "github.com/goharbor/harbor/src/core/utils"
+
+	"strconv"
 )
 
 // SyncRegistry syncs the repositories of registry with database.
@@ -110,7 +113,7 @@ func SyncRegistry(pm promgr.ProjectManager) error {
 
 // DumpRegistry dumps the registry data, and compute quota for each project, then to update harbor DB(quota_usage).
 func DumpRegistry() error {
-	log.Infof("Start dumping repositories from registry to DB... ")
+	log.Infof("Start fixing project quota... ")
 
 	reposInRegistry, err := catalog()
 	if err != nil {
@@ -137,68 +140,145 @@ func DumpRegistry() error {
 	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
 	// projectMap : map[project: Map[digest]: size]
-	projectMap := make(map[string]map[string]int64)
+	//projectMap := make(map[string]map[string]int64)
 
 	for k, v := range repoMap {
-		blobMap := make(map[string]int64)
-		projectMap[k] = blobMap
-		projectQuotaCount := 0
-		projectQuotaSize := int64(0)
-		for _, repo := range v {
-			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
-			if err != nil {
-				log.Errorf("Failed to create repo client.")
-				return err
-			}
-			tags, err := repoClient.ListTag()
-			if err != nil {
-				log.Errorf("Failed to list tags for repo: %s", repo)
-				return err
-			}
-			for _, tag := range tags {
-				projectQuotaCount++
-				_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
-					schema1.MediaTypeManifest,
-					schema1.MediaTypeSignedManifest,
-					schema2.MediaTypeManifest,
-				})
-				if err != nil {
-					return err
-				}
-				manifest, desc, err := registry.UnMarshal(mediaType, payload)
-				if err != nil {
-					return err
-				}
-				projectQuotaSize = projectQuotaSize + desc.Size
-				for _, layer := range manifest.References() {
-					_, exist := blobMap[layer.Digest.String()]
-					if !exist {
-						blobMap[layer.Digest.String()] = layer.Size
-						projectQuotaSize = projectQuotaSize + layer.Size
-					}
-				}
 
-			}
+		usage, err := getProjectUsage(v)
+		if err != nil {
+			log.Warningf("Error happens when to get quota for project: %s, with error: %v", k, err)
+			continue
 		}
-		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
-		log.Info(projectMap[k])
-		log.Info(projectQuotaCount)
-		log.Info(projectQuotaSize)
-		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+		if err := fixQuotaUsage(k, usage); err != nil {
+			log.Warningf("Error happens when to fix quota for project: %s, with error: %v", k, err)
+			continue
+		}
 
-		// it needs to fix quota for project
+		//blobMap := make(map[string]int64)
+		//projectMap[k] = blobMap
+		//projectQuotaCount := int64(0)
+		//projectQuotaSize := int64(0)
+		//for _, repo := range v {
+		//	repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
+		//	if err != nil {
+		//		log.Errorf("Failed to create repo client.")
+		//		return err
+		//	}
+		//	tags, err := repoClient.ListTag()
+		//	if err != nil {
+		//		log.Errorf("Failed to list tags for repo: %s", repo)
+		//		return err
+		//	}
+		//	for _, tag := range tags {
+		//		projectQuotaCount++
+		//		_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
+		//			schema1.MediaTypeManifest,
+		//			schema1.MediaTypeSignedManifest,
+		//			schema2.MediaTypeManifest,
+		//		})
+		//		if err != nil {
+		//			return err
+		//		}
+		//		manifest, desc, err := registry.UnMarshal(mediaType, payload)
+		//		if err != nil {
+		//			return err
+		//		}
+		//		projectQuotaSize = projectQuotaSize + desc.Size
+		//		for _, layer := range manifest.References() {
+		//			_, exist := blobMap[layer.Digest.String()]
+		//			if !exist {
+		//				blobMap[layer.Digest.String()] = layer.Size
+		//				projectQuotaSize = projectQuotaSize + layer.Size
+		//			}
+		//		}
+		//
+		//	}
+		//}
+		//log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+		//log.Info(projectMap[k])
+		//log.Info(projectQuotaCount)
+		//log.Info(projectQuotaSize)
+		//log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+
 	}
+
+	log.Infof("End fixing project quota... ")
 
 	return nil
 }
 
-func fixQuotaUsage(project string, count, size int64) error {
-	quotaRes := &quota.ResourceList{
-		quota.ResourceCount:   count,
-		quota.ResourceStorage: size,
+// fixQuotaUsage fixes the quota usage in the data base.
+func fixQuotaUsage(project string, usage quota.ResourceList) error {
+	infinite := quota.ResourceList{
+		quota.ResourceCount:   -1,
+		quota.ResourceStorage: -1,
+	}
+	projectID, err := util.GetProjectID(project)
+	if err != nil {
+		log.Warningf("Error occurred when to get project ID %v", err)
+		return err
+	}
+	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(projectID, 10))
+	if err != nil {
+		log.Errorf("Error occurred when to new quota manager %v", err)
+		return err
+	}
+	if err := quotaMgr.EnsureQuota(infinite, usage); err != nil {
+		log.Errorf("cannot get quota for the project resource: %d, err: %v", projectID, err)
+		return err
+	}
+	return nil
+}
+
+func getProjectUsage(repoList []string) (quota.ResourceList, error) {
+	projectQuotaCount := int64(0)
+	projectQuotaSize := int64(0)
+
+	usage := quota.ResourceList{
+		quota.ResourceCount:   projectQuotaCount,
+		quota.ResourceStorage: projectQuotaSize,
 	}
 
-	return nil
+	blobMap := make(map[string]int64)
+	for _, repo := range repoList {
+		repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
+		if err != nil {
+			log.Errorf("Failed to create repo client.")
+			return nil, err
+		}
+		tags, err := repoClient.ListTag()
+		if err != nil {
+			log.Errorf("Failed to list tags for repo: %s", repo)
+			return nil, err
+		}
+		for _, tag := range tags {
+			projectQuotaCount++
+			_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
+				schema1.MediaTypeManifest,
+				schema1.MediaTypeSignedManifest,
+				schema2.MediaTypeManifest,
+			})
+			if err != nil {
+				return nil, err
+			}
+			manifest, desc, err := registry.UnMarshal(mediaType, payload)
+			if err != nil {
+				return nil, err
+			}
+			projectQuotaSize = projectQuotaSize + desc.Size
+			for _, layer := range manifest.References() {
+				_, exist := blobMap[layer.Digest.String()]
+				if !exist {
+					blobMap[layer.Digest.String()] = layer.Size
+					projectQuotaSize = projectQuotaSize + layer.Size
+				}
+			}
+
+		}
+	}
+
+	return usage, nil
+
 }
 
 func catalog() ([]string, error) {

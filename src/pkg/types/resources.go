@@ -113,3 +113,12 @@ func Zero(a ResourceList) ResourceList {
 	}
 	return result
 }
+
+// Infinite returns the result of -1 for each named resource
+func Infinite(a ResourceList) ResourceList {
+	result := ResourceList{}
+	for key := range a {
+		result[key] = -1
+	}
+	return result
+}

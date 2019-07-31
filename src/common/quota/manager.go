@@ -176,14 +176,69 @@ func (m *Manager) DeleteQuota() error {
 
 // UpdateQuota update the quota resource spec
 func (m *Manager) UpdateQuota(hardLimits types.ResourceList) error {
+	o := dao.GetOrmer()
+	return m.updateQuota(o, hardLimits)
+}
+
+// updateQuota update the quota resource spec
+func (m *Manager) updateQuota(o orm.Ormer, hardLimits types.ResourceList) error {
 	if err := m.driver.Validate(hardLimits); err != nil {
 		return err
 	}
 
 	sql := `UPDATE quota SET hard = ? WHERE reference = ? AND reference_id = ?`
-	_, err := dao.GetOrmer().Raw(sql, hardLimits.String(), m.reference, m.referenceID).Exec()
+	_, err := o.Raw(sql, hardLimits.String(), m.reference, m.referenceID).Exec()
 
 	return err
+}
+
+// EnsureQuota ensures the reference has quota and usage,
+// if non-existent, will create new quota and usage.
+//
+func (m *Manager) EnsureQuota(hardLimit types.ResourceList, usages ...types.ResourceList) error {
+	query := &models.QuotaQuery{
+		Reference:   m.reference,
+		ReferenceID: m.referenceID,
+	}
+	quotas, err := dao.ListQuotas(query)
+	if err != nil {
+		return err
+	}
+
+	// non-existent: create quota and usage
+	if len(quotas) == 0 {
+		_, err := m.NewQuota(hardLimit, usages...)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// existent, the first one will be used
+	if len(usages) > 0 {
+		used := usages[0]
+		if quotas[0].Used == used.String() {
+			return nil
+		}
+		dao.WithTransaction(func(o orm.Ormer) error {
+			if err := m.updateQuota(o, hardLimit); err != nil {
+				return err
+			}
+			usage, err := m.getUsageForUpdate(o)
+			if err != nil {
+				return err
+			}
+			usage.Used = used.String()
+			usage.UpdateTime = time.Now()
+			_, err = o.Update(usage)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+	}
+
+	return nil
 }
 
 // AddResources add resources to usage
