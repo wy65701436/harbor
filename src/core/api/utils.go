@@ -31,7 +31,6 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/registry"
 	"github.com/goharbor/harbor/src/common/utils/registry/auth"
 	"github.com/goharbor/harbor/src/core/config"
-	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/core/service/token"
 	coreutils "github.com/goharbor/harbor/src/core/utils"
@@ -207,13 +206,25 @@ func DumpRegistry() error {
 	return nil
 }
 
+// GetProjectID ...
+func GetProjectID(name string) (int64, error) {
+	project, err := dao.GetProjectByName(name)
+	if err != nil {
+		return 0, err
+	}
+	if project != nil {
+		return project.ProjectID, nil
+	}
+	return 0, fmt.Errorf("project %s is not found", name)
+}
+
 // fixQuotaUsage fixes the quota usage in the data base.
 func fixQuotaUsage(project string, usage quota.ResourceList) error {
 	infinite := quota.ResourceList{
 		quota.ResourceCount:   -1,
 		quota.ResourceStorage: -1,
 	}
-	projectID, err := util.GetProjectID(project)
+	projectID, err := GetProjectID(project)
 	if err != nil {
 		log.Warningf("Error occurred when to get project ID %v", err)
 		return err

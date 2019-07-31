@@ -194,7 +194,7 @@ func (m *Manager) updateQuota(o orm.Ormer, hardLimits types.ResourceList) error 
 
 // EnsureQuota ensures the reference has quota and usage,
 // if non-existent, will create new quota and usage.
-//
+// if existent, update the quota and usage.
 func (m *Manager) EnsureQuota(hardLimit types.ResourceList, usages ...types.ResourceList) error {
 	query := &models.QuotaQuery{
 		Reference:   m.reference,
