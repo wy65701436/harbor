@@ -141,15 +141,14 @@ func DumpRegistry() error {
 	// projectMap : map[project: Map[digest]: size]
 	//projectMap := make(map[string]map[string]int64)
 
-	for k, v := range repoMap {
-
-		usage, err := getProjectUsage(v)
+	for project, repos := range repoMap {
+		usage, err := getProjectUsage(repos)
 		if err != nil {
-			log.Warningf("Error happens when to get quota for project: %s, with error: %v", k, err)
+			log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
 			continue
 		}
-		if err := fixQuotaUsage(k, usage); err != nil {
-			log.Warningf("Error happens when to fix quota for project: %s, with error: %v", k, err)
+		if err := fixQuotaUsage(project, usage); err != nil {
+			log.Warningf("Error happens when to fix quota for project: %s, with error: %v", project, err)
 			continue
 		}
 
