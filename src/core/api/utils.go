@@ -141,12 +141,9 @@ func DumpRegistry() error {
 
 	for project, repos := range repoMap {
 		go func() {
-			usage, err := getProjectUsage(project, repos)
+			err := getProjectUsage(project, repos)
 			if err != nil {
 				log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
-			}
-			if err := fixQuotaUsage(project, usage); err != nil {
-				log.Warningf("Error happens when to fix quota for project: %s, with error: %v", project, err)
 			}
 		}()
 	}
