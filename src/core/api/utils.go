@@ -177,16 +177,15 @@ func fixQuotaUsage(project string, usage quota.ResourceList) error {
 }
 
 func getProjectUsage(project string, repoList []string) error {
-	projectQuotaCount := int64(0)
-	projectQuotaSize := int64(0)
-
-	blobMap := make(map[string]int64)
-
 	var wg sync.WaitGroup
-	for _, repo := range repoList {
 
+	for _, repo := range repoList {
 		wg.Add(1)
+
 		go func() {
+			projectQuotaCount := int64(0)
+			projectQuotaSize := int64(0)
+			blobMap := make(map[string]int64)
 			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
 			if err != nil {
 				log.Errorf("Failed to create repo client.")
@@ -218,12 +217,14 @@ func getProjectUsage(project string, repoList []string) error {
 					}
 				}
 			}
+
 			usage := quota.ResourceList{
 				quota.ResourceCount:   projectQuotaCount,
 				quota.ResourceStorage: projectQuotaSize,
 			}
 
 			log.Info(" ================= ")
+			log.Info(project)
 			log.Info(projectQuotaCount)
 			log.Info(projectQuotaSize)
 			log.Info(" ================= ")
