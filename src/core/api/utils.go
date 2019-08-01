@@ -139,7 +139,7 @@ func DumpRegistry() error {
 	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
 	// projectMap : map[project: Map[digest]: size]
-	//projectMap := make(map[string]map[string]int64)
+	// projectMap := make(map[string]map[string]int64)
 
 	for project, repos := range repoMap {
 		usage, err := getProjectUsage(repos)
@@ -151,52 +151,6 @@ func DumpRegistry() error {
 			log.Warningf("Error happens when to fix quota for project: %s, with error: %v", project, err)
 			continue
 		}
-
-		//blobMap := make(map[string]int64)
-		//projectMap[k] = blobMap
-		//projectQuotaCount := int64(0)
-		//projectQuotaSize := int64(0)
-		//for _, repo := range v {
-		//	repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
-		//	if err != nil {
-		//		log.Errorf("Failed to create repo client.")
-		//		return err
-		//	}
-		//	tags, err := repoClient.ListTag()
-		//	if err != nil {
-		//		log.Errorf("Failed to list tags for repo: %s", repo)
-		//		return err
-		//	}
-		//	for _, tag := range tags {
-		//		projectQuotaCount++
-		//		_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
-		//			schema1.MediaTypeManifest,
-		//			schema1.MediaTypeSignedManifest,
-		//			schema2.MediaTypeManifest,
-		//		})
-		//		if err != nil {
-		//			return err
-		//		}
-		//		manifest, desc, err := registry.UnMarshal(mediaType, payload)
-		//		if err != nil {
-		//			return err
-		//		}
-		//		projectQuotaSize = projectQuotaSize + desc.Size
-		//		for _, layer := range manifest.References() {
-		//			_, exist := blobMap[layer.Digest.String()]
-		//			if !exist {
-		//				blobMap[layer.Digest.String()] = layer.Size
-		//				projectQuotaSize = projectQuotaSize + layer.Size
-		//			}
-		//		}
-		//
-		//	}
-		//}
-		//log.Info(" ^^^^^^^^^^^^^^^^^^ ")
-		//log.Info(projectMap[k])
-		//log.Info(projectQuotaCount)
-		//log.Info(projectQuotaSize)
-		//log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
 	}
 
@@ -244,11 +198,6 @@ func getProjectUsage(repoList []string) (quota.ResourceList, error) {
 	projectQuotaCount := int64(0)
 	projectQuotaSize := int64(0)
 
-	usage := quota.ResourceList{
-		quota.ResourceCount:   projectQuotaCount,
-		quota.ResourceStorage: projectQuotaSize,
-	}
-
 	blobMap := make(map[string]int64)
 	for _, repo := range repoList {
 		repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
@@ -285,6 +234,11 @@ func getProjectUsage(repoList []string) (quota.ResourceList, error) {
 			}
 
 		}
+	}
+
+	usage := quota.ResourceList{
+		quota.ResourceCount:   projectQuotaCount,
+		quota.ResourceStorage: projectQuotaSize,
 	}
 
 	return usage, nil
