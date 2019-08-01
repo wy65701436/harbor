@@ -141,7 +141,7 @@ func DumpRegistry() error {
 
 	for project, repos := range repoMap {
 		go func() {
-			usage, err := getProjectUsage(repos)
+			usage, err := getProjectUsage(project, repos)
 			if err != nil {
 				log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
 			}
@@ -179,17 +179,16 @@ func fixQuotaUsage(project string, usage quota.ResourceList) error {
 	return nil
 }
 
-func getProjectUsage(repoList []string) (quota.ResourceList, error) {
+func getProjectUsage(project string, repoList []string) error {
 	projectQuotaCount := int64(0)
 	projectQuotaSize := int64(0)
 
 	blobMap := make(map[string]int64)
 
 	var wg sync.WaitGroup
-
 	for _, repo := range repoList {
-		wg.Add(1)
 
+		wg.Add(1)
 		go func() {
 			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
 			if err != nil {
@@ -222,23 +221,27 @@ func getProjectUsage(repoList []string) (quota.ResourceList, error) {
 					}
 				}
 			}
+			usage := quota.ResourceList{
+				quota.ResourceCount:   projectQuotaCount,
+				quota.ResourceStorage: projectQuotaSize,
+			}
+
+			log.Info(" ================= ")
+			log.Info(projectQuotaCount)
+			log.Info(projectQuotaSize)
+			log.Info(" ================= ")
+
+			if err := fixQuotaUsage(project, usage); err != nil {
+				log.Error(err)
+			}
+
 			wg.Done()
 		}()
 
 		wg.Wait()
 	}
 
-	log.Info(" ================= ")
-	log.Info(projectQuotaCount)
-	log.Info(projectQuotaSize)
-	log.Info(" ================= ")
-
-	usage := quota.ResourceList{
-		quota.ResourceCount:   projectQuotaCount,
-		quota.ResourceStorage: projectQuotaSize,
-	}
-
-	return usage, nil
+	return nil
 
 }
 
