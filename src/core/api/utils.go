@@ -36,6 +36,7 @@ import (
 	coreutils "github.com/goharbor/harbor/src/core/utils"
 
 	"strconv"
+	"sync"
 )
 
 // SyncRegistry syncs the repositories of registry with database.
@@ -138,37 +139,21 @@ func DumpRegistry() error {
 	log.Info(repoMap)
 	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
-	// projectMap : map[project: Map[digest]: size]
-	// projectMap := make(map[string]map[string]int64)
-
 	for project, repos := range repoMap {
-		usage, err := getProjectUsage(repos)
-		if err != nil {
-			log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
-			continue
-		}
-		if err := fixQuotaUsage(project, usage); err != nil {
-			log.Warningf("Error happens when to fix quota for project: %s, with error: %v", project, err)
-			continue
-		}
-
+		go func() {
+			usage, err := getProjectUsage(repos)
+			if err != nil {
+				log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
+			}
+			if err := fixQuotaUsage(project, usage); err != nil {
+				log.Warningf("Error happens when to fix quota for project: %s, with error: %v", project, err)
+			}
+		}()
 	}
 
 	log.Infof("End fixing project quota... ")
 
 	return nil
-}
-
-// GetProjectID ...
-func GetProjectID(name string) (int64, error) {
-	project, err := dao.GetProjectByName(name)
-	if err != nil {
-		return 0, err
-	}
-	if project != nil {
-		return project.ProjectID, nil
-	}
-	return 0, fmt.Errorf("project %s is not found", name)
 }
 
 // fixQuotaUsage fixes the quota usage in the data base.
@@ -199,42 +184,54 @@ func getProjectUsage(repoList []string) (quota.ResourceList, error) {
 	projectQuotaSize := int64(0)
 
 	blobMap := make(map[string]int64)
+
+	var wg sync.WaitGroup
+
 	for _, repo := range repoList {
-		repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
-		if err != nil {
-			log.Errorf("Failed to create repo client.")
-			return nil, err
-		}
-		tags, err := repoClient.ListTag()
-		if err != nil {
-			log.Errorf("Failed to list tags for repo: %s", repo)
-			return nil, err
-		}
-		for _, tag := range tags {
-			projectQuotaCount++
-			_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
-				schema1.MediaTypeManifest,
-				schema1.MediaTypeSignedManifest,
-				schema2.MediaTypeManifest,
-			})
+		wg.Add(1)
+
+		go func() {
+			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
 			if err != nil {
-				return nil, err
+				log.Errorf("Failed to create repo client.")
 			}
-			manifest, desc, err := registry.UnMarshal(mediaType, payload)
+			tags, err := repoClient.ListTag()
 			if err != nil {
-				return nil, err
+				log.Errorf("Failed to list tags for repo: %s", repo)
 			}
-			projectQuotaSize = projectQuotaSize + desc.Size
-			for _, layer := range manifest.References() {
-				_, exist := blobMap[layer.Digest.String()]
-				if !exist {
-					blobMap[layer.Digest.String()] = layer.Size
-					projectQuotaSize = projectQuotaSize + layer.Size
+			for _, tag := range tags {
+				projectQuotaCount++
+				_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
+					schema1.MediaTypeManifest,
+					schema1.MediaTypeSignedManifest,
+					schema2.MediaTypeManifest,
+				})
+				if err != nil {
+					log.Error(err)
+				}
+				manifest, desc, err := registry.UnMarshal(mediaType, payload)
+				if err != nil {
+					log.Error(err)
+				}
+				projectQuotaSize = projectQuotaSize + desc.Size
+				for _, layer := range manifest.References() {
+					_, exist := blobMap[layer.Digest.String()]
+					if !exist {
+						blobMap[layer.Digest.String()] = layer.Size
+						projectQuotaSize = projectQuotaSize + layer.Size
+					}
 				}
 			}
+			wg.Done()
+		}()
 
-		}
+		wg.Wait()
 	}
+
+	log.Info(" ================= ")
+	log.Info(projectQuotaCount)
+	log.Info(projectQuotaSize)
+	log.Info(" ================= ")
 
 	usage := quota.ResourceList{
 		quota.ResourceCount:   projectQuotaCount,
@@ -417,4 +414,16 @@ func repositoryExist(name string, client *registry.Repository) (bool, error) {
 		return false, err
 	}
 	return len(tags) != 0, nil
+}
+
+// GetProjectID ...
+func GetProjectID(name string) (int64, error) {
+	project, err := dao.GetProjectByName(name)
+	if err != nil {
+		return 0, err
+	}
+	if project != nil {
+		return project.ProjectID, nil
+	}
+	return 0, fmt.Errorf("project %s is not found", name)
 }
