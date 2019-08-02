@@ -141,18 +141,23 @@ func DumpRegistry() error {
 
 	//var wgRepoMap sync.WaitGroup
 	//wgRepoMap.Add(len(repoMap))
-	for project, repos := range repoMap {
-		//go func(project string) {
-		//	defer wgRepoMap.Done()
-		//	err := fixProject(project, repos)
-		//	if err != nil {
-		//		log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
-		//	}
-		//}(project)
-		err := fixProject(project, repos)
-		if err != nil {
-			log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
-		}
+	//for project, repos := range repoMap {
+	//	//go func(project string) {
+	//	//	defer wgRepoMap.Done()
+	//	//	err := fixProject(project, repos)
+	//	//	if err != nil {
+	//	//		log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
+	//	//	}
+	//	//}(project)
+	//	err := fixProject(project, repos)
+	//	if err != nil {
+	//		log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
+	//	}
+	//}
+
+	err = fixProject("library", []string{"library/java", "library/node"})
+	if err != nil {
+		log.Warningf("Error happens when to get quota for project: %s, with error: %v", "library", err)
 	}
 	//wgRepoMap.Wait()
 
@@ -185,6 +190,7 @@ func fixQuotaUsage(project string, usage quota.ResourceList) error {
 }
 
 func fixProject(project string, repoList []string) error {
+
 	var wg sync.WaitGroup
 	wg.Add(len(repoList))
 
