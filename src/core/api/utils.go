@@ -247,6 +247,7 @@ func fixProject(project string, repoList []string) error {
 
 		}()
 	}
+	log.Info(" +++++++++++++++++++++++++++ ")
 	wg.Wait()
 
 	projectQuotaCount := int64(0)
