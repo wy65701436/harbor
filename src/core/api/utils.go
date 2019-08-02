@@ -139,18 +139,22 @@ func DumpRegistry() error {
 	log.Info(repoMap)
 	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
-	var wgRepoMap sync.WaitGroup
-	wgRepoMap.Add(len(repoMap))
+	//var wgRepoMap sync.WaitGroup
+	//wgRepoMap.Add(len(repoMap))
 	for project, repos := range repoMap {
-		go func(project string) {
-			defer wgRepoMap.Done()
-			err := fixProject(project, repos)
-			if err != nil {
-				log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
-			}
-		}(project)
+		//go func(project string) {
+		//	defer wgRepoMap.Done()
+		//	err := fixProject(project, repos)
+		//	if err != nil {
+		//		log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
+		//	}
+		//}(project)
+		err := fixProject(project, repos)
+		if err != nil {
+			log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
+		}
 	}
-	wgRepoMap.Wait()
+	//wgRepoMap.Wait()
 
 	log.Infof("End fixing project quota... ")
 
@@ -212,10 +216,12 @@ func fixProject(project string, repoList []string) error {
 				})
 				if err != nil {
 					log.Error(err)
+					continue
 				}
 				manifest, desc, err := registry.UnMarshal(mediaType, payload)
 				if err != nil {
 					log.Error(err)
+					continue
 				}
 				projectQuotaSize = projectQuotaSize + desc.Size
 				for _, layer := range manifest.References() {
