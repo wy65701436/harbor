@@ -139,14 +139,18 @@ func DumpRegistry() error {
 	log.Info(repoMap)
 	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
+	var wgRepoMap sync.WaitGroup
+	wgRepoMap.Add(len(repoMap))
 	for project, repos := range repoMap {
 		go func(project string) {
-			err := getProjectUsage(project, repos)
+			defer wgRepoMap.Done()
+			err := fixProject(project, repos)
 			if err != nil {
 				log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
 			}
 		}(project)
 	}
+	wgRepoMap.Wait()
 
 	log.Infof("End fixing project quota... ")
 
@@ -176,16 +180,21 @@ func fixQuotaUsage(project string, usage quota.ResourceList) error {
 	return nil
 }
 
-func getProjectUsage(project string, repoList []string) error {
+func fixProject(project string, repoList []string) error {
 	var wg sync.WaitGroup
+	wg.Add(len(repoList))
+
+	projectQuotaCountChan := make(chan int64)
+	projectQuotaSizeChan := make(chan int64)
 
 	for _, repo := range repoList {
-		wg.Add(1)
-
 		go func() {
+			defer wg.Done()
+
 			projectQuotaCount := int64(0)
 			projectQuotaSize := int64(0)
 			blobMap := make(map[string]int64)
+
 			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
 			if err != nil {
 				log.Errorf("Failed to create repo client.")
@@ -218,25 +227,38 @@ func getProjectUsage(project string, repoList []string) error {
 				}
 			}
 
-			usage := quota.ResourceList{
-				quota.ResourceCount:   projectQuotaCount,
-				quota.ResourceStorage: projectQuotaSize,
-			}
+			projectQuotaCountChan <- projectQuotaCount
+			projectQuotaSizeChan <- projectQuotaSize
 
-			log.Info(" ================= ")
-			log.Info(project)
-			log.Info(projectQuotaCount)
-			log.Info(projectQuotaSize)
-			log.Info(" ================= ")
+			close(projectQuotaCountChan)
+			close(projectQuotaSizeChan)
 
-			if err := fixQuotaUsage(project, usage); err != nil {
-				log.Error(err)
-			}
-
-			wg.Done()
 		}()
+	}
+	wg.Wait()
 
-		wg.Wait()
+	projectQuotaCount := int64(0)
+	for item := range projectQuotaCountChan {
+		projectQuotaCount = projectQuotaCount + item
+	}
+	projectQuotaSize := int64(0)
+	for item := range projectQuotaCountChan {
+		projectQuotaSize = projectQuotaSize + item
+	}
+
+	usage := quota.ResourceList{
+		quota.ResourceCount:   projectQuotaCount,
+		quota.ResourceStorage: projectQuotaSize,
+	}
+
+	log.Info(" ================= ")
+	log.Info(project)
+	log.Info(projectQuotaCount)
+	log.Info(projectQuotaSize)
+	log.Info(" ================= ")
+
+	if err := fixQuotaUsage(project, usage); err != nil {
+		log.Error(err)
 	}
 
 	return nil
