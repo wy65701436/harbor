@@ -249,13 +249,14 @@ func fixProject(project string, repoList []string) error {
 			projectQuotaCountChan <- projectQuotaCount
 			projectQuotaSizeChan <- projectQuotaSize
 
-			close(projectQuotaCountChan)
-			close(projectQuotaSizeChan)
-
 		}(repo)
 	}
 	log.Info(" +++++++++++++++++++++++++++ ")
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(projectQuotaCountChan)
+		close(projectQuotaSizeChan)
+	}()
 
 	log.Info(" +++++++++++++++++++++++++++ ")
 	projectQuotaCount := int64(0)
