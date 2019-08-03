@@ -194,12 +194,17 @@ func fixProject(project string, repoList []string) error {
 	var wg sync.WaitGroup
 	wg.Add(len(repoList))
 
+	errChan := make(chan error, 1)
+
 	projectQuotaCountChan := make(chan int64)
 	projectQuotaSizeChan := make(chan int64)
 
 	for _, repo := range repoList {
-		go func() {
-			defer wg.Done()
+		go func(repo string) {
+
+			defer func() {
+				wg.Done()
+			}()
 
 			projectQuotaCount := int64(0)
 			projectQuotaSize := int64(0)
@@ -207,11 +212,13 @@ func fixProject(project string, repoList []string) error {
 
 			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
 			if err != nil {
-				log.Errorf("Failed to create repo client.")
+				errChan <- err
+				return
 			}
 			tags, err := repoClient.ListTag()
 			if err != nil {
-				log.Errorf("Failed to list tags for repo: %s", repo)
+				errChan <- err
+				return
 			}
 			for _, tag := range tags {
 				projectQuotaCount++
@@ -221,12 +228,12 @@ func fixProject(project string, repoList []string) error {
 					schema2.MediaTypeManifest,
 				})
 				if err != nil {
-					log.Error(err)
+					errChan <- err
 					continue
 				}
 				manifest, desc, err := registry.UnMarshal(mediaType, payload)
 				if err != nil {
-					log.Error(err)
+					errChan <- err
 					continue
 				}
 				projectQuotaSize = projectQuotaSize + desc.Size
@@ -245,15 +252,18 @@ func fixProject(project string, repoList []string) error {
 			close(projectQuotaCountChan)
 			close(projectQuotaSizeChan)
 
-		}()
+		}(repo)
 	}
 	log.Info(" +++++++++++++++++++++++++++ ")
 	wg.Wait()
 
+	log.Info(" +++++++++++++++++++++++++++ ")
 	projectQuotaCount := int64(0)
 	for item := range projectQuotaCountChan {
 		projectQuotaCount = projectQuotaCount + item
 	}
+
+	log.Info(" +++++++++++++++++++++++++++ ")
 	projectQuotaSize := int64(0)
 	for item := range projectQuotaCountChan {
 		projectQuotaSize = projectQuotaSize + item
