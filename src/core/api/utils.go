@@ -16,8 +16,8 @@ package api
 
 import (
 	"fmt"
-	"github.com/docker/distribution/manifest/schema1"
-	"github.com/docker/distribution/manifest/schema2"
+	//"github.com/docker/distribution/manifest/schema1"
+	//"github.com/docker/distribution/manifest/schema2"
 	"net/http"
 	"sort"
 	"strings"
@@ -220,7 +220,7 @@ func fixProject(project string, repoList []string) error {
 				errChan <- err
 				return
 			}
-			for _ := range tags {
+			for _ = range tags {
 				projectQuotaCount++
 				//_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
 				//	schema1.MediaTypeManifest,
