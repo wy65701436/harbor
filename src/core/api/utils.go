@@ -197,7 +197,7 @@ func fixProject(project string, repoList []string) error {
 	errChan := make(chan error, 1)
 
 	projectQuotaCountChan := make(chan int64)
-	projectQuotaSizeChan := make(chan int64)
+	//projectQuotaSizeChan := make(chan int64)
 
 	for _, repo := range repoList {
 		go func(repo string) {
@@ -207,8 +207,8 @@ func fixProject(project string, repoList []string) error {
 			}()
 
 			projectQuotaCount := int64(0)
-			projectQuotaSize := int64(0)
-			blobMap := make(map[string]int64)
+			//projectQuotaSize := int64(0)
+			//blobMap := make(map[string]int64)
 
 			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
 			if err != nil {
@@ -220,42 +220,43 @@ func fixProject(project string, repoList []string) error {
 				errChan <- err
 				return
 			}
-			for _, tag := range tags {
+			for _ := range tags {
 				projectQuotaCount++
-				_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
-					schema1.MediaTypeManifest,
-					schema1.MediaTypeSignedManifest,
-					schema2.MediaTypeManifest,
-				})
-				if err != nil {
-					errChan <- err
-					continue
-				}
-				manifest, desc, err := registry.UnMarshal(mediaType, payload)
-				if err != nil {
-					errChan <- err
-					continue
-				}
-				projectQuotaSize = projectQuotaSize + desc.Size
-				for _, layer := range manifest.References() {
-					_, exist := blobMap[layer.Digest.String()]
-					if !exist {
-						blobMap[layer.Digest.String()] = layer.Size
-						projectQuotaSize = projectQuotaSize + layer.Size
-					}
-				}
+				//_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
+				//	schema1.MediaTypeManifest,
+				//	schema1.MediaTypeSignedManifest,
+				//	schema2.MediaTypeManifest,
+				//})
+				//if err != nil {
+				//	errChan <- err
+				//	continue
+				//}
+				//manifest, desc, err := registry.UnMarshal(mediaType, payload)
+				//if err != nil {
+				//	errChan <- err
+				//	continue
+				//}
+				//projectQuotaSize = projectQuotaSize + desc.Size
+				//for _, layer := range manifest.References() {
+				//	_, exist := blobMap[layer.Digest.String()]
+				//	if !exist {
+				//		blobMap[layer.Digest.String()] = layer.Size
+				//		projectQuotaSize = projectQuotaSize + layer.Size
+				//	}
+				//}
 			}
 
 			projectQuotaCountChan <- projectQuotaCount
-			projectQuotaSizeChan <- projectQuotaSize
+			//projectQuotaSizeChan <- projectQuotaSize
 
 		}(repo)
 	}
 	log.Info(" +++++++++++++++++++++++++++ ")
+
 	go func() {
 		wg.Wait()
 		close(projectQuotaCountChan)
-		close(projectQuotaSizeChan)
+		//close(projectQuotaSizeChan)
 	}()
 
 	log.Info(" +++++++++++++++++++++++++++ ")
@@ -265,20 +266,20 @@ func fixProject(project string, repoList []string) error {
 	}
 
 	log.Info(" +++++++++++++++++++++++++++ ")
-	projectQuotaSize := int64(0)
-	for item := range projectQuotaCountChan {
-		projectQuotaSize = projectQuotaSize + item
-	}
+	//projectQuotaSize := int64(0)
+	//for item := range projectQuotaSizeChan {
+	//	projectQuotaSize = projectQuotaSize + item
+	//}
 
 	usage := quota.ResourceList{
-		quota.ResourceCount:   projectQuotaCount,
-		quota.ResourceStorage: projectQuotaSize,
+		quota.ResourceCount: projectQuotaCount,
+		//quota.ResourceStorage: projectQuotaSize,
 	}
 
 	log.Info(" ================= ")
 	log.Info(project)
 	log.Info(projectQuotaCount)
-	log.Info(projectQuotaSize)
+	//log.Info(projectQuotaSize)
 	log.Info(" ================= ")
 
 	if err := fixQuotaUsage(project, usage); err != nil {
