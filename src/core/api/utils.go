@@ -197,7 +197,7 @@ func fixProject(project string, repoList []string) error {
 	errChan := make(chan error, 1)
 
 	projectQuotaCountChan := make(chan int64)
-	//projectQuotaSizeChan := make(chan int64)
+	projectQuotaSizeChan := make(chan int64)
 
 	for _, repo := range repoList {
 		go func(repo string) {
@@ -207,7 +207,7 @@ func fixProject(project string, repoList []string) error {
 			}()
 
 			projectQuotaCount := int64(0)
-			//projectQuotaSize := int64(0)
+			projectQuotaSize := int64(0)
 			//blobMap := make(map[string]int64)
 
 			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
@@ -222,6 +222,7 @@ func fixProject(project string, repoList []string) error {
 			}
 			for _ = range tags {
 				projectQuotaCount++
+				projectQuotaSize++
 				//_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
 				//	schema1.MediaTypeManifest,
 				//	schema1.MediaTypeSignedManifest,
@@ -247,7 +248,7 @@ func fixProject(project string, repoList []string) error {
 			}
 
 			projectQuotaCountChan <- projectQuotaCount
-			//projectQuotaSizeChan <- projectQuotaSize
+			projectQuotaSizeChan <- projectQuotaSize
 
 		}(repo)
 	}
@@ -256,7 +257,7 @@ func fixProject(project string, repoList []string) error {
 	go func() {
 		wg.Wait()
 		close(projectQuotaCountChan)
-		//close(projectQuotaSizeChan)
+		close(projectQuotaSizeChan)
 	}()
 
 	log.Info(" +++++++++++++++++++++++++++ ")
@@ -266,14 +267,14 @@ func fixProject(project string, repoList []string) error {
 	}
 
 	log.Info(" +++++++++++++++++++++++++++ ")
-	//projectQuotaSize := int64(0)
-	//for item := range projectQuotaSizeChan {
-	//	projectQuotaSize = projectQuotaSize + item
-	//}
+	projectQuotaSize := int64(0)
+	for item := range projectQuotaSizeChan {
+		projectQuotaSize = projectQuotaSize + item
+	}
 
 	usage := quota.ResourceList{
-		quota.ResourceCount: projectQuotaCount,
-		//quota.ResourceStorage: projectQuotaSize,
+		quota.ResourceCount:   projectQuotaCount,
+		quota.ResourceStorage: projectQuotaSize,
 	}
 
 	log.Info(" ================= ")
