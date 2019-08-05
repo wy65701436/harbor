@@ -195,7 +195,7 @@ func fixProject(project string, repoList []string) error {
 	wg.Add(len(repoList))
 
 	errChan := make(chan error, 1)
-	resChan := make(chan quota.ResourceList)
+	resChan := make(chan interface{})
 
 	for _, repo := range repoList {
 		go func(repo string) {
@@ -277,9 +277,11 @@ func fixProject(project string, repoList []string) error {
 
 	log.Info(" +++++++++++++++++++++++++++ ")
 	for item := range resChan {
-		log.Info(item.String())
+		log.Info(item.(quota.ResourceList)[quota.ResourceCount])
+		log.Info(item.(quota.ResourceList)[quota.ResourceStorage])
 	}
 	log.Info(" +++++++++++++++++++++++++++ ")
+	close(resChan)
 
 	log.Info(" ================= ")
 	log.Info(project)
