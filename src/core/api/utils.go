@@ -258,6 +258,7 @@ func fixProject(project string, repoList []string) error {
 
 	go func() {
 		wg.Wait()
+		close(resChan)
 	}()
 
 	//projectQuotaCount := int64(0)
@@ -281,7 +282,6 @@ func fixProject(project string, repoList []string) error {
 		log.Info(item.(quota.ResourceList)[quota.ResourceStorage])
 	}
 	log.Info(" +++++++++++++++++++++++++++ ")
-	close(resChan)
 
 	log.Info(" ================= ")
 	log.Info(project)
