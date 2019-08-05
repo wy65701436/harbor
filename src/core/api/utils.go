@@ -218,7 +218,7 @@ func fixProject(project string, repoList []string) error {
 				errChan <- err
 				return
 			}
-			for tag := range tags {
+			for _, tag := range tags {
 				projectQuotaCount++
 				_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
 					schema1.MediaTypeManifest,
