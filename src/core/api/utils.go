@@ -195,9 +195,7 @@ func fixProject(project string, repoList []string) error {
 	wg.Add(len(repoList))
 
 	errChan := make(chan error, 1)
-
-	projectQuotaCountChan := make(chan int64)
-	projectQuotaSizeChan := make(chan int64)
+	resChan := make(chan quota.ResourceList)
 
 	for _, repo := range repoList {
 		go func(repo string) {
@@ -247,8 +245,12 @@ func fixProject(project string, repoList []string) error {
 				//}
 			}
 
-			projectQuotaCountChan <- projectQuotaCount
-			projectQuotaSizeChan <- projectQuotaSize
+			usage := quota.ResourceList{
+				quota.ResourceCount:   projectQuotaCount,
+				quota.ResourceStorage: projectQuotaSize,
+			}
+
+			resChan <- usage
 
 		}(repo)
 	}
@@ -256,30 +258,32 @@ func fixProject(project string, repoList []string) error {
 
 	go func() {
 		wg.Wait()
-		close(projectQuotaCountChan)
-		close(projectQuotaSizeChan)
 	}()
 
-	log.Info(" +++++++++++++++++++++++++++ ")
-	projectQuotaCount := int64(0)
-	for item := range projectQuotaCountChan {
-		projectQuotaCount = projectQuotaCount + item
-	}
+	//projectQuotaCount := int64(0)
+	//for item := range projectQuotaCountChan {
+	//	projectQuotaCount = projectQuotaCount + item
+	//}
+	//
+	//log.Info(" +++++++++++++++++++++++++++ ")
+	//projectQuotaSize := int64(0)
+	//for item := range projectQuotaSizeChan {
+	//	projectQuotaSize = projectQuotaSize + item
+	//}
+	//usage := quota.ResourceList{
+	//	quota.ResourceCount:   projectQuotaCount,
+	//	quota.ResourceStorage: projectQuotaSize,
+	//}
 
 	log.Info(" +++++++++++++++++++++++++++ ")
-	projectQuotaSize := int64(0)
-	for item := range projectQuotaSizeChan {
-		projectQuotaSize = projectQuotaSize + item
+	for item := range resChan {
+		log.Info(item.String())
 	}
-
-	usage := quota.ResourceList{
-		quota.ResourceCount:   projectQuotaCount,
-		quota.ResourceStorage: projectQuotaSize,
-	}
+	log.Info(" +++++++++++++++++++++++++++ ")
 
 	log.Info(" ================= ")
 	log.Info(project)
-	log.Info(projectQuotaCount)
+	//log.Info(projectQuotaCount)
 	//log.Info(projectQuotaSize)
 	log.Info(" ================= ")
 
