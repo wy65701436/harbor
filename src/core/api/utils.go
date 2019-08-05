@@ -287,9 +287,9 @@ func fixProject(project string, repoList []string) error {
 	//log.Info(projectQuotaSize)
 	log.Info(" ================= ")
 
-	if err := fixQuotaUsage(project, usage); err != nil {
-		log.Error(err)
-	}
+	//if err := fixQuotaUsage(project, usage); err != nil {
+	//	log.Error(err)
+	//}
 
 	return nil
 
