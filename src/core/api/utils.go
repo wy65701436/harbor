@@ -139,21 +139,22 @@ func DumpRegistry() error {
 	//log.Info(repoMap)
 	//log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
-	done := make(chan bool)
-	defer close(done)
+	var wg sync.WaitGroup
+	wg.Add(len(repoMap))
 	for project, repos := range repoMap {
 		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 		log.Info(project)
 		log.Info(repos)
 		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 		go func(project string, repos []string) {
+			defer wg.Done()
 			err := fixProject(project, repos)
 			if err != nil {
 				log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
 			}
 		}(project, repos)
 	}
-	<-done
+	wg.Wait()
 
 	log.Infof("End fixing project quota... ")
 
