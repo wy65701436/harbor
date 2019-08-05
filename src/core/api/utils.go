@@ -135,13 +135,17 @@ func DumpRegistry() error {
 		}
 	}
 
-	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
-	log.Info(repoMap)
-	log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+	//log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+	//log.Info(repoMap)
+	//log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
 	done := make(chan bool)
 	defer close(done)
 	for project, repos := range repoMap {
+		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
+		log.Info(project)
+		log.Info(repos)
+		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 		go func(project string, repos []string) {
 			err := fixProject(project, repos)
 			if err != nil {
@@ -185,7 +189,6 @@ func fixProject(project string, repoList []string) error {
 	wg.Add(len(repoList))
 
 	errChan := make(chan error, 1)
-	defer close(errChan)
 	resChan := make(chan interface{})
 
 	for _, repo := range repoList {
