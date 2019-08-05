@@ -195,6 +195,7 @@ func fixProject(project string, repoList []string) error {
 	wg.Add(len(repoList))
 
 	errChan := make(chan error, 1)
+	defer close(errChan)
 	resChan := make(chan interface{})
 
 	for _, repo := range repoList {
@@ -261,15 +262,20 @@ func fixProject(project string, repoList []string) error {
 
 	log.Info(" +++++++++++++++++++++++++++ ")
 	log.Info(project)
+	count := int64(0)
+	size := int64(0)
 	for item := range resChan {
-		log.Info(item.(quota.ResourceList)[quota.ResourceCount])
-		log.Info(item.(quota.ResourceList)[quota.ResourceStorage])
+		count = count + item.(quota.ResourceList)[quota.ResourceCount]
+		size = size + item.(quota.ResourceList)[quota.ResourceStorage]
 	}
 	log.Info(" +++++++++++++++++++++++++++ ")
 
-	//if err := fixQuotaUsage(project, usage); err != nil {
-	//	log.Error(err)
-	//}
+	if err := fixQuotaUsage(project, quota.ResourceList{
+		quota.ResourceCount:   count,
+		quota.ResourceStorage: size,
+	}); err != nil {
+		log.Error(err)
+	}
 
 	return nil
 
