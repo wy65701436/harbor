@@ -175,10 +175,11 @@ func fixProject(project string, repoList []string) {
 			resChan <- info
 		}(repo)
 	}
-	timeout := wait(&wg, resChan, 10*time.Hour)
-	if timeout {
-		return
-	}
+
+	go func() {
+		wg.Wait()
+		close(resChan)
+	}()
 
 	if err := fixQuotaUsage(project, resChan); err != nil {
 		errChan <- err
