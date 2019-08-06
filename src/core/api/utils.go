@@ -181,10 +181,6 @@ func fixProject(project string, repoList []string) {
 		close(resChan)
 	}()
 
-	for item := range resChan {
-		log.Info(item)
-	}
-
 	if err := fixQuotaUsage(project, resChan); err != nil {
 		errChan <- err
 	}
@@ -274,6 +270,10 @@ func fixQuotaUsage(project string, resChan chan interface{}) error {
 	var blobs = make(map[string]int64)
 
 	for item := range resChan {
+		log.Info(item)
+	}
+
+	for item := range resChan {
 		count = count + item.(repoInfo).tagCount
 		// Because that there are some shared blobs between repositories, it needs to remove the duplicate items.
 		for digest, size := range item.(repoInfo).blobMap {
@@ -289,6 +289,8 @@ func fixQuotaUsage(project string, resChan chan interface{}) error {
 		size = size + item
 	}
 
+	log.Info(count)
+	log.Info(size)
 	usage := quota.ResourceList{
 		quota.ResourceCount:   count,
 		quota.ResourceStorage: size,
