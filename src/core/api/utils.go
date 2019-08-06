@@ -181,6 +181,10 @@ func fixProject(project string, repoList []string) {
 		close(resChan)
 	}()
 
+	for item := range resChan {
+		log.Info(item)
+	}
+
 	if err := fixQuotaUsage(project, resChan); err != nil {
 		errChan <- err
 	}
