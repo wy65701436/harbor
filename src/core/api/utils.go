@@ -269,10 +269,6 @@ func fixQuotaUsage(project string, resChan chan interface{}) error {
 	size := int64(0)
 	var blobs = make(map[string]int64)
 
-	for item := range resChan {
-		log.Info(item)
-	}
-
 	log.Info("****************")
 	for item := range resChan {
 		log.Info(" ---------------------- ")
@@ -289,6 +285,7 @@ func fixQuotaUsage(project string, resChan chan interface{}) error {
 			}
 		}
 	}
+	log.Info("****************")
 
 	// count size
 	for _, item := range blobs {
