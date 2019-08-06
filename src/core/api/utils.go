@@ -273,6 +273,7 @@ func fixQuotaUsage(project string, resChan chan interface{}) error {
 		log.Info(item)
 	}
 
+	log.Info("****************")
 	for item := range resChan {
 		log.Info(" ---------------------- ")
 		log.Info(item.(repoInfo).tagCount)
