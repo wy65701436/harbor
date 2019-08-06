@@ -274,6 +274,11 @@ func fixQuotaUsage(project string, resChan chan interface{}) error {
 	}
 
 	for item := range resChan {
+		log.Info(" ---------------------- ")
+		log.Info(item.(repoInfo).tagCount)
+		log.Info(item.(repoInfo).blobMap)
+		log.Info(" ---------------------- ")
+
 		count = count + item.(repoInfo).tagCount
 		// Because that there are some shared blobs between repositories, it needs to remove the duplicate items.
 		for digest, size := range item.(repoInfo).blobMap {
