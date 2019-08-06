@@ -72,7 +72,7 @@ func (ia *InternalAPI) RenameAdmin() {
 
 // DumpRegistry ...
 func (ia *InternalAPI) DumpRegistry() {
-	err := DumpRegistry()
+	err := DumpRegistry(ia.ProjectMgr)
 	if err != nil {
 		ia.SendInternalServerError(err)
 		return

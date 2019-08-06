@@ -37,6 +37,7 @@ import (
 
 	"strconv"
 	"sync"
+	"time"
 )
 
 // SyncRegistry syncs the repositories of registry with database.
@@ -112,7 +113,7 @@ func SyncRegistry(pm promgr.ProjectManager) error {
 }
 
 // DumpRegistry dumps the registry data, and compute quota for each project, then to update harbor DB(quota_usage).
-func DumpRegistry() error {
+func DumpRegistry(pm promgr.ProjectManager) error {
 	log.Infof("Start fixing project quota... ")
 
 	reposInRegistry, err := catalog()
@@ -125,44 +126,130 @@ func DumpRegistry() error {
 	repoMap := make(map[string][]string)
 	for _, item := range reposInRegistry {
 		projectName := strings.Split(item, "/")[0]
-		_, exist := repoMap[projectName]
+		pro, err := pm.Get(projectName)
+		if err != nil {
+			log.Errorf("failed to get project %s: %v", projectName, err)
+			continue
+		}
+		_, exist := repoMap[pro.Name]
 		if !exist {
-			repoMap[projectName] = []string{item}
+			repoMap[pro.Name] = []string{item}
 		} else {
-			repos := repoMap[projectName]
+			repos := repoMap[pro.Name]
 			repos = append(repos, item)
-			repoMap[projectName] = repos
+			repoMap[pro.Name] = repos
 		}
 	}
-
-	//log.Info(" ^^^^^^^^^^^^^^^^^^ ")
-	//log.Info(repoMap)
-	//log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 
 	var wg sync.WaitGroup
 	wg.Add(len(repoMap))
 	for project, repos := range repoMap {
-		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
-		log.Info(project)
-		log.Info(repos)
-		log.Info(" ^^^^^^^^^^^^^^^^^^ ")
 		go func(project string, repos []string) {
 			defer wg.Done()
-			err := fixProject(project, repos)
-			if err != nil {
-				log.Warningf("Error happens when to get quota for project: %s, with error: %v", project, err)
-			}
+			fixProject(project, repos)
 		}(project, repos)
 	}
 	wg.Wait()
 
 	log.Infof("End fixing project quota... ")
-
 	return nil
 }
 
+func fixProject(project string, repoList []string) {
+	var wg sync.WaitGroup
+	wg.Add(len(repoList))
+
+	errChan := make(chan error, 1)
+	resChan := make(chan interface{})
+
+	for _, repo := range repoList {
+		go func(repo string) {
+			defer func() {
+				wg.Done()
+			}()
+			info, err := getRepoInfo(repo)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			resChan <- info
+		}(repo)
+	}
+	timeout := wait(&wg, resChan, 10*time.Hour)
+	if timeout {
+		return
+	}
+
+	if err := fixQuotaUsage(project, resChan); err != nil {
+		errChan <- err
+	}
+}
+
+// wait with timeout
+func wait(wg *sync.WaitGroup, resChan chan interface{}, timeout time.Duration) bool {
+	c := make(chan struct{})
+	go func() {
+		defer close(c)
+		wg.Wait()
+		close(resChan)
+	}()
+
+	select {
+	case <-c:
+		return false
+	case <-time.After(timeout):
+		return true
+	}
+}
+
+type repoInfo struct {
+	name     string
+	tagCount int64
+	blobMap  map[string]int64
+}
+
+func getRepoInfo(repo string) (repoInfo, error) {
+	repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
+	if err != nil {
+		return repoInfo{}, err
+	}
+	tags, err := repoClient.ListTag()
+	if err != nil {
+		return repoInfo{}, err
+	}
+	var blobMap = make(map[string]int64)
+	for _, tag := range tags {
+		_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
+			schema1.MediaTypeManifest,
+			schema1.MediaTypeSignedManifest,
+			schema2.MediaTypeManifest,
+		})
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+		manifest, desc, err := registry.UnMarshal(mediaType, payload)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+		blobMap[desc.Digest.String()] = desc.Size
+		for _, layer := range manifest.References() {
+			_, exist := blobMap[layer.Digest.String()]
+			if !exist {
+				blobMap[layer.Digest.String()] = layer.Size
+			}
+		}
+	}
+	return repoInfo{
+		name:     repo,
+		tagCount: int64(len(tags)),
+		blobMap:  blobMap,
+	}, nil
+}
+
 // fixQuotaUsage fixes the quota usage in the data base.
-func fixQuotaUsage(project string, usage quota.ResourceList) error {
+func fixQuotaUsage(project string, resChan chan interface{}) error {
 	infinite := quota.ResourceList{
 		quota.ResourceCount:   -1,
 		quota.ResourceStorage: -1,
@@ -177,103 +264,28 @@ func fixQuotaUsage(project string, usage quota.ResourceList) error {
 		log.Errorf("Error occurred when to new quota manager %v", err)
 		return err
 	}
+	count := int64(0)
+	size := int64(0)
+	var blobs = make(map[string]int64)
+
+	for item := range resChan {
+		count = count + item.(repoInfo).tagCount
+		for digest, size := range item.(repoInfo).blobMap {
+			_, exist := blobs[digest]
+			if !exist {
+				blobs[digest] = size
+			}
+		}
+	}
+	usage := quota.ResourceList{
+		quota.ResourceCount:   count,
+		quota.ResourceStorage: size,
+	}
 	if err := quotaMgr.EnsureQuota(infinite, usage); err != nil {
 		log.Errorf("cannot get quota for the project resource: %d, err: %v", projectID, err)
 		return err
 	}
 	return nil
-}
-
-func fixProject(project string, repoList []string) error {
-
-	var wg sync.WaitGroup
-	wg.Add(len(repoList))
-
-	errChan := make(chan error, 1)
-	resChan := make(chan interface{})
-
-	for _, repo := range repoList {
-		go func(repo string) {
-
-			defer func() {
-				wg.Done()
-			}()
-
-			projectQuotaCount := int64(0)
-			projectQuotaSize := int64(0)
-			blobMap := make(map[string]int64)
-
-			repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
-			if err != nil {
-				errChan <- err
-				return
-			}
-			tags, err := repoClient.ListTag()
-			if err != nil {
-				errChan <- err
-				return
-			}
-			for _, tag := range tags {
-				projectQuotaCount++
-				_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
-					schema1.MediaTypeManifest,
-					schema1.MediaTypeSignedManifest,
-					schema2.MediaTypeManifest,
-				})
-				if err != nil {
-					errChan <- err
-					continue
-				}
-				manifest, desc, err := registry.UnMarshal(mediaType, payload)
-				if err != nil {
-					errChan <- err
-					continue
-				}
-				projectQuotaSize = projectQuotaSize + desc.Size
-				for _, layer := range manifest.References() {
-					_, exist := blobMap[layer.Digest.String()]
-					if !exist {
-						blobMap[layer.Digest.String()] = layer.Size
-						projectQuotaSize = projectQuotaSize + layer.Size
-					}
-				}
-			}
-
-			usage := quota.ResourceList{
-				quota.ResourceCount:   projectQuotaCount,
-				quota.ResourceStorage: projectQuotaSize,
-			}
-
-			resChan <- usage
-
-		}(repo)
-	}
-
-	go func() {
-		wg.Wait()
-		close(resChan)
-	}()
-
-	log.Info(" +++++++++++++++++++++++++++ ")
-	log.Info(project)
-	log.Info(" +++++++++++++++++++++++++++ ")
-
-	count := int64(0)
-	size := int64(0)
-	for item := range resChan {
-		count = count + item.(quota.ResourceList)[quota.ResourceCount]
-		size = size + item.(quota.ResourceList)[quota.ResourceStorage]
-	}
-
-	if err := fixQuotaUsage(project, quota.ResourceList{
-		quota.ResourceCount:   count,
-		quota.ResourceStorage: size,
-	}); err != nil {
-		log.Error(err)
-	}
-
-	return nil
-
 }
 
 func catalog() ([]string, error) {
