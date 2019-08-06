@@ -275,6 +275,7 @@ func fixQuotaUsage(project string, resChan chan interface{}) error {
 
 	for item := range resChan {
 		count = count + item.(repoInfo).tagCount
+		// Because that there are some shared blobs between repositories, it needs to remove the duplicate items.
 		for digest, size := range item.(repoInfo).blobMap {
 			_, exist := blobs[digest]
 			if !exist {
@@ -282,6 +283,12 @@ func fixQuotaUsage(project string, resChan chan interface{}) error {
 			}
 		}
 	}
+
+	// count size
+	for _, item := range blobs {
+		size = size + item
+	}
+
 	usage := quota.ResourceList{
 		quota.ResourceCount:   count,
 		quota.ResourceStorage: size,
