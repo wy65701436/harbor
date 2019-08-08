@@ -241,7 +241,7 @@ func groupAdd(f func(interface{}) (int64, error), datas ...interface{}) {
 	wg.Wait()
 }
 
-func infoOfProject(project string, repoList []string) (*quota.ProjectInfo, error) {
+func infoOfProject(project string, repoList []string) (quota.ProjectInfo, error) {
 	var (
 		repos []quota.RepoData
 		wg    sync.WaitGroup
@@ -299,10 +299,10 @@ func infoOfProject(project string, repoList []string) (*quota.ProjectInfo, error
 	<-done
 
 	if err != nil {
-		return nil, err
+		return quota.ProjectInfo{}, err
 	}
 
-	return &quota.ProjectInfo{
+	return quota.ProjectInfo{
 		Name:  project,
 		Repos: repos,
 	}, nil
