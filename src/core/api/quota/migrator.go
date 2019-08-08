@@ -85,6 +85,9 @@ func Sync(pm promgr.ProjectManager, populate bool) error {
 		}
 		adapter := instanceFunc(pm)
 		data, err := adapter.Dump()
+		log.Info(" -------------------------- ")
+		log.Info(data)
+		log.Info(" -------------------------- ")
 		if err != nil {
 			return err
 		}

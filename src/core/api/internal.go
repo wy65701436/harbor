@@ -22,7 +22,6 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 
-	"fmt"
 	quota "github.com/goharbor/harbor/src/core/api/quota"
 )
 
@@ -80,5 +79,4 @@ func (ia *InternalAPI) SyncQuota() {
 		ia.SendInternalServerError(err)
 		return
 	}
-	fmt.Println()
 }
