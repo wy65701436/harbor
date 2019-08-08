@@ -20,9 +20,9 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/quota"
 	"github.com/goharbor/harbor/src/common/utils/log"
+	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"strconv"
-	"sync"
 )
 
 // QuotaMigrator ...
@@ -70,9 +70,14 @@ func Register(name string, adapter Instance) {
 	adapters[name] = adapter
 }
 
-// Init ...
-func Init(pm promgr.ProjectManager, populate bool) error {
+// Sync ...
+func Sync(pm promgr.ProjectManager, populate bool) error {
 	for name := range adapters {
+		if !config.WithChartMuseum() {
+			if name == "chart" {
+				continue
+			}
+		}
 		instanceFunc, ok := adapters[name]
 		if !ok {
 			err := fmt.Errorf("quota migtator: unknown adapter name %q", name)
@@ -83,16 +88,6 @@ func Init(pm promgr.ProjectManager, populate bool) error {
 		if err != nil {
 			return err
 		}
-		log.Info(" ------------------- ")
-		for _, d := range data {
-			for _, repo := range d.Repos {
-				for _, blob := range repo.Blobs {
-					log.Info(blob.Size)
-				}
-			}
-		}
-		log.Info(data)
-		log.Info(" ------------------- ")
 		usage, err := adapter.Usage(data)
 		if err := ensureQuota(usage); err != nil {
 			return err
@@ -109,43 +104,27 @@ func Init(pm promgr.ProjectManager, populate bool) error {
 
 // ensureQuota updates the quota and quota usage in the data base.
 func ensureQuota(usages []ProjectUsage) error {
-	var wg sync.WaitGroup
-	wg.Add(len(usages))
 	infinite := quota.ResourceList{
 		quota.ResourceCount:   -1,
 		quota.ResourceStorage: -1,
 	}
+	var pid int64
 	for _, usage := range usages {
-		go func(usage ProjectUsage) {
-			defer wg.Done()
-			pid, err := getProjectID(usage.Project)
-			if err != nil {
-				log.Errorf("Error occurred when to get project %v", err)
-				return
-			}
-			quotaMgr, err := quota.NewManager("project", strconv.FormatInt(pid, 10))
-			if err != nil {
-				log.Errorf("Error occurred when to new quota manager %v", err)
-				return
-			}
-			if err := quotaMgr.EnsureQuota(infinite, usage.Used); err != nil {
-				log.Errorf("cannot get quota for the project resource: %s, err: %v", pid, err)
-				return
-			}
-		}(usage)
+		project, err := dao.GetProjectByName(usage.Project)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+		pid = project.ProjectID
+		quotaMgr, err := quota.NewManager("project", strconv.FormatInt(pid, 10))
+		if err != nil {
+			log.Errorf("Error occurred when to new quota manager %v", err)
+			return err
+		}
+		if err := quotaMgr.EnsureQuota(infinite, usage.Used); err != nil {
+			log.Errorf("cannot ensure quota for the project: %s, err: %v", pid, err)
+			return err
+		}
 	}
-	wg.Wait()
 	return nil
-}
-
-// getProjectID ...
-func getProjectID(name string) (int64, error) {
-	project, err := dao.GetProjectByName(name)
-	if err != nil {
-		return 0, err
-	}
-	if project != nil {
-		return project.ProjectID, nil
-	}
-	return 0, fmt.Errorf("project %s is not found", name)
 }

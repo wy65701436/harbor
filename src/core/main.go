@@ -36,7 +36,8 @@ import (
 	_ "github.com/goharbor/harbor/src/core/auth/ldap"
 	_ "github.com/goharbor/harbor/src/core/auth/uaa"
 
-	//_ "github.com/goharbor/harbor/src/core/api/quota/chart"
+	quota "github.com/goharbor/harbor/src/core/api/quota"
+	_ "github.com/goharbor/harbor/src/core/api/quota/chart"
 	_ "github.com/goharbor/harbor/src/core/api/quota/registry"
 
 	"github.com/goharbor/harbor/src/core/config"
@@ -173,11 +174,14 @@ func main() {
 	if err := middlewares.Init(); err != nil {
 		log.Fatalf("init proxy error, %v", err)
 	}
-	// go proxy.StartProxy()
-	//if err := api.DumpRegistry(); err != nil {
-	//	log.Error(err)
-	//}
 
-	// go proxy.StartProxy()
+	// Quota migration
+	usages, err := dao.ListQuotaUsages()
+	if len(usages) <= 1 {
+		if err := quota.Sync(config.GlobalProjectMgr, true); err != nil {
+			log.Errorf("Error happened when syncing quota usage data, %v", err)
+		}
+	}
+
 	beego.Run()
 }

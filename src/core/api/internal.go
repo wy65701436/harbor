@@ -22,6 +22,7 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 
+	"fmt"
 	quota "github.com/goharbor/harbor/src/core/api/quota"
 )
 
@@ -72,11 +73,12 @@ func (ia *InternalAPI) RenameAdmin() {
 	ia.DestroySession()
 }
 
-// DumpRegistry ...
-func (ia *InternalAPI) DumpRegistry() {
-	err := quota.Init(ia.ProjectMgr, false)
+// SyncQuota ...
+func (ia *InternalAPI) SyncQuota() {
+	err := quota.Sync(ia.ProjectMgr, false)
 	if err != nil {
 		ia.SendInternalServerError(err)
 		return
 	}
+	fmt.Println()
 }

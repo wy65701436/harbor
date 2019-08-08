@@ -27,6 +27,7 @@ import (
 	quota "github.com/goharbor/harbor/src/core/api/quota"
 	"github.com/goharbor/harbor/src/core/promgr"
 	coreutils "github.com/goharbor/harbor/src/core/utils"
+	"github.com/pkg/errors"
 	"strings"
 	"sync"
 	"time"
@@ -47,6 +48,12 @@ func NewRegistryMigrator(pm promgr.ProjectManager) quota.QuotaMigrator {
 
 // Load ...
 func (rm *RegistryMigrator) Dump() ([]quota.ProjectInfo, error) {
+	var (
+		projects []quota.ProjectInfo
+		wg       sync.WaitGroup
+		err      error
+	)
+
 	reposInRegistry, err := api.Catalog()
 	if err != nil {
 		return nil, err
@@ -71,26 +78,59 @@ func (rm *RegistryMigrator) Dump() ([]quota.ProjectInfo, error) {
 		}
 	}
 
-	var wg sync.WaitGroup
 	wg.Add(len(repoMap))
+	errChan := make(chan error, 1)
 	infoChan := make(chan interface{})
+	done := make(chan bool, 1)
+
+	go func() {
+		defer func() {
+			done <- true
+		}()
+
+		for {
+			select {
+			case result := <-infoChan:
+				if result == nil {
+					return
+				}
+				project, ok := result.(quota.ProjectInfo)
+				if ok {
+					projects = append(projects, project)
+				}
+
+			case e := <-errChan:
+				if err == nil {
+					err = errors.Wrap(e, "quota sync error on getting info of project")
+				} else {
+					err = errors.Wrap(e, err.Error())
+				}
+			}
+		}
+	}()
+
 	for project, repos := range repoMap {
 		go func(project string, repos []string) {
 			defer wg.Done()
-			info := infoOfProject(project, repos)
+			info, err := infoOfProject(project, repos)
+			if err != nil {
+				errChan <- err
+				return
+			}
 			infoChan <- info
 		}(project, repos)
 	}
 
-	go func() {
-		wg.Wait()
-		close(infoChan)
-	}()
+	wg.Wait()
+	close(infoChan)
 
-	var projects []quota.ProjectInfo
-	for item := range infoChan {
-		projects = append(projects, item.(quota.ProjectInfo))
+	// wait for all of project info
+	<-done
+
+	if err != nil {
+		return nil, err
 	}
+
 	return projects, nil
 }
 
@@ -148,6 +188,7 @@ func (rm *RegistryMigrator) Persist(projects []quota.ProjectInfo) error {
 					}(af)
 				}
 				wg.Wait()
+				//groupAdd(dao.AddArtifact, repo.Afs)
 			}
 			if len(repo.Afnbs) != 0 {
 				var wg sync.WaitGroup
@@ -161,6 +202,7 @@ func (rm *RegistryMigrator) Persist(projects []quota.ProjectInfo) error {
 					}(afnb)
 				}
 				wg.Wait()
+				//groupAdd(dao.AddArtifactNBlob, repo.Afnbs)
 			}
 			if len(repo.Blobs) != 0 {
 				var wg sync.WaitGroup
@@ -174,6 +216,7 @@ func (rm *RegistryMigrator) Persist(projects []quota.ProjectInfo) error {
 					}(blob)
 				}
 				wg.Wait()
+				//groupAdd(dao.AddBlob, repo.Blobs)
 			}
 		}
 	}
@@ -181,12 +224,57 @@ func (rm *RegistryMigrator) Persist(projects []quota.ProjectInfo) error {
 	return nil
 }
 
-func infoOfProject(project string, repoList []string) quota.ProjectInfo {
+func groupAdd(f func(interface{}) (int64, error), datas ...interface{}) {
 	var wg sync.WaitGroup
+	wg.Add(len(datas))
+	for _, data := range datas {
+		go func(data interface{}, f func(interface{}) (int64, error)) {
+			_, err := f(data)
+			if err != nil {
+				log.Error(err)
+			}
+		}(data, f)
+	}
+	wg.Wait()
+}
+
+func infoOfProject(project string, repoList []string) (*quota.ProjectInfo, error) {
+	var (
+		repos []quota.RepoData
+		wg    sync.WaitGroup
+		err   error
+	)
 	wg.Add(len(repoList))
 
 	errChan := make(chan error, 1)
 	infoChan := make(chan interface{})
+	done := make(chan bool, 1)
+
+	go func() {
+		defer func() {
+			done <- true
+		}()
+
+		for {
+			select {
+			case result := <-infoChan:
+				if result == nil {
+					return
+				}
+				repoData, ok := result.(quota.RepoData)
+				if ok {
+					repos = append(repos, repoData)
+				}
+
+			case e := <-errChan:
+				if err == nil {
+					err = errors.Wrap(e, "quota sync error on getting info of repo")
+				} else {
+					err = errors.Wrap(e, err.Error())
+				}
+			}
+		}
+	}()
 
 	for _, repo := range repoList {
 		go func(repo string) {
@@ -202,20 +290,19 @@ func infoOfProject(project string, repoList []string) quota.ProjectInfo {
 		}(repo)
 	}
 
-	go func() {
-		wg.Wait()
-		close(infoChan)
-	}()
+	wg.Wait()
+	close(infoChan)
 
-	var repos []quota.RepoData
-	for item := range infoChan {
-		repos = append(repos, item.(quota.RepoData))
+	<-done
+
+	if err != nil {
+		return nil, err
 	}
 
-	return quota.ProjectInfo{
+	return &quota.ProjectInfo{
 		Name:  project,
 		Repos: repos,
-	}
+	}, nil
 }
 
 func infoOfRepo(repo string) (quota.RepoData, error) {
@@ -239,12 +326,12 @@ func infoOfRepo(repo string) (quota.RepoData, error) {
 		})
 		if err != nil {
 			log.Error(err)
-			continue
+			return quota.RepoData{}, err
 		}
 		manifest, desc, err := registry.UnMarshal(mediaType, payload)
 		if err != nil {
 			log.Error(err)
-			continue
+			return quota.RepoData{}, err
 		}
 		// self
 		afnb := &models.ArtifactAndBlob{
