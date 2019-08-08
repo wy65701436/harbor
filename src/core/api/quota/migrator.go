@@ -84,6 +84,13 @@ func Init(pm promgr.ProjectManager, populate bool) error {
 			return err
 		}
 		log.Info(" ------------------- ")
+		for _, d := range data {
+			for _, repo := range d.Repos {
+				for _, blob := range repo.Blobs {
+					log.Info(blob.Size)
+				}
+			}
+		}
 		log.Info(data)
 		log.Info(" ------------------- ")
 		usage, err := adapter.Usage(data)
