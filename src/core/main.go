@@ -36,7 +36,7 @@ import (
 	_ "github.com/goharbor/harbor/src/core/auth/ldap"
 	_ "github.com/goharbor/harbor/src/core/auth/uaa"
 
-	_ "github.com/goharbor/harbor/src/core/api/quota/chart"
+	//_ "github.com/goharbor/harbor/src/core/api/quota/chart"
 	_ "github.com/goharbor/harbor/src/core/api/quota/registry"
 
 	"github.com/goharbor/harbor/src/core/config"
