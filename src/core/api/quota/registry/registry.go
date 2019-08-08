@@ -94,6 +94,9 @@ func (rm *RegistryMigrator) Dump() ([]quota.ProjectInfo, error) {
 				if result == nil {
 					return
 				}
+				log.Info(" -------------------------- ")
+				log.Info(result)
+				log.Info(" -------------------------- ")
 				project, ok := result.(quota.ProjectInfo)
 				if ok {
 					projects = append(projects, project)
