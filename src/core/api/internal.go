@@ -21,6 +21,8 @@ import (
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
+
+	quota "github.com/goharbor/harbor/src/core/api/quota"
 )
 
 // InternalAPI handles request of harbor admin...
@@ -72,7 +74,7 @@ func (ia *InternalAPI) RenameAdmin() {
 
 // DumpRegistry ...
 func (ia *InternalAPI) DumpRegistry() {
-	err := DumpRegistry(ia.ProjectMgr)
+	err := quota.Init(ia.ProjectMgr, false)
 	if err != nil {
 		ia.SendInternalServerError(err)
 		return

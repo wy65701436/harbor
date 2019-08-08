@@ -16,8 +16,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/docker/distribution/manifest/schema1"
-	"github.com/docker/distribution/manifest/schema2"
 	"net/http"
 	"sort"
 	"strings"
@@ -25,7 +23,6 @@ import (
 	"github.com/goharbor/harbor/src/common/dao"
 	commonhttp "github.com/goharbor/harbor/src/common/http"
 	"github.com/goharbor/harbor/src/common/models"
-	"github.com/goharbor/harbor/src/common/quota"
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/common/utils/registry"
@@ -34,10 +31,6 @@ import (
 	"github.com/goharbor/harbor/src/core/promgr"
 	"github.com/goharbor/harbor/src/core/service/token"
 	coreutils "github.com/goharbor/harbor/src/core/utils"
-
-	"strconv"
-	"sync"
-	"time"
 )
 
 // SyncRegistry syncs the repositories of registry with database.
@@ -45,7 +38,7 @@ func SyncRegistry(pm promgr.ProjectManager) error {
 
 	log.Infof("Start syncing repositories from registry to DB... ")
 
-	reposInRegistry, err := catalog()
+	reposInRegistry, err := Catalog()
 	if err != nil {
 		log.Error(err)
 		return err
@@ -112,200 +105,7 @@ func SyncRegistry(pm promgr.ProjectManager) error {
 	return nil
 }
 
-// DumpRegistry dumps the registry data, and compute quota for each project, then to update harbor DB(quota_usage).
-func DumpRegistry(pm promgr.ProjectManager) error {
-	log.Infof("Start fixing project quota... ")
-
-	reposInRegistry, err := catalog()
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	// repoMap : map[project_name : []repo list]
-	repoMap := make(map[string][]string)
-	for _, item := range reposInRegistry {
-		projectName := strings.Split(item, "/")[0]
-		pro, err := pm.Get(projectName)
-		if err != nil {
-			log.Errorf("failed to get project %s: %v", projectName, err)
-			continue
-		}
-		_, exist := repoMap[pro.Name]
-		if !exist {
-			repoMap[pro.Name] = []string{item}
-		} else {
-			repos := repoMap[pro.Name]
-			repos = append(repos, item)
-			repoMap[pro.Name] = repos
-		}
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(len(repoMap))
-	for project, repos := range repoMap {
-		go func(project string, repos []string) {
-			defer wg.Done()
-			fixProject(project, repos)
-		}(project, repos)
-	}
-	wg.Wait()
-
-	log.Infof("End fixing project quota... ")
-	return nil
-}
-
-func fixProject(project string, repoList []string) {
-	var wg sync.WaitGroup
-	wg.Add(len(repoList))
-
-	errChan := make(chan error, 1)
-	resChan := make(chan interface{})
-
-	for _, repo := range repoList {
-		go func(repo string) {
-			defer func() {
-				wg.Done()
-			}()
-			info, err := getRepoInfo(repo)
-			if err != nil {
-				errChan <- err
-				return
-			}
-			resChan <- info
-		}(repo)
-	}
-
-	go func() {
-		wg.Wait()
-		close(resChan)
-	}()
-
-	if err := fixQuotaUsage(project, resChan); err != nil {
-		errChan <- err
-	}
-}
-
-// wait with timeout
-func wait(wg *sync.WaitGroup, resChan chan interface{}, timeout time.Duration) bool {
-	c := make(chan struct{})
-	go func() {
-		defer close(c)
-		wg.Wait()
-		close(resChan)
-	}()
-
-	select {
-	case <-c:
-		return false
-	case <-time.After(timeout):
-		return true
-	}
-}
-
-type repoInfo struct {
-	name     string
-	tagCount int64
-	blobMap  map[string]int64
-}
-
-func getRepoInfo(repo string) (repoInfo, error) {
-	repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
-	if err != nil {
-		return repoInfo{}, err
-	}
-	tags, err := repoClient.ListTag()
-	if err != nil {
-		return repoInfo{}, err
-	}
-	var blobMap = make(map[string]int64)
-	for _, tag := range tags {
-		_, mediaType, payload, err := repoClient.PullManifest(tag, []string{
-			schema1.MediaTypeManifest,
-			schema1.MediaTypeSignedManifest,
-			schema2.MediaTypeManifest,
-		})
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-		manifest, desc, err := registry.UnMarshal(mediaType, payload)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-		blobMap[desc.Digest.String()] = desc.Size
-		for _, layer := range manifest.References() {
-			_, exist := blobMap[layer.Digest.String()]
-			if !exist {
-				blobMap[layer.Digest.String()] = layer.Size
-			}
-		}
-	}
-	return repoInfo{
-		name:     repo,
-		tagCount: int64(len(tags)),
-		blobMap:  blobMap,
-	}, nil
-}
-
-// fixQuotaUsage fixes the quota usage in the data base.
-func fixQuotaUsage(project string, resChan chan interface{}) error {
-	infinite := quota.ResourceList{
-		quota.ResourceCount:   -1,
-		quota.ResourceStorage: -1,
-	}
-	projectID, err := GetProjectID(project)
-	if err != nil {
-		log.Warningf("Error occurred when to get project ID %v", err)
-		return err
-	}
-	quotaMgr, err := quota.NewManager("project", strconv.FormatInt(projectID, 10))
-	if err != nil {
-		log.Errorf("Error occurred when to new quota manager %v", err)
-		return err
-	}
-	count := int64(0)
-	size := int64(0)
-	var blobs = make(map[string]int64)
-
-	log.Info("****************")
-	for item := range resChan {
-		log.Info(" ---------------------- ")
-		log.Info(item.(repoInfo).tagCount)
-		log.Info(item.(repoInfo).blobMap)
-		log.Info(" ---------------------- ")
-
-		count = count + item.(repoInfo).tagCount
-		// Because that there are some shared blobs between repositories, it needs to remove the duplicate items.
-		for digest, size := range item.(repoInfo).blobMap {
-			_, exist := blobs[digest]
-			if !exist {
-				blobs[digest] = size
-			}
-		}
-	}
-	log.Info("****************")
-
-	// count size
-	for _, item := range blobs {
-		size = size + item
-	}
-
-	log.Info(count)
-	log.Info(size)
-	usage := quota.ResourceList{
-		quota.ResourceCount:   count,
-		quota.ResourceStorage: size,
-	}
-	if err := quotaMgr.EnsureQuota(infinite, usage); err != nil {
-		log.Errorf("cannot get quota for the project resource: %d, err: %v", projectID, err)
-		return err
-	}
-	return nil
-}
-
-func catalog() ([]string, error) {
+func Catalog() ([]string, error) {
 	repositories := []string{}
 
 	rc, err := initRegistryClient()
