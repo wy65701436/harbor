@@ -110,7 +110,7 @@ func (rm *RegistryMigrator) Usage(projects []quota.ProjectInfo) ([]quota.Project
 			for _, blob := range repo.Blobs {
 				_, exist := blobs[blob.Digest]
 				if !exist {
-					blobs[blob.Digest] = size
+					blobs[blob.Digest] = blob.Size
 				}
 			}
 		}
