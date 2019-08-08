@@ -20,8 +20,6 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/quota"
 	"github.com/goharbor/harbor/src/common/utils/log"
-	_ "github.com/goharbor/harbor/src/core/api/quota/chart"
-	_ "github.com/goharbor/harbor/src/core/api/quota/registry"
 	"github.com/goharbor/harbor/src/core/promgr"
 	"strconv"
 	"sync"

@@ -35,6 +35,10 @@ import (
 	_ "github.com/goharbor/harbor/src/core/auth/db"
 	_ "github.com/goharbor/harbor/src/core/auth/ldap"
 	_ "github.com/goharbor/harbor/src/core/auth/uaa"
+
+	_ "github.com/goharbor/harbor/src/core/api/quota/chart"
+	_ "github.com/goharbor/harbor/src/core/api/quota/registry"
+
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/filter"
 	"github.com/goharbor/harbor/src/core/middlewares"
