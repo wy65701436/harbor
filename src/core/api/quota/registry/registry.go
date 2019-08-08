@@ -184,6 +184,7 @@ func (rm *RegistryMigrator) Persist(projects []quota.ProjectInfo) error {
 				wg.Add(len(repo.Afs))
 				for _, af := range repo.Afs {
 					go func(interface{}) {
+						defer wg.Done()
 						_, err := dao.AddArtifact(af)
 						if err != nil {
 							log.Error(err)
@@ -198,6 +199,7 @@ func (rm *RegistryMigrator) Persist(projects []quota.ProjectInfo) error {
 				wg.Add(len(repo.Afs))
 				for _, afnb := range repo.Afnbs {
 					go func(interface{}) {
+						defer wg.Done()
 						_, err := dao.AddArtifactNBlob(afnb)
 						if err != nil {
 							log.Error(err)
@@ -212,6 +214,7 @@ func (rm *RegistryMigrator) Persist(projects []quota.ProjectInfo) error {
 				wg.Add(len(repo.Afs))
 				for _, blob := range repo.Blobs {
 					go func(interface{}) {
+						defer wg.Done()
 						_, err := dao.AddBlob(blob)
 						if err != nil {
 							log.Error(err)
