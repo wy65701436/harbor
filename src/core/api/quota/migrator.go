@@ -83,6 +83,9 @@ func Init(pm promgr.ProjectManager, populate bool) error {
 		if err != nil {
 			return err
 		}
+		log.Info(" ------------------- ")
+		log.Info(data)
+		log.Info(" ------------------- ")
 		usage, err := adapter.Usage(data)
 		if err := ensureQuota(usage); err != nil {
 			return err

@@ -115,9 +115,6 @@ func (rm *RegistryMigrator) Usage(projects []quota.ProjectInfo) ([]quota.Project
 			}
 		}
 		// size
-		log.Info(" ------------------------------ ")
-		log.Info(blobs)
-		log.Info(" ------------------------------ ")
 		for _, item := range blobs {
 			size = size + item
 		}
