@@ -250,6 +250,12 @@ func infoOfProject(project string, repoList []string) (quota.ProjectInfo, error)
 	infoChan := make(chan interface{})
 	done := make(chan bool, 1)
 
+	pro, err := dao.GetProjectByName(project)
+	if err != nil {
+		log.Error(err)
+		return quota.ProjectInfo{}, err
+	}
+
 	go func() {
 		defer func() {
 			done <- true
@@ -277,17 +283,17 @@ func infoOfProject(project string, repoList []string) (quota.ProjectInfo, error)
 	}()
 
 	for _, repo := range repoList {
-		go func(repo string) {
+		go func(pid int64, repo string) {
 			defer func() {
 				wg.Done()
 			}()
-			info, err := infoOfRepo(repo)
+			info, err := infoOfRepo(pid, repo)
 			if err != nil {
 				errChan <- err
 				return
 			}
 			infoChan <- info
-		}(repo)
+		}(pro.ProjectID, repo)
 	}
 
 	wg.Wait()
@@ -305,7 +311,7 @@ func infoOfProject(project string, repoList []string) (quota.ProjectInfo, error)
 	}, nil
 }
 
-func infoOfRepo(repo string) (quota.RepoData, error) {
+func infoOfRepo(pid int64, repo string) (quota.RepoData, error) {
 	repoClient, err := coreutils.NewRepositoryClientForUI("harbor-core", repo)
 	if err != nil {
 		return quota.RepoData{}, err
@@ -354,6 +360,7 @@ func infoOfRepo(repo string) (quota.RepoData, error) {
 			blobs = append(blobs, blob)
 		}
 		af := &models.Artifact{
+			PID:          pid,
 			Repo:         strings.Split(repo, "/")[1],
 			Tag:          tag,
 			Digest:       desc.Digest.String(),
