@@ -92,9 +92,13 @@ func Sync(pm promgr.ProjectManager, populate bool) error {
 		if err := ensureQuota(usage); err != nil {
 			return err
 		}
+		log.Info(" -------------------------------- ")
+		log.Info(data)
+		log.Info(" -------------------------------- ")
 		if !populate {
 			return nil
 		}
+		log.Info(" ********************************** ")
 		if err := adapter.Persist(data); err != nil {
 			return err
 		}
