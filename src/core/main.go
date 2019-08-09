@@ -78,6 +78,30 @@ func updateInitPassword(userID int, password string) error {
 	return nil
 }
 
+// Quota migration
+func quotaSync() error {
+	usages, err := dao.ListQuotaUsages()
+	if err != nil {
+		log.Errorf("list quota usage error, %v", err)
+		return err
+	}
+	projects, err := dao.GetProjects(nil)
+	if err != nil {
+		log.Errorf("list project error, %v", err)
+		return err
+	}
+
+	// upgrade from old version
+	if len(projects) > 1 && len(usages) == 1 {
+		if err := quota.Sync(config.GlobalProjectMgr, true); err != nil {
+			log.Errorf("Error happened when syncing quota usage data, %v", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
 func gracefulShutdown(closing chan struct{}) {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -175,12 +199,8 @@ func main() {
 		log.Fatalf("init proxy error, %v", err)
 	}
 
-	// Quota migration
-	usages, err := dao.ListQuotaUsages()
-	if len(usages) <= 1 {
-		if err := quota.Sync(config.GlobalProjectMgr, true); err != nil {
-			log.Errorf("Error happened when syncing quota usage data, %v", err)
-		}
+	if err := quotaSync(); err != nil {
+		log.Fatalf("quota migration error, %v", err)
 	}
 
 	beego.Run()

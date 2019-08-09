@@ -15,7 +15,6 @@
 package chart
 
 import (
-	"errors"
 	"fmt"
 	"github.com/goharbor/harbor/src/chartserver"
 	"github.com/goharbor/harbor/src/common/dao"
@@ -25,6 +24,7 @@ import (
 	quota "github.com/goharbor/harbor/src/core/api/quota"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/promgr"
+	"github.com/pkg/errors"
 	"net/url"
 	"strings"
 	"sync"
@@ -52,19 +52,53 @@ var (
 // Dump ...
 // Depends on DB to dump chart data, as chart cannot get all of namespaces.
 func (rm *ChartMigrator) Dump() ([]quota.ProjectInfo, error) {
-	projects, err := dao.GetProjects(nil)
+	var (
+		projects []quota.ProjectInfo
+		wg       sync.WaitGroup
+		err      error
+	)
+
+	all, err := dao.GetProjects(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(len(projects))
+	wg.Add(len(all))
+	errChan := make(chan error, 1)
 	infoChan := make(chan interface{})
+	done := make(chan bool, 1)
 
-	for _, project := range projects {
+	go func() {
+		defer func() {
+			done <- true
+		}()
+
+		for {
+			select {
+			case result := <-infoChan:
+				if result == nil {
+					return
+				}
+				project, ok := result.(quota.ProjectInfo)
+				if ok {
+					projects = append(projects, project)
+				}
+
+			case e := <-errChan:
+				if err == nil {
+					err = errors.Wrap(e, "quota sync error on getting info of project")
+				} else {
+					err = errors.Wrap(e, err.Error())
+				}
+			}
+		}
+	}()
+
+	for _, project := range all {
 		go func(project *models.Project) {
 			defer wg.Done()
 
+			var repos []quota.RepoData
 			var afs []*models.Artifact
 
 			ctr, err := chartController()
@@ -76,6 +110,8 @@ func (rm *ChartMigrator) Dump() ([]quota.ProjectInfo, error) {
 			if err != nil {
 				log.Error(err)
 			}
+
+			// repo
 			for _, chart := range chartInfo {
 				chartVersions, err := ctr.GetChart(project.Name, chart.Name)
 				if err != nil {
@@ -91,23 +127,32 @@ func (rm *ChartMigrator) Dump() ([]quota.ProjectInfo, error) {
 					}
 					afs = append(afs, af)
 				}
+				repoData := quota.RepoData{
+					Name: project.Name,
+					Afs:  afs,
+				}
+				repos = append(repos, repoData)
 			}
 
-			repoData := quota.RepoData{
-				Name: project.Name,
-				Afs:  afs,
+			projectInfo := quota.ProjectInfo{
+				Name:  project.Name,
+				Repos: repos,
 			}
 
-			infoChan <- repoData
+			infoChan <- projectInfo
 		}(project)
 	}
 
-	go func() {
-		wg.Done()
-		close(infoChan)
-	}()
+	wg.Done()
+	close(infoChan)
 
-	return nil, nil
+	<-done
+
+	if err != nil {
+		return nil, err
+	}
+
+	return projects, nil
 }
 
 // Usage ...
