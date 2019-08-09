@@ -74,7 +74,7 @@ func (ia *InternalAPI) RenameAdmin() {
 
 // SyncQuota ...
 func (ia *InternalAPI) SyncQuota() {
-	err := quota.Sync(ia.ProjectMgr, false)
+	err := quota.Sync(ia.ProjectMgr, true)
 	if err != nil {
 		ia.SendInternalServerError(err)
 		return

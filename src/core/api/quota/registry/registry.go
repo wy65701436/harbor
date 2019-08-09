@@ -195,6 +195,9 @@ func persistAf(afs []*models.Artifact) error {
 		for _, af := range afs {
 			_, err := dao.AddArtifact(af)
 			if err != nil {
+				if err == dao.ErrDupRows {
+					continue
+				}
 				log.Error(err)
 				return err
 			}
@@ -208,6 +211,9 @@ func persistAfnbs(afnbs []*models.ArtifactAndBlob) error {
 		for _, afnb := range afnbs {
 			_, err := dao.AddArtifactNBlob(afnb)
 			if err != nil {
+				if err == dao.ErrDupRows {
+					continue
+				}
 				log.Error(err)
 				return err
 			}
@@ -221,6 +227,9 @@ func persistBlob(blobs []*models.Blob) error {
 		for _, blob := range blobs {
 			_, err := dao.AddBlob(blob)
 			if err != nil {
+				if err == dao.ErrDupRows {
+					continue
+				}
 				log.Error(err)
 				return err
 			}
