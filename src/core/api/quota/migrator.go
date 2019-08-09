@@ -27,10 +27,13 @@ import (
 
 // QuotaMigrator ...
 type QuotaMigrator interface {
+	// Dump exports all data from backend service, registry, chartmuseum
 	Dump() ([]ProjectInfo, error)
 
+	// Usage computes the quota usage of all the projects
 	Usage([]ProjectInfo) ([]ProjectUsage, error)
 
+	// Persist record the data to DB, artifact, artifact_blob and blob tabel.
 	Persist([]ProjectInfo) error
 }
 
@@ -92,11 +95,7 @@ func Sync(pm promgr.ProjectManager, populate bool) error {
 		if err := ensureQuota(usage); err != nil {
 			return err
 		}
-		log.Info(" -------------------------------- ")
-		log.Info(data)
-		log.Info(" -------------------------------- ")
 		if populate {
-			log.Info(" ********************************** ")
 			if err := adapter.Persist(data); err != nil {
 				return err
 			}
