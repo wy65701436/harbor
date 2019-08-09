@@ -93,10 +93,12 @@ func quotaSync() error {
 
 	// upgrade from old version
 	if len(projects) > 1 && len(usages) == 1 {
+		log.Info("Start to sync quota data .....")
 		if err := quota.Sync(config.GlobalProjectMgr, true); err != nil {
 			log.Errorf("Error happened when syncing quota usage data, %v", err)
 			return err
 		}
+		log.Info("Success to sync quota data .....")
 	}
 
 	return nil
