@@ -94,9 +94,6 @@ func (rm *RegistryMigrator) Dump() ([]quota.ProjectInfo, error) {
 				if result == nil {
 					return
 				}
-				log.Info(" -------------------------- ")
-				log.Info(result)
-				log.Info(" -------------------------- ")
 				project, ok := result.(quota.ProjectInfo)
 				if ok {
 					projects = append(projects, project)
@@ -179,69 +176,57 @@ func (rm *RegistryMigrator) Usage(projects []quota.ProjectInfo) ([]quota.Project
 func (rm *RegistryMigrator) Persist(projects []quota.ProjectInfo) error {
 	for _, project := range projects {
 		for _, repo := range project.Repos {
-			if len(repo.Afs) != 0 {
-				var wg sync.WaitGroup
-				wg.Add(len(repo.Afs))
-				for _, af := range repo.Afs {
-					go func(interface{}) {
-						defer wg.Done()
-						_, err := dao.AddArtifact(af)
-						if err != nil {
-							log.Error(err)
-						}
-					}(af)
-				}
-				wg.Wait()
-				//groupAdd(dao.AddArtifact, repo.Afs)
+			if err := persistAf(repo.Afs); err != nil {
+				return err
 			}
-			if len(repo.Afnbs) != 0 {
-				var wg sync.WaitGroup
-				wg.Add(len(repo.Afs))
-				for _, afnb := range repo.Afnbs {
-					go func(interface{}) {
-						defer wg.Done()
-						_, err := dao.AddArtifactNBlob(afnb)
-						if err != nil {
-							log.Error(err)
-						}
-					}(afnb)
-				}
-				wg.Wait()
-				//groupAdd(dao.AddArtifactNBlob, repo.Afnbs)
+			if err := persistAfnbs(repo.Afnbs); err != nil {
+				return err
 			}
-			if len(repo.Blobs) != 0 {
-				var wg sync.WaitGroup
-				wg.Add(len(repo.Afs))
-				for _, blob := range repo.Blobs {
-					go func(interface{}) {
-						defer wg.Done()
-						_, err := dao.AddBlob(blob)
-						if err != nil {
-							log.Error(err)
-						}
-					}(blob)
-				}
-				wg.Wait()
-				//groupAdd(dao.AddBlob, repo.Blobs)
+			if err := persistBlob(repo.Blobs); err != nil {
+				return err
 			}
 		}
 	}
-
 	return nil
 }
 
-func groupAdd(f func(interface{}) (int64, error), datas ...interface{}) {
-	var wg sync.WaitGroup
-	wg.Add(len(datas))
-	for _, data := range datas {
-		go func(data interface{}, f func(interface{}) (int64, error)) {
-			_, err := f(data)
+func persistAf(afs []*models.Artifact) error {
+	if len(afs) != 0 {
+		for _, af := range afs {
+			_, err := dao.AddArtifact(af)
 			if err != nil {
 				log.Error(err)
+				return err
 			}
-		}(data, f)
+		}
 	}
-	wg.Wait()
+	return nil
+}
+
+func persistAfnbs(afnbs []*models.ArtifactAndBlob) error {
+	if len(afnbs) != 0 {
+		for _, afnb := range afnbs {
+			_, err := dao.AddArtifactNBlob(afnb)
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func persistBlob(blobs []*models.Blob) error {
+	if len(blobs) != 0 {
+		for _, blob := range blobs {
+			_, err := dao.AddBlob(blob)
+			if err != nil {
+				log.Error(err)
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func infoOfProject(project string, repoList []string) (quota.ProjectInfo, error) {
