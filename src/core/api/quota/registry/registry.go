@@ -46,7 +46,7 @@ func NewRegistryMigrator(pm promgr.ProjectManager) quota.QuotaMigrator {
 	return &migrator
 }
 
-// Load ...
+// Dump ...
 func (rm *RegistryMigrator) Dump() ([]quota.ProjectInfo, error) {
 	var (
 		projects []quota.ProjectInfo
