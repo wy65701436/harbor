@@ -193,6 +193,20 @@ func (m *Manager) UpdateQuota(hardLimits types.ResourceList) error {
 	return err
 }
 
+func (m *Manager) SetResourceUsage(resource types.ResourceName, value int64) error {
+	o := dao.GetOrmer()
+	if err := m.driver.Validate(types.ResourceList{
+		resource: value,
+	}); err != nil {
+		return err
+	}
+
+	sql := `UPDATE quota_usage SET used = jsonb_set(used, '{?}', '?'::jsonb, true) WHERE reference = ? AND reference_id = ?`
+	_, err := o.Raw(sql, resource, value, m.reference, m.referenceID).Exec()
+
+	return err
+}
+
 // EnsureQuota ensures the reference has quota and usage,
 // if non-existent, will create new quota and usage.
 // if existent, update the quota and usage.
