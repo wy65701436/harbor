@@ -133,29 +133,30 @@ func (suite *GetExclusiveBlobsSuite) mustPrepareImage(projectID int64, projectNa
 
 func (suite *GetExclusiveBlobsSuite) TestInSameRepository() {
 	withProject(func(projectID int64, projectName string) {
+
 		digest1 := digest.FromString(utils.GenerateRandomString()).String()
 		digest2 := digest.FromString(utils.GenerateRandomString()).String()
 		digest3 := digest.FromString(utils.GenerateRandomString()).String()
 
 		manifest1 := suite.mustPrepareImage(projectID, projectName, "mysql", "latest", digest1, digest2)
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest1); suite.Nil(err) {
-			suite.Len(blobs, 2)
+			suite.Len(blobs, 3)
 		}
 
 		manifest2 := suite.mustPrepareImage(projectID, projectName, "mysql", "8.0", digest1, digest2)
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest2); suite.Nil(err) {
-			suite.Len(blobs, 2)
+			suite.Len(blobs, 3)
 		}
 
 		manifest3 := suite.mustPrepareImage(projectID, projectName, "mysql", "dev", digest1, digest2, digest3)
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest1); suite.Nil(err) {
-			suite.Len(blobs, 0)
+			suite.Len(blobs, 1)
 		}
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest2); suite.Nil(err) {
-			suite.Len(blobs, 0)
+			suite.Len(blobs, 1)
 		}
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest3); suite.Nil(err) {
-			suite.Len(blobs, 1)
+			suite.Len(blobs, 2)
 			suite.Equal(digest3, blobs[0].Digest)
 		}
 	})
@@ -169,7 +170,7 @@ func (suite *GetExclusiveBlobsSuite) TestInDifferentRepositories() {
 
 		manifest1 := suite.mustPrepareImage(projectID, projectName, "mysql", "latest", digest1, digest2)
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest1); suite.Nil(err) {
-			suite.Len(blobs, 2)
+			suite.Len(blobs, 3)
 		}
 
 		manifest2 := suite.mustPrepareImage(projectID, projectName, "mariadb", "latest", digest1, digest2)
@@ -188,7 +189,7 @@ func (suite *GetExclusiveBlobsSuite) TestInDifferentRepositories() {
 			suite.Len(blobs, 0)
 		}
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest3); suite.Nil(err) {
-			suite.Len(blobs, 1)
+			suite.Len(blobs, 2)
 			suite.Equal(digest3, blobs[0].Digest)
 		}
 	})
@@ -201,16 +202,16 @@ func (suite *GetExclusiveBlobsSuite) TestInDifferentProjects() {
 
 		manifest1 := suite.mustPrepareImage(projectID, projectName, "mysql", "latest", digest1, digest2)
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest1); suite.Nil(err) {
-			suite.Len(blobs, 2)
+			suite.Len(blobs, 3)
 		}
 
 		withProject(func(id int64, name string) {
 			manifest2 := suite.mustPrepareImage(id, name, "mysql", "latest", digest1, digest2)
 			if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest1); suite.Nil(err) {
-				suite.Len(blobs, 2)
+				suite.Len(blobs, 3)
 			}
 			if blobs, err := GetExclusiveBlobs(id, name+"/mysql", manifest2); suite.Nil(err) {
-				suite.Len(blobs, 2)
+				suite.Len(blobs, 3)
 			}
 		})
 
