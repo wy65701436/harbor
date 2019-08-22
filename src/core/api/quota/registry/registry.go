@@ -68,6 +68,7 @@ func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 	// repoMap : map[project_name : []repo list]
 	repoMap := make(map[string][]string)
 	for _, item := range reposInRegistry {
+		log.Info(" =============================== ")
 		log.Info(item)
 		log.Info(" =============================== ")
 		projectName := strings.Split(item, "/")[0]
@@ -76,9 +77,6 @@ func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 			log.Errorf("failed to get project %s: %v", projectName, err)
 			continue
 		}
-		log.Info(" ---------------- ")
-		log.Info(repoMap)
-		log.Info(" ---------------- ")
 		_, exist := repoMap[pro.Name]
 		if !exist {
 			repoMap[pro.Name] = []string{item}
@@ -91,9 +89,9 @@ func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 		}
 	}
 
-	log.Info(" ---------------- ")
+	log.Info("#####################################################")
 	log.Info(repoMap)
-	log.Info(" ---------------- ")
+	log.Info("#####################################################")
 
 	//wg.Add(len(repoMap))
 	//errChan := make(chan error, 1)
