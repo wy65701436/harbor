@@ -73,10 +73,6 @@ func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 			log.Errorf("failed to get project %s: %v", projectName, err)
 			continue
 		}
-		log.Info(" ---------------- ")
-		log.Info(repoMap)
-		log.Info(pro.Name)
-		log.Info(" ---------------- ")
 		_, exist := repoMap[pro.Name]
 		if !exist {
 			repoMap[pro.Name] = []string{item}
@@ -86,6 +82,10 @@ func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 			repoMap[pro.Name] = repos
 		}
 	}
+
+	log.Info(" ---------------- ")
+	log.Info(repoMap)
+	log.Info(" ---------------- ")
 
 	wg.Add(len(repoMap))
 	errChan := make(chan error, 1)
