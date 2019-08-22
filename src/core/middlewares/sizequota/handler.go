@@ -59,7 +59,7 @@ func (h *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 		log.Warningf("Error occurred when to handle request in size quota handler: %v", err)
 		//http.Error(rw, util.MarshalError("InternalError", fmt.Sprintf("Error occurred when to handle request in size quota handler: %v", err)),
 		//	http.StatusInternalServerError)
-		http.Error(rw, util.MarshalError("UNAUTHORIZED", "Out of quota...."), http.StatusUnauthorized)
+		http.Error(rw, util.MarshalError("UNSUPPORTED", "Out of quota...."), http.StatusMethodNotAllowed)
 		return
 	}
 
