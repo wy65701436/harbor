@@ -75,6 +75,7 @@ func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 		}
 		log.Info(" ---------------- ")
 		log.Info(repoMap)
+		log.Info(pro.Name)
 		log.Info(" ---------------- ")
 		_, exist := repoMap[pro.Name]
 		if !exist {
