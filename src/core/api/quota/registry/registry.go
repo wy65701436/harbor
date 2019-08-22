@@ -55,8 +55,8 @@ func (rm *Migrator) Ping() error {
 func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 	var (
 		projects []quota.ProjectInfo
-		wg       sync.WaitGroup
-		err      error
+		//wg       sync.WaitGroup
+		err error
 	)
 
 	reposInRegistry, err := api.Catalog()
@@ -73,13 +73,18 @@ func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 			log.Errorf("failed to get project %s: %v", projectName, err)
 			continue
 		}
+		log.Info(" ---------------- ")
+		log.Info(repoMap)
+		log.Info(" ---------------- ")
 		_, exist := repoMap[pro.Name]
 		if !exist {
 			repoMap[pro.Name] = []string{item}
+			log.Info(repoMap[pro.Name])
 		} else {
 			repos := repoMap[pro.Name]
 			repos = append(repos, item)
 			repoMap[pro.Name] = repos
+			log.Info(repoMap[pro.Name])
 		}
 	}
 
@@ -87,58 +92,58 @@ func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 	log.Info(repoMap)
 	log.Info(" ---------------- ")
 
-	wg.Add(len(repoMap))
-	errChan := make(chan error, 1)
-	infoChan := make(chan interface{})
-	done := make(chan bool, 1)
+	//wg.Add(len(repoMap))
+	//errChan := make(chan error, 1)
+	//infoChan := make(chan interface{})
+	//done := make(chan bool, 1)
 
-	go func() {
-		defer func() {
-			done <- true
-		}()
-
-		for {
-			select {
-			case result := <-infoChan:
-				if result == nil {
-					return
-				}
-				project, ok := result.(quota.ProjectInfo)
-				if ok {
-					projects = append(projects, project)
-				}
-
-			case e := <-errChan:
-				if err == nil {
-					err = errors.Wrap(e, "quota sync error on getting info of project")
-				} else {
-					err = errors.Wrap(e, err.Error())
-				}
-			}
-		}
-	}()
-
-	for project, repos := range repoMap {
-		go func(project string, repos []string) {
-			defer wg.Done()
-			info, err := infoOfProject(project, repos)
-			if err != nil {
-				errChan <- err
-				return
-			}
-			infoChan <- info
-		}(project, repos)
-	}
-
-	wg.Wait()
-	close(infoChan)
-
-	// wait for all of project info
-	<-done
-
-	if err != nil {
-		return nil, err
-	}
+	//go func() {
+	//	defer func() {
+	//		done <- true
+	//	}()
+	//
+	//	for {
+	//		select {
+	//		case result := <-infoChan:
+	//			if result == nil {
+	//				return
+	//			}
+	//			project, ok := result.(quota.ProjectInfo)
+	//			if ok {
+	//				projects = append(projects, project)
+	//			}
+	//
+	//		case e := <-errChan:
+	//			if err == nil {
+	//				err = errors.Wrap(e, "quota sync error on getting info of project")
+	//			} else {
+	//				err = errors.Wrap(e, err.Error())
+	//			}
+	//		}
+	//	}
+	//}()
+	//
+	//for project, repos := range repoMap {
+	//	go func(project string, repos []string) {
+	//		defer wg.Done()
+	//		info, err := infoOfProject(project, repos)
+	//		if err != nil {
+	//			errChan <- err
+	//			return
+	//		}
+	//		infoChan <- info
+	//	}(project, repos)
+	//}
+	//
+	//wg.Wait()
+	//close(infoChan)
+	//
+	//// wait for all of project info
+	//<-done
+	//
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return projects, nil
 }
