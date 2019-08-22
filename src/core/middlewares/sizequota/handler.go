@@ -59,7 +59,7 @@ func (h *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 	if err := interceptor.HandleRequest(req); err != nil {
 		log.Warningf("Error occurred when to handle request in size quota handler: %v", err)
 		if strings.Contains(err.Error(), "resource overflow the hard limit") {
-			http.Error(rw, util.MarshalError("DENIED", "Out of quota...."), http.StatusForbidden)
+			http.Error(rw, util.MarshalError("DENIED", fmt.Sprintf("Not enough quota is available to process the request, %v", err)), http.StatusForbidden)
 			return
 		}
 
