@@ -20,7 +20,6 @@ import (
 
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils"
-	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -152,20 +151,14 @@ func (suite *GetExclusiveBlobsSuite) TestInSameRepository() {
 		manifest3 := suite.mustPrepareImage(projectID, projectName, "mysql", "dev", digest1, digest2, digest3)
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest1); suite.Nil(err) {
 			suite.Len(blobs, 1)
+			suite.Equal(manifest1, blobs[0].Digest)
 		}
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest2); suite.Nil(err) {
 			suite.Len(blobs, 1)
+			suite.Equal(manifest2, blobs[0].Digest)
 		}
-		blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest3)
-		log.Info("=============")
-		for _, blob := range blobs {
-			log.Info(blob.Digest)
-		}
-		log.Info(manifest3)
-		log.Info("=============")
-		if err != nil {
+		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest3); suite.Nil(err) {
 			suite.Len(blobs, 2)
-			suite.Equal(manifest3, blobs[0].Digest)
 		}
 
 	})
@@ -199,7 +192,6 @@ func (suite *GetExclusiveBlobsSuite) TestInDifferentRepositories() {
 		}
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest3); suite.Nil(err) {
 			suite.Len(blobs, 2)
-			suite.Equal(manifest3, blobs[0].Digest)
 		}
 	})
 }
