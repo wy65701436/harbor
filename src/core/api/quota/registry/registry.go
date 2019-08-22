@@ -63,10 +63,13 @@ func (rm *Migrator) Dump() ([]quota.ProjectInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Info(reposInRegistry)
 
 	// repoMap : map[project_name : []repo list]
 	repoMap := make(map[string][]string)
 	for _, item := range reposInRegistry {
+		log.Info(item)
+		log.Info(" =============================== ")
 		projectName := strings.Split(item, "/")[0]
 		pro, err := rm.pm.Get(projectName)
 		if err != nil {
