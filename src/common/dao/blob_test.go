@@ -158,7 +158,10 @@ func (suite *GetExclusiveBlobsSuite) TestInSameRepository() {
 		}
 		blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest3)
 		log.Info("=============")
-		log.Info(blobs)
+		for _, blob := range blobs {
+			log.Info(blob.Digest)
+		}
+		log.Info(manifest3)
 		log.Info("=============")
 		if err != nil {
 			suite.Len(blobs, 2)
