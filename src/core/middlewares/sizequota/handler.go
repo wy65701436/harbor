@@ -21,6 +21,7 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/middlewares/interceptor"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
+	"strings"
 )
 
 type sizeQuotaHandler struct {
@@ -57,8 +58,12 @@ func (h *sizeQuotaHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 
 	if err := interceptor.HandleRequest(req); err != nil {
 		log.Warningf("Error occurred when to handle request in size quota handler: %v", err)
-		//
-		http.Error(rw, util.MarshalError("DENIED", "Out of quota...."), http.StatusForbidden)
+		if strings.Contains(err.Error(), "resource overflow the hard limit") {
+			http.Error(rw, util.MarshalError("DENIED", "Out of quota...."), http.StatusForbidden)
+			return
+		}
+
+		http.Error(rw, util.MarshalError("UNAUTHORIZED", "Out of quota...."), http.StatusUnauthorized)
 		return
 	}
 
