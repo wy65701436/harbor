@@ -157,7 +157,7 @@ func (suite *GetExclusiveBlobsSuite) TestInSameRepository() {
 		}
 		if blobs, err := GetExclusiveBlobs(projectID, projectName+"/mysql", manifest3); suite.Nil(err) {
 			suite.Len(blobs, 2)
-			suite.Equal(digest3, blobs[0].Digest)
+			suite.Equal(manifest3, blobs[0].Digest)
 		}
 	})
 }
