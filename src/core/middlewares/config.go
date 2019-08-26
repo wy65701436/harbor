@@ -25,13 +25,14 @@ const (
 	VULNERABLE       = "vulnerable"
 	SIZEQUOTA        = "sizequota"
 	COUNTQUOTA       = "countquota"
+	DUMP             = "dump"
 )
 
 // ChartMiddlewares middlewares for chart server
 var ChartMiddlewares = []string{CHART}
 
 // Middlewares with sequential organization
-var Middlewares = []string{READONLY, URL, MUITIPLEMANIFEST, LISTREPO, CONTENTTRUST, VULNERABLE, SIZEQUOTA, COUNTQUOTA}
+var Middlewares = []string{READONLY, URL, MUITIPLEMANIFEST, LISTREPO, CONTENTTRUST, VULNERABLE, SIZEQUOTA, COUNTQUOTA, DUMP}
 
 // MiddlewaresLocal ...
 var MiddlewaresLocal = []string{SIZEQUOTA, COUNTQUOTA}
