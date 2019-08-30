@@ -10,6 +10,7 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/rbac"
 	"github.com/goharbor/harbor/src/common/utils"
+	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification"
 )
 
@@ -300,6 +301,9 @@ func (w *NotificationPolicyAPI) validateTargets(policy *models.NotificationPolic
 		}
 		// Prevent SSRF security issue #3755
 		target.Address = url.Scheme + "://" + url.Host + url.Path
+		log.Info(" ==========================")
+		log.Info(target.Address)
+		log.Info(" ==========================")
 
 		_, ok := notification.SupportedNotifyTypes[target.Type]
 		if !ok {
