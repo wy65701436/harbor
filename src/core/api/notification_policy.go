@@ -306,10 +306,6 @@ func (w *NotificationPolicyAPI) validateTargets(policy *models.NotificationPolic
 		}
 		// Prevent SSRF security issue #3755
 		target.Address = url.Scheme + "://" + url.Host + url.Path
-		log.Info(" ==========================")
-		log.Info(target.Address)
-		log.Info(" ==========================")
-
 		_, ok := notification.SupportedNotifyTypes[target.Type]
 		if !ok {
 			w.SendBadRequestError(fmt.Errorf("unsupport target type %s with policy %s", target.Type, policy.Name))
