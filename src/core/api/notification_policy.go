@@ -273,6 +273,11 @@ func (w *NotificationPolicyAPI) Test() {
 		return
 	}
 
+	log.Info(" ==========================")
+	log.Info(policy.Targets)
+	log.Info(policy)
+	log.Info(" ==========================")
+
 	if err := notification.PolicyMgr.Test(policy); err != nil {
 		w.SendBadRequestError(fmt.Errorf("notification policy %s test failed: %v", policy.Name, err))
 		return
