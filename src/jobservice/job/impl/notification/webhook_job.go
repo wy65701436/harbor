@@ -77,6 +77,11 @@ func (wj *WebhookJob) execute(ctx job.Context, params map[string]interface{}) er
 	payload := params["payload"].(string)
 	address := params["address"].(string)
 
+	wj.logger.Info(" =============================================== ")
+	wj.logger.Info(address)
+	wj.logger.Info(payload)
+	wj.logger.Info(" =============================================== ")
+
 	req, err := http.NewRequest(http.MethodPost, address, bytes.NewReader([]byte(payload)))
 	if err != nil {
 		return err
