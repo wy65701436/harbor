@@ -182,3 +182,6 @@ class System(base.Base):
     def get_cve_whitelist(self, **kwargs):
         client = self._get_client(**kwargs)
         return client.system_cve_whitelist_get()
+
+    def get_project_quota(self, reference, reference_id, **kwargs):
+        client = self._get_client(**kwargs)

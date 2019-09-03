@@ -3606,6 +3606,11 @@ paths:
           description: The reference type of quota.
           required: false
           type: string
+        - name: reference_id
+          in: query
+          description: The reference id of quota.
+          required: false
+          type: string
         - name: sort
           in: query
           type: string
