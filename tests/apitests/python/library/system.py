@@ -185,4 +185,4 @@ class System(base.Base):
 
     def get_project_quota(self, reference, reference_id, **kwargs):
         client = self._get_client(**kwargs)
-        return client. quotas_get_with_http_info(reference, reference_id)
+        return client.quotas_get_with_http_info(reference, reference_id)

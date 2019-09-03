@@ -8,6 +8,7 @@ from library.project import Project
 from library.user import User
 from library.repository import Repository
 from library.repository import push_image_to_project
+from library.system import System
 
 class TestProjects(unittest.TestCase):
     @classmethod
@@ -20,6 +21,8 @@ class TestProjects(unittest.TestCase):
 
         repo = Repository()
         self.repo= repo
+
+        self.system = System()
 
     @classmethod
     def tearDown(self):
@@ -71,8 +74,8 @@ class TestProjects(unittest.TestCase):
         TestProjects.repo_name, tag = push_image_to_project(project_test_quota_name, harbor_server, user_test_quota_name, user_001_password, image, src_tag)
 
         #5. Update the project storage quota to 200 MB;
-        self.repo.scan_image(TestProjects.repo_name, tag, **TestProjects.USER_SCAN_IMAGE_CLIENT)
-        self.repo.check_image_scan_result(TestProjects.repo_name, tag, expected_scan_status = "finished", **TestProjects.USER_SCAN_IMAGE_CLIENT)
+        quota = self.system.get_project_quota(TestProjects.repo_name, tag, **ADMIN_CLIENT)
+        print(quota)
 
 if __name__ == '__main__':
     unittest.main()
