@@ -71,6 +71,8 @@ class TestProjects(unittest.TestCase):
         #4.Push an image to project(PA) by user(UA), then check the project quota usage; -- {"count": 1, "storage": 2791709}
         image = "alpine"
         src_tag = "3.10"
+        print("*******")
+        print(harbor_server)
         TestProjects.repo_name, tag = push_image_to_project(project_test_quota_name, harbor_server, user_test_quota_name, user_001_password, image, src_tag)
 
         #5. Update the project storage quota to 200 MB;
