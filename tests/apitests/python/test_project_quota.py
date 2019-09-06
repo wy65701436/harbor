@@ -34,10 +34,10 @@ class TestProjects(unittest.TestCase):
         self.repo.delete_repoitory(TestProjects.repo_name, **TestProjects.USER_SCAN_IMAGE_CLIENT)
 
         #2. Delete project(PA);
-        self.project.delete_project(TestProjects.project_scan_image_id, **TestProjects.USER_SCAN_IMAGE_CLIENT)
+        self.project.delete_project(TestProjects.project_test_quota_id, **TestProjects.USER_SCAN_IMAGE_CLIENT)
 
         #3. Delete user(UA);
-        self.user.delete_user(TestProjects.user_scan_image_id, **ADMIN_CLIENT)
+        self.user.delete_user(TestProjects.user_test_quota_id, **ADMIN_CLIENT)
 
     def testProjectQuota(self):
         """
