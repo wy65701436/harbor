@@ -3599,7 +3599,7 @@ paths:
       summary: List quotas
       description: List quotas
       tags:
-        - quota
+        - Products
       parameters:
         - name: reference
           in: query
