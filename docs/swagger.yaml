@@ -3656,7 +3656,8 @@ paths:
       summary: Get the specified quota
       description: Get the specified quota
       tags:
-        - quota
+        - Products
+        - Quota
       parameters:
         - name: id
           in: path
@@ -3680,7 +3681,8 @@ paths:
       summary: Update the specified quota
       description: Update hard limits of the specified quota
       tags:
-        - quota
+        - Products
+        - Quota
       parameters:
         - name: id
           in: path
