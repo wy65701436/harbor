@@ -71,14 +71,21 @@ class TestProjects(unittest.TestCase):
         #4.Push an image to project(PA) by user(UA), then check the project quota usage; -- {"count": 1, "storage": 2791709}
         image = "alpine"
         src_tag = "3.10"
-        print("*******")
-        print(harbor_server)
         TestProjects.repo_name, tag = push_image_to_project(project_test_quota_name, harbor_server, user_test_quota_name, user_001_password, image, src_tag)
 
-        #5. Update the project storage quota to 200 MB;
         quota = self.system.get_project_quota("project", TestProjects.project_test_quota_id, **ADMIN_CLIENT)
-        print(quota)
-        print(quota[0].used["count"])
+        self.assertEqual(quota[0].used["count"], 1)
+        self.assertEqual(quota[0].used["storage"], 2791709)
+
+        #5. Update the project storage quota to 200 MB;
+        self.system.set_project_quota(TestProjects.project_test_quota_id, "{\"hard\":{\"count\":10,\"storage\":209715200}}", **ADMIN_CLIENT)
+
+        #6. Push another image which size is larger than 200MB, then check the client error message and project quota usage.
+        image = "node"
+        src_tag = "12.10.0"
+        TestProjects.repo_name, tag = push_image_to_project(project_test_quota_name, harbor_server, user_test_quota_name, user_001_password, image, src_tag)
+        
+
 
 if __name__ == '__main__':
     unittest.main()
