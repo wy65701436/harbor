@@ -76,7 +76,7 @@ class TestProjects(unittest.TestCase):
         TestProjects.repo_name, tag = push_image_to_project(project_test_quota_name, harbor_server, user_test_quota_name, user_001_password, image, src_tag)
 
         #5. Update the project storage quota to 200 MB;
-        quota = self.system.get_project_quota(TestProjects.repo_name, tag, **ADMIN_CLIENT)
+        quota = self.system.get_project_quota("project", TestProjects.user_test_quota_id, **ADMIN_CLIENT)
         print(quota)
 
 if __name__ == '__main__':
