@@ -84,7 +84,7 @@ class TestProjects(unittest.TestCase):
         image = "node"
         src_tag = "12.10.0"
         TestProjects.repo_name, tag = push_image_to_project(project_test_quota_name, harbor_server, user_test_quota_name, user_001_password, image, src_tag)
-        
+
 
 
 if __name__ == '__main__':
