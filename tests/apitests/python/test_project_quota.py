@@ -78,7 +78,7 @@ class TestProjects(unittest.TestCase):
         #5. Update the project storage quota to 200 MB;
         quota = self.system.get_project_quota("project", TestProjects.project_test_quota_id, **ADMIN_CLIENT)
         print(quota)
-        print(quota[0].used)
+        print(quota[0].used["count"])
 
 if __name__ == '__main__':
     unittest.main()
