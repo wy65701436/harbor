@@ -192,8 +192,3 @@ class System(base.Base):
         data, status_code, _ = client.quotas_get_with_http_info(**params)
         base._assert_status_code(200, status_code)
         return data
-
-    def set_project_quota(self, project_id, hard, **kwargs):
-        client = self._get_client(**kwargs)
-        _, status_code, _ = client.quotas_id_put_with_http_info(project_id, hard)
-        base._assert_status_code(200, status_code)

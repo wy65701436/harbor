@@ -48,8 +48,8 @@ class TestProjects(unittest.TestCase):
             2. Create a new private project(PA) by user(UA);
             3. Add user(UA) as a member of project(PA) with project-admin role;
             4. Push an image to project(PA) by user(UA), then check the project quota usage;
-            5. Update the project storage quota to 200 MB;
-            6. Push another image which size is larger than 200MB, then check the client error message and project quota usage.
+            5. Check quota change
+            6. Delete image, the quota should be changed to 0.
         Tear down:
             1. Delete repository(RA) by user(UA);
             2. Delete project(PA);
@@ -73,18 +73,18 @@ class TestProjects(unittest.TestCase):
         src_tag = "3.10"
         TestProjects.repo_name, tag = push_image_to_project(project_test_quota_name, harbor_server, user_test_quota_name, user_001_password, image, src_tag)
 
+        #5. Get project quota
         quota = self.system.get_project_quota("project", TestProjects.project_test_quota_id, **ADMIN_CLIENT)
         self.assertEqual(quota[0].used["count"], 1)
         self.assertEqual(quota[0].used["storage"], 2791709)
 
-        #5. Update the project storage quota to 200 MB;
-        self.system.set_project_quota(TestProjects.project_test_quota_id, "{\"hard\":{\"count\":10,\"storage\":209715200}}", **ADMIN_CLIENT)
+        #6. Delete repository(RA) by user(UA);
+        self.repo.delete_repoitory(TestProjects.repo_name, **TestProjects.ADMIN_CLIENT)
 
-        #6. Push another image which size is larger than 200MB, then check the client error message and project quota usage.
-        image = "node"
-        src_tag = "12.10.0"
-        TestProjects.repo_name, tag = push_image_to_project(project_test_quota_name, harbor_server, user_test_quota_name, user_001_password, image, src_tag)
-
+        #6. Quota should be 0
+        quota = self.system.get_project_quota("project", TestProjects.project_test_quota_id, **ADMIN_CLIENT)
+        self.assertEqual(quota[0].used["count"], 0)
+        self.assertEqual(quota[0].used["storage"], 0)
 
 
 if __name__ == '__main__':
