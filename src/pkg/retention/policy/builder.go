@@ -31,12 +31,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Builder builds the runnable processor from the raw policy
+// Builder builds the runnable processor from the raw rule
 type Builder interface {
 	// Builds runnable processor
 	//
 	//  Arguments:
-	//    policy *Metadata : the simple metadata of retention policy
+	//    rule *Metadata : the simple metadata of retention rule
 	//    isDryRun bool    : indicate if we need to build a processor for dry run
 	//
 	//  Returns:
@@ -57,10 +57,10 @@ type basicBuilder struct {
 	allCandidates []*art.Candidate
 }
 
-// Build policy processor from the raw policy
+// Build rule processor from the raw rule
 func (bb *basicBuilder) Build(policy *lwp.Metadata, isDryRun bool) (alg.Processor, error) {
 	if policy == nil {
-		return nil, errors.New("nil policy to build processor")
+		return nil, errors.New("nil rule to build processor")
 	}
 
 	params := make([]*alg.Parameter, 0)

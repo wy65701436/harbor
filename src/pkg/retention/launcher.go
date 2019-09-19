@@ -45,13 +45,13 @@ const (
 	ParamDryRun = "dryRun"
 )
 
-// Launcher provides function to launch the async jobs to run retentions based on the provided policy.
+// Launcher provides function to launch the async jobs to run retentions based on the provided rule.
 type Launcher interface {
-	// Launch async jobs for the retention policy
+	// Launch async jobs for the retention rule
 	// A separate job will be launched for each repository
 	//
 	//  Arguments:
-	//   policy *policy.Metadata: the policy info
+	//   rule *rule.Metadata: the rule info
 	//   executionID int64      : the execution ID
 	//   isDryRun bool          : indicate if it is a dry run
 	//
@@ -100,16 +100,16 @@ type launcher struct {
 
 func (l *launcher) Launch(ply *policy.Metadata, executionID int64, isDryRun bool) (int64, error) {
 	if ply == nil {
-		return 0, launcherError(fmt.Errorf("the policy is nil"))
+		return 0, launcherError(fmt.Errorf("the rule is nil"))
 	}
 	// no rules, return directly
 	if len(ply.Rules) == 0 {
-		log.Debugf("no rules for policy %d, skip", ply.ID)
+		log.Debugf("no rules for rule %d, skip", ply.ID)
 		return 0, nil
 	}
 	scope := ply.Scope
 	if scope == nil {
-		return 0, launcherError(fmt.Errorf("the scope of policy is nil"))
+		return 0, launcherError(fmt.Errorf("the scope of rule is nil"))
 	}
 	repositoryRules := make(map[art.Repository]*lwp.Metadata, 0)
 	level := scope.Level
@@ -197,7 +197,7 @@ func (l *launcher) Launch(ply *policy.Metadata, executionID int64, isDryRun bool
 
 	// no jobs, return directly
 	if len(jobDatas) == 0 {
-		log.Debugf("no candidates for policy %d, skip", ply.ID)
+		log.Debugf("no candidates for rule %d, skip", ply.ID)
 		return 0, nil
 	}
 
@@ -230,7 +230,7 @@ func createJobs(repositoryRules map[art.Repository]*lwp.Metadata, isDryRun bool)
 			return nil, err
 		}
 		jobData.JobParams[ParamRepo] = repoJSON
-		// set retention policy
+		// set retention rule
 		policyJSON, err := policy.ToJSON()
 		if err != nil {
 			return nil, err

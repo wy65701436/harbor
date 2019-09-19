@@ -326,7 +326,7 @@ func CopyResp(rec *httptest.ResponseRecorder, rw http.ResponseWriter) {
 	rw.Write(rec.Body.Bytes())
 }
 
-// PolicyChecker checks the policy of a project by project name, to determine if it's needed to check the image's status under this project.
+// PolicyChecker checks the rule of a project by project name, to determine if it's needed to check the image's status under this project.
 type PolicyChecker interface {
 	// contentTrustEnabled returns whether a project has enabled content trust.
 	ContentTrustEnabled(name string) bool

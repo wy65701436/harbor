@@ -29,17 +29,17 @@ import (
 	"github.com/goharbor/harbor/src/pkg/retention/q"
 )
 
-// Manager defines operations of managing policy
+// Manager defines operations of managing rule
 type Manager interface {
-	// Create new policy and return ID
+	// Create new rule and return ID
 	CreatePolicy(p *policy.Metadata) (int64, error)
-	// Update the existing policy
+	// Update the existing rule
 	// Full update
 	UpdatePolicy(p *policy.Metadata) error
-	// Delete the specified policy
+	// Delete the specified rule
 	// No actual use so far
 	DeletePolicyAndExec(ID int64) error
-	// Get the specified policy
+	// Get the specified rule
 	GetPolicy(ID int64) (*policy.Metadata, error)
 	// Create a new retention execution
 	CreateExecution(execution *Execution) (int64, error)
@@ -111,7 +111,7 @@ func (d *DefaultManager) GetPolicy(id int64) (*policy.Metadata, error) {
 	p1, err := dao.GetPolicy(id)
 	if err != nil {
 		if err == orm.ErrNoRows {
-			return nil, fmt.Errorf("no such Retention policy with id %v", id)
+			return nil, fmt.Errorf("no such Retention rule with id %v", id)
 		}
 		return nil, err
 	}

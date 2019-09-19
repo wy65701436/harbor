@@ -216,7 +216,7 @@ func TestStartReplication(t *testing.T) {
 	require.Nil(t, err)
 	config.Config = &config.Configuration{}
 
-	// policy is disabled
+	// rule is disabled
 	policy := &model.Policy{
 		SrcRegistry: &model.Registry{
 			Type: model.RegistryTypeHarbor,

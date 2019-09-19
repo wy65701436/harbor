@@ -458,7 +458,7 @@ type formFile struct {
 	mustHave bool
 }
 
-// The func is for event based chart replication policy.
+// The func is for event based chart replication rule.
 // It will add a context for uploading request with key chart_upload, and consumed by upload response.
 func (cra *ChartRepositoryAPI) addEventContext(files []formFile, request *http.Request) error {
 	if len(files) == 0 {

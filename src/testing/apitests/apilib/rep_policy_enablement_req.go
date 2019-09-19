@@ -24,6 +24,6 @@ package apilib
 
 type RepPolicyEnablementReq struct {
 
-	// The policy enablement flag.
+	// The rule enablement flag.
 	Enabled int32 `json:"enabled,omitempty"`
 }

@@ -269,7 +269,7 @@ func getParamMeta(params job.Parameters) (*lwp.Metadata, error) {
 
 	meta := &lwp.Metadata{}
 	if err := meta.FromJSON(metaJSON); err != nil {
-		return nil, errors.Wrap(err, "parse retention policy from JSON")
+		return nil, errors.Wrap(err, "parse retention rule from JSON")
 	}
 
 	return meta, nil

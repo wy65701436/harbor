@@ -31,16 +31,16 @@ import (
 )
 
 const (
-	// changeEventSchedule : Schedule periodic job policy event
+	// changeEventSchedule : Schedule periodic job rule event
 	changeEventSchedule = "Schedule"
-	// changeEventUnSchedule : UnSchedule periodic job policy event
+	// changeEventUnSchedule : UnSchedule periodic job rule event
 	changeEventUnSchedule = "UnSchedule"
 )
 
 // Policy ...
 type Policy struct {
 	// Policy can be treated as job template of periodic job.
-	// The info of policy will be copied into the scheduled job executions for the periodic job.
+	// The info of rule will be copied into the scheduled job executions for the periodic job.
 	ID            string                 `json:"id"`
 	JobName       string                 `json:"job_name"`
 	CronSpec      string                 `json:"cron_spec"`
@@ -48,24 +48,24 @@ type Policy struct {
 	WebHookURL    string                 `json:"web_hook_url,omitempty"`
 }
 
-// Serialize the policy to raw data.
+// Serialize the rule to raw data.
 func (p *Policy) Serialize() ([]byte, error) {
 	return json.Marshal(p)
 }
 
-// DeSerialize the raw json to policy.
+// DeSerialize the raw json to rule.
 func (p *Policy) DeSerialize(rawJSON []byte) error {
 	return json.Unmarshal(rawJSON, p)
 }
 
-// Validate the policy
+// Validate the rule
 func (p *Policy) Validate() error {
 	if utils.IsEmptyStr(p.ID) {
-		return errors.New("missing ID in the periodic job policy object")
+		return errors.New("missing ID in the periodic job rule object")
 	}
 
 	if utils.IsEmptyStr(p.JobName) {
-		return errors.New("missing job name in the periodic job policy object")
+		return errors.New("missing job name in the periodic job rule object")
 	}
 
 	if !utils.IsEmptyStr(p.WebHookURL) {
@@ -83,7 +83,7 @@ func (p *Policy) Validate() error {
 
 // policyStore is in-memory cache for the periodic job policies.
 type policyStore struct {
-	// k-v pair and key is the policy ID
+	// k-v pair and key is the rule ID
 	hash      *sync.Map
 	namespace string
 	context   context.Context
@@ -112,7 +112,7 @@ func newPolicyStore(ctx context.Context, ns string, pool *redis.Pool) *policySto
 // Blocking call
 func (ps *policyStore) serve() (err error) {
 	defer func() {
-		logger.Info("Periodical job policy store is stopped")
+		logger.Info("Periodical job rule store is stopped")
 	}()
 
 	conn := ps.pool.Get()
@@ -165,7 +165,7 @@ func (ps *policyStore) serve() (err error) {
 		}
 	}()
 
-	logger.Info("Periodical job policy store is serving with policy auto sync enabled")
+	logger.Info("Periodical job rule store is serving with rule auto sync enabled")
 	defer func() {
 		var unSubErr error
 		defer func() {
@@ -219,25 +219,25 @@ func (ps *policyStore) serve() (err error) {
 	}
 }
 
-// sync policy with backend list
+// sync rule with backend list
 func (ps *policyStore) sync(m *message) error {
 	if m == nil {
 		return errors.New("nil message")
 	}
 
 	if m.Data == nil {
-		return errors.New("missing data in the policy sync message")
+		return errors.New("missing data in the rule sync message")
 	}
 
 	switch m.Event {
 	case changeEventSchedule:
 		if err := ps.add(m.Data); err != nil {
-			return fmt.Errorf("failed to sync scheduled policy %s: %s", m.Data.ID, err)
+			return fmt.Errorf("failed to sync scheduled rule %s: %s", m.Data.ID, err)
 		}
 	case changeEventUnSchedule:
 		removed := ps.remove(m.Data.ID)
 		if removed == nil {
-			return fmt.Errorf("failed to sync unscheduled policy %s", m.Data.ID)
+			return fmt.Errorf("failed to sync unscheduled rule %s", m.Data.ID)
 		}
 	default:
 		return fmt.Errorf("message %s is not supported", m.Event)
@@ -264,9 +264,9 @@ func (ps *policyStore) load() error {
 		p := &Policy{}
 
 		if err := p.DeSerialize(rawPolicy); err != nil {
-			// Ignore error which means the policy data is not valid
+			// Ignore error which means the rule data is not valid
 			// Only logged
-			logger.Errorf("malform policy: %s; error: %s\n", rawPolicy, err)
+			logger.Errorf("malform rule: %s; error: %s\n", rawPolicy, err)
 			continue
 		}
 
@@ -279,7 +279,7 @@ func (ps *policyStore) load() error {
 
 		count++
 
-		logger.Debugf("Load periodic job policy: %s", string(rawPolicy))
+		logger.Debugf("Load periodic job rule: %s", string(rawPolicy))
 	}
 
 	logger.Infof("Load %d periodic job policies", count)
@@ -287,19 +287,19 @@ func (ps *policyStore) load() error {
 	return nil
 }
 
-// Add one or more policy
+// Add one or more rule
 func (ps *policyStore) add(item *Policy) error {
 	if item == nil {
-		return errors.New("nil policy to add")
+		return errors.New("nil rule to add")
 	}
 
 	if utils.IsEmptyStr(item.ID) {
-		return errors.New("malform policy to add")
+		return errors.New("malform rule to add")
 	}
 
 	v, _ := ps.hash.LoadOrStore(item.ID, item)
 	if v == nil {
-		return fmt.Errorf("failed to add policy: %s", item.ID)
+		return fmt.Errorf("failed to add rule: %s", item.ID)
 	}
 
 	return nil
@@ -312,7 +312,7 @@ func (ps *policyStore) Iterate(f func(id string, p *Policy) bool) {
 	})
 }
 
-// Remove the specified policy from the store
+// Remove the specified rule from the store
 func (ps *policyStore) remove(policyID string) *Policy {
 	if utils.IsEmptyStr(policyID) {
 		return nil

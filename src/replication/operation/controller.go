@@ -74,7 +74,7 @@ type controller struct {
 
 func (c *controller) StartReplication(policy *model.Policy, resource *model.Resource, trigger model.TriggerType) (int64, error) {
 	if !policy.Enabled {
-		return 0, fmt.Errorf("the policy %d is disabled", policy.ID)
+		return 0, fmt.Errorf("the rule %d is disabled", policy.ID)
 	}
 	if len(trigger) == 0 {
 		trigger = model.TriggerTypeManual
@@ -248,8 +248,8 @@ func createExecution(mgr execution.Manager, policyID int64, trigger model.Trigge
 		StartTime: time.Now(),
 	})
 	if err != nil {
-		return 0, fmt.Errorf("failed to create the execution record for replication based on policy %d: %v", policyID, err)
+		return 0, fmt.Errorf("failed to create the execution record for replication based on rule %d: %v", policyID, err)
 	}
-	log.Debugf("an execution record for replication based on the policy %d created: %d", policyID, id)
+	log.Debugf("an execution record for replication based on the rule %d created: %d", policyID, id)
 	return id, nil
 }

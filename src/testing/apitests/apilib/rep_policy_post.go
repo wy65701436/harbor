@@ -30,6 +30,6 @@ type RepPolicyPost struct {
 	// The target ID.
 	TargetId int64 `json:"target_id,omitempty"`
 
-	// The policy name.
+	// The rule name.
 	Name string `json:"name,omitempty"`
 }

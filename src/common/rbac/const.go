@@ -56,6 +56,6 @@ const (
 	ResourceRepositoryTagScanJob       = Resource("repository-tag-scan-job")
 	ResourceRepositoryTagVulnerability = Resource("repository-tag-vulnerability")
 	ResourceRobot                      = Resource("robot")
-	ResourceNotificationPolicy         = Resource("notification-policy")
+	ResourceNotificationPolicy         = Resource("notification-rule")
 	ResourceSelf                       = Resource("") // subresource for self
 )

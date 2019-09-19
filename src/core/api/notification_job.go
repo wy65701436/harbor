@@ -59,11 +59,11 @@ func (w *NotificationJobAPI) List() {
 
 	policy, err := notification.PolicyMgr.Get(policyID)
 	if err != nil {
-		w.SendInternalServerError(fmt.Errorf("failed to get policy %d: %v", policyID, err))
+		w.SendInternalServerError(fmt.Errorf("failed to get rule %d: %v", policyID, err))
 		return
 	}
 	if policy == nil {
-		w.SendBadRequestError(fmt.Errorf("policy %d not found", policyID))
+		w.SendBadRequestError(fmt.Errorf("rule %d not found", policyID))
 		return
 	}
 

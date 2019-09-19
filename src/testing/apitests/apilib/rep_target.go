@@ -42,9 +42,9 @@ type RepTarget struct {
 	// Reserved field.
 	Type_ int32 `json:"type,omitempty"`
 
-	// The create time of the policy.
+	// The create time of the rule.
 	CreationTime string `json:"creation_time,omitempty"`
 
-	// The update time of the policy.
+	// The update time of the rule.
 	UpdateTime string `json:"update_time,omitempty"`
 }

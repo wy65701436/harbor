@@ -76,7 +76,7 @@ export interface IServiceConfig {
     vulnerabilityScanningBaseEndpoint?: string;
 
     /**
-     * The base endpoint of the service used to handle project policy.
+     * The base endpoint of the service used to handle project rule.
      *
      * * {string}
      * @memberOf IServiceConfig

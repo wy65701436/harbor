@@ -43,12 +43,12 @@ CREATE TRIGGER oidc_user_update_time_at_modtime BEFORE UPDATE ON oidc_user FOR E
 /*add master role*/
 INSERT INTO role (role_code, name) VALUES ('DRWS', 'master');
 
-/*delete replication jobs whose policy has been marked as "deleted"*/
+/*delete replication jobs whose rule has been marked as "deleted"*/
 DELETE FROM replication_job AS j
 USING replication_policy AS p
 WHERE j.policy_id = p.id AND p.deleted = TRUE;
 
-/*delete replication policy which has been marked as "deleted"*/
+/*delete replication rule which has been marked as "deleted"*/
 DELETE FROM replication_policy AS p
 WHERE p.deleted = TRUE;
 
@@ -72,7 +72,7 @@ ALTER TABLE replication_policy ADD COLUMN creator varchar(256);
 ALTER TABLE replication_policy ADD COLUMN src_registry_id int;
 /*A name filter "project_name/"+double star will be merged into the filters.
 if harbor is integrated with the external project service, we cannot get the project name by ID,
-which means the repilcation policy will match all resources.*/
+which means the repilcation rule will match all resources.*/
 UPDATE replication_policy SET filters='[]' WHERE filters='';
 UPDATE replication_policy r SET filters=( r.filters::jsonb || (SELECT CONCAT('{"type":"name","value":"', p.name,'/**"}') FROM project p WHERE p.project_id=r.project_id)::jsonb);
 ALTER TABLE replication_policy RENAME COLUMN target_id TO dest_registry_id;

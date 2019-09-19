@@ -190,7 +190,7 @@ func TestConfig(t *testing.T) {
 	}
 
 	if s := ScanAllPolicy(); s.Type != "none" {
-		t.Errorf("unexpected scan all policy %v", s)
+		t.Errorf("unexpected scan all rule %v", s)
 	}
 
 	if tokenKeyPath := TokenPrivateKeyPath(); tokenKeyPath != "/etc/core/private_key.pem" {

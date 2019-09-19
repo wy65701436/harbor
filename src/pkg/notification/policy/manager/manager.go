@@ -23,7 +23,7 @@ func NewDefaultManger() *DefaultManager {
 	return &DefaultManager{}
 }
 
-// Create notification policy
+// Create notification rule
 func (m *DefaultManager) Create(policy *models.NotificationPolicy) (int64, error) {
 	t := time.Now()
 	policy.CreationTime = t
@@ -36,7 +36,7 @@ func (m *DefaultManager) Create(policy *models.NotificationPolicy) (int64, error
 	return notification.AddNotificationPolicy(policy)
 }
 
-// List the notification policies, returns the policy list and error
+// List the notification policies, returns the rule list and error
 func (m *DefaultManager) List(projectID int64) ([]*models.NotificationPolicy, error) {
 	policies := []*models.NotificationPolicy{}
 	persisPolicies, err := notification.GetNotificationPolicies(projectID)
@@ -55,7 +55,7 @@ func (m *DefaultManager) List(projectID int64) ([]*models.NotificationPolicy, er
 	return policies, nil
 }
 
-// Get notification policy with specified ID
+// Get notification rule with specified ID
 func (m *DefaultManager) Get(id int64) (*models.NotificationPolicy, error) {
 	policy, err := notification.GetNotificationPolicy(id)
 	if err != nil {
@@ -68,7 +68,7 @@ func (m *DefaultManager) Get(id int64) (*models.NotificationPolicy, error) {
 	return policy, err
 }
 
-// GetByNameAndProjectID notification policy by the name and projectID
+// GetByNameAndProjectID notification rule by the name and projectID
 func (m *DefaultManager) GetByNameAndProjectID(name string, projectID int64) (*models.NotificationPolicy, error) {
 	policy, err := notification.GetNotificationPolicyByName(name, projectID)
 	if err != nil {
@@ -78,7 +78,7 @@ func (m *DefaultManager) GetByNameAndProjectID(name string, projectID int64) (*m
 	return policy, err
 }
 
-// Update the specified notification policy
+// Update the specified notification rule
 func (m *DefaultManager) Update(policy *models.NotificationPolicy) error {
 	policy.UpdateTime = time.Now()
 	err := policy.ConvertToDBModel()
@@ -88,12 +88,12 @@ func (m *DefaultManager) Update(policy *models.NotificationPolicy) error {
 	return notification.UpdateNotificationPolicy(policy)
 }
 
-// Delete the specified notification policy
+// Delete the specified notification rule
 func (m *DefaultManager) Delete(policyID int64) error {
 	return notification.DeleteNotificationPolicy(policyID)
 }
 
-// Test the specified notification policy, just test for network connection without request body
+// Test the specified notification rule, just test for network connection without request body
 func (m *DefaultManager) Test(policy *models.NotificationPolicy) error {
 	p, err := json.Marshal(notifierModel.Payload{
 		Type: model.EventTypeTestEndpoint,
@@ -107,7 +107,7 @@ func (m *DefaultManager) Test(policy *models.NotificationPolicy) error {
 		case "http":
 			return m.policyHTTPTest(target.Address, target.SkipCertVerify, p)
 		default:
-			return fmt.Errorf("invalid policy target type: %s", target.Type)
+			return fmt.Errorf("invalid rule target type: %s", target.Type)
 		}
 	}
 	return nil
@@ -130,7 +130,7 @@ func (m *DefaultManager) policyHTTPTest(address string, skipCertVerify bool, p [
 		return err
 	}
 	defer resp.Body.Close()
-	log.Debugf("policy test success with address %s, skip cert verify :%v", address, skipCertVerify)
+	log.Debugf("rule test success with address %s, skip cert verify :%v", address, skipCertVerify)
 
 	return nil
 }

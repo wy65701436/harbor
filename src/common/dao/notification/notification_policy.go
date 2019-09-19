@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// GetNotificationPolicy return notification policy by id
+// GetNotificationPolicy return notification rule by id
 func GetNotificationPolicy(id int64) (*models.NotificationPolicy, error) {
 	policy := new(models.NotificationPolicy)
 	o := dao.GetOrmer()
@@ -18,7 +18,7 @@ func GetNotificationPolicy(id int64) (*models.NotificationPolicy, error) {
 	return policy, err
 }
 
-// GetNotificationPolicyByName return notification policy by name
+// GetNotificationPolicyByName return notification rule by name
 func GetNotificationPolicyByName(name string, projectID int64) (*models.NotificationPolicy, error) {
 	policy := new(models.NotificationPolicy)
 	o := dao.GetOrmer()
@@ -29,7 +29,7 @@ func GetNotificationPolicyByName(name string, projectID int64) (*models.Notifica
 	return policy, err
 }
 
-// GetNotificationPolicies returns all notification policy in project
+// GetNotificationPolicies returns all notification rule in project
 func GetNotificationPolicies(projectID int64) ([]*models.NotificationPolicy, error) {
 	var policies []*models.NotificationPolicy
 	qs := dao.GetOrmer().QueryTable(new(models.NotificationPolicy)).Filter("ProjectID", projectID)
@@ -42,26 +42,26 @@ func GetNotificationPolicies(projectID int64) ([]*models.NotificationPolicy, err
 
 }
 
-// AddNotificationPolicy insert new notification policy to DB
+// AddNotificationPolicy insert new notification rule to DB
 func AddNotificationPolicy(policy *models.NotificationPolicy) (int64, error) {
 	if policy == nil {
-		return 0, errors.New("nil policy")
+		return 0, errors.New("nil rule")
 	}
 	o := dao.GetOrmer()
 	return o.Insert(policy)
 }
 
-// UpdateNotificationPolicy update t specified notification policy
+// UpdateNotificationPolicy update t specified notification rule
 func UpdateNotificationPolicy(policy *models.NotificationPolicy) error {
 	if policy == nil {
-		return errors.New("nil policy")
+		return errors.New("nil rule")
 	}
 	o := dao.GetOrmer()
 	_, err := o.Update(policy)
 	return err
 }
 
-// DeleteNotificationPolicy delete notification policy by id
+// DeleteNotificationPolicy delete notification rule by id
 func DeleteNotificationPolicy(id int64) error {
 	o := dao.GetOrmer()
 	_, err := o.Delete(&models.NotificationPolicy{ID: id})

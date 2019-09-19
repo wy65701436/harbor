@@ -99,7 +99,7 @@ func (e *enqueuer) loop() {
 	for {
 		select {
 		case <-e.stopChan:
-			// Stop policy store now
+			// Stop rule store now
 			e.policyStore.stopChan <- true
 			return
 		case <-timer.C:
@@ -163,7 +163,7 @@ func (e *enqueuer) enqueue() {
 	})
 }
 
-// scheduleNextJobs schedules job for next time slots based on the policy
+// scheduleNextJobs schedules job for next time slots based on the rule
 func (e *enqueuer) scheduleNextJobs(p *Policy, conn redis.Conn) {
 	nowTime := time.Unix(time.Now().Unix(), 0)
 	horizon := nowTime.Add(enqueuerHorizon)
@@ -173,7 +173,7 @@ func (e *enqueuer) scheduleNextJobs(p *Policy, conn redis.Conn) {
 		// The cron spec should be already checked at upper layers.
 		// Just in cases, if error occurred, ignore it
 		e.lastEnqueueErr = err
-		logger.Errorf("Invalid corn spec in periodic policy %s %s: %s", p.JobName, p.ID, err)
+		logger.Errorf("Invalid corn spec in periodic rule %s %s: %s", p.JobName, p.ID, err)
 	} else {
 		for t := schedule.Next(nowTime); t.Before(horizon); t = schedule.Next(t) {
 			epoch := t.Unix()
@@ -183,10 +183,10 @@ func (e *enqueuer) scheduleNextJobs(p *Policy, conn redis.Conn) {
 			// Notes: Only for system using
 			wJobParams := cloneParameters(p.JobParameters, epoch)
 
-			// Create an execution (job) based on the periodic job template (policy)
+			// Create an execution (job) based on the periodic job template (rule)
 			j := &work.Job{
 				Name: p.JobName,
-				ID:   p.ID, // Use the ID of policy to avoid scheduling duplicated periodic job executions.
+				ID:   p.ID, // Use the ID of rule to avoid scheduling duplicated periodic job executions.
 
 				// This is technically wrong, but this lets the bytes be identical for the same periodic job instance.
 				// If we don't do this, we'd need to use a different approach -- probably giving each periodic job its own

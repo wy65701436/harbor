@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-// PolicyStoreTestSuite tests functions of policy store
+// PolicyStoreTestSuite tests functions of rule store
 type PolicyStoreTestSuite struct {
 	suite.Suite
 
@@ -62,7 +62,7 @@ func (suite *PolicyStoreTestSuite) TearDownSuite() {
 	_ = tests.ClearAll(suite.namespace, conn)
 }
 
-// TestStore tests policy store serve
+// TestStore tests rule store serve
 func (suite *PolicyStoreTestSuite) TestServe() {
 	var err error
 
@@ -77,7 +77,7 @@ func (suite *PolicyStoreTestSuite) TestServe() {
 	<-time.After(1 * time.Second)
 }
 
-// TestLoad tests load policy from backend
+// TestLoad tests load rule from backend
 func (suite *PolicyStoreTestSuite) TestLoad() {
 	// Prepare one
 	p := &Policy{
@@ -134,7 +134,7 @@ func (suite *PolicyStoreTestSuite) TestLoad() {
 	assert.Equal(suite.T(), 1, count, "expected 1 policies but got %d", count)
 }
 
-// TestPolicy tests policy itself
+// TestPolicy tests rule itself
 func (suite *PolicyStoreTestSuite) TestPolicy() {
 	p1 := &Policy{
 		ID:       "fake_policy_1",
@@ -143,11 +143,11 @@ func (suite *PolicyStoreTestSuite) TestPolicy() {
 	}
 
 	bytes, err := p1.Serialize()
-	assert.Nil(suite.T(), err, "policy serialize: nil error expected but got %s", err)
+	assert.Nil(suite.T(), err, "rule serialize: nil error expected but got %s", err)
 	p2 := &Policy{}
 	err = p2.DeSerialize(bytes)
-	assert.Nil(suite.T(), err, "policy deserialize: nil error expected but got %s", err)
+	assert.Nil(suite.T(), err, "rule deserialize: nil error expected but got %s", err)
 	assert.Equal(suite.T(), "5 * * * * *", p2.CronSpec)
 	err = p2.Validate()
-	assert.Nil(suite.T(), err, "policy validate: nil error expected but got %s", err)
+	assert.Nil(suite.T(), err, "rule validate: nil error expected but got %s", err)
 }

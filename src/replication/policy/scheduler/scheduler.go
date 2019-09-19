@@ -29,7 +29,7 @@ import (
 	"github.com/goharbor/harbor/src/replication/dao/models"
 )
 
-// Scheduler can be used to schedule or unschedule a scheduled policy
+// Scheduler can be used to schedule or unschedule a scheduled rule
 // Currently, the default scheduler implements its capabilities by delegating
 // the scheduled job of jobservice
 type Scheduler interface {
@@ -83,13 +83,13 @@ func (s *scheduler) Schedule(policyID int64, cron string) error {
 		}
 		return err
 	}
-	log.Debugf("the schedule job for policy %d submitted to the jobservice", policyID)
+	log.Debugf("the schedule job for rule %d submitted to the jobservice", policyID)
 
 	err = dao.ScheduleJob.Update(&models.ScheduleJob{
 		ID:    id,
 		JobID: jobID,
 	}, "JobID")
-	log.Debugf("the policy %d scheduled", policyID)
+	log.Debugf("the rule %d scheduled", policyID)
 	return err
 }
 
@@ -114,6 +114,6 @@ func (s *scheduler) Unschedule(policyID int64) error {
 		}
 		log.Debugf("the schedule job record %d deleted", sj.ID)
 	}
-	log.Debugf("the policy %d unscheduled", policyID)
+	log.Debugf("the rule %d unscheduled", policyID)
 	return nil
 }

@@ -29,7 +29,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// PolicyMigrator migrate the cron job policy to new schema
+// PolicyMigrator migrate the cron job rule to new schema
 type PolicyMigrator struct {
 	// namespace of rdb
 	namespace string
@@ -109,7 +109,7 @@ func (pm *PolicyMigrator) Migrate() error {
 
 				numbericPolicyID, err := getScoreByID(pID, conn, pm.namespace)
 				if err != nil {
-					logger.Errorf("Get numberic ID of periodic job policy failed with error: %s", err)
+					logger.Errorf("Get numberic ID of periodic job rule failed with error: %s", err)
 					continue
 				}
 
@@ -138,7 +138,7 @@ func (pm *PolicyMigrator) Migrate() error {
 				}
 				err = conn.Send("HDEL", rmArgs...)
 
-				// Update periodic policy model
+				// Update periodic rule model
 				// conn is working, we need new conn
 				// this inner connection will be closed by the calling method
 				innerConn := pm.pool.Get()
@@ -157,10 +157,10 @@ func (pm *PolicyMigrator) Migrate() error {
 						// Save back to the rdb
 						err = conn.Send("ZADD", rds.KeyPeriodicPolicy(pm.namespace), numbericPolicyID, rawJSON)
 					} else {
-						logger.Errorf("Serialize policy %s failed with error: %s", pID, er)
+						logger.Errorf("Serialize rule %s failed with error: %s", pID, er)
 					}
 				} else {
-					logger.Errorf("Get periodic policy %s failed with error: %s", pID, er)
+					logger.Errorf("Get periodic rule %s failed with error: %s", pID, er)
 				}
 
 				// Check error before executing
@@ -250,7 +250,7 @@ func getScoreByID(id string, conn redis.Conn, ns string) (int64, error) {
 	return redis.Int64(conn.Do("ZSCORE", scoreKey, id))
 }
 
-// Get periodic policy object by the numeric ID
+// Get periodic rule object by the numeric ID
 func getPeriodicPolicy(numericID int64, conn redis.Conn, ns string) (*period.Policy, error) {
 	// close this inner connection here
 	defer func() {
@@ -274,13 +274,13 @@ func getPeriodicPolicy(numericID int64, conn redis.Conn, ns string) (*period.Pol
 	}
 
 	if err == nil {
-		err = errors.Errorf("invalid data for periodic policy %d: %#v", numericID, bytes)
+		err = errors.Errorf("invalid data for periodic rule %d: %#v", numericID, bytes)
 	}
 
 	return nil, err
 }
 
-// Clear the duplicated policy entries for the job "IMAGE_GC" and "IMAGE_SCAN_ALL"
+// Clear the duplicated rule entries for the job "IMAGE_GC" and "IMAGE_SCAN_ALL"
 func clearDuplicatedPolicies(conn redis.Conn, ns string) error {
 	hash := make(map[string]interface{})
 
@@ -295,7 +295,7 @@ func clearDuplicatedPolicies(conn redis.Conn, ns string) error {
 		p := &period.Policy{}
 
 		if err := p.DeSerialize(rawPolicy); err != nil {
-			logger.Errorf("DeSerialize policy: %s; error: %s\n", rawPolicy, err)
+			logger.Errorf("DeSerialize rule: %s; error: %s\n", rawPolicy, err)
 			continue
 		}
 
@@ -309,9 +309,9 @@ func clearDuplicatedPolicies(conn redis.Conn, ns string) error {
 				// Already existing, remove the duplicated one
 				res, err := redis.Int(conn.Do("ZREMRANGEBYSCORE", rds.KeyPeriodicPolicy(ns), score, score))
 				if err != nil || res == 0 {
-					logger.Errorf("Failed to clear duplicated periodic policy: %s-%s:%v", p.JobName, p.ID, score)
+					logger.Errorf("Failed to clear duplicated periodic rule: %s-%s:%v", p.JobName, p.ID, score)
 				} else {
-					logger.Infof("Remove duplicated periodic policy: %s-%s:%v", p.JobName, p.ID, score)
+					logger.Infof("Remove duplicated periodic rule: %s-%s:%v", p.JobName, p.ID, score)
 					count++
 				}
 			} else {

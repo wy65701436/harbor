@@ -68,7 +68,7 @@ func (h *handler) Handle(event *Event) error {
 	}
 
 	if len(policies) == 0 {
-		log.Debugf("no policy found for the event %v, do nothing", event)
+		log.Debugf("no rule found for the event %v, do nothing", event)
 		return nil
 	}
 
@@ -146,7 +146,7 @@ func match(filters []*model.Filter, resource *model.Resource) (bool, error) {
 	return match, nil
 }
 
-// PopulateRegistries populates the source registry and destination registry properties for policy
+// PopulateRegistries populates the source registry and destination registry properties for rule
 func PopulateRegistries(registryMgr registry.Manager, policy *model.Policy) error {
 	if policy == nil {
 		return nil

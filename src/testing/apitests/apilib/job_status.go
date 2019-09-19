@@ -33,7 +33,7 @@ type JobStatus struct {
 	// The repository handled by the job.
 	Repository string `json:"repository,omitempty"`
 
-	// The ID of the policy that triggered this job.
+	// The ID of the rule that triggered this job.
 	PolicyId int64 `json:"policy_id,omitempty"`
 
 	// The operation of the job.

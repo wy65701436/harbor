@@ -50,7 +50,7 @@ func (h *HTTPHandler) process(event *model.HookEvent) error {
 	j.Parameters = map[string]interface{}{
 		"payload": string(payload),
 		"address": event.Target.Address,
-		// Users can define a auth header in http statement in notification(webhook) policy.
+		// Users can define a auth header in http statement in notification(webhook) rule.
 		// So it will be sent in header in http request.
 		"auth_header":      event.Target.AuthHeader,
 		"skip_cert_verify": event.Target.SkipCertVerify,

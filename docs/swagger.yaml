@@ -1630,7 +1630,7 @@ paths:
           in: query
           type: integer
           required: false
-          description: The policy ID.
+          description: The rule ID.
         - name: status
           in: query
           type: string
@@ -1825,7 +1825,7 @@ paths:
           in: query
           type: string
           required: false
-          description: The replication policy name.
+          description: The replication rule name.
         - name: page
           in: query
           type: integer
@@ -1842,7 +1842,7 @@ paths:
         - Products
       responses:
         '200':
-          description: Get policy successfully.
+          description: Get rule successfully.
           schema:
             type: array
             items:
@@ -1856,13 +1856,13 @@ paths:
         '500':
           $ref: '#/responses/InternalServerError'
     post:
-      summary: Create a replication policy
+      summary: Create a replication rule
       description: |
         This endpoint let user create a replication policy
       parameters:
-        - name: policy
+        - name: rule
           in: body
-          description: The policy model.
+          description: The rule model.
           required: true
           schema:
             $ref: '#/definitions/ReplicationPolicy'
@@ -1885,7 +1885,7 @@ paths:
           $ref: '#/responses/InternalServerError'
   '/replication/policies/{id}':
     get:
-      summary: Get replication policy.
+      summary: Get replication rule.
       description: |
         This endpoint let user get replication policy by specific ID.
       parameters:
@@ -1894,12 +1894,12 @@ paths:
           type: integer
           format: int64
           required: true
-          description: policy ID
+          description: rule ID
       tags:
         - Products
       responses:
         '200':
-          description: Get the replication policy successfully.
+          description: Get the replication rule successfully.
           schema:
             $ref: '#/definitions/ReplicationPolicy'
         '400':
@@ -1913,7 +1913,7 @@ paths:
         '500':
           $ref: '#/responses/InternalServerError'
     put:
-      summary: Update the replication policy
+      summary: Update the replication rule
       description: |
         This endpoint let user update policy.
       parameters:
@@ -1922,10 +1922,10 @@ paths:
           type: integer
           format: int64
           required: true
-          description: policy ID
-        - name: policy
+          description: rule ID
+        - name: rule
           in: body
-          description: The replication policy model.
+          description: The replication rule model.
           required: true
           schema:
             $ref: '#/definitions/ReplicationPolicy'
@@ -1947,7 +1947,7 @@ paths:
         '500':
           $ref: '#/responses/InternalServerError'
     delete:
-      summary: Delete the replication policy specified by ID.
+      summary: Delete the replication rule specified by ID.
       description: |
         Delete the replication policy specified by ID.
       parameters:
@@ -1956,7 +1956,7 @@ paths:
           type: integer
           format: int64
           required: true
-          description: Replication policy ID
+          description: Replication rule ID
       tags:
         - Products
       responses:
@@ -2278,7 +2278,7 @@ paths:
         '200':
           description: Updated registry successfully.
         '400':
-          description: The registry is associated with policy which is enabled.
+          description: The registry is associated with rule which is enabled.
         '401':
           description: User need to log in first.
         '404':
@@ -3738,7 +3738,7 @@ paths:
         '500':
           description: Unexpected internal errors.
     post:
-      summary: Create project webhook policy.
+      summary: Create project webhook rule.
       description: |
         This endpoint create a webhook policy if the project does not have one.
       parameters:
@@ -3748,7 +3748,7 @@ paths:
           format: int64
           required: true
           description: Relevant project ID
-        - name: policy
+        - name: rule
           in: body
           description: Properties "targets" and "event_types" needed.
           required: true
@@ -3758,18 +3758,18 @@ paths:
         - Products
       responses:
         '201':
-          description: Project webhook policy create successfully.
+          description: Project webhook rule create successfully.
         '400':
           description: Illegal format of provided ID value.
         '401':
           description: User need to log in first.
         '403':
-          description: User have no permission to create webhook policy of the project.
+          description: User have no permission to create webhook rule of the project.
         '500':
           description: Unexpected internal errors.
   '/projects/{project_id}/webhook/policies/{policy_id}':
     get:
-      summary: Get project webhook policy
+      summary: Get project webhook rule
       description: |
         This endpoint returns specified webhook policy of a project.
       parameters:
@@ -3781,7 +3781,7 @@ paths:
           format: int64
         - name: policy_id
           in: path
-          description: The id of webhook policy.
+          description: The id of webhook rule.
           required: true
           type: integer
           format: int64
@@ -3789,7 +3789,7 @@ paths:
         - Products
       responses:
         '200':
-          description: Get webhook policy successfully.
+          description: Get webhook rule successfully.
           schema:
             $ref: '#/definitions/WebhookPolicy'
         '400':
@@ -3797,13 +3797,13 @@ paths:
         '401':
           description: User need to log in first.
         '403':
-          description: User have no permission to get webhook policy of the project.
+          description: User have no permission to get webhook rule of the project.
         '404':
-          description: Webhook policy ID does not exist.
+          description: Webhook rule ID does not exist.
         '500':
           description: Internal server errors.
     put:
-      summary: Update webhook policy of a project.
+      summary: Update webhook rule of a project.
       description: |
         This endpoint is aimed to update the webhook policy of a project.
       parameters:
@@ -3815,11 +3815,11 @@ paths:
           format: int64
         - name: policy_id
           in: path
-          description: The id of webhook policy.
+          description: The id of webhook rule.
           required: true
           type: integer
           format: int64
-        - name: policy
+        - name: rule
           in: body
           description: All properties needed except "id", "project_id", "creation_time", "update_time".
           required: true
@@ -3829,19 +3829,19 @@ paths:
         - Products
       responses:
         '200':
-          description: Update webhook policy successfully.
+          description: Update webhook rule successfully.
         '400':
           description: Illegal format of provided ID value.
         '401':
           description: User need to log in first.
         '403':
-          description: User have no permission to update webhook policy of the project.
+          description: User have no permission to update webhook rule of the project.
         '404':
-          description: Webhook policy ID does not exist.
+          description: Webhook rule ID does not exist.
         '500':
           description: Internal server errors.
     delete:
-      summary: Delete webhook policy of a project
+      summary: Delete webhook rule of a project
       description: |
         This endpoint is aimed to delete webhookpolicy of a project.
       parameters:
@@ -3853,7 +3853,7 @@ paths:
           format: int64
         - name: policy_id
           in: path
-          description: The id of webhook policy.
+          description: The id of webhook rule.
           required: true
           type: integer
           format: int64
@@ -3861,15 +3861,15 @@ paths:
         - Products
       responses:
         '200':
-          description: Delete webhook policy successfully.
+          description: Delete webhook rule successfully.
         '400':
           description: Illegal format of provided ID value.
         '401':
           description: User need to log in first.
         '403':
-          description: User have no permission to delete webhook policy of the project.
+          description: User have no permission to delete webhook rule of the project.
         '404':
-          description: Webhook policy ID does not exist.
+          description: Webhook rule ID does not exist.
         '500':
           description: Internal server errors.
   '/projects/{project_id}/webhook/policies/test':
@@ -3884,7 +3884,7 @@ paths:
           required: true
           type: integer
           format: int64
-        - name: policy
+        - name: rule
           in: body
           description: Only property "targets" needed.
           required: true
@@ -3900,12 +3900,12 @@ paths:
         '401':
           description: User need to log in first.
         '403':
-          description: User have no permission to get webhook policy of the project.
+          description: User have no permission to get webhook rule of the project.
         '500':
           description: Internal server errors.
   '/projects/{project_id}/webhook/lasttrigger':
     get:
-      summary: Get project webhook policy last trigger info
+      summary: Get project webhook rule last trigger info
       description: |
         This endpoint returns last trigger information of project webhook policy.
       parameters:
@@ -3929,7 +3929,7 @@ paths:
         '401':
           description: User need to log in first.
         '403':
-          description: User have no permission to get webhook policy of the project.
+          description: User have no permission to get webhook rule of the project.
         '500':
           description: Internal server errors.
   '/projects/{project_id}/webhook/jobs':
@@ -3949,7 +3949,7 @@ paths:
           type: integer
           format: int64
           required: true
-          description: The policy ID.
+          description: The rule ID.
       tags:
         - Products
       responses:
@@ -3993,7 +3993,7 @@ paths:
         - Products
         - Retention
       parameters:
-        - name: policy
+        - name: rule
           in: body
           description: Create Retention Policy successfully.
           required: true
@@ -4052,7 +4052,7 @@ paths:
           format: int64
           required: true
           description: Retention ID.
-        - name: policy
+        - name: rule
           in: body
           required: true
           schema:
@@ -4579,7 +4579,7 @@ definitions:
       policy_id:
         type: integer
         format: int64
-        description: The ID of the policy that triggered this job.
+        description: The ID of the rule that triggered this job.
       operation:
         type: string
         description: The operation of the job.
@@ -4606,13 +4606,13 @@ definitions:
       id:
         type: integer
         format: int64
-        description: The policy ID.
+        description: The rule ID.
       name:
         type: string
-        description: The policy name.
+        description: The rule name.
       description:
         type: string
-        description: The description of the policy.
+        description: The description of the rule.
       src_registry:
         description: The source registry.
         $ref: '#/definitions/Registry'
@@ -4626,7 +4626,7 @@ definitions:
         $ref: '#/definitions/ReplicationTrigger'
       filters:
         type: array
-        description: The replication policy filter array.
+        description: The replication rule filter array.
         items:
           $ref: '#/definitions/ReplicationFilter'
       deletion:
@@ -4637,19 +4637,19 @@ definitions:
         description: Whether to override the resources on the destination registry.
       enabled:
         type: boolean
-        description: Whether the policy is enabled or not.
+        description: Whether the rule is enabled or not.
       creation_time:
         type: string
-        description: The create time of the policy.
+        description: The create time of the rule.
       update_time:
         type: string
-        description: The update time of the policy.
+        description: The update time of the rule.
   ReplicationTrigger:
     type: object
     properties:
       type:
         type: string
-        description: 'The replication policy trigger type. The valid values are manual, event_based and scheduled.'
+        description: 'The replication rule trigger type. The valid values are manual, event_based and scheduled.'
       trigger_settings:
         $ref: '#/definitions/TriggerSettings'
   TriggerSettings:
@@ -4663,10 +4663,10 @@ definitions:
     properties:
       type:
         type: string
-        description: 'The replication policy filter type.'
+        description: 'The replication rule filter type.'
       value:
         type: string
-        description: 'The value of replication policy filter.'
+        description: 'The value of replication rule filter.'
   RegistryCredential:
     type: object
     properties:
@@ -4708,10 +4708,10 @@ definitions:
         description: Health status of the registry.
       creation_time:
         type: string
-        description: The create time of the policy.
+        description: The create time of the rule.
       update_time:
         type: string
-        description: The update time of the policy.
+        description: The update time of the rule.
   PingRegistry:
     type: object
     properties:
@@ -5168,14 +5168,14 @@ definitions:
         properties:
           type:
             type: string
-            description: 'The type of scan all policy, currently the valid values are "none" and "daily"'
+            description: 'The type of scan all rule, currently the valid values are "none" and "daily"'
           parameter:
             type: object
             properties:
               daily_time:
                 type: integer
-                description: 'The offset in seconds of UTC 0 o''clock, only valid when the policy type is "daily"'
-            description: 'The parameters of the policy, the values are dependant on the type of the policy.'
+                description: 'The offset in seconds of UTC 0 o''clock, only valid when the rule type is "daily"'
+            description: 'The parameters of the rule, the values are dependant on the type of the rule.'
   ConfigurationsResponse:
     type: object
     properties:
@@ -5268,14 +5268,14 @@ definitions:
         properties:
           type:
             type: string
-            description: 'The type of scan all policy, currently the valid values are "none" and "daily"'
+            description: 'The type of scan all rule, currently the valid values are "none" and "daily"'
           parameter:
             type: object
             properties:
               daily_time:
                 type: integer
-                description: 'The offset in seconds of UTC 0 o''clock, only valid when the policy type is "daily"'
-            description: 'The parameters of the policy, the values are dependant on the type of the policy.'
+                description: 'The offset in seconds of UTC 0 o''clock, only valid when the rule type is "daily"'
+            description: 'The parameters of the rule, the values are dependant on the type of the rule.'
   RepositoryDescription:
     type: object
     properties:
@@ -5381,7 +5381,7 @@ definitions:
     properties:
       replication_policies:
         type: array
-        description: The replication policy list.
+        description: The replication rule list.
         items:
           $ref: '#/definitions/ReplicationPolicy'
   StringConfigItem:
@@ -5826,7 +5826,7 @@ definitions:
         description: The ID
       policy_id:
         type: integer
-        description: The policy ID
+        description: The rule ID
       status:
         type: string
         description: The status
@@ -5959,7 +5959,7 @@ definitions:
         description: the update time of the quota
   WebhookTargetObject:
     type: object
-    description: The webhook policy target object.
+    description: The webhook rule target object.
     properties:
       type:
         type: string
@@ -5975,21 +5975,21 @@ definitions:
         description: Whether or not to skip cert verify.
   WebhookPolicy:
     type: object
-    description: The webhook policy object
+    description: The webhook rule object
     properties:
       id:
         type: integer
         format: int64
-        description: The webhook policy ID.
+        description: The webhook rule ID.
       name:
         type: string
-        description: The name of webhook policy.
+        description: The name of webhook rule.
       description:
         type: string
-        description: The description of webhook policy.
+        description: The description of webhook rule.
       project_id:
         type: integer
-        description: The project ID of webhook policy.
+        description: The project ID of webhook rule.
       targets:
         type: array
         items:
@@ -6000,32 +6000,32 @@ definitions:
           type: string
       creator:
         type: string
-        description: The creator of the webhook policy.
+        description: The creator of the webhook rule.
       creation_time:
         type: string
-        description: The create time of the webhook policy.
+        description: The create time of the webhook rule.
       update_time:
         type: string
-        description: The update time of the webhook policy.
+        description: The update time of the webhook rule.
       enabled:
         type: boolean
-        description: Whether the webhook policy is enabled or not.
+        description: Whether the webhook rule is enabled or not.
   WebhookLastTrigger:
     type: object
-    description: The webhook policy and last trigger time group by event type.
+    description: The webhook rule and last trigger time group by event type.
     properties:
       event_type:
         type: string
         description: The webhook event type.
       enabled:
         type: boolean
-        description: Whether or not the webhook policy enabled.
+        description: Whether or not the webhook rule enabled.
       creation_time:
         type: string
-        description: The creation time of webhook policy.
+        description: The creation time of webhook rule.
       last_trigger_time:
         type: string
-        description: The last trigger time of webhook policy.
+        description: The last trigger time of webhook rule.
   WebhookJob:
     type: object
     description: The webhook job.
@@ -6037,7 +6037,7 @@ definitions:
       policy_id:
         type: integer
         format: int64
-        description: The webhook policy ID.
+        description: The webhook rule ID.
       event_type:
         type: string
         description: The webhook job event type.
@@ -6123,7 +6123,7 @@ definitions:
 
   RetentionPolicy:
     type: object
-    description: retention policy
+    description: retention rule
     properties:
       id:
         type: integer

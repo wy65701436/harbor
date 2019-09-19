@@ -330,13 +330,13 @@ func (l *LabelAPI) ListResources() {
 		}
 		policies := []*rep_models.ReplicationPolicy{}
 		if result != nil {
-			for _, policy := range result.Policies {
-				for _, filter := range policy.Filters {
+			for _, rule := range result.Policies {
+				for _, filter := range rule.Filters {
 					if filter.Kind != replication.FilterItemKindLabel {
 						continue
 					}
 					if filter.Value.(int64) == label.ID {
-						policies = append(policies, policy)
+						policies = append(policies, rule)
 					}
 				}
 			}

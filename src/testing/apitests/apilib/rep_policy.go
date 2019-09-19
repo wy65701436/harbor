@@ -24,7 +24,7 @@ package apilib
 
 type RepPolicy struct {
 
-	// The policy ID.
+	// The rule ID.
 	Id int64 `json:"id,omitempty"`
 
 	// The project ID.
@@ -36,25 +36,25 @@ type RepPolicy struct {
 	// The target ID.
 	TargetId int64 `json:"target_id,omitempty"`
 
-	// The policy name.
+	// The rule name.
 	Name string `json:"name,omitempty"`
 
-	// The policy's enabled status.
+	// The rule's enabled status.
 	Enabled int32 `json:"enabled,omitempty"`
 
-	// The description of the policy.
+	// The description of the rule.
 	Description string `json:"description,omitempty"`
 
 	// The cron string for schedule job.
 	CronStr string `json:"cron_str,omitempty"`
 
-	// The start time of the policy.
+	// The start time of the rule.
 	StartTime string `json:"start_time,omitempty"`
 
-	// The create time of the policy.
+	// The create time of the rule.
 	CreationTime string `json:"creation_time,omitempty"`
 
-	// The update time of the policy.
+	// The update time of the rule.
 	UpdateTime string `json:"update_time,omitempty"`
 
 	Deleted int32 `json:"deleted,omitempty"`

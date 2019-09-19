@@ -73,7 +73,7 @@ type Tracker interface {
 	NumericID() (int64, error)
 
 	// Mark the periodic job execution to done by update the score
-	// of the relation between its periodic policy and execution to -1.
+	// of the relation between its periodic rule and execution to -1.
 	PeriodicExecutionDone() error
 
 	// Check in message

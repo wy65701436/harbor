@@ -27,13 +27,13 @@ type RepPolicyUpdate struct {
 	// The target ID.
 	TargetId int64 `json:"target_id,omitempty"`
 
-	// The policy name.
+	// The rule name.
 	Name string `json:"name,omitempty"`
 
-	// The policy's enabled status.
+	// The rule's enabled status.
 	Enabled int32 `json:"enabled,omitempty"`
 
-	// The description of the policy.
+	// The description of the rule.
 	Description string `json:"description,omitempty"`
 
 	// The cron string for schedule job.

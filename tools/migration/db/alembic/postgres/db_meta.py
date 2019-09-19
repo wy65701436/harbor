@@ -167,7 +167,7 @@ class ReplicationJob(Base):
     creation_time = sa.Column(sa.TIMESTAMP, server_default=sa.text("'now'::timestamp"))
     update_time = sa.Column(sa.TIMESTAMP, server_default=sa.text("'now'::timestamp"))
 
-    __table_args__ = (sa.Index('policy', 'policy_id'),)
+    __table_args__ = (sa.Index('rule', 'policy_id'),)
 
 
 class ReplicationImmediateTrigger(Base):

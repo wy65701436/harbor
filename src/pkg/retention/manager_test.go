@@ -85,7 +85,7 @@ func TestPolicy(t *testing.T) {
 
 	p1, err = m.GetPolicy(id)
 	assert.NotNil(t, err)
-	assert.True(t, strings.Contains(err.Error(), "no such Retention policy"))
+	assert.True(t, strings.Contains(err.Error(), "no such Retention rule"))
 	assert.Nil(t, p1)
 }
 

@@ -394,12 +394,12 @@ func AdmiralEndpoint() string {
 	return cfgMgr.Get(common.AdmiralEndpoint).GetString()
 }
 
-// ScanAllPolicy returns the policy which controls the scan all.
+// ScanAllPolicy returns the rule which controls the scan all.
 func ScanAllPolicy() models.ScanAllPolicy {
 	var res models.ScanAllPolicy
-	log.Infof("Scan all policy %v", cfgMgr.Get(common.ScanAllPolicy).GetString())
+	log.Infof("Scan all rule %v", cfgMgr.Get(common.ScanAllPolicy).GetString())
 	if err := json.Unmarshal([]byte(cfgMgr.Get(common.ScanAllPolicy).GetString()), &res); err != nil {
-		log.Errorf("Failed to unmarshal the value in configuration for Scan All policy, error: %v, returning the default policy", err)
+		log.Errorf("Failed to unmarshal the value in configuration for Scan All rule, error: %v, returning the default rule", err)
 		return models.DefaultScanAllPolicy
 	}
 	return res

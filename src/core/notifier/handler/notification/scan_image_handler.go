@@ -57,12 +57,12 @@ func (si *ScanImagePreprocessHandler) Handle(value interface{}) error {
 	}
 	policies, err := notification.PolicyMgr.GetRelatedPolices(project.ProjectID, e.EventType)
 	if err != nil {
-		log.Errorf("failed to find policy for %s event: %v", e.EventType, err)
+		log.Errorf("failed to find rule for %s event: %v", e.EventType, err)
 		return err
 	}
-	// if cannot find policy including event type in project, return directly
+	// if cannot find rule including event type in project, return directly
 	if len(policies) == 0 {
-		log.Debugf("cannot find policy for %s event: %v", e.EventType, e)
+		log.Debugf("cannot find rule for %s event: %v", e.EventType, e)
 		return nil
 	}
 

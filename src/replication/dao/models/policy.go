@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// RepPolicy is the model for a ng replication policy.
+// RepPolicy is the model for a ng replication rule.
 type RepPolicy struct {
 	ID                int64     `orm:"pk;auto;column(id)" json:"id"`
 	Name              string    `orm:"column(name)" json:"name"`

@@ -48,7 +48,7 @@ import (
 )
 
 var (
-	// PolicyCtl is a global policy controller
+	// PolicyCtl is a global rule controller
 	PolicyCtl policy.Controller
 	// RegistryMgr is a global registry manager
 	RegistryMgr registry.Manager
@@ -77,7 +77,7 @@ func Init(closing, done chan struct{}) error {
 	js := job.NewDefaultClient(config.Config.JobserviceURL, config.Config.CoreSecret)
 	// init registry manager
 	RegistryMgr = registry.NewDefaultManager()
-	// init policy controller
+	// init rule controller
 	PolicyCtl = controller.NewController(js)
 	// init operation controller
 	OperationCtl = operation.NewController(js)

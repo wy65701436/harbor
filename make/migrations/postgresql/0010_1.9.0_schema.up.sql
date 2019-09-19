@@ -151,7 +151,7 @@ create table schedule
   PRIMARY KEY (id)
 );
 
-/*add notification policy table*/
+/*add notification rule table*/
 create table notification_policy (
  id SERIAL NOT NULL,
  name varchar(256),

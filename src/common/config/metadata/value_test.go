@@ -71,7 +71,7 @@ func TestNewScanAllPolicy(t *testing.T) {
 	Instance().initFromArray(testingMetaDataArray)
 	value, err := NewCfgValue("scan_all_policy", `{"parameter":{"daily_time":0},"type":"daily"}`)
 	if err != nil {
-		t.Errorf("Can not create scan all policy err: %v", err)
+		t.Errorf("Can not create scan all rule err: %v", err)
 	}
 	fmt.Printf("value %v\n", value.GetString())
 }

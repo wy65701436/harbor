@@ -120,7 +120,7 @@ func (s *ControllerTestSuite) TestPolicy() {
 
 	p1, err = c.GetRetention(id)
 	s.Require().NotNil(err)
-	s.Require().True(strings.Contains(err.Error(), "no such Retention policy"))
+	s.Require().True(strings.Contains(err.Error(), "no such Retention rule"))
 	s.Require().Nil(p1)
 }
 

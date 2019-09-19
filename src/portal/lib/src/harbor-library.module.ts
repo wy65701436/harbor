@@ -154,7 +154,7 @@ export interface HarborModuleConfig {
   // Service implementation for job log
   jobLogService?: Provider;
 
-  // Service implementation for project policy
+  // Service implementation for project rule
   projectPolicyService?: Provider;
 
   // Service implementation for label

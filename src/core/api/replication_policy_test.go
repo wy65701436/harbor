@@ -118,7 +118,7 @@ func TestReplicationPolicyAPICreate(t *testing.T) {
 			},
 			code: http.StatusForbidden,
 		},
-		// 400 empty policy name
+		// 400 empty rule name
 		{
 			request: &testingRequest{
 				method:     http.MethodPost,
@@ -144,7 +144,7 @@ func TestReplicationPolicyAPICreate(t *testing.T) {
 			},
 			code: http.StatusBadRequest,
 		},
-		// 409, duplicate policy name
+		// 409, duplicate rule name
 		{
 			request: &testingRequest{
 				method:     http.MethodPost,
@@ -221,7 +221,7 @@ func TestReplicationPolicyAPIGet(t *testing.T) {
 			},
 			code: http.StatusForbidden,
 		},
-		// 404, policy not found
+		// 404, rule not found
 		{
 			request: &testingRequest{
 				method:     http.MethodGet,
@@ -271,7 +271,7 @@ func TestReplicationPolicyAPIUpdate(t *testing.T) {
 			},
 			code: http.StatusForbidden,
 		},
-		// 404 policy not found
+		// 404 rule not found
 		{
 			request: &testingRequest{
 				method:     http.MethodPut,
@@ -281,7 +281,7 @@ func TestReplicationPolicyAPIUpdate(t *testing.T) {
 			},
 			code: http.StatusNotFound,
 		},
-		// 400 empty policy name
+		// 400 empty rule name
 		{
 			request: &testingRequest{
 				method:     http.MethodPut,
@@ -295,7 +295,7 @@ func TestReplicationPolicyAPIUpdate(t *testing.T) {
 			},
 			code: http.StatusBadRequest,
 		},
-		// 409, duplicate policy name
+		// 409, duplicate rule name
 		{
 			request: &testingRequest{
 				method:     http.MethodPut,
@@ -369,7 +369,7 @@ func TestReplicationPolicyAPIDelete(t *testing.T) {
 			},
 			code: http.StatusForbidden,
 		},
-		// 404, policy not found
+		// 404, rule not found
 		{
 			request: &testingRequest{
 				method:     http.MethodDelete,

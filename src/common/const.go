@@ -158,4 +158,6 @@ const (
 
 	// ForeignLayer
 	ForeignLayer = "application/vnd.docker.image.rootfs.foreign.diff.tar.gzip"
+
+	MaxRuleCount = 15
 )

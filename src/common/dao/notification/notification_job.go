@@ -70,7 +70,7 @@ func GetNotificationJobs(query ...*models.NotificationJobQuery) ([]*models.Notif
 	return jobs, err
 }
 
-// GetLastTriggerJobsGroupByEventType get notification jobs info of policy, including event type and last trigger time
+// GetLastTriggerJobsGroupByEventType get notification jobs info of rule, including event type and last trigger time
 func GetLastTriggerJobsGroupByEventType(policyID int64) ([]*models.NotificationJob, error) {
 	o := dao.GetOrmer()
 	// get jobs last triggered(created) group by event_type. postgres group by usage reference:

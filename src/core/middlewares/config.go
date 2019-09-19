@@ -25,6 +25,7 @@ const (
 	VULNERABLE       = "vulnerable"
 	SIZEQUOTA        = "sizequota"
 	COUNTQUOTA       = "countquota"
+	IMMUTABLE        = "immutable"
 )
 
 // ChartMiddlewares middlewares for chart server

@@ -36,9 +36,9 @@ const (
 	ScopeLevelProject = "project"
 )
 
-// Metadata of policy
+// Metadata of rule
 type Metadata struct {
-	// ID of the policy
+	// ID of the rule
 	ID int64 `json:"id"`
 
 	// Algorithm applied to the rules
@@ -48,10 +48,10 @@ type Metadata struct {
 	// Rule collection
 	Rules []rule.Metadata `json:"rules"`
 
-	// Trigger about how to launch the policy
+	// Trigger about how to launch the rule
 	Trigger *Trigger `json:"trigger" valid:"Required"`
 
-	// Which scope the policy will be applied to
+	// Which scope the rule will be applied to
 	Scope *Scope `json:"scope" valid:"Required"`
 }
 
@@ -87,7 +87,7 @@ func (m *Metadata) Valid(v *validation.Validation) {
 	}
 }
 
-// Trigger of the policy
+// Trigger of the rule
 type Trigger struct {
 	// Const string to declare the trigger type
 	// 'Schedule'

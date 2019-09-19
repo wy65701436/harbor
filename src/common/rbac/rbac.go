@@ -93,7 +93,7 @@ func (eff Effect) String() string {
 	return string(eff)
 }
 
-// Policy the type of policy
+// Policy the type of rule
 type Policy struct {
 	Resource
 	Action

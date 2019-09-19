@@ -141,7 +141,7 @@ func resolveImageEventData(value interface{}) (*notifyModel.ImageEvent, error) {
 	return imgEvent, nil
 }
 
-// preprocessAndSendImageHook preprocess image event data and send hook by notification policy target
+// preprocessAndSendImageHook preprocess image event data and send hook by notification rule target
 func preprocessAndSendImageHook(value interface{}) error {
 	// if global notification configured disabled, return directly
 	if !config.NotificationEnable() {
@@ -156,12 +156,12 @@ func preprocessAndSendImageHook(value interface{}) error {
 
 	policies, err := notification.PolicyMgr.GetRelatedPolices(imgEvent.Project.ProjectID, imgEvent.EventType)
 	if err != nil {
-		log.Errorf("failed to find policy for %s event: %v", imgEvent.EventType, err)
+		log.Errorf("failed to find rule for %s event: %v", imgEvent.EventType, err)
 		return err
 	}
-	// if cannot find policy including event type in project, return directly
+	// if cannot find rule including event type in project, return directly
 	if len(policies) == 0 {
-		log.Debugf("cannot find policy for %s event: %v", imgEvent.EventType, imgEvent)
+		log.Debugf("cannot find rule for %s event: %v", imgEvent.EventType, imgEvent)
 		return nil
 	}
 

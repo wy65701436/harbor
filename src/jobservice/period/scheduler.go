@@ -28,18 +28,18 @@ type Scheduler interface {
 	//  error if any problems happened
 	Stop() error
 
-	// Schedule the specified cron job policy.
+	// Schedule the specified cron job rule.
 	//
-	// policy *Policy           : The job template of the scheduling periodical jobs
+	// rule *Policy           : The job template of the scheduling periodical jobs
 	//
 	// Returns:
-	//  int64 the numeric id of policy
+	//  int64 the numeric id of rule
 	//  error if failed to schedule
 	Schedule(policy *Policy) (int64, error)
 
-	// Unschedule the specified cron job policy.
+	// Unschedule the specified cron job rule.
 	//
-	// policyID string: The ID of cron job policy.
+	// policyID string: The ID of cron job rule.
 	//
 	// Return:
 	//  error if failed to unschedule

@@ -49,9 +49,9 @@ export class ProjectPolicy {
 }
 
 @Component({
-    selector: 'hbr-project-policy-config',
-    templateUrl: './project-policy-config.component.html',
-    styleUrls: ['./project-policy-config.component.scss']
+    selector: 'hbr-project-rule-config',
+    templateUrl: './project-rule-config.component.html',
+    styleUrls: ['./project-rule-config.component.scss']
 })
 export class ProjectPolicyConfigComponent implements OnInit {
     onGoing = false;
@@ -112,7 +112,7 @@ export class ProjectPolicyConfigComponent implements OnInit {
                     }, 100);
                 }
             } , error => this.errorHandler.error(error));
-        // retrive project level policy data
+        // retrive project level rule data
         this.retrieve();
         this.getPermission();
         this.getSystemWhitelist();

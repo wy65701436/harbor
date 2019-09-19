@@ -25,7 +25,7 @@ import (
 	"github.com/goharbor/harbor/src/replication/policy/scheduler"
 )
 
-// NewController returns a policy controller which can CURD and schedule policies
+// NewController returns a rule controller which can CURD and schedule policies
 func NewController(js job.Client) policy.Controller {
 	mgr := manager.NewDefaultManager()
 	scheduler := scheduler.NewScheduler(js)
@@ -49,9 +49,9 @@ func (c *controller) Create(policy *model.Policy) (int64, error) {
 	if isScheduledTrigger(policy) {
 		// TODO: need a way to show the schedule status to users
 		// maybe we can add a property "schedule status" for
-		// listing policy API
+		// listing rule API
 		if err = c.scheduler.Schedule(id, policy.Trigger.Settings.Cron); err != nil {
-			log.Errorf("failed to schedule the policy %d: %v", id, err)
+			log.Errorf("failed to schedule the rule %d: %v", id, err)
 		}
 	}
 	return id, nil
@@ -63,27 +63,27 @@ func (c *controller) Update(policy *model.Policy) error {
 		return err
 	}
 	if origin == nil {
-		return fmt.Errorf("policy %d not found", policy.ID)
+		return fmt.Errorf("rule %d not found", policy.ID)
 	}
-	// if no need to reschedule the policy, just update it
+	// if no need to reschedule the rule, just update it
 	if !isScheduleTriggerChanged(origin, policy) {
 		return c.Controller.Update(policy)
 	}
-	// need to reschedule the policy
+	// need to reschedule the rule
 	// unschedule first if needed
 	if isScheduledTrigger(origin) {
 		if err = c.scheduler.Unschedule(origin.ID); err != nil {
-			return fmt.Errorf("failed to unschedule the policy %d: %v", origin.ID, err)
+			return fmt.Errorf("failed to unschedule the rule %d: %v", origin.ID, err)
 		}
 	}
-	// update the policy
+	// update the rule
 	if err = c.Controller.Update(policy); err != nil {
 		return err
 	}
 	// schedule again if needed
 	if isScheduledTrigger(policy) {
 		if err = c.scheduler.Schedule(policy.ID, policy.Trigger.Settings.Cron); err != nil {
-			return fmt.Errorf("failed to schedule the policy %d: %v", policy.ID, err)
+			return fmt.Errorf("failed to schedule the rule %d: %v", policy.ID, err)
 		}
 	}
 	return nil
@@ -95,7 +95,7 @@ func (c *controller) Remove(policyID int64) error {
 		return err
 	}
 	if policy == nil {
-		return fmt.Errorf("policy %d not found", policyID)
+		return fmt.Errorf("rule %d not found", policyID)
 	}
 	if isScheduledTrigger(policy) {
 		if err = c.scheduler.Unschedule(policyID); err != nil {

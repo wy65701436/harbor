@@ -49,18 +49,18 @@ func (r *ReplicationOperationAPI) Prepare() {
 
 // The API is open only for system admin currently, we can use
 // the code commentted below to make the API available to the
-// users who have permission for all projects that the policy
+// users who have permission for all projects that the rule
 // refers
 /*
-func (r *ReplicationOperationAPI) authorized(policy *model.Policy, resource rbac.Resource, action rbac.Action) bool {
+func (r *ReplicationOperationAPI) authorized(rule *model.Policy, resource rbac.Resource, action rbac.Action) bool {
 
 	projects := []string{}
 	// pull mode
-	if policy.SrcRegistryID != 0 {
-		projects = append(projects, policy.DestNamespace)
+	if rule.SrcRegistryID != 0 {
+		projects = append(projects, rule.DestNamespace)
 	} else {
 		// push mode
-		projects = append(projects, policy.SrcNamespaces...)
+		projects = append(projects, rule.SrcNamespaces...)
 	}
 
 	for _, project := range projects {
@@ -119,26 +119,26 @@ func (r *ReplicationOperationAPI) CreateExecution() {
 
 	policy, err := replication.PolicyCtl.Get(execution.PolicyID)
 	if err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to get policy %d: %v", execution.PolicyID, err))
+		r.SendInternalServerError(fmt.Errorf("failed to get rule %d: %v", execution.PolicyID, err))
 		return
 	}
 	if policy == nil {
-		r.SendNotFoundError(fmt.Errorf("policy %d not found", execution.PolicyID))
+		r.SendNotFoundError(fmt.Errorf("rule %d not found", execution.PolicyID))
 		return
 	}
 	if !policy.Enabled {
-		r.SendBadRequestError(fmt.Errorf("the policy %d is disabled", execution.PolicyID))
+		r.SendBadRequestError(fmt.Errorf("the rule %d is disabled", execution.PolicyID))
 		return
 	}
 	if err = event.PopulateRegistries(replication.RegistryMgr, policy); err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to populate registries for policy %d: %v", execution.PolicyID, err))
+		r.SendInternalServerError(fmt.Errorf("failed to populate registries for rule %d: %v", execution.PolicyID, err))
 		return
 	}
 
 	trigger := r.GetString("trigger", string(model.TriggerTypeManual))
 	executionID, err := replication.OperationCtl.StartReplication(policy, nil, model.TriggerType(trigger))
 	if err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to start replication for policy %d: %v", execution.PolicyID, err))
+		r.SendInternalServerError(fmt.Errorf("failed to start replication for rule %d: %v", execution.PolicyID, err))
 		return
 	}
 	r.Redirect(http.StatusCreated, strconv.FormatInt(executionID, 10))

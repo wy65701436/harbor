@@ -64,12 +64,12 @@ func TestIsScheduledTrigger(t *testing.T) {
 		policy   *model.Policy
 		expected bool
 	}{
-		// policy is nil
+		// rule is nil
 		{
 			policy:   nil,
 			expected: false,
 		},
-		// policy is disabled
+		// rule is disabled
 		{
 			policy: &model.Policy{
 				Enabled: false,
@@ -258,7 +258,7 @@ func TestUpdate(t *testing.T) {
 	ctl.Controller = c
 
 	var origin, current *model.Policy
-	// origin policy is nil
+	// origin rule is nil
 	current = &model.Policy{
 		ID:      1,
 		Enabled: true,
@@ -313,7 +313,7 @@ func TestRemove(t *testing.T) {
 	}
 	ctl.Controller = c
 
-	// policy is nil
+	// rule is nil
 	err := ctl.Remove(1)
 	assert.NotNil(t, err)
 

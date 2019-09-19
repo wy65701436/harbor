@@ -65,7 +65,7 @@ type StatsInfo struct {
 	DieAt         int64      `json:"die_at,omitempty"`
 	WebHookURL    string     `json:"web_hook_url,omitempty"`
 	UpstreamJobID string     `json:"upstream_job_id,omitempty"`   // Ref the upstream job if existing
-	NumericPID    int64      `json:"numeric_policy_id,omitempty"` // The numeric policy ID of the periodic job
+	NumericPID    int64      `json:"numeric_policy_id,omitempty"` // The numeric rule ID of the periodic job
 	Parameters    Parameters `json:"parameters,omitempty"`
 	Revision      int64      `json:"revision,omitempty"` // For differentiating the each retry of the same job
 }

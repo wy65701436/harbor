@@ -10,7 +10,7 @@ import (
 	"github.com/goharbor/harbor/src/replication/model"
 )
 
-// AddRepPolicy insert new policy to DB.
+// AddRepPolicy insert new rule to DB.
 func AddRepPolicy(policy *models.RepPolicy) (int64, error) {
 	o := common_dao.GetOrmer()
 	now := time.Now()
@@ -69,7 +69,7 @@ func GetPolicies(queries ...*model.PolicyQuery) (int64, []*models.RepPolicy, err
 	return total, policies, nil
 }
 
-// GetRepPolicy return special policy by id.
+// GetRepPolicy return special rule by id.
 func GetRepPolicy(id int64) (policy *models.RepPolicy, err error) {
 	policy = new(models.RepPolicy)
 	err = common_dao.GetOrmer().QueryTable(policy).
@@ -81,7 +81,7 @@ func GetRepPolicy(id int64) (policy *models.RepPolicy, err error) {
 	return
 }
 
-// GetRepPolicyByName return special policy by name.
+// GetRepPolicyByName return special rule by name.
 func GetRepPolicyByName(name string) (policy *models.RepPolicy, err error) {
 	policy = new(models.RepPolicy)
 	err = common_dao.GetOrmer().QueryTable(policy).
@@ -100,7 +100,7 @@ func UpdateRepPolicy(policy *models.RepPolicy, props ...string) (err error) {
 	if policy != nil {
 		_, err = o.Update(policy, props...)
 	} else {
-		err = errors.New("Nil policy")
+		err = errors.New("Nil rule")
 	}
 
 	return

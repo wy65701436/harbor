@@ -30,7 +30,7 @@ import (
 
 // TODO rename the file to "replication.go"
 
-// ReplicationPolicyAPI handles the replication policy requests
+// ReplicationPolicyAPI handles the replication rule requests
 type ReplicationPolicyAPI struct {
 	BaseController
 }
@@ -71,7 +71,7 @@ func (r *ReplicationPolicyAPI) List() {
 	}
 	for _, policy := range policies {
 		if err = populateRegistries(replication.RegistryMgr, policy); err != nil {
-			r.SendInternalServerError(fmt.Errorf("failed to populate registries for policy %d: %v", policy.ID, err))
+			r.SendInternalServerError(fmt.Errorf("failed to populate registries for rule %d: %v", policy.ID, err))
 			return
 		}
 	}
@@ -79,7 +79,7 @@ func (r *ReplicationPolicyAPI) List() {
 	r.WriteJSONData(policies)
 }
 
-// Create the replication policy
+// Create the replication rule
 func (r *ReplicationPolicyAPI) Create() {
 	policy := &model.Policy{}
 	isValid, err := r.DecodeJSONReqAndValidate(policy)
@@ -98,21 +98,21 @@ func (r *ReplicationPolicyAPI) Create() {
 	policy.Creator = r.SecurityCtx.GetUsername()
 	id, err := replication.PolicyCtl.Create(policy)
 	if err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to create the policy: %v", err))
+		r.SendInternalServerError(fmt.Errorf("failed to create the rule: %v", err))
 		return
 	}
 	r.Redirect(http.StatusCreated, strconv.FormatInt(id, 10))
 }
 
-// make sure the policy name doesn't exist
+// make sure the rule name doesn't exist
 func (r *ReplicationPolicyAPI) validateName(policy *model.Policy) bool {
 	p, err := replication.PolicyCtl.GetByName(policy.Name)
 	if err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to get policy %s: %v", policy.Name, err))
+		r.SendInternalServerError(fmt.Errorf("failed to get rule %s: %v", policy.Name, err))
 		return false
 	}
 	if p != nil {
-		r.SendConflictError(fmt.Errorf("policy %s already exists", policy.Name))
+		r.SendConflictError(fmt.Errorf("rule %s already exists", policy.Name))
 		return false
 	}
 	return true
@@ -138,46 +138,46 @@ func (r *ReplicationPolicyAPI) validateRegistry(policy *model.Policy) bool {
 	return true
 }
 
-// Get the specified replication policy
+// Get the specified replication rule
 func (r *ReplicationPolicyAPI) Get() {
 	id, err := r.GetInt64FromPath(":id")
 	if id <= 0 || err != nil {
-		r.SendBadRequestError(errors.New("invalid policy ID"))
+		r.SendBadRequestError(errors.New("invalid rule ID"))
 		return
 	}
 
 	policy, err := replication.PolicyCtl.Get(id)
 	if err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to get the policy %d: %v", id, err))
+		r.SendInternalServerError(fmt.Errorf("failed to get the rule %d: %v", id, err))
 		return
 	}
 	if policy == nil {
-		r.SendNotFoundError(fmt.Errorf("policy %d not found", id))
+		r.SendNotFoundError(fmt.Errorf("rule %d not found", id))
 		return
 	}
 	if err = populateRegistries(replication.RegistryMgr, policy); err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to populate registries for policy %d: %v", policy.ID, err))
+		r.SendInternalServerError(fmt.Errorf("failed to populate registries for rule %d: %v", policy.ID, err))
 		return
 	}
 
 	r.WriteJSONData(policy)
 }
 
-// Update the replication policy
+// Update the replication rule
 func (r *ReplicationPolicyAPI) Update() {
 	id, err := r.GetInt64FromPath(":id")
 	if id <= 0 || err != nil {
-		r.SendBadRequestError(errors.New("invalid policy ID"))
+		r.SendBadRequestError(errors.New("invalid rule ID"))
 		return
 	}
 
 	originalPolicy, err := replication.PolicyCtl.Get(id)
 	if err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to get the policy %d: %v", id, err))
+		r.SendInternalServerError(fmt.Errorf("failed to get the rule %d: %v", id, err))
 		return
 	}
 	if originalPolicy == nil {
-		r.SendNotFoundError(fmt.Errorf("policy %d not found", id))
+		r.SendNotFoundError(fmt.Errorf("rule %d not found", id))
 		return
 	}
 
@@ -199,42 +199,42 @@ func (r *ReplicationPolicyAPI) Update() {
 
 	policy.ID = id
 	if err := replication.PolicyCtl.Update(policy); err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to update the policy %d: %v", id, err))
+		r.SendInternalServerError(fmt.Errorf("failed to update the rule %d: %v", id, err))
 		return
 	}
 }
 
-// Delete the replication policy
+// Delete the replication rule
 func (r *ReplicationPolicyAPI) Delete() {
 	id, err := r.GetInt64FromPath(":id")
 	if id <= 0 || err != nil {
-		r.SendBadRequestError(errors.New("invalid policy ID"))
+		r.SendBadRequestError(errors.New("invalid rule ID"))
 		return
 	}
 
 	policy, err := replication.PolicyCtl.Get(id)
 	if err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to get the policy %d: %v", id, err))
+		r.SendInternalServerError(fmt.Errorf("failed to get the rule %d: %v", id, err))
 		return
 	}
 	if policy == nil {
-		r.SendNotFoundError(fmt.Errorf("policy %d not found", id))
+		r.SendNotFoundError(fmt.Errorf("rule %d not found", id))
 		return
 	}
 
 	isRunning, err := hasRunningExecutions(id)
 	if err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to check the execution status of policy %d: %v", id, err))
+		r.SendInternalServerError(fmt.Errorf("failed to check the execution status of rule %d: %v", id, err))
 		return
 	}
 
 	if isRunning {
-		r.SendPreconditionFailedError(fmt.Errorf("the policy %d has running executions, can not be deleted", id))
+		r.SendPreconditionFailedError(fmt.Errorf("the rule %d has running executions, can not be deleted", id))
 		return
 	}
 
 	if err := replication.PolicyCtl.Remove(id); err != nil {
-		r.SendInternalServerError(fmt.Errorf("failed to delete the policy %d: %v", id, err))
+		r.SendInternalServerError(fmt.Errorf("failed to delete the rule %d: %v", id, err))
 		return
 	}
 }

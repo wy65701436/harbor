@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package lwp = lightweight policy
+// Package lwp = lightweight rule
 package lwp
 
 import (
@@ -22,8 +22,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Metadata contains partial metadata of policy
-// It's a lightweight version of policy.Metadata
+// Metadata contains partial metadata of rule
+// It's a lightweight version of rule.Metadata
 type Metadata struct {
 	// Algorithm applied to the rules
 	// "OR" / "AND"

@@ -12,7 +12,7 @@ const (
 	NotificationJobTable = "notification_job"
 )
 
-// NotificationPolicy is the model for a notification policy.
+// NotificationPolicy is the model for a notification rule.
 type NotificationPolicy struct {
 	ID           int64         `orm:"pk;auto;column(id)" json:"id"`
 	Name         string        `orm:"column(name)" json:"name"`
@@ -33,7 +33,7 @@ func (w *NotificationPolicy) TableName() string {
 	return NotificationPolicyTable
 }
 
-// ConvertToDBModel convert struct data in notification policy to DB model data
+// ConvertToDBModel convert struct data in notification rule to DB model data
 func (w *NotificationPolicy) ConvertToDBModel() error {
 	if len(w.Targets) != 0 {
 		targets, err := json.Marshal(w.Targets)

@@ -53,12 +53,12 @@ func (hm *DefaultManager) StartHook(event *model.HookEvent, data *models.JobData
 		JobDetail:    string(payload),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to create the job record for notification based on policy %d: %v", event.PolicyID, err)
+		return fmt.Errorf("failed to create the job record for notification based on rule %d: %v", event.PolicyID, err)
 	}
 	statusHookURL := fmt.Sprintf("%s/service/notifications/jobs/webhook/%d", config.InternalCoreURL(), id)
 	data.StatusHook = statusHookURL
 
-	log.Debugf("created a notification job %d for the policy %d", id, event.PolicyID)
+	log.Debugf("created a notification job %d for the rule %d", id, event.PolicyID)
 
 	// submit hook job to jobservice
 	jobUUID, err := hm.client.SubmitJob(data)

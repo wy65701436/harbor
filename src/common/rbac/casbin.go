@@ -85,7 +85,7 @@ func (a *userAdapter) getRolePolicyLines(role Role) []string {
 	lines := []string{}
 
 	roleName := role.GetRoleName()
-	// returns empty policy lines if role name is empty
+	// returns empty rule lines if role name is empty
 	if roleName == "" {
 		return lines
 	}
@@ -102,7 +102,7 @@ func (a *userAdapter) getUserPolicyLines() []string {
 	lines := []string{}
 
 	username := a.GetUserName()
-	// returns empty policy lines if username is empty
+	// returns empty rule lines if username is empty
 	if username == "" {
 		return lines
 	}
@@ -119,7 +119,7 @@ func (a *userAdapter) getUserAllPolicyLines() []string {
 	lines := []string{}
 
 	username := a.GetUserName()
-	// returns empty policy lines if username is empty
+	// returns empty rule lines if username is empty
 	if username == "" {
 		return lines
 	}

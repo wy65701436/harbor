@@ -20,16 +20,16 @@ import (
 
 // Controller controls the replication policies
 type Controller interface {
-	// Create new policy
+	// Create new rule
 	Create(*model.Policy) (int64, error)
-	// List the policies, returns the total count, policy list and error
+	// List the policies, returns the total count, rule list and error
 	List(...*model.PolicyQuery) (int64, []*model.Policy, error)
-	// Get policy with specified ID
+	// Get rule with specified ID
 	Get(int64) (*model.Policy, error)
-	// Get policy by the name
+	// Get rule by the name
 	GetByName(string) (*model.Policy, error)
-	// Update the specified policy
+	// Update the specified rule
 	Update(policy *model.Policy) error
-	// Remove the specified policy
+	// Remove the specified rule
 	Remove(int64) error
 }

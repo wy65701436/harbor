@@ -20,8 +20,8 @@ import (
 	"github.com/goharbor/harbor/src/pkg/retention/policy/rule"
 )
 
-// Processor processing the whole policy targeting a repository.
-// Methods are defined to reflect the standard structure of the policy:
+// Processor processing the whole rule targeting a repository.
+// Methods are defined to reflect the standard structure of the rule:
 // list of rules with corresponding selectors plus an action performer.
 type Processor interface {
 	// Process the artifact candidates

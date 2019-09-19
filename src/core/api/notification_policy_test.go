@@ -210,7 +210,7 @@ func TestNotificationPolicyAPI_Post(t *testing.T) {
 				}},
 			code: http.StatusBadRequest,
 		},
-		// 400 policy ID != 0
+		// 400 rule ID != 0
 		{
 			request: &testingRequest{
 				method:     http.MethodPost,
@@ -614,7 +614,7 @@ func TestNotificationPolicyAPI_Delete(t *testing.T) {
 			},
 			code: http.StatusBadRequest,
 		},
-		// 500 failed to get policy
+		// 500 failed to get rule
 		{
 			request: &testingRequest{
 				method:     http.MethodDelete,

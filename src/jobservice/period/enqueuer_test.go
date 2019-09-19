@@ -108,7 +108,7 @@ func (suite *EnqueuerTestSuite) TestEnqueuer() {
 				require.Nil(suite.T(), err, "count scheduled: nil error expected but got %s", err)
 				if assert.Condition(suite.T(), func() (success bool) {
 					return count > 0
-				}, "at least one job should be scheduled for the periodic job policy") {
+				}, "at least one job should be scheduled for the periodic job rule") {
 					return
 				}
 			case <-time.After(15 * time.Second):
@@ -144,5 +144,5 @@ func (suite *EnqueuerTestSuite) prepare() {
 	}()
 
 	_, err = conn.Do("ZADD", key, time.Now().Unix(), rawData)
-	assert.Nil(suite.T(), err, "prepare policy: nil error expected but got %s", err)
+	assert.Nil(suite.T(), err, "prepare rule: nil error expected but got %s", err)
 }

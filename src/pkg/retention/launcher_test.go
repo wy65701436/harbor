@@ -211,7 +211,7 @@ func (l *launchTestSuite) TestLaunch() {
 	}
 
 	var ply *policy.Metadata
-	// nil policy
+	// nil rule
 	n, err := launcher.Launch(ply, 1, false)
 	require.NotNil(l.T(), err)
 

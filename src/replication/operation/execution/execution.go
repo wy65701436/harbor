@@ -35,7 +35,7 @@ type Manager interface {
 	Update(execution *models.Execution, props ...string) error
 	// Remove the execution specified by the ID
 	Remove(int64) error
-	// Remove all executions of one policy specified by the policy ID
+	// Remove all executions of one rule specified by the rule ID
 	RemoveAll(int64) error
 	// Create a task
 	CreateTask(*models.Task) (int64, error)
@@ -109,7 +109,7 @@ func (dm *DefaultManager) Remove(id int64) error {
 	return dao.DeleteExecution(id)
 }
 
-// RemoveAll executions of one policy specified by the policy ID
+// RemoveAll executions of one rule specified by the rule ID
 func (dm *DefaultManager) RemoveAll(policyID int64) error {
 	return dao.DeleteAllExecutions(policyID)
 }

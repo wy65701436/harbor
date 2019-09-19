@@ -145,7 +145,7 @@ export const USERSTATICPERMISSION = {
         }
     },
     "WEBHOOK": {
-        "KEY": "notification-policy",
+        "KEY": "notification-rule",
         "VALUE": {
             "LIST": "list",
             "READ": "read",

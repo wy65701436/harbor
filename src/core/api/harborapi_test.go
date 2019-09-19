@@ -707,7 +707,7 @@ func (a testapi) GetReposTop(authInfo usrInfo, count string) (int, interface{}, 
 
 // --------------------Replication_Policy Test--------------------------------//
 
-// Create a new replication policy
+// Create a new replication rule
 func (a testapi) AddPolicy(authInfo usrInfo, repPolicy apilib.RepPolicyPost) (int, error) {
 	_sling := sling.New().Post(a.basePath)
 
@@ -747,7 +747,7 @@ func (a testapi) ListPolicies(authInfo usrInfo, policyName string, proID string)
 	return httpStatusCode, successPayload, err
 }
 
-// Get replication policy by policyID
+// Get replication rule by policyID
 func (a testapi) GetPolicyByID(authInfo usrInfo, policyID string) (int, error) {
 	_sling := sling.New().Get(a.basePath)
 
@@ -773,7 +773,7 @@ func (a testapi) PutPolicyInfoByID(authInfo usrInfo, policyID string, policyUpda
 	return httpStatusCode, err
 }
 
-// Update policy enablement flag by policyID
+// Update rule enablement flag by policyID
 func (a testapi) PutPolicyEnableByID(authInfo usrInfo, policyID string, policyEnable apilib.RepPolicyEnablementReq) (int, error) {
 	_sling := sling.New().Put(a.basePath)
 
@@ -786,7 +786,7 @@ func (a testapi) PutPolicyEnableByID(authInfo usrInfo, policyID string, policyEn
 	return httpStatusCode, err
 }
 
-// Delete policy by policyID
+// Delete rule by policyID
 func (a testapi) DeletePolicyByID(authInfo usrInfo, policyID string) (int, error) {
 	_sling := sling.New().Delete(a.basePath)
 

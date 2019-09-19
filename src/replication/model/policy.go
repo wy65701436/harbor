@@ -37,7 +37,7 @@ const (
 	TriggerTypeEventBased TriggerType = "event_based"
 )
 
-// Policy defines the structure of a replication policy
+// Policy defines the structure of a replication rule
 type Policy struct {
 	ID          int64  `json:"id"`
 	Name        string `json:"name"`
@@ -67,7 +67,7 @@ type Policy struct {
 	UpdateTime   time.Time `json:"update_time"`
 }
 
-// Valid the policy
+// Valid the rule
 func (p *Policy) Valid(v *validation.Validation) {
 	if len(p.Name) == 0 {
 		v.SetError("name", "cannot be empty")

@@ -76,7 +76,7 @@ type ImageScanReq struct {
 	Tag  string `json:"tag"`
 }
 
-// ScanAllPolicy is represent the json request and object for scan all policy, the parm is het
+// ScanAllPolicy is represent the json request and object for scan all rule, the parm is het
 type ScanAllPolicy struct {
 	Type string                 `json:"type"`
 	Parm map[string]interface{} `json:"parameter,omitempty"`
@@ -89,7 +89,7 @@ const (
 	ScanAllDaily = "daily"
 	// ScanAllOnRefresh for doing scan all when the Clair DB is refreshed.
 	ScanAllOnRefresh = "on_refresh"
-	// ScanAllDailyTime the key for parm of daily scan all policy.
+	// ScanAllDailyTime the key for parm of daily scan all rule.
 	ScanAllDailyTime = "daily_time"
 )
 

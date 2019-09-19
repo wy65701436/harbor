@@ -78,7 +78,7 @@ func (bs *basicScheduler) Stop() error {
 // Schedule is implementation of the same method in period.Interface
 func (bs *basicScheduler) Schedule(p *Policy) (int64, error) {
 	if p == nil {
-		return -1, errors.New("bad policy object: nil")
+		return -1, errors.New("bad rule object: nil")
 	}
 
 	if err := p.Validate(); err != nil {
@@ -146,7 +146,7 @@ func (bs *basicScheduler) UnSchedule(policyID string) error {
 		_ = conn.Close()
 	}()
 
-	// Get the un-scheduling policy object
+	// Get the un-scheduling rule object
 	bytes, err := redis.Values(conn.Do("ZRANGEBYSCORE", rds.KeyPeriodicPolicy(bs.namespace), numericID, numericID))
 	if err != nil {
 		return err
@@ -163,7 +163,7 @@ func (bs *basicScheduler) UnSchedule(policyID string) error {
 
 	if utils.IsEmptyStr(p.ID) {
 		// Deserialize failed
-		return errors.Errorf("no valid periodic job policy found: %s:%d", policyID, numericID)
+		return errors.Errorf("no valid periodic job rule found: %s:%d", policyID, numericID)
 	}
 
 	notification := &message{
@@ -220,7 +220,7 @@ func (bs *basicScheduler) UnSchedule(policyID string) error {
 			// Do clear
 			if job.ScheduledStatus == job.Status(e.Info.Status) {
 				// Please pay attention here, the job ID used in the scheduled jon queue is
-				// the ID of the periodic job (policy).
+				// the ID of the periodic job (rule).
 				if err := bs.client.DeleteScheduledJob(e.Info.RunAt, policyID); err != nil {
 					logger.Errorf("Delete scheduled job %s error: %s", eID, err)
 				}

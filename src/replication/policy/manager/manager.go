@@ -28,7 +28,7 @@ import (
 	"github.com/goharbor/harbor/src/replication/policy"
 )
 
-var errNilPolicyModel = errors.New("nil policy model")
+var errNilPolicyModel = errors.New("nil rule model")
 
 func convertFromPersistModel(policy *persist_models.RepPolicy) (*model.Policy, error) {
 	if policy == nil {
@@ -118,7 +118,7 @@ func convertToPersistModel(policy *model.Policy) (*persist_models.RepPolicy, err
 	return ply, nil
 }
 
-// DefaultManager provides replication policy CURD capabilities.
+// DefaultManager provides replication rule CURD capabilities.
 type DefaultManager struct{}
 
 var _ policy.Controller = &DefaultManager{}
@@ -128,9 +128,9 @@ func NewDefaultManager() *DefaultManager {
 	return &DefaultManager{}
 }
 
-// Create creates a new policy with the provided data;
+// Create creates a new rule with the provided data;
 // If creating failed, error will be returned;
-// If creating succeed, ID of the new created policy will be returned.
+// If creating succeed, ID of the new created rule will be returned.
 func (m *DefaultManager) Create(policy *model.Policy) (int64, error) {
 	ply, err := convertToPersistModel(policy)
 	if err != nil {
@@ -163,7 +163,7 @@ func (m *DefaultManager) List(queries ...*model.PolicyQuery) (total int64, polic
 	return
 }
 
-// Get returns the policy with the specified ID
+// Get returns the rule with the specified ID
 func (m *DefaultManager) Get(policyID int64) (*model.Policy, error) {
 	policy, err := dao.GetRepPolicy(policyID)
 	if err != nil {
@@ -173,7 +173,7 @@ func (m *DefaultManager) Get(policyID int64) (*model.Policy, error) {
 	return convertFromPersistModel(policy)
 }
 
-// GetByName returns the policy with the specified name
+// GetByName returns the rule with the specified name
 func (m *DefaultManager) GetByName(name string) (*model.Policy, error) {
 	policy, err := dao.GetRepPolicyByName(name)
 	if err != nil {
@@ -183,7 +183,7 @@ func (m *DefaultManager) GetByName(name string) (*model.Policy, error) {
 	return convertFromPersistModel(policy)
 }
 
-// Update Update the specified policy
+// Update Update the specified rule
 func (m *DefaultManager) Update(policy *model.Policy) error {
 	updatePolicy, err := convertToPersistModel(policy)
 	if err != nil {
@@ -193,7 +193,7 @@ func (m *DefaultManager) Update(policy *model.Policy) error {
 	return dao.UpdateRepPolicy(updatePolicy)
 }
 
-// Remove Remove the specified policy
+// Remove Remove the specified rule
 func (m *DefaultManager) Remove(policyID int64) error {
 	return dao.DeleteRepPolicy(policyID)
 }

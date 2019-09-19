@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	// PolicyMgr is a global notification policy manager
+	// PolicyMgr is a global notification rule manager
 	PolicyMgr policy.Manager
 
 	// JobMgr is a notification job controller
@@ -29,7 +29,7 @@ var (
 
 // Init ...
 func Init() {
-	// init notification policy manager
+	// init notification rule manager
 	PolicyMgr = manager.NewDefaultManger()
 	// init hook manager
 	HookManager = hook.NewHookManager()

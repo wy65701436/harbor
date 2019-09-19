@@ -186,7 +186,7 @@ func (r *RetentionAPI) CreateRetention() {
 		return
 	}
 	if old != nil && len(old) > 0 {
-		r.SendBadRequestError(fmt.Errorf("project %v already has retention policy %v", p.Scope.Reference, old["retention_id"]))
+		r.SendBadRequestError(fmt.Errorf("project %v already has retention rule %v", p.Scope.Reference, old["retention_id"]))
 		return
 	}
 	id, err := retentionController.CreateRetention(p)

@@ -99,7 +99,7 @@ func (suite *ManagerTestSuite) SetupTest() {
 	require.NoError(suite.T(), err, "mock job stats data error")
 	require.Equal(suite.T(), "ok", strings.ToLower(reply), "ok expected")
 
-	// Mock periodic job policy object
+	// Mock periodic job rule object
 	params := make(map[string]interface{})
 	params["redis_url_reg"] = "redis://redis:6379/1"
 
@@ -109,11 +109,11 @@ func (suite *ManagerTestSuite) SetupTest() {
 	policy["cron_spec"] = "0 0 17 * * *"
 
 	rawJSON, err := json.Marshal(&policy)
-	require.NoError(suite.T(), err, "mock periodic job policy error")
+	require.NoError(suite.T(), err, "mock periodic job rule error")
 
 	policy["cron_spec"] = "0 0 8 * * *"
 	duplicatedRawJSON, err := json.Marshal(&policy)
-	require.NoError(suite.T(), err, "mock duplicated periodic job policy error")
+	require.NoError(suite.T(), err, "mock duplicated periodic job rule error")
 
 	score := time.Now().Unix()
 	suite.numbericID = score
@@ -125,7 +125,7 @@ func (suite *ManagerTestSuite) SetupTest() {
 		duplicatedRawJSON, // duplicated one
 	}
 	count, err := redis.Int(conn.Do("ZADD", zaddArgs...))
-	require.NoError(suite.T(), err, "add raw policy error")
+	require.NoError(suite.T(), err, "add raw rule error")
 	require.Equal(suite.T(), 2, count)
 
 	// Mock key score mapping
@@ -171,9 +171,9 @@ func (suite *ManagerTestSuite) TestManager() {
 
 	innerConn := suite.pool.Get()
 	p, err := getPeriodicPolicy(suite.numbericID, innerConn, suite.namespace)
-	assert.NoError(suite.T(), err, "get migrated policy error")
-	assert.NotEmpty(suite.T(), p.ID, "ID of policy")
-	assert.NotEmpty(suite.T(), p.WebHookURL, "Web hook URL of policy")
+	assert.NoError(suite.T(), err, "get migrated rule error")
+	assert.NotEmpty(suite.T(), p.ID, "ID of rule")
+	assert.NotEmpty(suite.T(), p.WebHookURL, "Web hook URL of rule")
 
 	key := fmt.Sprintf("%s%s", rds.KeyNamespacePrefix(suite.namespace), "period:key_score")
 	count, err = redis.Int(conn.Do("EXISTS", key))

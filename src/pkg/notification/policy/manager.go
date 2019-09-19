@@ -6,19 +6,19 @@ import (
 
 // Manager manages the notification policies
 type Manager interface {
-	// Create new policy
+	// Create new rule
 	Create(*models.NotificationPolicy) (int64, error)
-	// List the policies, returns the policy list and error
+	// List the policies, returns the rule list and error
 	List(int64) ([]*models.NotificationPolicy, error)
-	// Get policy with specified ID
+	// Get rule with specified ID
 	Get(int64) (*models.NotificationPolicy, error)
-	// GetByNameAndProjectID get policy by the name and projectID
+	// GetByNameAndProjectID get rule by the name and projectID
 	GetByNameAndProjectID(string, int64) (*models.NotificationPolicy, error)
-	// Update the specified policy
+	// Update the specified rule
 	Update(*models.NotificationPolicy) error
-	// Delete the specified policy
+	// Delete the specified rule
 	Delete(int64) error
-	// Test the specified policy
+	// Test the specified rule
 	Test(*models.NotificationPolicy) error
 	// GetRelatedPolices get event type related policies in project
 	GetRelatedPolices(int64, string) ([]*models.NotificationPolicy, error)
