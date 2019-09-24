@@ -2,10 +2,10 @@ package redis
 
 import (
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/immutable"
 	"github.com/goharbor/harbor/src/pkg/immutable/cache"
+	"github.com/gomodule/redigo/redis"
 	"github.com/pkg/errors"
 )
 
@@ -71,12 +71,12 @@ func (imrc *RedisCache) Stat(pid int64, repository string, tag string) (bool, er
 		return false, immutable.ErrTagUnknown
 	}
 
-	isImmutable, err := redis.String(conn.Do("HGET", imrc.tagKey(pid, repository, tag), "immutable"))
+	isImmutable, err := redis.Bool(conn.Do("HGET", imrc.tagKey(pid, repository, tag), "immutable"))
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 
-	return isImmutable == "true", nil
+	return isImmutable, nil
 }
 
 // Clear ...
@@ -133,7 +133,7 @@ func (imrc *RedisCache) Flush(pid int64) error {
 }
 
 func (imrc *RedisCache) tagKeyPrfix(pid int64) string {
-	return fmt.Sprintf("immutable::project::tags::%d", pid)
+	return fmt.Sprintf("immutable::project::tags::%d*", pid)
 }
 
 func (imrc *RedisCache) tagKey(pid int64, repository string, tag string) string {

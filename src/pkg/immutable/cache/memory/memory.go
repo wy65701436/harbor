@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"github.com/goharbor/harbor/src/pkg/immutable"
+	"fmt"
 	"github.com/goharbor/harbor/src/pkg/immutable/cache"
 	"sync"
 )
@@ -46,7 +46,7 @@ func (immc *MemoryCache) SetMultiple(pid int64, imcs []cache.IMCandidate) error 
 func (immc *MemoryCache) set(pid int64, imc cache.IMCandidate) error {
 	_, proExist := immc.repostitories[pid]
 	if !proExist {
-		return immutable.ErrTagUnknown
+		immc.repostitories[pid] = make(map[string]interface{})
 	}
 
 	repos := immc.repostitories[pid]
@@ -66,12 +66,12 @@ func (immc *MemoryCache) Stat(pid int64, repository string, tag string) (bool, e
 	repositories := immc.repostitories[pid]
 	_, exist := repositories[repository+"::"+tag]
 	if !exist {
-		return false, nil
+		return false, fmt.Errorf("no repository:%s and tag:%s found in project repositories", repository, tag)
 	}
 
 	_, exist = immc.immutable[repository+"::"+tag]
 	if !exist {
-		return false, nil
+		return false, fmt.Errorf("no immutable found for tagL %s::%s", repository, tag)
 	}
 
 	return immc.immutable[repository+"::"+tag], nil

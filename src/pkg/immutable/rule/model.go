@@ -2,18 +2,12 @@ package rule
 
 import (
 	"github.com/astaxie/beego/validation"
+	"github.com/goharbor/harbor/src/pkg/immutable/dao/model"
 )
 
 // Immutable rule
 type IMRule struct {
-	// UUID of rule
-	ID int
-
-	// Project ID of rule
-	PID int
-
-	// Disabled rule
-	Disabled bool `json:"disabled"`
+	model.ImmutableRule
 
 	// Metadata of the immutable rule
 	Metadata Metadata

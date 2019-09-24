@@ -95,5 +95,5 @@ func getRedisHost() string {
 		redisHost = "127.0.0.1" // for local test
 	}
 
-	return redisHost
+	return "10.193.21.1"
 }

@@ -51,11 +51,12 @@ func (rh immutableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 	}
 
 	// Check in cache firstly, if hit, reject the push request.
-	inCache, err := redis.NewRedisCache(nil).Stat(info.ProjectID, info.Repository, info.Tag)
+	imCache := redis.NewRedisCache(nil)
+	isImmutableTag, err := imCache.Stat(info.ProjectID, info.Repository, info.Tag)
 	if err != nil {
 		return
 	}
-	if inCache {
+	if isImmutableTag {
 		http.Error(rw, util.MarshalError("DENIED",
 			fmt.Sprintf("The tag:%s:%s is immutable, cannot be overwrite.", info.Repository, info.Tag)), http.StatusForbidden)
 		return
@@ -76,7 +77,7 @@ func (rh immutableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 				},
 				Immutable: true,
 			}
-			if err := redis.NewRedisCache(nil).Set(info.ProjectID, imc); err != nil {
+			if err := imCache.Set(info.ProjectID, imc); err != nil {
 				log.Warning("failed to set tag: %s:%s into immutable cache.", info.Repository, info.Tag)
 			}
 			http.Error(rw, util.MarshalError("DENIED",

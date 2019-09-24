@@ -8,10 +8,10 @@ type Cache interface {
 	// Set add a immutable to the project immutable list
 	Set(pid int64, imc IMCandidate) error
 
-	// Stat check whether the tag is in the project immutable list
+	// Stat check whether the tag is immutable
 	Stat(pid int64, repository string, tag string) (bool, error)
 
-	// SetMultiple a list of immutable tags in project list
+	// SetMultiple a list of immutable tags in project
 	SetMultiple(pid int64, icands []IMCandidate) error
 
 	// Clear remove the tag from the project immutable list
