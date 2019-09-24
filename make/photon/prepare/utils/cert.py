@@ -80,7 +80,7 @@ def create_cert(subj, ca_key, ca_cert, key_path="./k.key", cert_path="./cert.crt
 def openssl_installed():
     shell_stat = subprocess.check_call(["/usr/bin/which", "openssl"], stdout=DEVNULL, stderr=subprocess.STDOUT)
     if shell_stat != 0:
-        print("Cannot find openssl installed in this computer\nUse default SSL certificate file")
+        print("Cannot select openssl installed in this computer\nUse default SSL certificate file")
         return False
     return True
 

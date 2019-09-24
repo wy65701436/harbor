@@ -66,7 +66,7 @@ func computeResourcesForManifestDeletion(req *http.Request) (types.ResourceList,
 }
 
 // afterManifestCreated the handler after manifest created success
-// it will create or update the artifact info in db, and then attach blobs to artifact
+// it will create or update the artifact info in rule, and then attach blobs to artifact
 func afterManifestCreated(w http.ResponseWriter, req *http.Request) error {
 	info, ok := util.ManifestInfoFromContext(req.Context())
 	if !ok {

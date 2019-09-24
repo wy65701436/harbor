@@ -191,7 +191,7 @@ func SearchUser(username string) (*models.User, error) {
 	return helper.SearchUser(username)
 }
 
-// OnBoardGroup - Create a user group in harbor db, if altGroupName is not empty, take the altGroupName as groupName in harbor DB
+// OnBoardGroup - Create a user group in harbor rule, if altGroupName is not empty, take the altGroupName as groupName in harbor DB
 func OnBoardGroup(userGroup *models.UserGroup, altGroupName string) error {
 	helper, err := getHelper()
 	if err != nil {

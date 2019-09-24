@@ -25,7 +25,7 @@ ${HARBOR_ADMIN}  admin
 
 *** Test Cases ***
 Test Case - Vulnerability Data Not Ready
-#This case must run before vulnerability db ready
+#This case must run before vulnerability rule ready
     Init Chrome Driver
     Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
     Go Into Project  library  has_image=${false}

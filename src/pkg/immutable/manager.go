@@ -1,9 +1,12 @@
 package immutable
 
 import (
+	"errors"
 	"github.com/goharbor/harbor/src/pkg/immutable/dao"
 	"github.com/goharbor/harbor/src/pkg/immutable/dao/model"
 )
+
+var ErrTagUnknown = errors.New("unknown tag")
 
 // RuleManager ...
 type RuleManager interface {

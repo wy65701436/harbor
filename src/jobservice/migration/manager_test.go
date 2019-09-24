@@ -148,7 +148,7 @@ func (suite *ManagerTestSuite) TearDownTest() {
 	}()
 
 	err := tests.ClearAll(suite.namespace, conn)
-	assert.NoError(suite.T(), err, "clear all of redis db error")
+	assert.NoError(suite.T(), err, "clear all of redis rule error")
 }
 
 // TestManager test the basic functions of the manager

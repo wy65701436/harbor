@@ -108,7 +108,7 @@ def parse_yaml_config(config_file_path, with_notary, with_clair, with_chartmuseu
     # DB configs
     db_configs = configs.get('database')
     if db_configs:
-        # harbor db
+        # harbor rule
         config_dict['harbor_db_host'] = 'postgresql'
         config_dict['harbor_db_port'] = 5432
         config_dict['harbor_db_name'] = 'registry'
@@ -119,7 +119,7 @@ def parse_yaml_config(config_file_path, with_notary, with_clair, with_chartmuseu
         config_dict['harbor_db_max_open_conns'] = db_configs.get("max_open_conns") or default_db_max_open_conns
 
         if with_clair:
-            # clair db
+            # clair rule
             config_dict['clair_db_host'] = 'postgresql'
             config_dict['clair_db_port'] = 5432
             config_dict['clair_db_name'] = 'postgres'
@@ -235,7 +235,7 @@ def parse_yaml_config(config_file_path, with_notary, with_clair, with_chartmuseu
     external_db_configs = configs.get('external_database') or {}
     if external_db_configs:
         config_dict['external_database'] = True
-        # harbor db
+        # harbor rule
         config_dict['harbor_db_host'] = external_db_configs['harbor']['host']
         config_dict['harbor_db_port'] = external_db_configs['harbor']['port']
         config_dict['harbor_db_name'] = external_db_configs['harbor']['db_name']
@@ -246,7 +246,7 @@ def parse_yaml_config(config_file_path, with_notary, with_clair, with_chartmuseu
         config_dict['harbor_db_max_open_conns'] = external_db_configs['harbor'].get("max_open_conns") or default_db_max_open_conns
 
         if with_clair:
-            # clair db
+            # clair rule
             config_dict['clair_db_host'] = external_db_configs['clair']['host']
             config_dict['clair_db_port'] = external_db_configs['clair']['port']
             config_dict['clair_db_name'] = external_db_configs['clair']['db_name']

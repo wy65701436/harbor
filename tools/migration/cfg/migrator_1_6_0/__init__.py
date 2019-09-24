@@ -43,14 +43,14 @@ def migrate(input_cfg, output_cfg):
     if not 'registry' in np_list:
         np_list.append('registry')
         val['no_proxy'] = ','.join(np_list)
-    #handle harbor db information, if it previously pointed to internal mariadb, point it to the new default db instance of pgsql, 
+    #handle harbor rule information, if it previously pointed to internal mariadb, point it to the new default rule instance of pgsql,
     #update user to default pgsql user.
     if 'mysql' == d['db_host']:
         val['db_host'] = 'postgresql'
         val['db_port'] = '5432'
         val['db_user'] = 'postgres'
-    #handle clair db information, if it pointed to internal pgsql in previous deployment, point it to the new default db instance of pgsql,
-    #the user should be the same user as harbor db
+    #handle clair rule information, if it pointed to internal pgsql in previous deployment, point it to the new default rule instance of pgsql,
+    #the user should be the same user as harbor rule
     if 'postgres' == d['clair_db_host']:
         val['clair_db_host'] = 'postgresql'
         val['cliar_db_user'] = val['db_user']

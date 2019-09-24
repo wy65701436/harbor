@@ -11,12 +11,12 @@ services:
     command:
       ["serve", "/etc/registry/config.yml"]
   postgres:
-    image: goharbor/harbor-db:__version__
+    image: goharbor/harbor-rule:__version__
     restart: always
     volumes:
       - /data/database:/var/lib/postgresql/data:z
     env_file:
-      - ./common/config/db/env
+      - ./common/config/rule/env
     ports:
       - 5432:5432
   redis:

@@ -134,7 +134,7 @@ export interface IServiceConfig {
     langMessageLoader?: string;
 
     /**
-     * Define the basic url/path prefix for the loader to find the json files if the 'langMessageLoader' is 'http'.
+     * Define the basic url/path prefix for the loader to select the json files if the 'langMessageLoader' is 'http'.
      * For example, 'src/i18n/langs'.
      *
      * * {string}

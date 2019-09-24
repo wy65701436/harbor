@@ -1,13 +1,28 @@
 package cache
 
-import "github.com/goharbor/harbor/src/pkg/art"
+import (
+	"github.com/goharbor/harbor/src/pkg/art"
+)
 
 type Cache interface {
-	Set(pid int64, c art.Candidate) error
+	// Set add a immutable to the project immutable list
+	Set(pid int64, imc IMCandidate) error
 
-	Stat(pid int64, digest string) (bool, error)
+	// Stat check whether the tag is in the project immutable list
+	Stat(pid int64, repository string, tag string) (bool, error)
 
-	Clear(pid int64, c art.Candidate) error
+	// SetMultiple a list of immutable tags in project list
+	SetMultiple(pid int64, icands []IMCandidate) error
 
+	// Clear remove the tag from the project immutable list
+	Clear(pid int64, imc IMCandidate) error
+
+	// Flush remove all of immutable tags of a specific project
 	Flush(pid int64) error
+}
+
+// IMCandidate ...
+type IMCandidate struct {
+	art.Candidate
+	Immutable bool
 }

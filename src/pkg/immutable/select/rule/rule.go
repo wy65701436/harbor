@@ -1,43 +1,36 @@
-package db
+package rule
 
 import (
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/pkg/art"
 	"github.com/goharbor/harbor/src/pkg/art/selectors/index"
+	"github.com/goharbor/harbor/src/pkg/immutable"
 	"github.com/goharbor/harbor/src/pkg/immutable/rule"
 	"github.com/goharbor/harbor/src/pkg/project"
 	"github.com/goharbor/harbor/src/pkg/repository"
 )
 
-type DBHitter struct {
-	pid        int64
-	repository string
-	tag        string
-
+type RuleSelector struct {
 	projectMgr    project.Manager
 	repositoryMgr repository.Manager
 	rules         []rule.IMRule
 }
 
-func NewDBHitter(pid int64, repository string, tag string) DBHitter {
-	return DBHitter{
-		pid:        pid,
-		repository: repository,
-		tag:        tag,
-	}
+func NewRuleSelector() RuleSelector {
+	return RuleSelector{}
 }
 
-func (db *DBHitter) Hit() (bool, error) {
+func (rh *RuleSelector) Select(pid int64) ([]*art.Candidate, error) {
 	var repositoryCandidates []*art.Candidate
 
-	for _, rule := range db.rules {
+	for _, rule := range rh.rules {
 		if rule.Disabled {
 			continue
 		}
 
-		repositories, err := getRepositories(db.projectMgr, db.repositoryMgr, pid)
+		repositories, err := getRepositories(rh.projectMgr, rh.repositoryMgr, pid)
 		if err != nil {
-			return false, err
+			return repositoryCandidates, err
 		}
 
 		for _, repository := range repositories {
@@ -45,34 +38,29 @@ func (db *DBHitter) Hit() (bool, error) {
 		}
 
 		// filter repositories according to the repository selectors
-		for _, repositorySelector := range rule.Metadata.ScopeSelectors["repository"] {
+		for _, repositorySelector := range rule.Metadata.RepoSelectors["repository"] {
 			selector, err := index.Get(repositorySelector.Kind, repositorySelector.Decoration,
 				repositorySelector.Pattern)
 			if err != nil {
-				return false, err
+				return repositoryCandidates, err
 			}
 			repositoryCandidates, err = selector.Select(repositoryCandidates)
 			if err != nil {
-				return false, err
+				return repositoryCandidates, err
 			}
 		}
 
 	}
 
-	if len(repositoryCandidates) == 0 {
-		return false, nil
-	}
-
-	for _, c := range repositoryCandidates {
-		if c.Repository == db.repository && c.Tag == db.tag {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return repositoryCandidates, nil
 }
 
-func (db *DBHitter) getImmutableRules() error {
+func (rh *RuleSelector) getImmutableRules(pid int64) error {
+	rules, err := immutable.NewDefaultRuleManager().QueryEnabledImmutableRuleByProjectID(pid)
+	if err != nil {
+		return err
+	}
+	rh.rules = rules
 	return nil
 }
 

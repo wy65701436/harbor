@@ -956,7 +956,7 @@ func TestSaveConfigEntries(t *testing.T) {
 		},
 		{
 			Key:   common.CfgDriverDB,
-			Value: "db",
+			Value: "rule",
 		},
 	}
 	err := SaveConfigEntries(configEntries)
@@ -1004,7 +1004,7 @@ func TestSaveConfigEntries(t *testing.T) {
 		},
 		{
 			Key:   common.CfgDriverDB,
-			Value: "db",
+			Value: "rule",
 		},
 	}
 	err = SaveConfigEntries(configEntries)

@@ -37,7 +37,7 @@ func (d *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 	return u, nil
 }
 
-// SearchUser - Check if user exist in local db
+// SearchUser - Check if user exist in local rule
 func (d *Auth) SearchUser(username string) (*models.User, error) {
 	var queryCondition = models.User{
 		Username: username,

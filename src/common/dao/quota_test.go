@@ -52,7 +52,7 @@ func (suite *QuotaDaoSuite) TestAddQuota() {
 	_, err1 := AddQuota(models.Quota{Reference: quotaReference, ReferenceID: "1", Hard: quotaHard.String()})
 	suite.Nil(err1)
 
-	// Will failed for reference and reference_id should unique in db
+	// Will failed for reference and reference_id should unique in rule
 	_, err2 := AddQuota(models.Quota{Reference: quotaReference, ReferenceID: "1", Hard: quotaHard.String()})
 	suite.Error(err2)
 

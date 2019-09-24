@@ -373,7 +373,7 @@ func ClairEndpoint() string {
 	return cfgMgr.Get(common.ClairURL).GetString()
 }
 
-// ClairDB return Clair db info
+// ClairDB return Clair rule info
 func ClairDB() (*models.PostGreSQL, error) {
 	clairDB := &models.PostGreSQL{
 		Host:     cfgMgr.Get(common.ClairDBHost).GetString(),

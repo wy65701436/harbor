@@ -60,7 +60,7 @@ func constructImagePayload(event *notifyModel.ImageEvent) (*notifyModel.Payload,
 	}
 	// once repo has been delete, cannot ensure to get repo record
 	if repoRecord == nil {
-		log.Debugf("cannot find repository info with repo %s", repoName)
+		log.Debugf("cannot select repository info with repo %s", repoName)
 	} else {
 		payload.EventData.Repository.DateCreated = repoRecord.CreationTime.Unix()
 	}
@@ -156,12 +156,12 @@ func preprocessAndSendImageHook(value interface{}) error {
 
 	policies, err := notification.PolicyMgr.GetRelatedPolices(imgEvent.Project.ProjectID, imgEvent.EventType)
 	if err != nil {
-		log.Errorf("failed to find rule for %s event: %v", imgEvent.EventType, err)
+		log.Errorf("failed to select rule for %s event: %v", imgEvent.EventType, err)
 		return err
 	}
-	// if cannot find rule including event type in project, return directly
+	// if cannot select rule including event type in project, return directly
 	if len(policies) == 0 {
-		log.Debugf("cannot find rule for %s event: %v", imgEvent.EventType, imgEvent)
+		log.Debugf("cannot select rule for %s event: %v", imgEvent.EventType, imgEvent)
 		return nil
 	}
 

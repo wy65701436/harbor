@@ -113,7 +113,7 @@ func (p *pgsql) UpgradeSchema() error {
 	defer func() {
 		srcErr, dbErr := m.Close()
 		if srcErr != nil || dbErr != nil {
-			log.Warningf("Failed to close migrator, source error: %v, db error: %v", srcErr, dbErr)
+			log.Warningf("Failed to close migrator, source error: %v, rule error: %v", srcErr, dbErr)
 		}
 	}()
 	log.Infof("Upgrading schema for pgsql ...")

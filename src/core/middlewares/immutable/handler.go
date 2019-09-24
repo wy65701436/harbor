@@ -15,6 +15,13 @@
 package immutable
 
 import (
+	"fmt"
+	"github.com/goharbor/harbor/src/common/utils/log"
+	"github.com/goharbor/harbor/src/core/middlewares/util"
+	"github.com/goharbor/harbor/src/pkg/art"
+	"github.com/goharbor/harbor/src/pkg/immutable/cache"
+	"github.com/goharbor/harbor/src/pkg/immutable/cache/redis"
+	"github.com/goharbor/harbor/src/pkg/immutable/select/rule"
 	"net/http"
 )
 
@@ -31,5 +38,52 @@ func New(next http.Handler) http.Handler {
 
 // ServeHTTP ...
 func (rh immutableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if match, _, _ := util.MatchDeleteManifest(req); !match {
+		return
+	}
+	info, ok := util.ManifestInfoFromContext(req.Context())
+	if !ok {
+		var err error
+		info, err = util.ParseManifestInfoFromPath(req)
+		if err != nil {
+			return
+		}
+	}
+
+	// Check in cache firstly, if hit, reject the push request.
+	inCache, err := redis.NewRedisCache(nil).Stat(info.ProjectID, info.Repository, info.Tag)
+	if err != nil {
+		return
+	}
+	if inCache {
+		http.Error(rw, util.MarshalError("DENIED",
+			fmt.Sprintf("The tag:%s:%s is immutable, cannot be overwrite.", info.Repository, info.Tag)), http.StatusForbidden)
+		return
+	}
+
+	// Check in rules secondly, if hit, set it into cache.
+	allImmutableTags, err := rule.NewRuleSelector().Select(info.ProjectID)
+	if err != nil {
+		return
+	}
+
+	for _, imTag := range allImmutableTags {
+		if info.Repository == imTag.Repository && info.Tag == imTag.Tag {
+			imc := cache.IMCandidate{
+				Candidate: art.Candidate{
+					Repository: info.Repository,
+					Tag:        info.Tag,
+				},
+				Immutable: true,
+			}
+			if err := redis.NewRedisCache(nil).Set(info.ProjectID, imc); err != nil {
+				log.Warning("failed to set tag: %s:%s into immutable cache.", info.Repository, info.Tag)
+			}
+			http.Error(rw, util.MarshalError("DENIED",
+				fmt.Sprintf("The tag:%s:%s is immutable, cannot be overwrite.", info.Repository, info.Tag)), http.StatusForbidden)
+			return
+		}
+	}
+
 	rh.next.ServeHTTP(rw, req)
 }

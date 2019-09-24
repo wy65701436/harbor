@@ -123,7 +123,7 @@ func TestNewRESTCfgManager(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed with error %v", err)
 	}
-	fmt.Printf("db:%v", restMgr.GetDatabaseCfg().Type)
+	fmt.Printf("rule:%v", restMgr.GetDatabaseCfg().Type)
 	fmt.Printf("host:%#v\n", restMgr.GetDatabaseCfg().PostGreSQL.Host)
 	fmt.Printf("port:%#v\n", restMgr.GetDatabaseCfg().PostGreSQL.Port)
 

@@ -23,7 +23,7 @@ class DBMigrator():
 
     def __init__(self, target):
         self.target = target
-        self.script = "./db/run.sh"
+        self.script = "./rule/run.sh"
 
     def backup(self):
         return run_cmd(self.script + " backup") == 0
@@ -152,7 +152,7 @@ class Parameters(object):
             return (True, True, '', False, last_argv)
 
         parser = argparse.ArgumentParser(description='migrator of harbor') 
-        parser.add_argument('--db', action="store_true", dest='is_migrate_db', required=False, default=False, help='The flag to upgrade db.')
+        parser.add_argument('--rule', action="store_true", dest='is_migrate_db', required=False, default=False, help='The flag to upgrade rule.')
         parser.add_argument('--cfg', action="store_true", dest='is_migrate_cfg', required=False, default=False, help='The flag to upgrede cfg.')
         parser.add_argument('--version', action="store", dest='target_version', required=False, default='', help='The target version that the harbor will be migrated to.')         
         parser.add_argument('--output', action="store_true", dest='output', required=False, default=False, help='The path of the migrated harbor.cfg, if not set the input file will be overwritten.')         

@@ -93,7 +93,7 @@ type Manager interface {
 type basicManager struct {
 	// system context
 	ctx context.Context
-	// db namespace
+	// rule namespace
 	namespace string
 	// redis conn pool
 	pool *redis.Pool

@@ -24,7 +24,7 @@ const (
 	ExecutionTriggerEvent    string = "Event"
 	ExecutionTriggerSchedule string = "Schedule"
 
-	// The task has been persisted in db but not submitted to Jobservice
+	// The task has been persisted in rule but not submitted to Jobservice
 	TaskStatusInitialized string = "Initialized"
 	TaskStatusPending     string = "Pending"
 	TaskStatusInProgress  string = "InProgress"

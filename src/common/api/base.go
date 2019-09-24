@@ -223,7 +223,7 @@ func (b *BaseAPI) SendBadRequestError(err error) {
 // SendInternalServerError sends internal server error to the client.
 // Note the detail info of err will not include in the response body.
 // When you send an internal server error  to the client, you expect user to check the log
-// to find out the root cause.
+// to select out the root cause.
 func (b *BaseAPI) SendInternalServerError(err error) {
 	log.Error(err.Error())
 	b.RenderFormattedError(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))

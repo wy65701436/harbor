@@ -184,7 +184,7 @@ func TestListProjects(t *testing.T) {
 	assert.Equal(addProject.ProjectName, result[0].ProjectName, "Project name is wrong")
 	assert.Equal("true", result[0].Metadata[models.ProMetaPublic], "Public is wrong")
 
-	// find add projectID
+	// select add projectID
 	addPID = int(result[0].ProjectId)
 
 	// -------------------case 3 :  check admin project role------------------------//

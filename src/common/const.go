@@ -113,7 +113,7 @@ const (
 	OIDCScope                        = "oidc_scope"
 
 	DefaultClairEndpoint              = "http://clair:6060"
-	CfgDriverDB                       = "db"
+	CfgDriverDB                       = "rule"
 	NewHarborAdminName                = "admin@harbor.local"
 	RegistryStorageProviderName       = "registry_storage_provider_name"
 	RegistryControllerURL             = "registry_controller_url"

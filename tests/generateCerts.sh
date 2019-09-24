@@ -13,7 +13,7 @@ for path in /etc/openssl/openssl.cnf /etc/ssl/openssl.cnf /usr/local/etc/openssl
     fi
 done
 if [[ -z ${OPENSSLCNF} ]]; then
-    printf "Could not find openssl.cnf"
+    printf "Could not select openssl.cnf"
     exit 1
 fi
 

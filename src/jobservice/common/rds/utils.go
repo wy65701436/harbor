@@ -59,7 +59,7 @@ func HmGet(conn redis.Conn, key string, fields ...interface{}) ([]interface{}, e
 	return redis.Values(conn.Do("HMGET", args...))
 }
 
-// JobScore represents the data item with score in the redis db.
+// JobScore represents the data item with score in the redis rule.
 type JobScore struct {
 	JobBytes []byte
 	Score    int64

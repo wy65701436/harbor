@@ -51,7 +51,7 @@ func (suite *QuotaUsageDaoSuite) TestAddQuotaUsage() {
 	_, err1 := AddQuotaUsage(models.QuotaUsage{Reference: quotaUsageReference, ReferenceID: "1", Used: quotaUsageUsed.String()})
 	suite.Nil(err1)
 
-	// Will failed for reference and reference_id should unique in db
+	// Will failed for reference and reference_id should unique in rule
 	_, err2 := AddQuotaUsage(models.QuotaUsage{Reference: quotaUsageReference, ReferenceID: "1", Used: quotaUsageUsed.String()})
 	suite.Error(err2)
 

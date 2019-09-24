@@ -82,7 +82,7 @@ func DBFactory(options ...OptionItem) (Interface, error) {
 	}
 
 	if len(key) == 0 {
-		return nil, errors.New("missing key option of the db logger")
+		return nil, errors.New("missing key option of the rule logger")
 	}
 
 	return backend.NewDBLogger(key, level, depth)

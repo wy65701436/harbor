@@ -245,7 +245,7 @@ func getClairVulnStatus() *models.ClairVulnerabilityStatus {
 		if err != nil {
 			log.Errorf("Failed to get namespace list from Clair, error: %v", err)
 		}
-		// For namespaces not reported by notifier, the timestamp will be the overall db timestamp.
+		// For namespaces not reported by notifier, the timestamp will be the overall rule timestamp.
 		for _, n := range list {
 			if _, ok := m[n]; !ok {
 				m[n] = res.OverallUTC

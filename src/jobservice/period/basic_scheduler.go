@@ -112,7 +112,7 @@ func (bs *basicScheduler) Schedule(p *Policy) (int64, error) {
 
 	pid := time.Now().Unix()
 
-	// Save to redis db and publish notification via redis transaction
+	// Save to redis rule and publish notification via redis transaction
 	err = conn.Send("MULTI")
 	err = conn.Send("ZADD", rds.KeyPeriodicPolicy(bs.namespace), pid, rawJSON)
 	err = conn.Send("PUBLISH", rds.KeyPeriodicNotification(bs.namespace), msgJSON)
@@ -176,7 +176,7 @@ func (bs *basicScheduler) UnSchedule(policyID string) error {
 		return err
 	}
 
-	// REM from redis db with transaction way
+	// REM from redis rule with transaction way
 	err = conn.Send("MULTI")
 	err = conn.Send("ZREMRANGEBYSCORE", rds.KeyPeriodicPolicy(bs.namespace), numericID, numericID) // Accurately remove the item with the specified score
 	err = conn.Send("PUBLISH", rds.KeyPeriodicNotification(bs.namespace), msgJSON)

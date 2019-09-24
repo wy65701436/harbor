@@ -64,7 +64,7 @@ func (d *Database) Save(cfgs map[string]interface{}) error {
 	for key, value := range cfgs {
 		if item, ok := metadata.Instance().GetByName(key); ok {
 			if os.Getenv("UTTEST") != "true" && item.Scope == metadata.SystemScope {
-				// skip to save system setting to db
+				// skip to save system setting to rule
 				continue
 			}
 			strValue := utils.GetStrValueOfAnyType(value)

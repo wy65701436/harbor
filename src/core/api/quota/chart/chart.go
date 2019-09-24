@@ -187,7 +187,7 @@ func (rm *Migrator) Usage(projects []quota.ProjectInfo) ([]quota.ProjectUsage, e
 }
 
 // Persist ...
-// Chart will not persist data into db.
+// Chart will not persist data into rule.
 func (rm *Migrator) Persist(projects []quota.ProjectInfo) error {
 	return nil
 }

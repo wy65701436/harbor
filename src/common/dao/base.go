@@ -30,7 +30,7 @@ const (
 	// NonExistUserID : if a user does not exist, the ID of the user will be 0.
 	NonExistUserID = 0
 	// ClairDBAlias ...
-	ClairDBAlias = "clair-db"
+	ClairDBAlias = "clair-rule"
 )
 
 // ErrDupRows is returned by DAO when inserting failed with error "duplicate key value violates unique constraint"
