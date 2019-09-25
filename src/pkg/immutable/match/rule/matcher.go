@@ -4,6 +4,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/art"
 	"github.com/goharbor/harbor/src/pkg/art/selectors/index"
 	"github.com/goharbor/harbor/src/pkg/immutable"
+	"github.com/goharbor/harbor/src/pkg/immutable/match"
 	"github.com/goharbor/harbor/src/pkg/immutable/rule"
 
 	"encoding/json"
@@ -68,8 +69,8 @@ func (rm *Matcher) getImmutableRules() error {
 		return err
 	}
 	for _, r := range rules {
-		var rmeta rule.Metadata
-		if err := json.Unmarshal([]byte(r.TagFilter), rmeta); err != nil {
+		rmeta := rule.Metadata{}
+		if err := json.Unmarshal([]byte(r.TagFilter), &rmeta); err != nil {
 			return err
 		}
 		rm.rules = append(rm.rules, rmeta)
@@ -78,8 +79,8 @@ func (rm *Matcher) getImmutableRules() error {
 }
 
 // NewRuleMatcher ...
-func NewRuleMatcher(pid int64) Matcher {
-	return Matcher{
+func NewRuleMatcher(pid int64) matcher.ImmutableTagMatcher {
+	return &Matcher{
 		pid: pid,
 	}
 }
