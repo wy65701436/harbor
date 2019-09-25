@@ -9,14 +9,14 @@ import (
 	"encoding/json"
 )
 
-// RuleMatcher ...
-type RuleMatcher struct {
+// Matcher ...
+type Matcher struct {
 	pid   int64
 	rules []rule.Metadata
 }
 
 // Match ...
-func (rm *RuleMatcher) Match(uploads []*art.Candidate) (bool, error) {
+func (rm *Matcher) Match(uploads []*art.Candidate) (bool, error) {
 	for _, r := range rm.rules {
 		if r.Disabled {
 			continue
@@ -24,7 +24,7 @@ func (rm *RuleMatcher) Match(uploads []*art.Candidate) (bool, error) {
 
 		// match repositories according to the repository selectors
 		var repositoryCandidates []*art.Candidate
-		for _, repositorySelector := range r.RepoSelectors["repository"] {
+		for _, repositorySelector := range r.ScopeSelectors["repository"] {
 			selector, err := index.Get(repositorySelector.Kind, repositorySelector.Decoration,
 				repositorySelector.Pattern)
 			if err != nil {
@@ -62,7 +62,7 @@ func (rm *RuleMatcher) Match(uploads []*art.Candidate) (bool, error) {
 	return false, nil
 }
 
-func (rm *RuleMatcher) getImmutableRules() error {
+func (rm *Matcher) getImmutableRules() error {
 	rules, err := immutable.NewDefaultRuleManager().QueryEnabledImmutableRuleByProjectID(rm.pid)
 	if err != nil {
 		return err
@@ -78,8 +78,8 @@ func (rm *RuleMatcher) getImmutableRules() error {
 }
 
 // NewRuleMatcher ...
-func NewRuleMatcher(pid int64) RuleMatcher {
-	return RuleMatcher{
+func NewRuleMatcher(pid int64) Matcher {
+	return Matcher{
 		pid: pid,
 	}
 }
