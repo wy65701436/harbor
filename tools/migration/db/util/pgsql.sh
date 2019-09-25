@@ -131,7 +131,7 @@ function stop_pgsql {
 }
 
 function get_version_pgsql {
-    version=$(psql -U $1 -d registry -t -c "select * from alembic_version;")
+    version=$(psql -U $1 -d registry -t -c "match * from alembic_version;")
     echo $version   
 }
 

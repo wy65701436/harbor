@@ -61,7 +61,7 @@ func GetResourceLabel(rType string, rIDOrName interface{}, labelID int64) (*mode
 // GetLabelsOfResource returns the label list of the resource
 // Get the labels by ResourceID if rIDOrName is int, or get the labels by ResourceName
 func GetLabelsOfResource(rType string, rIDOrName interface{}) ([]*models.Label, error) {
-	sql := `select l.id, l.name, l.description, l.color, l.scope, l.project_id, l.creation_time, l.update_time
+	sql := `match l.id, l.name, l.description, l.color, l.scope, l.project_id, l.creation_time, l.update_time
 				from harbor_resource_label rl
 				join harbor_label l on rl.label_id=l.id
 				where rl.resource_type = ? and`

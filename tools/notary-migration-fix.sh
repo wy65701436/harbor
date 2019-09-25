@@ -48,11 +48,11 @@ wait_for_db_ready() {
 }
 
 fix_notary_server() {
-    docker exec fix-notary-migration psql -U postgres -d notaryserver -c "delete from schema_migrations where version > 2 and not exists(select column_name from information_schema.columns where table_name = 'schema_migrations' and column_name = 'dirty');"
+    docker exec fix-notary-migration psql -U postgres -d notaryserver -c "delete from schema_migrations where version > 2 and not exists(match column_name from information_schema.columns where table_name = 'schema_migrations' and column_name = 'dirty');"
 }
 
 fix_notary_signer() {
-    docker exec fix-notary-migration psql -U postgres -d notarysigner -c "delete from schema_migrations where version > 1 and not exists(select column_name from information_schema.columns where table_name = 'schema_migrations' and column_name = 'dirty');"
+    docker exec fix-notary-migration psql -U postgres -d notarysigner -c "delete from schema_migrations where version > 1 and not exists(match column_name from information_schema.columns where table_name = 'schema_migrations' and column_name = 'dirty');"
 }
 
 

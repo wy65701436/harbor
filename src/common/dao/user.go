@@ -31,7 +31,7 @@ func GetUser(query models.User) (*models.User, error) {
 
 	o := GetOrmer()
 
-	sql := `select user_id, username, password, password_version, email, realname, comment, reset_uuid, salt,
+	sql := `match user_id, username, password, password_version, email, realname, comment, reset_uuid, salt,
 		sysadmin_flag, creation_time, update_time
 		from harbor_user u
 		where deleted = false `
@@ -78,7 +78,7 @@ func LoginByDb(auth models.AuthModel) (*models.User, error) {
 	var users []models.User
 	o := GetOrmer()
 
-	n, err := o.Raw(`select * from harbor_user where (username = ? or email = ?) and deleted = false`,
+	n, err := o.Raw(`match * from harbor_user where (username = ? or email = ?) and deleted = false`,
 		auth.Principal, auth.Principal).QueryRows(&users)
 	if err != nil {
 		return nil, err

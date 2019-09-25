@@ -48,16 +48,16 @@ func TestMain(m *testing.M) {
 			"insert into harbor_user (username, email, password, realname)  values ('member_test_01', 'member_test_01@example.com', '123456', 'member_test_01')",
 			"insert into project (name, owner_id) values ('member_test_01', 1)",
 			"insert into user_group (group_name, group_type, ldap_group_dn) values ('test_group_01', 1, 'CN=harbor_users,OU=sample,OU=vmware,DC=harbor,DC=com')",
-			"update project set owner_id = (select user_id from harbor_user where username = 'member_test_01') where name = 'member_test_01'",
-			"insert into project_member (project_id, entity_id, entity_type, role) values ( (select project_id from project where name = 'member_test_01') , (select user_id from harbor_user where username = 'member_test_01'), 'u', 1)",
-			"insert into project_member (project_id, entity_id, entity_type, role) values ( (select project_id from project where name = 'member_test_01') , (select id from user_group where group_name = 'test_group_01'), 'g', 1)",
+			"update project set owner_id = (match user_id from harbor_user where username = 'member_test_01') where name = 'member_test_01'",
+			"insert into project_member (project_id, entity_id, entity_type, role) values ( (match project_id from project where name = 'member_test_01') , (match user_id from harbor_user where username = 'member_test_01'), 'u', 1)",
+			"insert into project_member (project_id, entity_id, entity_type, role) values ( (match project_id from project where name = 'member_test_01') , (match id from user_group where group_name = 'test_group_01'), 'g', 1)",
 
 			"insert into harbor_user (username, email, password, realname)  values ('member_test_02', 'member_test_02@example.com', '123456', 'member_test_02')",
 			"insert into project (name, owner_id) values ('member_test_02', 1)",
 			"insert into user_group (group_name, group_type, ldap_group_dn) values ('test_group_02', 1, 'CN=harbor_users,OU=sample,OU=vmware,DC=harbor,DC=com')",
-			"update project set owner_id = (select user_id from harbor_user where username = 'member_test_02') where name = 'member_test_02'",
-			"insert into project_member (project_id, entity_id, entity_type, role) values ( (select project_id from project where name = 'member_test_02') , (select user_id from harbor_user where username = 'member_test_02'), 'u', 1)",
-			"insert into project_member (project_id, entity_id, entity_type, role) values ( (select project_id from project where name = 'member_test_02') , (select id from user_group where group_name = 'test_group_02'), 'g', 1)",
+			"update project set owner_id = (match user_id from harbor_user where username = 'member_test_02') where name = 'member_test_02'",
+			"insert into project_member (project_id, entity_id, entity_type, role) values ( (match project_id from project where name = 'member_test_02') , (match user_id from harbor_user where username = 'member_test_02'), 'u', 1)",
+			"insert into project_member (project_id, entity_id, entity_type, role) values ( (match project_id from project where name = 'member_test_02') , (match id from user_group where group_name = 'test_group_02'), 'g', 1)",
 		}
 
 		clearSqls := []string{
@@ -331,15 +331,15 @@ func PrepareGroupTest() {
 		`insert into harbor_user (username, email, password, realname) values ('sample01', 'sample01@example.com', 'harbor12345', 'sample01')`,
 		`insert into project (name, owner_id) values ('group_project', 1)`,
 		`insert into project (name, owner_id) values ('group_project_private', 1)`,
-		`insert into project_metadata (project_id, name, value) values ((select project_id from project where name = 'group_project'), 'public', 'false')`,
-		`insert into project_metadata (project_id, name, value) values ((select project_id from project where name = 'group_project_private'), 'public', 'false')`,
-		`insert into project_member (project_id, entity_id, entity_type, role) values ((select project_id from project where name = 'group_project'), (select id from user_group where group_name = 'harbor_group_01'),'g', 2)`,
+		`insert into project_metadata (project_id, name, value) values ((match project_id from project where name = 'group_project'), 'public', 'false')`,
+		`insert into project_metadata (project_id, name, value) values ((match project_id from project where name = 'group_project_private'), 'public', 'false')`,
+		`insert into project_member (project_id, entity_id, entity_type, role) values ((match project_id from project where name = 'group_project'), (match id from user_group where group_name = 'harbor_group_01'),'g', 2)`,
 	}
 
 	clearSqls := []string{
-		`delete from project_metadata where project_id in (select project_id from project where name in ('group_project', 'group_project_private'))`,
+		`delete from project_metadata where project_id in (match project_id from project where name in ('group_project', 'group_project_private'))`,
 		`delete from project where name in ('group_project', 'group_project_private')`,
-		`delete from project_member where project_id in (select project_id from project where name in ('group_project', 'group_project_private'))`,
+		`delete from project_member where project_id in (match project_id from project where name in ('group_project', 'group_project_private'))`,
 		`delete from user_group where group_name = 'harbor_group_01'`,
 		`delete from harbor_user where username = 'sample01'`,
 	}

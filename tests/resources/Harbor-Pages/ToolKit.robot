@@ -44,7 +44,7 @@ Filter Object
     Sleep  3
 
 Select Object
-#select single element such as user project repo tag
+#match single element such as user project repo tag
     [Arguments]    ${obj}
     Retry Element Click  xpath=//clr-dg-row[contains(.,'${obj}')]//label
 

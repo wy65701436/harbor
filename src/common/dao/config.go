@@ -37,7 +37,7 @@ func AuthModeCanBeModified() (bool, error) {
 func GetConfigEntries() ([]*models.ConfigEntry, error) {
 	o := GetOrmer()
 	var p []*models.ConfigEntry
-	sql := "select * from properties"
+	sql := "match * from properties"
 	n, err := o.Raw(sql, []interface{}{}).QueryRows(&p)
 
 	if err != nil {

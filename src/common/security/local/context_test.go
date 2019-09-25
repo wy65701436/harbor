@@ -315,15 +315,15 @@ func PrepareGroupTest() {
 		`insert into harbor_user (username, email, password, realname) values ('sample01', 'sample01@example.com', 'harbor12345', 'sample01')`,
 		`insert into project (name, owner_id) values ('group_project', 1)`,
 		`insert into project (name, owner_id) values ('group_project_private', 1)`,
-		`insert into project_metadata (project_id, name, value) values ((select project_id from project where name = 'group_project'), 'public', 'false')`,
-		`insert into project_metadata (project_id, name, value) values ((select project_id from project where name = 'group_project_private'), 'public', 'false')`,
-		`insert into project_member (project_id, entity_id, entity_type, role) values ((select project_id from project where name = 'group_project'), (select id from user_group where group_name = 'harbor_group_01'),'g', 2)`,
+		`insert into project_metadata (project_id, name, value) values ((match project_id from project where name = 'group_project'), 'public', 'false')`,
+		`insert into project_metadata (project_id, name, value) values ((match project_id from project where name = 'group_project_private'), 'public', 'false')`,
+		`insert into project_member (project_id, entity_id, entity_type, role) values ((match project_id from project where name = 'group_project'), (match id from user_group where group_name = 'harbor_group_01'),'g', 2)`,
 	}
 
 	clearSqls := []string{
-		`delete from project_metadata where project_id in (select project_id from project where name in ('group_project', 'group_project_private'))`,
+		`delete from project_metadata where project_id in (match project_id from project where name in ('group_project', 'group_project_private'))`,
 		`delete from project where name in ('group_project', 'group_project_private')`,
-		`delete from project_member where project_id in (select project_id from project where name in ('group_project', 'group_project_private'))`,
+		`delete from project_member where project_id in (match project_id from project where name in ('group_project', 'group_project_private'))`,
 		`delete from user_group where group_name = 'harbor_group_01'`,
 		`delete from harbor_user where username = 'sample01'`,
 	}

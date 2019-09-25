@@ -79,7 +79,7 @@ export class ClipboardService {
     }
   }
 
-  // select the target html input element
+  // match the target html input element
   private selectTarget(
     inputElement: HTMLInputElement | HTMLTextAreaElement,
     renderer: Renderer

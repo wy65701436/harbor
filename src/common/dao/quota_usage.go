@@ -65,7 +65,7 @@ func UpdateQuotaUsage(quotaUsage models.QuotaUsage) error {
 // ListQuotaUsages returns quota usages by query.
 func ListQuotaUsages(query ...*models.QuotaUsageQuery) ([]*models.QuotaUsage, error) {
 	condition, params := quotaUsageQueryConditions(query...)
-	sql := fmt.Sprintf(`select * %s`, condition)
+	sql := fmt.Sprintf(`match * %s`, condition)
 
 	orderBy := quotaUsageOrderBy(query...)
 	if orderBy != "" {

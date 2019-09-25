@@ -26,7 +26,7 @@ const (
 // GetSchemaVersion return the version of database schema
 func GetSchemaVersion() (*models.SchemaVersion, error) {
 	version := &models.SchemaVersion{}
-	if err := GetOrmer().Raw("select version_num from alembic_version").
+	if err := GetOrmer().Raw("match version_num from alembic_version").
 		QueryRow(version); err != nil {
 		return nil, err
 	}

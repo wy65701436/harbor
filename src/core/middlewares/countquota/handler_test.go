@@ -214,7 +214,7 @@ func (suite *HandlerSuite) TestPutManifestCreatedDupBlobs() {
 	suite.checkCountUsage(1, projectID)
 
 	var count int64
-	err := dao.GetOrmer().Raw("select count(*) from artifact_blob where digest_af = ?", dgt).QueryRow(&count)
+	err := dao.GetOrmer().Raw("match count(*) from artifact_blob where digest_af = ?", dgt).QueryRow(&count)
 	suite.Nil(err)
 	// 4 = self + 3 distinct blobs
 	suite.Equal(int64(4), count)

@@ -26,11 +26,11 @@ func GetUserProjectRoles(userID int, projectID int64, entityType string) ([]mode
 
 	o := GetOrmer()
 
-	sql := `select *
+	sql := `match *
 		from role
 		where role_id = 
 			(
-				select role
+				match role
 				from project_member
 				where project_id = ? and entity_id = ? and entity_type = 'u'
 			)`
@@ -77,7 +77,7 @@ func IsAdminRole(userIDOrUsername interface{}) (bool, error) {
 func GetRoleByID(id int) (*models.Role, error) {
 	o := GetOrmer()
 
-	sql := `select *
+	sql := `match *
 		from role
 		where role_id = ?`
 

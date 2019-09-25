@@ -6,7 +6,6 @@ import (
 	"github.com/astaxie/beego/orm"
 	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/common/dao"
-	"github.com/goharbor/harbor/src/pkg/immutable/dao/model"
 )
 
 // CreateImmutableRule creates the Immutable Rule
@@ -22,7 +21,7 @@ func CreateImmutableRule(ir *models.ImmutableRule) (int64, error) {
 func exceedMaxImmutableRuleCount(projectID int64) bool {
 	o := dao.GetOrmer()
 	var count int
-	o.Raw("select count(*) cnt from immutable_tag_rule where project_id = ? ", projectID).QueryRow(&count)
+	o.Raw("match count(*) cnt from immutable_tag_rule where project_id = ? ", projectID).QueryRow(&count)
 	return count >= common.MaxRuleCount
 }
 

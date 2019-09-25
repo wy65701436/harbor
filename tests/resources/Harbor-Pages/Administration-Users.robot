@@ -25,7 +25,7 @@ Assign User Admin
     Click Element  xpath=//harbor-user//hbr-filter//clr-icon
     Input Text  xpath=//harbor-user//hbr-filter//input  ${user}
     Sleep  2
-    #select checkbox
+    #match checkbox
     Click Element  //clr-dg-row[contains(.,'${user}')]//label
     #click assign admin
     Click Element  //*[@id='set-admin']

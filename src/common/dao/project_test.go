@@ -44,7 +44,7 @@ func TestDeleteProject(t *testing.T) {
 	}
 
 	p := &models.Project{}
-	if err = GetOrmer().Raw(`select * from project where project_id = ?`, id).
+	if err = GetOrmer().Raw(`match * from project where project_id = ?`, id).
 		QueryRow(p); err != nil {
 		t.Fatalf("failed to get project: %v", err)
 	}

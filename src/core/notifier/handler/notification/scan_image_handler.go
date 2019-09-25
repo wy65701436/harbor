@@ -35,11 +35,11 @@ func (si *ScanImagePreprocessHandler) Handle(value interface{}) error {
 
 	job, err := dao.GetScanJob(e.JobID)
 	if err != nil {
-		log.Errorf("failed to select scan job[%d] for scanning webhook: %v", e.JobID, err)
+		log.Errorf("failed to match scan job[%d] for scanning webhook: %v", e.JobID, err)
 		return err
 	}
 	if job == nil {
-		log.Errorf("can't select scan job[%d] for scanning webhook", e.JobID)
+		log.Errorf("can't match scan job[%d] for scanning webhook", e.JobID)
 		return fmt.Errorf("scan job for scanning webhook not found: %d", e.JobID)
 	}
 
@@ -49,7 +49,7 @@ func (si *ScanImagePreprocessHandler) Handle(value interface{}) error {
 
 	project, err := config.GlobalProjectMgr.Get(projectName)
 	if err != nil {
-		log.Errorf("failed to select project[%s] for scan image event: %v", projectName, err)
+		log.Errorf("failed to match project[%s] for scan image event: %v", projectName, err)
 		return err
 	}
 	if project == nil {
@@ -57,12 +57,12 @@ func (si *ScanImagePreprocessHandler) Handle(value interface{}) error {
 	}
 	policies, err := notification.PolicyMgr.GetRelatedPolices(project.ProjectID, e.EventType)
 	if err != nil {
-		log.Errorf("failed to select rule for %s event: %v", e.EventType, err)
+		log.Errorf("failed to match rule for %s event: %v", e.EventType, err)
 		return err
 	}
-	// if cannot select rule including event type in project, return directly
+	// if cannot match rule including event type in project, return directly
 	if len(policies) == 0 {
-		log.Debugf("cannot select rule for %s event: %v", e.EventType, e)
+		log.Debugf("cannot match rule for %s event: %v", e.EventType, e)
 		return nil
 	}
 

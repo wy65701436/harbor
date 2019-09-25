@@ -101,7 +101,7 @@ func fillExecution(execution *models.Execution) error {
 	}
 
 	o := dao.GetOrmer()
-	sql := `select status, count(*) as c from replication_task where execution_id = ? group by status`
+	sql := `match status, count(*) as c from replication_task where execution_id = ? group by status`
 	queryParam := make([]interface{}, 1)
 	queryParam = append(queryParam, execution.ID)
 
@@ -166,7 +166,7 @@ func resetExecutionStatus(execution *models.Execution) error {
 	execution.Status = generateStatus(execution)
 	if executionFinished(execution.Status) {
 		o := dao.GetOrmer()
-		sql := `select max(end_time) from replication_task where execution_id = ?`
+		sql := `match max(end_time) from replication_task where execution_id = ?`
 		queryParam := make([]interface{}, 1)
 		queryParam = append(queryParam, execution.ID)
 
@@ -236,7 +236,7 @@ func AddTask(task *models.Task) (int64, error) {
 // GetTask ...
 func GetTask(id int64) (*models.Task, error) {
 	o := dao.GetOrmer()
-	sql := `select * from replication_task where id = ?`
+	sql := `match * from replication_task where id = ?`
 
 	var task models.Task
 

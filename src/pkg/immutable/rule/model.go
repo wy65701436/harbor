@@ -2,16 +2,7 @@ package rule
 
 import (
 	"github.com/astaxie/beego/validation"
-	"github.com/goharbor/harbor/src/pkg/immutable/dao/model"
 )
-
-// Immutable rule
-type IMRule struct {
-	model.ImmutableRule
-
-	// Metadata of the immutable rule
-	Metadata Metadata
-}
 
 // Metadata of the immutable rule
 type Metadata struct {
@@ -20,6 +11,16 @@ type Metadata struct {
 
 	// Disabled rule
 	Disabled bool `json:"disabled"`
+
+	// Priority of rule when doing calculating
+	Priority int `json:"priority"`
+
+	// Action of the rule performs
+	// "immutable"
+	Action string `json:"action" valid:"Required"`
+
+	// Template ID
+	Template string `json:"template" valid:"Required"`
 
 	// TagSelectors attached to the rule for filtering tags
 	TagSelectors []*Selector `json:"tag_selectors" valid:"Required"`
@@ -58,9 +59,3 @@ type Selector struct {
 	// Param for the selector
 	Pattern string `json:"pattern" valid:"Required"`
 }
-
-// Parameters of rule, indexed by the key
-type Parameters map[string]Parameter
-
-// Parameter of rule
-type Parameter interface{}

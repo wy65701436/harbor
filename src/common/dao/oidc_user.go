@@ -57,7 +57,7 @@ func GetOIDCUserByID(id int64) (*models.OIDCUser, error) {
 // GetUserBySubIss ...
 func GetUserBySubIss(sub, issuer string) (*models.User, error) {
 	var oidcUsers []models.OIDCUser
-	n, err := GetOrmer().Raw(`select * from oidc_user where subiss = ? `, sub+issuer).QueryRows(&oidcUsers)
+	n, err := GetOrmer().Raw(`match * from oidc_user where subiss = ? `, sub+issuer).QueryRows(&oidcUsers)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func GetUserBySubIss(sub, issuer string) (*models.User, error) {
 // GetOIDCUserByUserID ...
 func GetOIDCUserByUserID(userID int) (*models.OIDCUser, error) {
 	var oidcUsers []models.OIDCUser
-	n, err := GetOrmer().Raw(`select * from oidc_user where user_id = ? `, userID).QueryRows(&oidcUsers)
+	n, err := GetOrmer().Raw(`match * from oidc_user where user_id = ? `, userID).QueryRows(&oidcUsers)
 	if err != nil {
 		return nil, err
 	}

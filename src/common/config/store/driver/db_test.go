@@ -41,7 +41,7 @@ func TestDatabase_Load(t *testing.T) {
 	assert.True(t, len(cfgMap) >= 1)
 
 	if _, ok := cfgMap["ldap_url"]; !ok {
-		t.Error("Can not select ldap_url")
+		t.Error("Can not match ldap_url")
 	}
 }
 

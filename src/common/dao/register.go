@@ -50,7 +50,7 @@ func UserExists(user models.User, target string) (bool, error) {
 
 	o := GetOrmer()
 
-	sql := `select user_id from harbor_user where 1=1 `
+	sql := `match user_id from harbor_user where 1=1 `
 	queryParam := make([]interface{}, 1)
 
 	switch target {

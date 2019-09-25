@@ -33,7 +33,7 @@ func (cph *ChartPreprocessHandler) Handle(value interface{}) error {
 
 	project, err := config.GlobalProjectMgr.Get(chartEvent.ProjectName)
 	if err != nil {
-		log.Errorf("failed to select project[%s] for chart event: %v", chartEvent.ProjectName, err)
+		log.Errorf("failed to match project[%s] for chart event: %v", chartEvent.ProjectName, err)
 		return err
 	}
 	if project == nil {
@@ -41,12 +41,12 @@ func (cph *ChartPreprocessHandler) Handle(value interface{}) error {
 	}
 	policies, err := notification.PolicyMgr.GetRelatedPolices(project.ProjectID, chartEvent.EventType)
 	if err != nil {
-		log.Errorf("failed to select rule for %s event: %v", chartEvent.EventType, err)
+		log.Errorf("failed to match rule for %s event: %v", chartEvent.EventType, err)
 		return err
 	}
-	// if cannot select rule including event type in project, return directly
+	// if cannot match rule including event type in project, return directly
 	if len(policies) == 0 {
-		log.Debugf("cannot select rule for %s event: %v", chartEvent.EventType, chartEvent)
+		log.Debugf("cannot match rule for %s event: %v", chartEvent.EventType, chartEvent)
 		return nil
 	}
 

@@ -57,7 +57,7 @@ func AddUserGroup(userGroup models.UserGroup) (int, error) {
 // QueryUserGroup - Query User Group
 func QueryUserGroup(query models.UserGroup) ([]*models.UserGroup, error) {
 	o := dao.GetOrmer()
-	sql := `select id, group_name, group_type, ldap_group_dn from user_group where 1=1 `
+	sql := `match id, group_name, group_type, ldap_group_dn from user_group where 1=1 `
 	sqlParam := make([]interface{}, 1)
 	var groups []*models.UserGroup
 	if len(query.GroupName) != 0 {
@@ -109,7 +109,7 @@ func GetGroupIDByGroupName(groupName []string, groupType int) ([]int, error) {
 		con := "'" + gName + "'"
 		conditions = append(conditions, con)
 	}
-	sql := fmt.Sprintf("select id from user_group where group_name in ( %s ) and group_type = %v", strings.Join(conditions, ","), groupType)
+	sql := fmt.Sprintf("match id from user_group where group_name in ( %s ) and group_type = %v", strings.Join(conditions, ","), groupType)
 	o := dao.GetOrmer()
 	cnt, err := o.Raw(sql).QueryRows(&retGroupID)
 	if err != nil {

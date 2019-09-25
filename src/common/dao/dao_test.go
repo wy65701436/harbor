@@ -50,7 +50,7 @@ func cleanByUser(username string) {
 	err = execUpdate(o, `delete
 		from project_member
 		where entity_id = (
-			select user_id
+			match user_id
 			from harbor_user
 			where username = ?
 		) `, username)
@@ -62,7 +62,7 @@ func cleanByUser(username string) {
 	err = execUpdate(o, `delete
 		from project_member
 		where project_id = (
-			select project_id
+			match project_id
 			from project
 			where name = ?
 		)`, projectName)
@@ -83,7 +83,7 @@ func cleanByUser(username string) {
 	err = execUpdate(o, `delete
 		from access_log
 		where project_id = (
-			select project_id
+			match project_id
 			from project
 			where name = ?
 		)`, projectName)
