@@ -32,7 +32,7 @@ func TestUpdateImmutableRule(t *testing.T) {
 	}
 
 	updatedIR := &models.ImmutableRule{ID: id, TagFilter: "1.2.0", ProjectID: 1}
-	updatedCnt, err := UpdateImmutableRule(1, updatedIR)
+	updatedCnt, err := UpdateImmutableRule(updatedIR)
 	if err != nil {
 		t.Errorf("error: %+v", err)
 	}
