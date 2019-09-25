@@ -30,7 +30,7 @@ func (drm *defaultRuleManager) CreateImmutableRule(ir *models.ImmutableRule) (in
 }
 
 func (drm *defaultRuleManager) UpdateImmutableRule(projectID int64, ir *models.ImmutableRule) (int64, error) {
-	return dao.UpdateImmutableRule(projectID, ir)
+	return dao.UpdateImmutableRule(ir)
 }
 
 func (drm *defaultRuleManager) EnableImmutableRule(id int64, enabled bool) (int64, error) {

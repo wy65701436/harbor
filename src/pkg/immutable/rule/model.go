@@ -25,8 +25,8 @@ type Metadata struct {
 	// TagSelectors attached to the rule for filtering tags
 	TagSelectors []*Selector `json:"tag_selectors" valid:"Required"`
 
-	// RepoSelectors attached to the rule for filtering scope (e.g: repositories or namespaces)
-	RepoSelectors map[string][]*Selector `json:"repo_selectors" valid:"Required"`
+	// Selector attached to the rule for filtering scope (e.g: repositories or namespaces)
+	ScopeSelectors map[string][]*Selector `json:"scope_selectors" valid:"Required"`
 }
 
 // Valid Valid
@@ -36,7 +36,7 @@ func (m *Metadata) Valid(v *validation.Validation) {
 			return
 		}
 	}
-	for _, ss := range m.RepoSelectors {
+	for _, ss := range m.ScopeSelectors {
 		for _, s := range ss {
 			if pass, _ := v.Valid(s); !pass {
 				return

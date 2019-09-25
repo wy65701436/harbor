@@ -35,7 +35,7 @@ func New(next http.Handler) http.Handler {
 
 // ServeHTTP ...
 func (rh immutableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	if match, _, _ := util.MatchDeleteManifest(req); !match {
+	if match, _, _ := util.MatchPushManifest(req); !match {
 		return
 	}
 	info, ok := util.ManifestInfoFromContext(req.Context())

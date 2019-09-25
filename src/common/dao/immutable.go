@@ -15,7 +15,7 @@ func CreateImmutableRule(ir *models.ImmutableRule) (int64, error) {
 }
 
 // UpdateImmutableRule update the immutable rules
-func UpdateImmutableRule(projectID int, ir *models.ImmutableRule) (int64, error) {
+func UpdateImmutableRule(ir *models.ImmutableRule) (int64, error) {
 	o := GetOrmer()
 	return o.Update(ir, "TagFilter")
 }
