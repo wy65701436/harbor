@@ -14,8 +14,9 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 
-	"github.com/goharbor/harbor/src/pkg/immutable/rule"
+	"github.com/goharbor/harbor/src/pkg/immutabletag/rule"
 )
 
 type HandlerSuite struct {
@@ -130,4 +131,8 @@ func (suite *HandlerSuite) TestPutManifestCreated() {
 	code2 := doPutManifestRequest(projectID, projectName, "photon", "latest", dgt)
 	suite.Equal(http.StatusCreated, code2)
 
+}
+
+func TestRunHandlerSuite(t *testing.T) {
+	suite.Run(t, new(HandlerSuite))
 }

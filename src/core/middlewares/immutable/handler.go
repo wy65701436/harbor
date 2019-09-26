@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/goharbor/harbor/src/pkg/art"
-	"github.com/goharbor/harbor/src/pkg/immutable/match/rule"
+	"github.com/goharbor/harbor/src/pkg/immutabletag/match/rule"
 	"net/http"
 )
 
@@ -47,13 +47,10 @@ func (rh immutableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 		}
 	}
 
-	var cands []*art.Candidate
-	c := &art.Candidate{
+	isImmutableTag, err := rule.NewRuleMatcher(info.ProjectID).Match(art.Candidate{
 		Repository: info.Repository,
 		Tag:        info.Tag,
-	}
-	cands = append(cands, c)
-	isImmutableTag, err := rule.NewRuleMatcher(info.ProjectID).Match(cands)
+	})
 	if err != nil {
 		return
 	}

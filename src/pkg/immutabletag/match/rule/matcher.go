@@ -3,11 +3,11 @@ package rule
 import (
 	"github.com/goharbor/harbor/src/pkg/art"
 	"github.com/goharbor/harbor/src/pkg/art/selectors/index"
-	"github.com/goharbor/harbor/src/pkg/immutable"
-	"github.com/goharbor/harbor/src/pkg/immutable/match"
-	"github.com/goharbor/harbor/src/pkg/immutable/rule"
+	"github.com/goharbor/harbor/src/pkg/immutabletag"
+	"github.com/goharbor/harbor/src/pkg/immutabletag/rule"
 
 	"encoding/json"
+	"github.com/goharbor/harbor/src/pkg/immutabletag/match"
 )
 
 // Matcher ...
@@ -17,7 +17,8 @@ type Matcher struct {
 }
 
 // Match ...
-func (rm *Matcher) Match(uploads []*art.Candidate) (bool, error) {
+func (rm *Matcher) Match(c art.Candidate) (bool, error) {
+	uploads := []*art.Candidate{&c}
 	for _, r := range rm.rules {
 		if r.Disabled {
 			continue
@@ -64,7 +65,7 @@ func (rm *Matcher) Match(uploads []*art.Candidate) (bool, error) {
 }
 
 func (rm *Matcher) getImmutableRules() error {
-	rules, err := immutable.NewDefaultRuleManager().QueryEnabledImmutableRuleByProjectID(rm.pid)
+	rules, err := immutabletag.NewDefaultRuleManager().QueryEnabledImmutableRuleByProjectID(rm.pid)
 	if err != nil {
 		return err
 	}
