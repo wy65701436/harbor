@@ -19,6 +19,7 @@ type Matcher struct {
 // Match ...
 func (rm *Matcher) Match(c art.Candidate) (bool, error) {
 	uploads := []*art.Candidate{&c}
+
 	for _, r := range rm.rules {
 		if r.Disabled {
 			continue
