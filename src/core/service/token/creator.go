@@ -154,7 +154,7 @@ type repositoryFilter struct {
 
 func (rep repositoryFilter) filter(ctx security.Context, pm promgr.ProjectManager,
 	a *token.ResourceActions) error {
-	// clear action list to assign to new acess element after perm check.
+	// clear action list to assign to new access element after perm check.
 	img, err := rep.parser.parse(a.Name)
 	if err != nil {
 		return err
@@ -179,6 +179,8 @@ func (rep repositoryFilter) filter(ctx security.Context, pm promgr.ProjectManage
 		permission = "RW"
 	} else if ctx.Can(rbac.ActionPull, resource) {
 		permission = "R"
+	} else if ctx.Can(rbac.ActionScannerPull, resource) {
+		permission = "S"
 	}
 
 	a.Actions = permToActions(permission)
@@ -222,7 +224,7 @@ func (g generalCreator) Create(r *http.Request) (*models.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	return MakeToken(ctx.GetUsername(), g.service, access, ctx.PolicyCheck())
+	return MakeToken(ctx.GetUsername(), g.service, access)
 }
 
 func parseScopes(u *url.URL) []string {
