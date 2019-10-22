@@ -36,4 +36,4 @@ var ChartMiddlewares = []string{CHART}
 var Middlewares = []string{READONLY, URL, REGTOKEN, MUITIPLEMANIFEST, LISTREPO, CONTENTTRUST, VULNERABLE, SIZEQUOTA, IMMUTABLE, COUNTQUOTA}
 
 // MiddlewaresLocal ...
-var MiddlewaresLocal = []string{SIZEQUOTA, COUNTQUOTA}
+var MiddlewaresLocal = []string{SIZEQUOTA, IMMUTABLE, COUNTQUOTA}
