@@ -620,3 +620,20 @@ Test Case - Toggle Enable/Disable State of Webhook
     Sleep  3
     Toggle Enable/Disable State of Same Webhook
     Close Browser
+
+Test Case - Tag Retention
+    Init Chrome Driver
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    ${d}=    Get Current Date    result_format=%m%s
+    Create An New Project  project${d}
+    Switch To Tag Retention
+    Add A Tag Retention Rule
+    Delete A Tag Retention Rule
+    Add A Tag Retention Rule
+    Edit A Tag Retention Rule    **   latest
+    Push Image With Tag  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  project${d}  hello-world  latest
+    Push Image With Tag  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  project${d}  memcached   123
+    Set Daily Schedule
+    Execute Dry Run
+    Execute Run
+    Close Browser
