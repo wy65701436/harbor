@@ -16,6 +16,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -24,7 +25,7 @@ import (
 	"github.com/astaxie/beego/validation"
 	commonhttp "github.com/goharbor/harbor/src/common/http"
 	"github.com/goharbor/harbor/src/common/utils/log"
-	"github.com/pkg/errors"
+	pkg_errors "github.com/goharbor/harbor/src/pkg/errors"
 )
 
 const (
@@ -35,6 +36,7 @@ const (
 // BaseAPI wraps common methods for controllers to host API
 type BaseAPI struct {
 	beego.Controller
+	baseErrs pkg_errors.Errors
 }
 
 // GetStringFromPath gets the param from path and returns it as string
@@ -58,6 +60,11 @@ func (b *BaseAPI) Render() error {
 	return nil
 }
 
+// AppendError appends an error to the error list
+func (b *BaseAPI) AppendError(err error) {
+	b.baseErrs = append(b.baseErrs, err)
+}
+
 // RenderError provides shortcut to render http error
 func (b *BaseAPI) RenderError(code int, text string) {
 	http.Error(b.Ctx.ResponseWriter, text, code)
@@ -65,12 +72,12 @@ func (b *BaseAPI) RenderError(code int, text string) {
 
 // RenderFormattedError renders errors with well formatted style
 func (b *BaseAPI) RenderFormattedError(errorCode int, errorMsg string) {
-	error := commonhttp.Error{
+	error2 := commonhttp.Error{
 		Code:    errorCode,
 		Message: errorMsg,
 	}
 	formattedErrMsg := error.String()
-	log.Errorf("%s %s failed with error: %s", b.Ctx.Request.Method, b.Ctx.Request.URL.String(), formattedErrMsg)
+	log.Errorf("%s %s failed with error2: %s", b.Ctx.Request.Method, b.Ctx.Request.URL.String(), formattedErrMsg)
 	b.RenderError(error.Code, formattedErrMsg)
 }
 
@@ -247,4 +254,44 @@ func (b *BaseAPI) SendPreconditionFailedError(err error) {
 // SendStatusServiceUnavailableError sends service unavailable error to the client.
 func (b *BaseAPI) SendStatusServiceUnavailableError(err error) {
 	b.RenderFormattedError(http.StatusServiceUnavailable, err.Error())
+}
+
+// ServeError return the error defined in OCI spec: https://github.com/opencontainers/distribution-spec/blob/master/spec.md#errors
+//{
+//	"errors:" [{
+//			"code": <error identifier>,
+//			"message": <message describing condition>,
+//			"detail": <unstructured>
+//		},
+//		...
+//	]
+//}
+func (b *BaseAPI) ServeError(err error) {
+	var sc int
+	var text string
+	switch errs := err.(type) {
+	case pkg_errors.Errors:
+		if len(errs) < 1 {
+			break
+		}
+		if err, ok := errs[0].(pkg_errors.ErrorCoder); ok {
+			sc = err.ErrorCode().Descriptor().HTTPStatusCode
+		}
+	case pkg_errors.ErrorCoder:
+		sc = errs.ErrorCode().Descriptor().HTTPStatusCode
+		err = pkg_errors.Errors{err}
+	default:
+		err = pkg_errors.Errors{err}
+	}
+	if sc == 0 {
+		sc = http.StatusInternalServerError
+	}
+	msg, errMar := err.(pkg_errors.Errors).MarshalJSON()
+	if errMar != nil {
+		text = err.Error()
+	} else {
+		text = string(msg)
+	}
+
+	http.Error(b.Ctx.ResponseWriter, text, sc)
 }

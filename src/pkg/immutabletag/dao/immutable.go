@@ -3,8 +3,10 @@ package dao
 import (
 	"fmt"
 
+	"errors"
 	"github.com/astaxie/beego/orm"
 	"github.com/goharbor/harbor/src/common/dao"
+	pkg_errors "github.com/goharbor/harbor/src/pkg/errors"
 	"github.com/goharbor/harbor/src/pkg/immutabletag/dao/model"
 )
 
@@ -30,21 +32,42 @@ type immutableRuleDao struct{}
 func (i *immutableRuleDao) CreateImmutableRule(ir *model.ImmutableRule) (int64, error) {
 	ir.Disabled = false
 	o := dao.GetOrmer()
-	return o.Insert(ir)
+	id, err := o.Insert(ir)
+	if err != nil {
+		if dao.IsDupRecErr(err) {
+			return id, pkg_errors.ErrConflict.WithMessage("duplicate immutable rule")
+		}
+		return id, err
+	}
+	return id, nil
 }
 
 // UpdateImmutableRule update the immutable rules
 func (i *immutableRuleDao) UpdateImmutableRule(projectID int64, ir *model.ImmutableRule) (int64, error) {
 	ir.ProjectID = projectID
 	o := dao.GetOrmer()
-	return o.Update(ir, "TagFilter")
+	id, err := o.Update(ir, "TagFilter")
+	if err != nil {
+		if errors.Is(err, orm.ErrNoRows) {
+			return id, pkg_errors.ErrNotFound.WithMessage(fmt.Sprintf("the immutable rule %d: is not found in database", id))
+		}
+		return id, err
+	}
+	return id, nil
 }
 
 // ToggleImmutableRule enable/disable immutable rules
 func (i *immutableRuleDao) ToggleImmutableRule(id int64, status bool) (int64, error) {
 	o := dao.GetOrmer()
 	ir := &model.ImmutableRule{ID: id, Disabled: status}
-	return o.Update(ir, "Disabled")
+	id, err := o.Update(ir, "Disabled")
+	if err != nil {
+		if errors.Is(err, orm.ErrNoRows) {
+			return id, pkg_errors.ErrNotFound.WithMessage(fmt.Sprintf("the immutable rule %v: is not found in database", ir))
+		}
+		return id, err
+	}
+	return id, nil
 }
 
 // GetImmutableRule get immutable rule
@@ -52,10 +75,10 @@ func (i *immutableRuleDao) GetImmutableRule(id int64) (*model.ImmutableRule, err
 	o := dao.GetOrmer()
 	ir := &model.ImmutableRule{ID: id}
 	err := o.Read(ir)
-	if err == orm.ErrNoRows {
-		return nil, nil
-	}
 	if err != nil {
+		if errors.Is(err, orm.ErrNoRows) {
+			return nil, pkg_errors.ErrNotFound.WithMessage(fmt.Sprintf("the immutable rule %v: is not found in database", ir))
+		}
 		return nil, err
 	}
 	return ir, nil
