@@ -72,12 +72,12 @@ func (b *BaseAPI) RenderError(code int, text string) {
 
 // RenderFormattedError renders errors with well formatted style
 func (b *BaseAPI) RenderFormattedError(errorCode int, errorMsg string) {
-	error2 := commonhttp.Error{
+	error := commonhttp.Error{
 		Code:    errorCode,
 		Message: errorMsg,
 	}
 	formattedErrMsg := error.String()
-	log.Errorf("%s %s failed with error2: %s", b.Ctx.Request.Method, b.Ctx.Request.URL.String(), formattedErrMsg)
+	log.Errorf("%s %s failed with error: %s", b.Ctx.Request.Method, b.Ctx.Request.URL.String(), formattedErrMsg)
 	b.RenderError(error.Code, formattedErrMsg)
 }
 
