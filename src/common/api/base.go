@@ -20,11 +20,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"errors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/validation"
 	commonhttp "github.com/goharbor/harbor/src/common/http"
 	"github.com/goharbor/harbor/src/common/utils/log"
-	"github.com/pkg/errors"
+	pkg_errors "github.com/goharbor/harbor/src/pkg/error"
 )
 
 const (
@@ -247,4 +248,31 @@ func (b *BaseAPI) SendPreconditionFailedError(err error) {
 // SendStatusServiceUnavailableError sends service unavailable error to the client.
 func (b *BaseAPI) SendStatusServiceUnavailableError(err error) {
 	b.RenderFormattedError(http.StatusServiceUnavailable, err.Error())
+}
+
+// SendError ...
+func (b *BaseAPI) SendError(err error) {
+	var statusCode int
+	if errors.Is(err, pkg_errors.ErrNotFound) {
+		statusCode = http.StatusNotFound
+	} else if errors.Is(err, pkg_errors.ErrConfilct) {
+		statusCode = http.StatusConflict
+	} else if errors.Is(err, pkg_errors.ErrBadRequest) {
+		statusCode = http.StatusBadRequest
+	} else if errors.Is(err, pkg_errors.ErrUnknown) {
+		statusCode = http.StatusInternalServerError
+	} else if errors.Is(err, pkg_errors.ErrorPrecondition) {
+		statusCode = http.StatusPreconditionFailed
+	} else if errors.Is(err, pkg_errors.ErrForbidden) {
+		statusCode = http.StatusForbidden
+	} else if errors.Is(err, pkg_errors.ErrUnAuthorized) {
+		statusCode = http.StatusUnauthorized
+	}
+
+	pkgE := err
+	if statusCode == 0 {
+		pkgE = pkg_errors.UnknownError(err)
+	}
+
+	b.RenderError(statusCode, pkg_errors.Es(pkgE).Error())
 }

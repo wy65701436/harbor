@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/goharbor/harbor/src/common/rbac"
+	pkg_errors "github.com/goharbor/harbor/src/pkg/error"
 	"github.com/goharbor/harbor/src/pkg/immutabletag"
 	"github.com/goharbor/harbor/src/pkg/immutabletag/model"
 )
@@ -23,8 +24,8 @@ type ImmutableTagRuleAPI struct {
 // Prepare validates the user and projectID
 func (itr *ImmutableTagRuleAPI) Prepare() {
 	itr.BaseController.Prepare()
-	if !itr.SecurityCtx.IsAuthenticated() {
-		itr.SendUnAuthorizedError(errors.New("Unauthorized"))
+	// Check access permissions
+	if !itr.RequireAuthenticated() {
 		return
 	}
 
@@ -36,7 +37,7 @@ func (itr *ImmutableTagRuleAPI) Prepare() {
 		} else {
 			text += fmt.Sprintf("%d", pid)
 		}
-		itr.SendBadRequestError(errors.New(text))
+		itr.SendError(pkg_errors.BadRequestError(errors.New(text)))
 		return
 	}
 	itr.projectID = pid
@@ -46,15 +47,14 @@ func (itr *ImmutableTagRuleAPI) Prepare() {
 		itr.ID = ruleID
 		itRule, err := itr.ctr.GetImmutableRule(itr.ID)
 		if err != nil {
-			itr.SendInternalServerError(err)
+			itr.SendError(err)
 			return
 		}
-		if itRule == nil || itRule.ProjectID != itr.projectID {
+		if itRule.ProjectID != itr.projectID {
 			err := fmt.Errorf("immutable tag rule %v not found", itr.ID)
-			itr.SendNotFoundError(err)
+			itr.SendError(pkg_errors.NotFoundError(err))
 			return
 		}
-
 	}
 
 	if strings.EqualFold(itr.Ctx.Request.Method, "get") {
@@ -85,7 +85,7 @@ func (itr *ImmutableTagRuleAPI) requireAccess(action rbac.Action) bool {
 func (itr *ImmutableTagRuleAPI) List() {
 	rules, err := itr.ctr.ListImmutableRules(itr.projectID)
 	if err != nil {
-		itr.SendInternalServerError(err)
+		itr.SendError(err)
 		return
 	}
 	itr.WriteJSONData(rules)
@@ -96,32 +96,27 @@ func (itr *ImmutableTagRuleAPI) Post() {
 	ir := &model.Metadata{}
 	isValid, err := itr.DecodeJSONReqAndValidate(ir)
 	if !isValid {
-		itr.SendBadRequestError(err)
+		itr.SendError(pkg_errors.BadRequestError(err))
 		return
 	}
 	ir.ProjectID = itr.projectID
 	id, err := itr.ctr.CreateImmutableRule(ir)
-	if err != nil && strings.Contains(err.Error(), "duplicate key") {
-		itr.RenderError(http.StatusConflict, "immutable tag rule duplicated")
-		return
-	}
 	if err != nil {
-		itr.SendInternalServerError(err)
+		itr.SendError(err)
 		return
 	}
 	itr.Redirect(http.StatusCreated, strconv.FormatInt(id, 10))
-
 }
 
 // Delete delete immutable tag rule
 func (itr *ImmutableTagRuleAPI) Delete() {
 	if itr.ID <= 0 {
-		itr.SendBadRequestError(fmt.Errorf("invalid immutable rule id %d", itr.ID))
+		itr.SendError(pkg_errors.BadRequestError(fmt.Errorf("invalid immutable rule id %d", itr.ID)))
 		return
 	}
 	err := itr.ctr.DeleteImmutableRule(itr.ID)
 	if err != nil {
-		itr.SendInternalServerError(err)
+		itr.SendError(err)
 		return
 	}
 }
@@ -130,19 +125,19 @@ func (itr *ImmutableTagRuleAPI) Delete() {
 func (itr *ImmutableTagRuleAPI) Put() {
 	ir := &model.Metadata{}
 	if err := itr.DecodeJSONReq(ir); err != nil {
-		itr.SendBadRequestError(err)
+		itr.SendError(pkg_errors.BadRequestError(err))
 		return
 	}
 	ir.ID = itr.ID
 	ir.ProjectID = itr.projectID
 
 	if itr.ID <= 0 {
-		itr.SendBadRequestError(fmt.Errorf("invalid immutable rule id %d", itr.ID))
+		itr.SendError(pkg_errors.BadRequestError(fmt.Errorf("invalid immutable rule id %d", itr.ID)))
 		return
 	}
 
 	if err := itr.ctr.UpdateImmutableRule(itr.projectID, ir); err != nil {
-		itr.SendInternalServerError(err)
+		itr.SendError(err)
 		return
 	}
 }
