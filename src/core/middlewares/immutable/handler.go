@@ -61,7 +61,7 @@ func (rh *immutableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 		log.Warningf("Error occurred when to handle request in immutable handler: %v", err)
 		var e *middlerware_err.ErrImmutable
 		if errors.As(err, &e) {
-			msg := pkg_errors.NewErrs(pkg_errors.PreconditionFailedError(e)).Error()
+			msg := pkg_errors.NewErrs(pkg_errors.PreconditionFailedError(errors.New(e.Error()))).Error()
 			http.Error(rw, msg, http.StatusPreconditionFailed)
 			return
 		}

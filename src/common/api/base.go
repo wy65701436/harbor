@@ -264,8 +264,8 @@ func (b *BaseAPI) SendError(err error) {
 	var statusCode int
 	var send error
 
-	var e *pkg_errors.Error
-	if errors.As(err, &e) {
+	var e pkg_errors.Error
+	if errors.Is(err, e) {
 		code := e.Code
 		if code == pkg_errors.ObjectNotFoundErrorCode {
 			statusCode = http.StatusNotFound
@@ -284,7 +284,7 @@ func (b *BaseAPI) SendError(err error) {
 		} else {
 			statusCode = http.StatusInternalServerError
 		}
-		send = *e
+		send = e
 
 	} else {
 		statusCode = http.StatusInternalServerError

@@ -104,7 +104,7 @@ const (
 
 // NotFoundError is error for the case of object not found
 func NotFoundError(err error) error {
-	return &Error{
+	return Error{
 		Err:     err,
 		Code:    ObjectNotFoundErrorCode,
 		Message: err.Error(),
@@ -114,7 +114,7 @@ func NotFoundError(err error) error {
 
 // ConflictError is error for the case of object conflict
 func ConflictError(err error) error {
-	return &Error{
+	return Error{
 		Err:     err,
 		Code:    ObjectConflictErrorCode,
 		Message: err.Error(),
@@ -124,7 +124,7 @@ func ConflictError(err error) error {
 
 // UnauthorizedError is error for the case of unauthorized accessing
 func UnauthorizedError(err error) error {
-	return &Error{
+	return Error{
 		Err:     err,
 		Code:    UnAuthorizedErrorCode,
 		Message: err.Error(),
@@ -134,7 +134,7 @@ func UnauthorizedError(err error) error {
 
 // BadRequestError is error for the case of bad request
 func BadRequestError(err error) error {
-	return &Error{
+	return Error{
 		Err:     err,
 		Code:    BadRequestErrorCode,
 		Message: err.Error(),
@@ -144,7 +144,7 @@ func BadRequestError(err error) error {
 
 // ForbiddenError is error for the case of forbidden
 func ForbiddenError(err error) error {
-	return &Error{
+	return Error{
 		Err:     err,
 		Code:    ForbiddenErrorCode,
 		Message: err.Error(),
@@ -154,7 +154,7 @@ func ForbiddenError(err error) error {
 
 // PreconditionFailedError is error for the case of precondition failed
 func PreconditionFailedError(err error) error {
-	return &Error{
+	return Error{
 		Err:     err,
 		Code:    PreconditionErrorCode,
 		Message: err.Error(),
@@ -164,7 +164,7 @@ func PreconditionFailedError(err error) error {
 
 // UnknownError ...
 func UnknownError(err error) error {
-	return &Error{
+	return Error{
 		Err:     err,
 		Code:    GeneralErrorCode,
 		Message: "unknown",
