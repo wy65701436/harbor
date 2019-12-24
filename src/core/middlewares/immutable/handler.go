@@ -47,7 +47,7 @@ func (rh *immutableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 	interceptor, err := rh.getInterceptor(req)
 	if err != nil {
 		log.Warningf("Error occurred when to handle request in immutable handler: %v", err)
-		msg := pkg_errors.Es(pkg_errors.UnknownError(fmt.Errorf("error occurred when to handle request in immutable handler: %v", err))).Error()
+		msg := pkg_errors.NewErrs(pkg_errors.UnknownError(fmt.Errorf("error occurred when to handle request in immutable handler: %v", err))).Error()
 		http.Error(rw, msg, http.StatusInternalServerError)
 		return
 	}
@@ -61,12 +61,12 @@ func (rh *immutableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 		log.Warningf("Error occurred when to handle request in immutable handler: %v", err)
 		var e *middlerware_err.ErrImmutable
 		if errors.As(err, &e) {
-			msg := pkg_errors.Es(pkg_errors.PreconditionFailedError(e)).Error()
+			msg := pkg_errors.NewErrs(pkg_errors.PreconditionFailedError(e)).Error()
 			http.Error(rw, msg, http.StatusPreconditionFailed)
 			return
 		}
 
-		msg := pkg_errors.Es(pkg_errors.UnknownError(fmt.Errorf("error occurred when to handle request in immutable handler: %v", err))).Error()
+		msg := pkg_errors.NewErrs(pkg_errors.UnknownError(fmt.Errorf("error occurred when to handle request in immutable handler: %v", err))).Error()
 		http.Error(rw, msg, http.StatusInternalServerError)
 		return
 	}

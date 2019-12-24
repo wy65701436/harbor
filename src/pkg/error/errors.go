@@ -2,48 +2,22 @@ package error
 
 import (
 	"encoding/json"
-	"errors"
-	"strconv"
-)
-
-var (
-	// ErrNotFound ...
-	ErrNotFound = errors.New("not found")
-
-	// ErrUnAuthorized ...
-	ErrUnAuthorized = errors.New("unAuthorized")
-
-	// ErrConflict ...
-	ErrConflict = errors.New("conflict")
-
-	// ErrForbidden ...
-	ErrForbidden = errors.New("forbidden")
-
-	// ErrBadRequest ...
-	ErrBadRequest = errors.New("bad request")
-
-	// ErrorPrecondition ...
-	ErrorPrecondition = errors.New("precondition failed")
-
-	// ErrUnknown ...
-	ErrUnknown = errors.New("unknown")
 )
 
 // Code ...
-type Code string
+type Code int
 
-// M ...
-type M string
-
-// D ...
-type D string
+// String ...
+func (c Code) String() string {
+	return string(c)
+}
 
 // Error ...
 type Error struct {
-	Err     error `json:"-"`
-	Code    Code  `json:"code"`
-	Message M     `json:"message"`
-	Detail  D     `json:"detail,omitempty"`
+	Err     error  `json:"-"`
+	Code    Code   `json:"code"`
+	Message string `json:"message"`
+	Detail  string `json:"detail,omitempty"`
 }
 
 // Error returns a human readable error.
@@ -55,7 +29,7 @@ func (e Error) Error() string {
 }
 
 // WithMessage ...
-func (e Error) WithMessage(msg M) Error {
+func (e Error) WithMessage(msg string) Error {
 	return Error{
 		Err:     e.Err,
 		Code:    e.Code,
@@ -66,26 +40,6 @@ func (e Error) WithMessage(msg M) Error {
 
 // Unwrap ...
 func (e Error) Unwrap() error { return e.Err }
-
-// E ...
-func E(args ...interface{}) error {
-	e := Error{}
-	for _, arg := range args {
-		switch arg := arg.(type) {
-		case error:
-			e.Err = arg
-		case string:
-			e.Err = errors.New(arg)
-		case Code:
-			e.Code = arg
-		case M:
-			e.Message = arg
-		case D:
-			e.Detail = arg
-		}
-	}
-	return e
-}
 
 // Errors ...
 type Errors []error
@@ -104,7 +58,7 @@ func (errs Errors) Error() string {
 		case Error:
 			err = daErr.(Error)
 		default:
-			err = UnknownError(daErr).(Error).WithMessage(M(err.Error()))
+			err = UnknownError(daErr).(Error).WithMessage(err.Error())
 		}
 		tmpErrs.Errors = append(tmpErrs.Errors, Error{
 			Err:     err.(Error).Err,
@@ -126,8 +80,8 @@ func (errs Errors) Len() int {
 	return len(errs)
 }
 
-// Es ...
-func Es(err error) Errors {
+// NewErrs ...
+func NewErrs(err error) Errors {
 	return Errors{err}
 }
 
@@ -150,35 +104,70 @@ const (
 
 // NotFoundError is error for the case of object not found
 func NotFoundError(err error) error {
-	return E(ErrNotFound, Code(strconv.Itoa(ObjectNotFoundErrorCode)), M(err.Error()), D("not found"))
+	return &Error{
+		Err:     err,
+		Code:    ObjectNotFoundErrorCode,
+		Message: err.Error(),
+		Detail:  "not found",
+	}
 }
 
 // ConflictError is error for the case of object conflict
 func ConflictError(err error) error {
-	return E(ErrConflict, Code(strconv.Itoa(ObjectConflictErrorCode)), M(err.Error()), D("conflict"))
+	return &Error{
+		Err:     err,
+		Code:    ObjectConflictErrorCode,
+		Message: err.Error(),
+		Detail:  "conflict",
+	}
 }
 
 // UnauthorizedError is error for the case of unauthorized accessing
 func UnauthorizedError(err error) error {
-	return E(ErrUnAuthorized, Code(strconv.Itoa(UnAuthorizedErrorCode)), M(err.Error()), D("unauthorized"))
+	return &Error{
+		Err:     err,
+		Code:    UnAuthorizedErrorCode,
+		Message: err.Error(),
+		Detail:  "unauthorized",
+	}
 }
 
 // BadRequestError is error for the case of bad request
 func BadRequestError(err error) error {
-	return E(ErrBadRequest, Code(strconv.Itoa(BadRequestErrorCode)), M(err.Error()), D("bad request"))
+	return &Error{
+		Err:     err,
+		Code:    BadRequestErrorCode,
+		Message: err.Error(),
+		Detail:  "bad request",
+	}
 }
 
 // ForbiddenError is error for the case of forbidden
 func ForbiddenError(err error) error {
-	return E(ErrForbidden, Code(strconv.Itoa(ForbiddenErrorCode)), M(err.Error()), D("forbidden"))
+	return &Error{
+		Err:     err,
+		Code:    ForbiddenErrorCode,
+		Message: err.Error(),
+		Detail:  "forbidden",
+	}
 }
 
 // PreconditionFailedError is error for the case of precondition failed
 func PreconditionFailedError(err error) error {
-	return E(ErrorPrecondition, Code(strconv.Itoa(PreconditionErrorCode)), M(err.Error()), D("precondition failed"))
+	return &Error{
+		Err:     err,
+		Code:    PreconditionErrorCode,
+		Message: err.Error(),
+		Detail:  "precondition failed",
+	}
 }
 
 // UnknownError ...
 func UnknownError(err error) error {
-	return E(err, Code(strconv.Itoa(GeneralErrorCode)), M("unknown"), D("Generic error returned when the error happen."))
+	return &Error{
+		Err:     err,
+		Code:    GeneralErrorCode,
+		Message: "unknown",
+		Detail:  "generic error",
+	}
 }

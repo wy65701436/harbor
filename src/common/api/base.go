@@ -250,29 +250,46 @@ func (b *BaseAPI) SendStatusServiceUnavailableError(err error) {
 	b.RenderFormattedError(http.StatusServiceUnavailable, err.Error())
 }
 
-// SendError ...
+// SendError return the error defined in OCI spec: https://github.com/opencontainers/distribution-spec/blob/master/spec.md#errors
+// {
+//	"errors:" [{
+//			"code": <error identifier>,
+//			"message": <message describing condition>,
+//			"detail": <unstructured>
+//		},
+//		...
+//	]
+// }
 func (b *BaseAPI) SendError(err error) {
 	var statusCode int
-	if errors.Is(err, pkg_errors.ErrNotFound) {
-		statusCode = http.StatusNotFound
-	} else if errors.Is(err, pkg_errors.ErrConfilct) {
-		statusCode = http.StatusConflict
-	} else if errors.Is(err, pkg_errors.ErrBadRequest) {
-		statusCode = http.StatusBadRequest
-	} else if errors.Is(err, pkg_errors.ErrUnknown) {
+	var send error
+
+	var e *pkg_errors.Error
+	if errors.As(err, &e) {
+		code := e.Code
+		if code == pkg_errors.ObjectNotFoundErrorCode {
+			statusCode = http.StatusNotFound
+		} else if code == pkg_errors.ObjectConflictErrorCode {
+			statusCode = http.StatusConflict
+		} else if code == pkg_errors.UnAuthorizedErrorCode {
+			statusCode = http.StatusUnauthorized
+		} else if code == pkg_errors.BadRequestErrorCode {
+			statusCode = http.StatusBadRequest
+		} else if code == pkg_errors.ForbiddenErrorCode {
+			statusCode = http.StatusForbidden
+		} else if code == pkg_errors.PreconditionErrorCode {
+			statusCode = http.StatusPreconditionFailed
+		} else if code == pkg_errors.GeneralErrorCode {
+			statusCode = http.StatusInternalServerError
+		} else {
+			statusCode = http.StatusInternalServerError
+		}
+		send = *e
+
+	} else {
 		statusCode = http.StatusInternalServerError
-	} else if errors.Is(err, pkg_errors.ErrorPrecondition) {
-		statusCode = http.StatusPreconditionFailed
-	} else if errors.Is(err, pkg_errors.ErrForbidden) {
-		statusCode = http.StatusForbidden
-	} else if errors.Is(err, pkg_errors.ErrUnAuthorized) {
-		statusCode = http.StatusUnauthorized
+		send = pkg_errors.UnknownError(err)
 	}
 
-	pkgE := err
-	if statusCode == 0 {
-		pkgE = pkg_errors.UnknownError(err)
-	}
-
-	b.RenderError(statusCode, pkg_errors.Es(pkgE).Error())
+	b.RenderError(statusCode, pkg_errors.NewErrs(send).Error())
 }
