@@ -2,44 +2,36 @@ package error
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 )
 
-// Code ...
-type Code int
-
-// String ...
-func (c Code) String() string {
-	return string(c)
-}
-
-// Error ...
+// Error ... without detail...
 type Error struct {
-	Err     error  `json:"-"`
-	Code    Code   `json:"code"`
+	Cause   error  `json:"-"`
+	Code    string `json:"code"`
 	Message string `json:"message"`
-	Detail  string `json:"detail,omitempty"`
 }
 
 // Error returns a human readable error.
-func (e Error) Error() string {
-	if data, err := json.Marshal(e); err == nil {
-		return string(data)
-	}
-	return "{}"
+func (e *Error) Error() string {
+	return fmt.Sprintf("%v, %s, %s", e.Cause, e.Code, e.Message)
 }
 
 // WithMessage ...
-func (e Error) WithMessage(msg string) Error {
-	return Error{
-		Err:     e.Err,
-		Code:    e.Code,
-		Message: msg,
-		Detail:  e.Detail,
-	}
+func (e *Error) WithMessage(msg string) *Error {
+	e.Message = msg
+	return e
+}
+
+// WithCode
+func (e *Error) WithCode(code string) *Error {
+	e.Code = code
+	return e
 }
 
 // Unwrap ...
-func (e Error) Unwrap() error { return e.Err }
+func (e *Error) Unwrap() error { return e.Cause }
 
 // Errors ...
 type Errors []error
@@ -52,19 +44,18 @@ func (errs Errors) Error() string {
 		Errors []Error `json:"errors,omitempty"`
 	}
 
-	for _, daErr := range errs {
+	for _, e := range errs {
 		var err error
-		switch daErr.(type) {
-		case Error:
-			err = daErr.(Error)
+		switch e.(type) {
+		case *Error:
+			err = e.(*Error)
 		default:
-			err = UnknownError(daErr).(Error).WithMessage(err.Error())
+			err = UnknownError(e).WithMessage(err.Error())
 		}
 		tmpErrs.Errors = append(tmpErrs.Errors, Error{
-			Err:     err.(Error).Err,
-			Code:    err.(Error).Code,
-			Message: err.(Error).Message,
-			Detail:  err.(Error).Detail,
+			Cause:   err.(*Error).Cause,
+			Code:    err.(*Error).Code,
+			Message: err.(*Error).Message,
 		})
 	}
 
@@ -86,88 +77,72 @@ func NewErrs(err error) Errors {
 }
 
 const (
-	// ObjectNotFoundErrorCode is code for the error of no object found
-	ObjectNotFoundErrorCode = 10000 + iota
+	// ObjectNotFoundCode is code for the error of no object found
+	ObjectNotFoundCode = "NOT_FOUND"
 	// ObjectConflictErrorCode ...
-	ObjectConflictErrorCode
+	ObjectConflictErrorCode = "CONFLICT"
 	// UnAuthorizedErrorCode ...
-	UnAuthorizedErrorCode
+	UnAuthorizedErrorCode = "UNAUTHORIZED"
 	// BadRequestErrorCode ...
-	BadRequestErrorCode
+	BadRequestErrorCode = "BAD_REQUEST"
 	// ForbiddenErrorCode ...
-	ForbiddenErrorCode
+	ForbiddenErrorCode = "FORBIDDER"
 	// PreconditionErrorCode ...
-	PreconditionErrorCode
+	PreconditionErrorCode = "PRECONDITION"
 	// GeneralErrorCode ...
-	GeneralErrorCode
+	GeneralErrorCode = "UNKNOWN"
 )
 
-// NotFoundError is error for the case of object not found
-func NotFoundError(err error) error {
-	return Error{
-		Err:     err,
-		Code:    ObjectNotFoundErrorCode,
-		Message: err.Error(),
-		Detail:  "not found",
+// NewErr ...
+func NewErr(err error) *Error {
+	if _, ok := err.(*Error); ok {
+		err = err.(*Error).Unwrap()
 	}
+	return &Error{
+		Cause: err,
+	}
+}
+
+// NotFoundError is error for the case of object not found
+func NotFoundError(err error) *Error {
+	return NewErr(err).WithCode(ObjectNotFoundCode).WithMessage("resource not found")
 }
 
 // ConflictError is error for the case of object conflict
-func ConflictError(err error) error {
-	return Error{
-		Err:     err,
-		Code:    ObjectConflictErrorCode,
-		Message: err.Error(),
-		Detail:  "conflict",
-	}
+func ConflictError(err error) *Error {
+	return NewErr(err).WithCode(ObjectConflictErrorCode).WithMessage("resource conflict")
 }
 
 // UnauthorizedError is error for the case of unauthorized accessing
-func UnauthorizedError(err error) error {
-	return Error{
-		Err:     err,
-		Code:    UnAuthorizedErrorCode,
-		Message: err.Error(),
-		Detail:  "unauthorized",
-	}
+func UnauthorizedError(err error) *Error {
+	return NewErr(err).WithCode(UnAuthorizedErrorCode).WithMessage("unauthorized")
 }
 
 // BadRequestError is error for the case of bad request
-func BadRequestError(err error) error {
-	return Error{
-		Err:     err,
-		Code:    BadRequestErrorCode,
-		Message: err.Error(),
-		Detail:  "bad request",
-	}
+func BadRequestError(err error) *Error {
+	return NewErr(err).WithCode(BadRequestErrorCode).WithMessage("bad request")
 }
 
 // ForbiddenError is error for the case of forbidden
-func ForbiddenError(err error) error {
-	return Error{
-		Err:     err,
-		Code:    ForbiddenErrorCode,
-		Message: err.Error(),
-		Detail:  "forbidden",
-	}
+func ForbiddenError(err error) *Error {
+	return NewErr(err).WithCode(ForbiddenErrorCode).WithMessage("forbidden")
 }
 
 // PreconditionFailedError is error for the case of precondition failed
-func PreconditionFailedError(err error) error {
-	return Error{
-		Err:     err,
-		Code:    PreconditionErrorCode,
-		Message: err.Error(),
-		Detail:  "precondition failed",
-	}
+func PreconditionFailedError(err error) *Error {
+	return NewErr(err).WithCode(PreconditionErrorCode).WithMessage("preconfition")
 }
 
 // UnknownError ...
-func UnknownError(err error) error {
-	return Error{
-		Err:     err,
-		Code:    GeneralErrorCode,
-		Message: "unknown",
-		Detail:  "generic error",
+func UnknownError(err error) *Error {
+	return NewErr(err).WithCode(GeneralErrorCode).WithMessage("unknown")
+}
+
+// IsErr
+func IsErr(err error, code string) bool {
+	_, ok := err.(*Error)
+	if !ok {
+		return false
 	}
+	return strings.Compare(err.(*Error).Code, code) == 0
 }

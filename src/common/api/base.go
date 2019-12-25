@@ -264,10 +264,10 @@ func (b *BaseAPI) SendError(err error) {
 	var statusCode int
 	var send error
 
-	var e pkg_errors.Error
-	if errors.Is(err, e) {
+	var e *pkg_errors.Error
+	if errors.As(err, &e) {
 		code := e.Code
-		if code == pkg_errors.ObjectNotFoundErrorCode {
+		if code == pkg_errors.ObjectNotFoundCode {
 			statusCode = http.StatusNotFound
 		} else if code == pkg_errors.ObjectConflictErrorCode {
 			statusCode = http.StatusConflict
