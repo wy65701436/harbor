@@ -17,11 +17,24 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	"github.com/docker/distribution/registry/storage/driver/factory"
+	"github.com/goharbor/harbor/src/registryctl/api"
+	regConf "github.com/goharbor/harbor/src/registryctl/config/registry"
 	"net/http"
 
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/registryctl/config"
 	"github.com/goharbor/harbor/src/registryctl/handlers"
+
+	_ "github.com/docker/distribution/registry/storage/driver/azure"
+	_ "github.com/docker/distribution/registry/storage/driver/filesystem"
+	_ "github.com/docker/distribution/registry/storage/driver/gcs"
+	_ "github.com/docker/distribution/registry/storage/driver/inmemory"
+	_ "github.com/docker/distribution/registry/storage/driver/middleware/cloudfront"
+	_ "github.com/docker/distribution/registry/storage/driver/middleware/redirect"
+	_ "github.com/docker/distribution/registry/storage/driver/oss"
+	_ "github.com/docker/distribution/registry/storage/driver/s3-aws"
+	_ "github.com/docker/distribution/registry/storage/driver/swift"
 )
 
 // RegistryCtl for registry controller
@@ -70,7 +83,7 @@ func (s *RegistryCtl) Start() {
 
 func main() {
 
-	configPath := flag.String("c", "", "Specify the yaml config file path")
+	configPath := flag.String("c", "", "Specify the yaml rConf file path")
 	flag.Parse()
 
 	if configPath == nil || len(*configPath) == 0 {
@@ -85,6 +98,18 @@ func main() {
 	regCtl := &RegistryCtl{
 		ServerConf: *config.DefaultConfig,
 		Handler:    handlers.NewHandlerChain(),
+	}
+
+	// set the global driver
+	rConf, err := regConf.ResolveConfiguration(api.RegConf)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	regConf.StorageDriver, err = factory.Create(rConf.Storage.Type(), rConf.Storage.Parameters())
+	if err != nil {
+		log.Error(err)
+		return
 	}
 
 	regCtl.Start()
