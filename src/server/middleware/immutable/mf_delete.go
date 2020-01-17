@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	common_util "github.com/goharbor/harbor/src/common/utils"
+	"github.com/goharbor/harbor/src/common/utils/log"
 	middlerware_err "github.com/goharbor/harbor/src/core/middlewares/util/error"
 	internal_errors "github.com/goharbor/harbor/src/internal/error"
 	"github.com/goharbor/harbor/src/pkg/art"
@@ -30,6 +31,8 @@ func ManifestDelete() func(http.Handler) http.Handler {
 				}
 				pkgE := internal_errors.New(fmt.Errorf("error occurred when to handle request in immutable handler: %v", err)).WithCode(internal_errors.GeneralCode)
 				msg := internal_errors.NewErrs(pkgE).Error()
+				log.Info("==================")
+				log.Info(msg)
 				http.Error(rw, msg, http.StatusInternalServerError)
 			}
 			next.ServeHTTP(rw, req)
