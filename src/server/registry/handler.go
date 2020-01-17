@@ -49,7 +49,7 @@ func New(url *url.URL) http.Handler {
 	manifestRouter := rootRouter.Path("/v2/{name:.*}/manifests/{reference}").Subrouter()
 	manifestRouter.NewRoute().Methods(http.MethodGet).Handler(manifest.NewHandler(project.Mgr, proxy))
 	manifestRouter.NewRoute().Methods(http.MethodHead).Handler(manifest.NewHandler(project.Mgr, proxy))
-	manifestRouter.NewRoute().Methods(http.MethodPut).Handler(middleware.WithMiddlewares(manifest.NewHandler(project.Mgr, proxy), middleware.ReadOnly()))
+	manifestRouter.NewRoute().Methods(http.MethodPut).Handler(middleware.WithMiddlewares(manifest.NewHandler(project.Mgr, proxy), middleware.ReadOnly(), middleware.ResolveManifest()))
 	manifestRouter.NewRoute().Methods(http.MethodDelete).Handler(middleware.WithMiddlewares(manifest.NewHandler(project.Mgr, proxy), middleware.ReadOnly()))
 
 	// handle blob

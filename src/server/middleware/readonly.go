@@ -7,10 +7,6 @@ import (
 	"net/http"
 )
 
-type readonlyHandler struct {
-	next http.Handler
-}
-
 // ReadOnly middleware reject request when harbor set to readonly
 func ReadOnly() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
