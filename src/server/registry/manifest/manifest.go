@@ -75,6 +75,7 @@ func (h *handler) put(w http.ResponseWriter, req *http.Request) {
 		error.Handle(w, req, errors.New("cannot get the manifest information from request context"))
 		return
 	}
+	log.Info("1111111")
 	// make sure the repository exist before pushing the manifest
 	_, repositoryID, err := repository.Ctl.Ensure(req.Context(), mf.ProjectID, mf.Repository)
 	if err != nil {
@@ -83,6 +84,7 @@ func (h *handler) put(w http.ResponseWriter, req *http.Request) {
 	}
 
 	buffer := internal.NewResponseBuffer(w)
+	log.Info("1111111")
 	// proxy the req to the backend docker registry
 	h.proxy.ServeHTTP(buffer, req)
 	if !buffer.Success() {
@@ -91,6 +93,7 @@ func (h *handler) put(w http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
+	log.Info("1111111")
 
 	// When got the response from the backend docker registry, the manifest and
 	// tag are both ready, so we don't need to handle the issue anymore:
