@@ -1,4 +1,4 @@
-package middleware
+package immutable
 
 import (
 	"errors"
@@ -12,14 +12,15 @@ import (
 	"github.com/goharbor/harbor/src/pkg/q"
 	"github.com/goharbor/harbor/src/pkg/repository"
 	"github.com/goharbor/harbor/src/pkg/tag"
+	"github.com/goharbor/harbor/src/server/middleware"
 	"net/http"
 )
 
-// ImmutableMFPush ...
-func ImmutableMFPush() func(http.Handler) http.Handler {
+// ManifestPush ...
+func ManifestPush() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-			if err := handleRequest(req); err != nil {
+			if err := handlePush(req); err != nil {
 				var e *middlerware_err.ErrImmutable
 				if errors.As(err, &e) {
 					pkgE := internal_errors.New(e).WithCode(internal_errors.PreconditionCode)
@@ -36,9 +37,9 @@ func ImmutableMFPush() func(http.Handler) http.Handler {
 	}
 }
 
-// handleRequest ...
-func handleRequest(req *http.Request) error {
-	mf, ok := ManifestInfoFromContext(req.Context())
+// handlePush ...
+func handlePush(req *http.Request) error {
+	mf, ok := middleware.ManifestInfoFromContext(req.Context())
 	if !ok {
 		return errors.New("cannot get the manifest information from request context")
 	}
@@ -99,28 +100,4 @@ func handleRequest(req *http.Request) error {
 	}
 
 	return NewErrImmutable(repoName, mf.Tag)
-}
-
-// ErrImmutable ...
-type ErrImmutable struct {
-	repo string
-	tag  string
-}
-
-// Error ...
-func (ei *ErrImmutable) Error() string {
-	return fmt.Sprintf("Failed to process request due to '%s:%s' configured as immutable.", ei.repo, ei.tag)
-}
-
-// Unwrap ...
-func (ei *ErrImmutable) Unwrap() error {
-	return nil
-}
-
-// NewErrImmutable ...
-func NewErrImmutable(msg, tag string) error {
-	return &ErrImmutable{
-		repo: msg,
-		tag:  tag,
-	}
 }

@@ -17,6 +17,7 @@ package registry
 import (
 	"github.com/goharbor/harbor/src/pkg/project"
 	"github.com/goharbor/harbor/src/server/middleware"
+	"github.com/goharbor/harbor/src/server/middleware/immutable"
 	"github.com/goharbor/harbor/src/server/registry/blob"
 	"net/http"
 	"net/http/httputil"
@@ -49,8 +50,8 @@ func New(url *url.URL) http.Handler {
 	manifestRouter := rootRouter.Path("/v2/{name:.*}/manifests/{reference}").Subrouter()
 	manifestRouter.NewRoute().Methods(http.MethodGet).Handler(manifest.NewHandler(project.Mgr, proxy))
 	manifestRouter.NewRoute().Methods(http.MethodHead).Handler(manifest.NewHandler(project.Mgr, proxy))
-	manifestRouter.NewRoute().Methods(http.MethodPut).Handler(middleware.WithMiddlewares(manifest.NewHandler(project.Mgr, proxy), middleware.ReadOnly(), middleware.ResolveManifest(), middleware.ImmutableMFPush()))
-	manifestRouter.NewRoute().Methods(http.MethodDelete).Handler(middleware.WithMiddlewares(manifest.NewHandler(project.Mgr, proxy), middleware.ReadOnly()))
+	manifestRouter.NewRoute().Methods(http.MethodPut).Handler(middleware.WithMiddlewares(manifest.NewHandler(project.Mgr, proxy), middleware.ReadOnly(), middleware.ResolveManifest(), immutable.ManifestPush()))
+	manifestRouter.NewRoute().Methods(http.MethodDelete).Handler(middleware.WithMiddlewares(manifest.NewHandler(project.Mgr, proxy), middleware.ReadOnly(), middleware.ResolveManifest(), immutable.ManifestDelete()))
 
 	// handle blob
 	// as we need to apply middleware to the blob requests, so create a sub router to handle the blob APIs
