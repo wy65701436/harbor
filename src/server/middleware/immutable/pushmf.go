@@ -5,7 +5,6 @@ import (
 	"fmt"
 	common_util "github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
-	middlerware_err "github.com/goharbor/harbor/src/core/middlewares/util/error"
 	internal_errors "github.com/goharbor/harbor/src/internal/error"
 	"github.com/goharbor/harbor/src/pkg/art"
 	"github.com/goharbor/harbor/src/pkg/artifact"
@@ -22,7 +21,7 @@ func MiddlewarePush() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			if err := handlePush(req); err != nil {
-				var e *middlerware_err.ErrImmutable
+				var e *ErrImmutable
 				if errors.As(err, &e) {
 					pkgE := internal_errors.New(e).WithCode(internal_errors.PreconditionCode)
 					msg := internal_errors.NewErrs(pkgE).Error()
