@@ -64,7 +64,7 @@ func handlePush(req *http.Request) error {
 	// match repository ...
 	total, repos, err := repository.Mgr.List(req.Context(), &q.Query{
 		Keywords: map[string]interface{}{
-			"Name": repoName,
+			"Name": mf.Repository,
 		},
 	})
 	if err != nil {
@@ -89,18 +89,25 @@ func handlePush(req *http.Request) error {
 	}
 
 	// match tags ...
-	total, _, err = tag.Mgr.List(req.Context(), &q.Query{
-		Keywords: map[string]interface{}{
-			"ArtifactID":   afs[0].ID,
-			"RepositoryID": repos[0].RepositoryID,
-		},
-	})
-	if err != nil {
-		return err
-	}
-	if total == 0 {
-		return nil
+	for _, af := range afs {
+		total, tags, err := tag.Mgr.List(req.Context(), &q.Query{
+			Keywords: map[string]interface{}{
+				"ArtifactID": af.ID,
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if total == 0 {
+			continue
+		}
+		for _, tag := range tags {
+			// push a existing immutable tag, reject the request
+			if tag.Name == mf.Tag {
+				return NewErrImmutable(repoName, mf.Tag)
+			}
+		}
 	}
 
-	return NewErrImmutable(repoName, mf.Tag)
+	return nil
 }

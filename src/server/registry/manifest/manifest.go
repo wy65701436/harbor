@@ -15,14 +15,16 @@
 package manifest
 
 import (
-	"errors"
 	"github.com/goharbor/harbor/src/api/artifact"
 	"github.com/goharbor/harbor/src/api/repository"
+	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/internal"
+	ierror "github.com/goharbor/harbor/src/internal/error"
 	"github.com/goharbor/harbor/src/pkg/project"
-	"github.com/goharbor/harbor/src/server/middleware"
 	"github.com/goharbor/harbor/src/server/registry/error"
+	"github.com/gorilla/mux"
+	"github.com/opencontainers/go-digest"
 	"net/http"
 	"net/http/httputil"
 )
@@ -70,21 +72,28 @@ func (h *handler) delete(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *handler) put(w http.ResponseWriter, req *http.Request) {
-	mf, ok := middleware.ManifestInfoFromContext(req.Context())
-	if !ok {
-		error.Handle(w, req, errors.New("cannot get the manifest information from request context"))
+	vars := mux.Vars(req)
+	repositoryName := vars["name"]
+	projectName, _ := utils.ParseRepository(repositoryName)
+	project, err := h.proMgr.Get(projectName)
+	if err != nil {
+		error.Handle(w, req, err)
 		return
 	}
-	log.Info("1111111")
+	if project == nil {
+		error.Handle(w, req,
+			ierror.NotFoundError(nil).WithMessage("project %s not found", projectName))
+		return
+	}
+
 	// make sure the repository exist before pushing the manifest
-	_, repositoryID, err := repository.Ctl.Ensure(req.Context(), mf.ProjectID, mf.Repository)
+	_, repositoryID, err := repository.Ctl.Ensure(req.Context(), project.ProjectID, repositoryName)
 	if err != nil {
 		error.Handle(w, req, err)
 		return
 	}
 
 	buffer := internal.NewResponseBuffer(w)
-	log.Info("1111111")
 	// proxy the req to the backend docker registry
 	h.proxy.ServeHTTP(buffer, req)
 	if !buffer.Success() {
@@ -93,7 +102,6 @@ func (h *handler) put(w http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
-	log.Info("1111111")
 
 	// When got the response from the backend docker registry, the manifest and
 	// tag are both ready, so we don't need to handle the issue anymore:
@@ -101,11 +109,15 @@ func (h *handler) put(w http.ResponseWriter, req *http.Request) {
 
 	var tags []string
 	var dgt string
-	if mf.Digest != "" {
-		dgt = mf.Digest
+	reference := vars["reference"]
+	dg, err := digest.Parse(reference)
+	if err == nil {
+		// the reference is digest
+		dgt = dg.String()
 	} else {
+		// the reference is tag, get the digest from the response header
 		dgt = buffer.Header().Get("Docker-Content-Digest")
-		tags = append(tags, mf.Tag)
+		tags = append(tags, reference)
 	}
 
 	_, _, err = artifact.Ctl.Ensure(req.Context(), repositoryID, dgt, tags...)
