@@ -1,10 +1,11 @@
-package middleware
+package manifestinfo
 
 import (
 	"fmt"
 	"github.com/goharbor/harbor/src/common/utils"
 	ierror "github.com/goharbor/harbor/src/internal/error"
 	project2 "github.com/goharbor/harbor/src/pkg/project"
+	"github.com/goharbor/harbor/src/server/middleware"
 	reg_err "github.com/goharbor/harbor/src/server/registry/error"
 	"github.com/opencontainers/go-digest"
 	"net/http"
@@ -16,8 +17,8 @@ var (
 	manifestURLRe = regexp.MustCompile(`^/v2/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)manifests/([\w][\w.:-]{0,127})`)
 )
 
-// ResolveManifest middleware get the manifest information from request and inject it into the context
-func ResolveManifest() func(http.Handler) http.Handler {
+// Middleware gets the manifest information from request and inject it into the context
+func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			mf, err := parseManifestInfoFromPath(req)
@@ -25,22 +26,14 @@ func ResolveManifest() func(http.Handler) http.Handler {
 				reg_err.Handle(rw, req, err)
 				return
 			}
-			*req = *(req.WithContext(NewManifestInfoContext(req.Context(), mf)))
+			*req = *(req.WithContext(middleware.NewManifestInfoContext(req.Context(), mf)))
 			next.ServeHTTP(rw, req)
 		})
 	}
 }
 
-// ManifestInfo ...
-type ManifestInfo struct {
-	ProjectID  int64
-	Repository string
-	Tag        string
-	Digest     string
-}
-
 // parseManifestInfoFromPath parse manifest from request path
-func parseManifestInfoFromPath(req *http.Request) (*ManifestInfo, error) {
+func parseManifestInfoFromPath(req *http.Request) (*middleware.ManifestInfo, error) {
 	match, repository, reference := MatchManifestURL(req)
 	if !match {
 		return nil, fmt.Errorf("not match url %s for manifest", req.URL.Path)
@@ -55,7 +48,7 @@ func parseManifestInfoFromPath(req *http.Request) (*ManifestInfo, error) {
 		return nil, ierror.NotFoundError(nil).WithMessage("project %s not found", projectName)
 	}
 
-	info := &ManifestInfo{
+	info := &middleware.ManifestInfo{
 		ProjectID:  project.ProjectID,
 		Repository: repository,
 	}

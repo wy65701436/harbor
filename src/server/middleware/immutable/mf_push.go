@@ -17,8 +17,8 @@ import (
 	"net/http"
 )
 
-// ManifestPush ...
-func ManifestPush() func(http.Handler) http.Handler {
+// MiddlewarePush ...
+func MiddlewarePush() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			if err := handlePush(req); err != nil {

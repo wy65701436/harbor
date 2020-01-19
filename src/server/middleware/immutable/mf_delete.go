@@ -17,8 +17,8 @@ import (
 	"net/http"
 )
 
-// ManifestDelete ...
-func ManifestDelete() func(http.Handler) http.Handler {
+// MiddlwareDelete ...
+func MiddlwareDelete() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			if err := handleDelete(req); err != nil {
