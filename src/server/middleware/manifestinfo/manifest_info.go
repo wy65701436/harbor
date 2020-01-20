@@ -63,6 +63,11 @@ func parseManifestInfoFromPath(req *http.Request) (*middleware.ManifestInfo, err
 	return info, nil
 }
 
+func manifestExist() (digest string, exist bool, err error) {
+
+	return "", false, nil
+}
+
 // MatchManifestURL ...
 func MatchManifestURL(req *http.Request) (bool, string, string) {
 	s := manifestURLRe.FindStringSubmatch(req.URL.Path)
