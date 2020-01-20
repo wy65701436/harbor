@@ -5,8 +5,10 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/notary"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares/util"
+	internal_errors "github.com/goharbor/harbor/src/internal/error"
 	"github.com/goharbor/harbor/src/server/middleware"
 	"net/http"
+	"net/http/httptest"
 )
 
 // NotaryEndpoint ...
@@ -16,31 +18,53 @@ var NotaryEndpoint = ""
 func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			doContentTrustCheck, mf := validate(req)
+			if !doContentTrustCheck {
+				next.ServeHTTP(rw, req)
+				return
+			}
+			rec := httptest.NewRecorder()
 			next.ServeHTTP(rw, req)
+			if rec.Result().StatusCode == http.StatusOK {
+				match, err := matchNotaryDigest(mf)
+				if err != nil {
+					pkgE := internal_errors.New(nil).WithCode(internal_errors.PROJECTPOLICYVIOLATION).WithMessage("Failed in communication with Notary please check the log")
+					msg := internal_errors.NewErrs(pkgE).Error()
+					http.Error(rw, msg, http.StatusInternalServerError)
+					return
+				}
+				if !match {
+					log.Debugf("digest mismatch, failing the response.")
+					pkgE := internal_errors.New(nil).WithCode(internal_errors.PROJECTPOLICYVIOLATION).WithMessage("The image is not signed in Notary.")
+					msg := internal_errors.NewErrs(pkgE).Error()
+					http.Error(rw, msg, http.StatusPreconditionFailed)
+					return
+				}
+			}
+			middleware.CopyResp(rec, rw)
 		})
 	}
 }
 
-func validate(req *http.Request) (bool, util.ImageInfo) {
-	var img util.ImageInfo
-	imgRaw := req.Context().Value(util.ImageInfoCtxKey)
-	if imgRaw == nil || !config.WithNotary() {
-		return false, img
+func validate(req *http.Request) (bool, *middleware.ManifestInfo) {
+	mf, ok := middleware.ManifestInfoFromContext(req.Context())
+	if !ok {
+		return false, nil
 	}
-	img, _ = req.Context().Value(util.ImageInfoCtxKey).(util.ImageInfo)
-	if img.Digest == "" {
-		return false, img
+	_, err := mf.ManifestExists(req.Context())
+	if err != nil {
+		return false, mf
 	}
-	if scannerPull, ok := util.ScannerPullFromContext(req.Context()); ok && scannerPull {
-		return false, img
+	if scannerPull, ok := middleware.ScannerPullFromContext(req.Context()); ok && scannerPull {
+		return false, mf
 	}
-	if !util.GetPolicyChecker().ContentTrustEnabled(img.ProjectName) {
-		return false, img
+	if !middleware.GetPolicyChecker().ContentTrustEnabled(mf.ProjectName) {
+		return false, mf
 	}
-	return true, img
+	return true, mf
 }
 
-func matchNotaryDigest(mf middleware.ManifestInfo) (bool, error) {
+func matchNotaryDigest(mf *middleware.ManifestInfo) (bool, error) {
 	if NotaryEndpoint == "" {
 		NotaryEndpoint = config.InternalNotaryEndpoint()
 	}
@@ -64,13 +88,12 @@ func matchNotaryDigest(mf middleware.ManifestInfo) (bool, error) {
 				if err != nil {
 					return false, err
 				}
-				//ToDo get the digest
 				if mf.Digest == d {
 					return true, nil
 				}
 			}
 		}
 	}
-	log.Debugf("image: %#v, not found in notary", img)
+	log.Debugf("image: %#v, not found in notary", mf)
 	return false, nil
 }

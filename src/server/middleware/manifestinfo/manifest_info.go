@@ -49,8 +49,9 @@ func parseManifestInfoFromPath(req *http.Request) (*middleware.ManifestInfo, err
 	}
 
 	info := &middleware.ManifestInfo{
-		ProjectID:  project.ProjectID,
-		Repository: repository,
+		ProjectID:   project.ProjectID,
+		ProjectName: projectName,
+		Repository:  repository,
 	}
 
 	dgt, err := digest.Parse(reference)
@@ -61,11 +62,6 @@ func parseManifestInfoFromPath(req *http.Request) (*middleware.ManifestInfo, err
 	}
 
 	return info, nil
-}
-
-func manifestExist() (digest string, exist bool, err error) {
-
-	return "", false, nil
 }
 
 // MatchManifestURL ...
