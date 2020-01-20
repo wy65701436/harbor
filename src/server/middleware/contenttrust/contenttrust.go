@@ -24,7 +24,7 @@ func Middleware() func(http.Handler) http.Handler {
 				return
 			}
 			rec := httptest.NewRecorder()
-			next.ServeHTTP(rw, req)
+			next.ServeHTTP(rec, req)
 			if rec.Result().StatusCode == http.StatusOK {
 				match, err := matchNotaryDigest(mf)
 				if err != nil {

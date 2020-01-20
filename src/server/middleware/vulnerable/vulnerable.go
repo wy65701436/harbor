@@ -23,8 +23,8 @@ func Middleware() func(http.Handler) http.Handler {
 				next.ServeHTTP(rw, req)
 				return
 			}
-
 			rec := httptest.NewRecorder()
+			next.ServeHTTP(rec, req)
 			// only enable vul policy check the response 200
 			if rec.Result().StatusCode == http.StatusOK {
 				// Invalid project ID
