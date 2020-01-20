@@ -53,6 +53,13 @@ func (info *ManifestInfo) ManifestExists(ctx context.Context) (bool, error) {
 				"RepositoryID": repos[0].RepositoryID,
 			},
 		})
+		if err != nil {
+			info.manifestExistErr = err
+			return
+		}
+		if total == 0 {
+			return
+		}
 
 		info.manifestExist = total > 0
 		info.manifestExistErr = err
