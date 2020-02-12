@@ -92,6 +92,8 @@ github.com/casbin/casbin/rbac/default-role-manager
 github.com/casbin/casbin/config
 # github.com/coreos/go-oidc v2.1.0+incompatible
 github.com/coreos/go-oidc
+# github.com/cyphar/filepath-securejoin v0.2.2
+github.com/cyphar/filepath-securejoin
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/dghubble/sling v1.1.0
@@ -141,7 +143,7 @@ github.com/go-openapi/runtime/middleware/denco
 github.com/go-openapi/runtime/middleware/header
 github.com/go-openapi/runtime/middleware/untyped
 github.com/go-openapi/runtime/security
-# github.com/go-openapi/spec v0.19.3
+# github.com/go-openapi/spec v0.19.4
 github.com/go-openapi/spec
 # github.com/go-openapi/strfmt v0.19.3
 github.com/go-openapi/strfmt
@@ -188,7 +190,7 @@ github.com/google/go-querystring/query
 github.com/google/gofuzz
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
-# github.com/gorilla/handlers v1.3.0
+# github.com/gorilla/handlers v1.4.0
 github.com/gorilla/handlers
 # github.com/gorilla/mux v1.7.2
 github.com/gorilla/mux
@@ -288,7 +290,7 @@ golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/cast5
 golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/ed25519/internal/edwards25519
-# golang.org/x/net v0.0.0-20191004110552-13f9640d40b9
+# golang.org/x/net v0.0.0-20191028085509-fe3aa8a45271
 golang.org/x/net/http2
 golang.org/x/net/idna
 golang.org/x/net/context/ctxhttp
@@ -299,7 +301,7 @@ golang.org/x/net/context
 golang.org/x/oauth2
 golang.org/x/oauth2/clientcredentials
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20190916202348-b4ddaad3f8a3
+# golang.org/x/sys v0.0.0-20191028164358-195ce5e7f934
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.2
@@ -308,9 +310,9 @@ golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/transform
 golang.org/x/text/width
-# golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
+# golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 golang.org/x/time/rate
-# google.golang.org/appengine v1.5.0
+# google.golang.org/appengine v1.6.5
 google.golang.org/appengine/cloudsql
 google.golang.org/appengine/urlfetch
 google.golang.org/appengine/internal
@@ -413,7 +415,7 @@ k8s.io/client-go/pkg/apis/clientauthentication/v1beta1
 k8s.io/client-go/util/connrotation
 k8s.io/client-go/util/integer
 k8s.io/client-go/util/homedir
-# k8s.io/helm v2.9.1+incompatible
+# k8s.io/helm v2.16.1+incompatible
 k8s.io/helm/cmd/helm/search
 k8s.io/helm/pkg/chartutil
 k8s.io/helm/pkg/proto/hapi/chart
