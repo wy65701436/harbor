@@ -16,10 +16,14 @@ package chart
 
 import (
 	"github.com/goharbor/harbor/src/common/models"
+	ierror "github.com/goharbor/harbor/src/internal/error"
 	"github.com/goharbor/harbor/src/pkg/artifact"
+	chartserver "github.com/goharbor/harbor/src/pkg/chart"
 	"github.com/goharbor/harbor/src/testing/api/artifact/abstractor/blob"
+	"github.com/goharbor/harbor/src/testing/pkg/chart"
 	"github.com/goharbor/harbor/src/testing/pkg/repository"
 	"github.com/stretchr/testify/suite"
+	"k8s.io/helm/pkg/chartutil"
 	"testing"
 )
 
@@ -28,14 +32,17 @@ type resolverTestSuite struct {
 	resolver    *resolver
 	repoMgr     *repository.FakeManager
 	blobFetcher *blob.FakeFetcher
+	chartOptr   *chart.FakeOpertaor
 }
 
 func (r *resolverTestSuite) SetupTest() {
 	r.repoMgr = &repository.FakeManager{}
 	r.blobFetcher = &blob.FakeFetcher{}
+	r.chartOptr = &chart.FakeOpertaor{}
 	r.resolver = &resolver{
-		repoMgr:     r.repoMgr,
-		blobFetcher: r.blobFetcher,
+		repoMgr:       r.repoMgr,
+		blobFetcher:   r.blobFetcher,
+		chartOperator: r.chartOptr,
 	}
 
 }
@@ -93,6 +100,70 @@ func (r *resolverTestSuite) TestResolveMetadata() {
 	r.blobFetcher.AssertExpectations(r.T())
 	r.Assert().Equal("1.1.2", artifact.ExtraAttrs["version"].(string))
 	r.Assert().Equal("1.8.2", artifact.ExtraAttrs["appVersion"].(string))
+}
+
+func (r *resolverTestSuite) TestResolveAddition() {
+	// unknown addition
+	_, err := r.resolver.ResolveAddition(nil, nil, "unknown_addition")
+	r.True(ierror.IsErr(err, ierror.BadRequestCode))
+
+	chartManifest := `{"schemaVersion":2,"config":{"mediaType":"application/vnd.cncf.helm.config.v1+json","digest":"sha256:76a59ebef39013bf7b57e411629b569a5175590024f31eeaaa577a0f8da9e523","size":528},"layers":[{"mediaType":"application/tar+gzip","digest":"sha256:0bd64cfb958b68c71b46597e22185a41e784dc96e04090bc7d2a480b704c3b65","size":12607}]}`
+
+	chartYaml := `{  
+   “name”:“redis”,
+   “home”:“http://redis.io/",
+   “sources”:[
+      “https://github.com/bitnami/bitnami-docker-redis"
+   
+],
+   “version”:“3.2.5",
+   “description”:“Open source, advanced key-value store. It is often referred to as a data structure server since keys can contain strings, hashes, lists, sets and sorted sets.“,
+   “keywords”:[
+      “redis”,
+      “keyvalue”,
+      “database”
+   
+],
+   “maintainers”:[
+      {
+         “name”:“bitnami-bot”,
+         “email”:“containers@bitnami.com"
+      
+}
+   
+],
+   “icon”:“https://bitnami.com/assets/stacks/redis/img/redis-stack-220x234.png",
+   “apiVersion”:“v1”,
+   “appVersion”:“4.0.9”
+}`
+
+	chartDetails := chartserver.ChartVersionDetails{
+		Dependencies: []*chartutil.Dependency{
+			{
+				Name:    "harbor",
+				Version: "v1.10",
+			},
+		},
+		Values: map[string]interface{}{
+			"cluster.enable":                   true,
+			"cluster.slaveCount":               1,
+			"image.pullPolicy":                 "Always",
+			"master.securityContext.runAsUser": 1001,
+		},
+		Files: map[string]string{
+			"README.md": "This chart bootstraps a [Redis](https://github.com/bitnami/bitnami-docker-redis) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.",
+		},
+	}
+
+	artifact := &artifact.Artifact{}
+	r.repoMgr.On("Get").Return(&models.RepoRecord{}, nil)
+	r.blobFetcher.On("FetchManifest").Return("", []byte(chartManifest), nil)
+	r.blobFetcher.On("FetchLayer").Return([]byte(chartYaml), nil)
+	r.chartOptr.On("GetDetails").Return(chartDetails, nil)
+	addition, err := r.resolver.ResolveAddition(nil, artifact, AdditionTypeValues)
+	r.Require().Nil(err)
+	r.Equal("application/json; charset=utf-8", addition.ContentType)
+	r.Equal(`[{"created":"2019-01-01T01:29:27.416803627Z","created_by":"/bin/sh -c #(nop) COPY file:f77490f70ce51da25bd21bfc30cb5e1a24b2b65eb37d4af0c327ddc24f0986a6 in / "},{"created":"2019-01-01T01:29:27.650294696Z","created_by":"/bin/sh -c #(nop)  CMD [\"/hello\"]","empty_layer":true}]`, string(addition.Content))
 }
 
 func (r *resolverTestSuite) TestGetArtifactType() {

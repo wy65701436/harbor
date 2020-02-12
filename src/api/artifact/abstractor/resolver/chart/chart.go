@@ -21,7 +21,9 @@ import (
 	resolv "github.com/goharbor/harbor/src/api/artifact/abstractor/resolver"
 	"github.com/goharbor/harbor/src/api/artifact/descriptor"
 	"github.com/goharbor/harbor/src/common/utils/log"
+	ierror "github.com/goharbor/harbor/src/internal/error"
 	"github.com/goharbor/harbor/src/pkg/artifact"
+	"github.com/goharbor/harbor/src/pkg/chart"
 	"github.com/goharbor/harbor/src/pkg/repository"
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -39,8 +41,9 @@ const (
 
 func init() {
 	resolver := &resolver{
-		repoMgr:     repository.Mgr,
-		blobFetcher: blob.Fcher,
+		repoMgr:       repository.Mgr,
+		blobFetcher:   blob.Fcher,
+		chartOperator: chartserver.Optr,
 	}
 	if err := resolv.Register(resolver, mediaType); err != nil {
 		log.Errorf("failed to register resolver for media type %s: %v", mediaType, err)
@@ -53,8 +56,9 @@ func init() {
 }
 
 type resolver struct {
-	repoMgr     repository.Manager
-	blobFetcher blob.Fetcher
+	repoMgr       repository.Manager
+	blobFetcher   blob.Fetcher
+	chartOperator chartserver.Operator
 }
 
 func (r *resolver) ResolveMetadata(ctx context.Context, manifest []byte, artifact *artifact.Artifact) error {
@@ -86,7 +90,44 @@ func (r *resolver) ResolveMetadata(ctx context.Context, manifest []byte, artifac
 }
 
 func (r *resolver) ResolveAddition(ctx context.Context, artifact *artifact.Artifact, addition string) (*resolv.Addition, error) {
-	// TODO implement
+	if addition != AdditionTypeValues {
+		return nil, ierror.New(nil).WithCode(ierror.BadRequestCode).
+			WithMessage("addition %s isn't supported for %s(manifest version 2)", addition, AdditionTypeValues)
+	}
+	repository, err := r.repoMgr.Get(ctx, artifact.RepositoryID)
+	if err != nil {
+		return nil, err
+	}
+	_, content, err := r.blobFetcher.FetchManifest(repository.Name, artifact.Digest)
+	if err != nil {
+		return nil, err
+	}
+	manifest := &v1.Manifest{}
+	if err := json.Unmarshal(content, manifest); err != nil {
+		return nil, err
+	}
+	for _, layer := range manifest.Layers {
+		// chart do have two layers, one is config, we should resolve the other one.
+		layerDgst := layer.Digest.String()
+		if layerDgst != manifest.Config.Digest.String() {
+			content, err = r.blobFetcher.FetchLayer(repository.Name, layerDgst)
+			if err != nil {
+				return nil, err
+			}
+			chartDetails, err := r.chartOperator.GetDetails(content)
+			if err != nil {
+				return nil, err
+			}
+			content, err = json.Marshal(chartDetails)
+			if err != nil {
+				return nil, err
+			}
+			return &resolv.Addition{
+				Content:     content,
+				ContentType: "application/json; charset=utf-8",
+			}, nil
+		}
+	}
 	return nil, nil
 }
 
