@@ -42,3 +42,17 @@ CREATE TABLE artifact_reference
   FOREIGN KEY (child_id) REFERENCES artifact_2(id),
   CONSTRAINT  unique_reference UNIQUE (parent_id, child_id)
 );
+
+/* artifact_trash records deleted artifact */
+CREATE TABLE artifact_trash
+(
+  id            SERIAL PRIMARY KEY NOT NULL,
+  artifact_id   int NOT NULL,
+  media_type    varchar(255) NOT NULL,
+  manifest_media_type varchar(255) NOT NULL,
+  project_id    int NOT NULL,
+  repository_id int NOT NULL,
+  digest        varchar(255) NOT NULL,
+  creation_time timestamp default CURRENT_TIMESTAMP,
+  CONSTRAINT    unique_artifact_2 UNIQUE (repository_id, digest)
+);
