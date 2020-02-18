@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	// Mgr is a global artifact manager instance
+	// Mgr is a global artifact trash manager instance
 	Mgr = NewManager()
 )
 
