@@ -54,7 +54,7 @@ CREATE TABLE artifact_trash
   repository_id int NOT NULL,
   digest        varchar(255) NOT NULL,
   creation_time timestamp default CURRENT_TIMESTAMP,
-  CONSTRAINT    unique_artifact_2 UNIQUE (repository_id, digest)
+  UNIQUE (artifact_id),
 );
 
 /* TODO upgrade: how about keep the table "harbor_resource_label" only for helm v2 chart and use the new table for artifact label reference? */
