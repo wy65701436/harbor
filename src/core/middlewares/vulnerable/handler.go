@@ -15,11 +15,11 @@
 package vulnerable
 
 import (
+	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"net/http"
 
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
-	"github.com/goharbor/harbor/src/core/middlewares/util"
 	sc "github.com/goharbor/harbor/src/pkg/scan/api/scan"
 	"github.com/goharbor/harbor/src/pkg/scan/report"
 	v1 "github.com/goharbor/harbor/src/pkg/scan/rest/v1"
