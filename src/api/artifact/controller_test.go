@@ -423,7 +423,7 @@ func (c *controllerTestSuite) TestDelete() {
 	}, nil)
 	c.tagMgr.On("Delete").Return(nil)
 	c.labelMgr.On("RemoveAllFrom").Return(nil)
-	c.artrashMgr.On("Delete").Return(nil)
+	c.artrashMgr.On("Create").Return(0, nil)
 	err := c.ctl.Delete(nil, 1)
 	c.Require().Nil(err)
 	c.artMgr.AssertExpectations(c.T())
