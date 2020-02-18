@@ -24,6 +24,8 @@ import (
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/internal"
 	"github.com/goharbor/harbor/src/pkg/art"
+	"github.com/goharbor/harbor/src/pkg/artifactrash"
+	"github.com/goharbor/harbor/src/pkg/artifactrash/model"
 	"github.com/goharbor/harbor/src/pkg/immutabletag/match"
 	"github.com/goharbor/harbor/src/pkg/immutabletag/match/rule"
 	"github.com/goharbor/harbor/src/pkg/label"
@@ -94,6 +96,7 @@ func NewController() Controller {
 	return &controller{
 		repoMgr:      repository.Mgr,
 		artMgr:       artifact.Mgr,
+		artrashMgr:   artifactrash.Mgr,
 		tagMgr:       tag.Mgr,
 		sigMgr:       signature.GetManager(),
 		labelMgr:     label.Mgr,
@@ -107,6 +110,7 @@ func NewController() Controller {
 type controller struct {
 	repoMgr      repository.Manager
 	artMgr       artifact.Manager
+	artrashMgr   artifactrash.Manager
 	tagMgr       tag.Manager
 	sigMgr       signature.Manager
 	labelMgr     label.Manager
@@ -279,6 +283,11 @@ func (c *controller) getByTag(ctx context.Context, repository, tag string, optio
 }
 
 func (c *controller) Delete(ctx context.Context, id int64) error {
+	af, err := c.artMgr.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
 	// remove labels added to the artifact
 	if err := c.labelMgr.RemoveAllFrom(ctx, id); err != nil {
 		return err
@@ -302,6 +311,18 @@ func (c *controller) Delete(ctx context.Context, id int64) error {
 		return err
 	}
 
+	_, err = c.artrashMgr.Create(ctx, &model.ArtifactTrash{
+		ArtifactID:        af.ID,
+		Type:              af.Type,
+		MediaType:         af.MediaType,
+		ManifestMediaType: af.ManifestMediaType,
+		ProjectID:         af.ProjectID,
+		RepositoryID:      af.RepositoryID,
+		Digest:            af.Digest,
+	})
+	if err != nil {
+		return err
+	}
 	// TODO fire delete artifact event
 	return nil
 }

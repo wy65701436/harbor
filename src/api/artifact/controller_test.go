@@ -25,6 +25,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/q"
 	"github.com/goharbor/harbor/src/pkg/tag/model/tag"
 	arttesting "github.com/goharbor/harbor/src/testing/pkg/artifact"
+	artrashtesting "github.com/goharbor/harbor/src/testing/pkg/artifactrash"
 	immutesting "github.com/goharbor/harbor/src/testing/pkg/immutabletag"
 	"github.com/goharbor/harbor/src/testing/pkg/label"
 	repotesting "github.com/goharbor/harbor/src/testing/pkg/repository"
@@ -69,6 +70,7 @@ type controllerTestSuite struct {
 	ctl          *controller
 	repoMgr      *repotesting.FakeManager
 	artMgr       *arttesting.FakeManager
+	artrashMgr   *artrashtesting.FakeManager
 	tagMgr       *tagtesting.FakeManager
 	labelMgr     *label.FakeManager
 	abstractor   *fakeAbstractor
@@ -78,6 +80,7 @@ type controllerTestSuite struct {
 func (c *controllerTestSuite) SetupTest() {
 	c.repoMgr = &repotesting.FakeManager{}
 	c.artMgr = &arttesting.FakeManager{}
+	c.artrashMgr = &artrashtesting.FakeManager{}
 	c.tagMgr = &tagtesting.FakeManager{}
 	c.labelMgr = &label.FakeManager{}
 	c.abstractor = &fakeAbstractor{}
@@ -85,6 +88,7 @@ func (c *controllerTestSuite) SetupTest() {
 	c.ctl = &controller{
 		repoMgr:      c.repoMgr,
 		artMgr:       c.artMgr,
+		artrashMgr:   c.artrashMgr,
 		tagMgr:       c.tagMgr,
 		labelMgr:     c.labelMgr,
 		abstractor:   c.abstractor,
@@ -410,6 +414,7 @@ func (c *controllerTestSuite) TestGetByReference() {
 }
 
 func (c *controllerTestSuite) TestDelete() {
+	c.artMgr.On("Get").Return(&artifact.Artifact{ID: 1}, nil)
 	c.artMgr.On("Delete").Return(nil)
 	c.tagMgr.On("List").Return(0, []*tag.Tag{
 		{
@@ -418,6 +423,7 @@ func (c *controllerTestSuite) TestDelete() {
 	}, nil)
 	c.tagMgr.On("Delete").Return(nil)
 	c.labelMgr.On("RemoveAllFrom").Return(nil)
+	c.artrashMgr.On("Create").Return(0, nil)
 	err := c.ctl.Delete(nil, 1)
 	c.Require().Nil(err)
 	c.artMgr.AssertExpectations(c.T())
