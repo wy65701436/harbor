@@ -414,7 +414,7 @@ func (c *controllerTestSuite) TestGetByReference() {
 }
 
 func (c *controllerTestSuite) TestDelete() {
-	c.artMgr.On("Get").Return(artifact.Artifact{ID: 1}, nil)
+	c.artMgr.On("Get").Return(&artifact.Artifact{ID: 1}, nil)
 	c.artMgr.On("Delete").Return(nil)
 	c.tagMgr.On("List").Return(0, []*tag.Tag{
 		{
