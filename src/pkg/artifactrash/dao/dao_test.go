@@ -31,8 +31,8 @@ func (d *daoTestSuite) SetupTest() {
 	art1 := &artdao.Artifact{
 		Type:              "image",
 		ManifestMediaType: v1.MediaTypeImageManifest,
-		ProjectID:         1,
-		RepositoryID:      1,
+		ProjectID:         10,
+		RepositoryID:      10,
 		Digest:            "1234",
 	}
 	id, err := d.afDao.Create(d.ctx, art1)
@@ -42,8 +42,8 @@ func (d *daoTestSuite) SetupTest() {
 	art2 := &artdao.Artifact{
 		Type:              "image",
 		ManifestMediaType: v1.MediaTypeImageManifest,
-		ProjectID:         1,
-		RepositoryID:      1,
+		ProjectID:         10,
+		RepositoryID:      10,
 		Digest:            "5678",
 	}
 	_, err = d.afDao.Create(d.ctx, art2)
@@ -53,8 +53,8 @@ func (d *daoTestSuite) SetupTest() {
 		ArtifactID:        id,
 		Type:              "image",
 		ManifestMediaType: v1.MediaTypeImageManifest,
-		ProjectID:         1,
-		RepositoryID:      1,
+		ProjectID:         10,
+		RepositoryID:      10,
 		Digest:            "1234",
 	}
 	id, err = d.dao.Create(d.ctx, aft)
@@ -71,9 +71,9 @@ func (d *daoTestSuite) TestCreate() {
 	// conflict
 	aft := &model.ArtifactTrash{
 		ArtifactID:        d.id,
-		ProjectID:         1,
+		ProjectID:         10,
 		ManifestMediaType: v1.MediaTypeImageManifest,
-		RepositoryID:      1,
+		RepositoryID:      10,
 	}
 
 	_, err := d.dao.Create(d.ctx, aft)

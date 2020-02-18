@@ -16,7 +16,9 @@ package artifact
 
 import (
 	"github.com/go-openapi/strfmt"
+	cmodels "github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/pkg/artifact"
+	"github.com/goharbor/harbor/src/pkg/signature"
 	"github.com/goharbor/harbor/src/pkg/tag/model/tag"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
 )
@@ -25,7 +27,8 @@ import (
 type Artifact struct {
 	artifact.Artifact
 	Tags          []*Tag                   // the list of tags that attached to the artifact
-	AdditionLinks map[string]*AdditionLink // the link for build history(image), values.yaml(chart), dependency(chart), etc
+	AdditionLinks map[string]*AdditionLink // the resource link for build history(image), values.yaml(chart), dependency(chart), etc
+	Labels        []*cmodels.Label
 	// TODO add other attrs: signature, scan result, etc
 }
 
@@ -71,6 +74,7 @@ func (a *Artifact) ToSwagger() *models.Artifact {
 			PushTime:     strfmt.DateTime(tag.PushTime),
 			RepositoryID: tag.RepositoryID,
 			Immutable:    tag.Immutable,
+			Signed:       tag.Signed,
 		})
 	}
 	for addition, link := range a.AdditionLinks {
@@ -82,6 +86,19 @@ func (a *Artifact) ToSwagger() *models.Artifact {
 			Href:     link.HREF,
 		}
 	}
+	for _, label := range a.Labels {
+		art.Labels = append(art.Labels, &models.Label{
+			ID:           label.ID,
+			Name:         label.Name,
+			Description:  label.Description,
+			Color:        label.Color,
+			CreationTime: strfmt.DateTime(label.CreationTime),
+			ProjectID:    label.ProjectID,
+			Scope:        label.Scope,
+			UpdateTime:   strfmt.DateTime(label.UpdateTime),
+			Deleted:      label.Deleted,
+		})
+	}
 	return art
 }
 
@@ -89,7 +106,8 @@ func (a *Artifact) ToSwagger() *models.Artifact {
 type Tag struct {
 	tag.Tag
 	Immutable bool
-	// TODO add other attrs: signature, label, etc
+	Signed    bool
+	// TODO add other attrs: label, etc
 }
 
 // AdditionLink is a link via that the addition can be fetched
@@ -104,13 +122,13 @@ type Option struct {
 	TagOption        *TagOption // only works when WithTag is set to true
 	WithLabel        bool
 	WithScanOverview bool
-	// TODO move it to TagOption?
-	WithSignature bool
 }
 
 // TagOption is used to specify the properties returned when listing/getting tags
 type TagOption struct {
 	WithImmutableStatus bool
+	WithSignature       bool
+	SignatureChecker    *signature.Checker
 }
 
 // TODO move this to GC controller?

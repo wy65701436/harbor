@@ -25,7 +25,9 @@ import (
 	"github.com/goharbor/harbor/src/pkg/q"
 	"github.com/goharbor/harbor/src/pkg/tag/model/tag"
 	arttesting "github.com/goharbor/harbor/src/testing/pkg/artifact"
+	artrashtesting "github.com/goharbor/harbor/src/testing/pkg/artifactrash"
 	immutesting "github.com/goharbor/harbor/src/testing/pkg/immutabletag"
+	"github.com/goharbor/harbor/src/testing/pkg/label"
 	repotesting "github.com/goharbor/harbor/src/testing/pkg/repository"
 	tagtesting "github.com/goharbor/harbor/src/testing/pkg/tag"
 	"github.com/stretchr/testify/mock"
@@ -68,7 +70,9 @@ type controllerTestSuite struct {
 	ctl          *controller
 	repoMgr      *repotesting.FakeManager
 	artMgr       *arttesting.FakeManager
+	artrashMgr   *artrashtesting.FakeManager
 	tagMgr       *tagtesting.FakeManager
+	labelMgr     *label.FakeManager
 	abstractor   *fakeAbstractor
 	immutableMtr *immutesting.FakeMatcher
 }
@@ -76,13 +80,17 @@ type controllerTestSuite struct {
 func (c *controllerTestSuite) SetupTest() {
 	c.repoMgr = &repotesting.FakeManager{}
 	c.artMgr = &arttesting.FakeManager{}
+	c.artrashMgr = &artrashtesting.FakeManager{}
 	c.tagMgr = &tagtesting.FakeManager{}
+	c.labelMgr = &label.FakeManager{}
 	c.abstractor = &fakeAbstractor{}
 	c.immutableMtr = &immutesting.FakeMatcher{}
 	c.ctl = &controller{
 		repoMgr:      c.repoMgr,
 		artMgr:       c.artMgr,
+		artrashMgr:   c.artrashMgr,
 		tagMgr:       c.tagMgr,
+		labelMgr:     c.labelMgr,
 		abstractor:   c.abstractor,
 		immutableMtr: c.immutableMtr,
 	}
@@ -125,9 +133,8 @@ func (c *controllerTestSuite) TestAssembleArtifact() {
 		TagOption: &TagOption{
 			WithImmutableStatus: false,
 		},
-		WithLabel:        false,
+		WithLabel:        true,
 		WithScanOverview: true,
-		WithSignature:    true,
 	}
 	tg := &tag.Tag{
 		ID:           1,
@@ -142,6 +149,13 @@ func (c *controllerTestSuite) TestAssembleArtifact() {
 		Name: "library/hello-world",
 	}, nil)
 	ctx := internal.SetAPIVersion(nil, "2.0")
+	lb := &models.Label{
+		ID:   1,
+		Name: "label",
+	}
+	c.labelMgr.On("ListByArtifact").Return([]*models.Label{
+		lb,
+	}, nil)
 	artifact := c.ctl.assembleArtifact(ctx, art, option)
 	c.Require().NotNil(artifact)
 	c.Equal(art.ID, artifact.ID)
@@ -151,6 +165,7 @@ func (c *controllerTestSuite) TestAssembleArtifact() {
 	c.False(artifact.AdditionLinks["build_history"].Absolute)
 	c.Equal("/api/2.0/projects/library/repositories/hello-world/artifacts/sha256:123/additions/build_history",
 		artifact.AdditionLinks["build_history"].HREF)
+	c.Contains(artifact.Labels, lb)
 	// TODO check other fields of option
 }
 
@@ -158,10 +173,8 @@ func (c *controllerTestSuite) TestEnsureArtifact() {
 	digest := "sha256:418fb88ec412e340cdbef913b8ca1bbe8f9e8dc705f9617414c1f2c8db980180"
 
 	// the artifact already exists
-	c.artMgr.On("List").Return(1, []*artifact.Artifact{
-		{
-			ID: 1,
-		},
+	c.artMgr.On("GetByDigest").Return(&artifact.Artifact{
+		ID: 1,
 	}, nil)
 	created, id, err := c.ctl.ensureArtifact(nil, 1, digest)
 	c.Require().Nil(err)
@@ -175,7 +188,7 @@ func (c *controllerTestSuite) TestEnsureArtifact() {
 	c.repoMgr.On("Get").Return(&models.RepoRecord{
 		ProjectID: 1,
 	}, nil)
-	c.artMgr.On("List").Return(1, []*artifact.Artifact{}, nil)
+	c.artMgr.On("GetByDigest").Return(nil, ierror.NotFoundError(nil))
 	c.artMgr.On("Create").Return(1, nil)
 	c.abstractor.On("AbstractMetadata").Return(nil)
 	created, id, err = c.ctl.ensureArtifact(nil, 1, digest)
@@ -233,7 +246,7 @@ func (c *controllerTestSuite) TestEnsure() {
 	c.repoMgr.On("Get").Return(&models.RepoRecord{
 		ProjectID: 1,
 	}, nil)
-	c.artMgr.On("List").Return(1, []*artifact.Artifact{}, nil)
+	c.artMgr.On("GetByDigest").Return(nil, ierror.NotFoundError(nil))
 	c.artMgr.On("Create").Return(1, nil)
 	c.tagMgr.On("List").Return(1, []*tag.Tag{}, nil)
 	c.tagMgr.On("Create").Return(1, nil)
@@ -252,7 +265,6 @@ func (c *controllerTestSuite) TestList() {
 	option := &Option{
 		WithTag:          true,
 		WithScanOverview: true,
-		WithSignature:    true,
 	}
 	c.artMgr.On("List").Return(1, []*artifact.Artifact{
 		{
@@ -298,7 +310,7 @@ func (c *controllerTestSuite) TestGetByDigest() {
 	c.repoMgr.On("GetByName").Return(&models.RepoRecord{
 		RepositoryID: 1,
 	}, nil)
-	c.artMgr.On("List").Return(0, nil, nil)
+	c.artMgr.On("GetByDigest").Return(nil, ierror.NotFoundError(nil))
 	c.abstractor.On("ListSupportedAdditions").Return([]string{"BUILD_HISTORY"})
 	art, err := c.ctl.getByDigest(nil, "library/hello-world",
 		"sha256:418fb88ec412e340cdbef913b8ca1bbe8f9e8dc705f9617414c1f2c8db980180", nil)
@@ -312,11 +324,9 @@ func (c *controllerTestSuite) TestGetByDigest() {
 	c.repoMgr.On("GetByName").Return(&models.RepoRecord{
 		RepositoryID: 1,
 	}, nil)
-	c.artMgr.On("List").Return(1, []*artifact.Artifact{
-		{
-			ID:           1,
-			RepositoryID: 1,
-		},
+	c.artMgr.On("GetByDigest").Return(&artifact.Artifact{
+		ID:           1,
+		RepositoryID: 1,
 	}, nil)
 	c.abstractor.On("ListSupportedAdditions").Return([]string{"BUILD_HISTORY"})
 	art, err = c.ctl.getByDigest(nil, "library/hello-world",
@@ -367,11 +377,9 @@ func (c *controllerTestSuite) TestGetByReference() {
 	c.repoMgr.On("GetByName").Return(&models.RepoRecord{
 		RepositoryID: 1,
 	}, nil)
-	c.artMgr.On("List").Return(1, []*artifact.Artifact{
-		{
-			ID:           1,
-			RepositoryID: 1,
-		},
+	c.artMgr.On("GetByDigest").Return(&artifact.Artifact{
+		ID:           1,
+		RepositoryID: 1,
 	}, nil)
 	c.abstractor.On("ListSupportedAdditions").Return([]string{"BUILD_HISTORY"})
 	art, err := c.ctl.GetByReference(nil, "library/hello-world",
@@ -406,6 +414,7 @@ func (c *controllerTestSuite) TestGetByReference() {
 }
 
 func (c *controllerTestSuite) TestDelete() {
+	c.repoMgr.On("Get").Return(artifact.Artifact{ID: 1}, nil)
 	c.artMgr.On("Delete").Return(nil)
 	c.tagMgr.On("List").Return(0, []*tag.Tag{
 		{
@@ -413,6 +422,8 @@ func (c *controllerTestSuite) TestDelete() {
 		},
 	}, nil)
 	c.tagMgr.On("Delete").Return(nil)
+	c.labelMgr.On("RemoveAllFrom").Return(nil)
+	c.artrashMgr.On("Delete").Return(nil)
 	err := c.ctl.Delete(nil, 1)
 	c.Require().Nil(err)
 	c.artMgr.AssertExpectations(c.T())
@@ -482,6 +493,18 @@ func (c *controllerTestSuite) TestGetAddition() {
 	c.artMgr.On("Get").Return(nil, nil)
 	c.abstractor.On("AbstractAddition").Return(nil, nil)
 	_, err := c.ctl.GetAddition(nil, 1, "addition")
+	c.Require().Nil(err)
+}
+
+func (c *controllerTestSuite) TestAddTo() {
+	c.labelMgr.On("AddTo").Return(nil)
+	err := c.ctl.AddLabel(nil, 1, 1)
+	c.Require().Nil(err)
+}
+
+func (c *controllerTestSuite) TestRemoveFrom() {
+	c.labelMgr.On("RemoveFrom").Return(nil)
+	err := c.ctl.RemoveLabel(nil, 1, 1)
 	c.Require().Nil(err)
 }
 

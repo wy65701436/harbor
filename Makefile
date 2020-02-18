@@ -226,6 +226,10 @@ DOCKERCOMPOSECHARTMUSEUMTPLFILENAME=docker-compose.chartmuseum.tpl
 DOCKERCOMPOSECHARTMUSEUMFILENAME=docker-compose.chartmuseum.yml
 
 SEDCMD=$(shell which sed)
+SEDCMDI=$(SEDCMD) -i
+ifeq ($(shell uname),Darwin)
+    SEDCMDI=$(SEDCMD) -i ''
+endif
 
 # package
 TARCMD=$(shell which tar)
@@ -334,7 +338,11 @@ compile_notary_migrate_patch:
 
 compile: check_environment versions_prepare compile_core compile_jobservice compile_registryctl compile_notary_migrate_patch
 
-prepare:
+update_prepare_version:
+	@echo "substitute the prepare version tag in prepare file..."
+	@$(SEDCMDI) -e 's/goharbor\/prepare:.*[[:space:]]\+/goharbor\/prepare:$(VERSIONTAG) /' $(MAKEPATH)/prepare ;
+
+prepare: update_prepare_version
 	@echo "preparing..."
 	@$(MAKEPATH)/$(PREPARECMD) $(PREPARECMD_PARA)
 
@@ -355,11 +363,11 @@ build_base_docker:
 
 install: compile build prepare start
 
-package_online:
+package_online: update_prepare_version
 	@echo "packing online package ..."
 	@cp -r make $(HARBORPKG)
 	@if [ -n "$(REGISTRYSERVER)" ] ; then \
-		$(SEDCMD) -i -e 's/image\: goharbor/image\: $(REGISTRYSERVER)\/$(REGISTRYPROJECTNAME)/' \
+		$(SEDCMDI) -e 's/image\: goharbor/image\: $(REGISTRYSERVER)\/$(REGISTRYPROJECTNAME)/' \
 		$(HARBORPKG)/docker-compose.yml ; \
 	fi
 	@cp LICENSE $(HARBORPKG)/LICENSE
@@ -368,7 +376,7 @@ package_online:
 	@rm -rf $(HARBORPKG)
 	@echo "Done."
 
-package_offline: compile build
+package_offline: update_prepare_version compile build
 
 	@echo "packing offline package ..."
 	@cp -r make $(HARBORPKG)
@@ -476,7 +484,7 @@ swagger_client:
 	wget -q https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.3.1/swagger-codegen-cli-2.3.1.jar -O swagger-codegen-cli.jar
 	rm -rf harborclient
 	mkdir harborclient
-	java -jar swagger-codegen-cli.jar generate -i api/harbor/swagger.yaml -l python -o harborclient
+	java -jar swagger-codegen-cli.jar generate -i api/v2.0/legacy_swagger.yaml -l python -o harborclient
 	cd harborclient; python ./setup.py install
 	pip install docker -q
 	pip freeze
