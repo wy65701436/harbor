@@ -16,6 +16,7 @@ package gc
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor/src/pkg/artifactrash"
 	"os"
 	"strconv"
 	"time"
@@ -43,11 +44,14 @@ const (
 
 // GarbageCollector is the struct to run registry's garbage collection
 type GarbageCollector struct {
+	artrashMgr        artifactrash.Manager
 	registryCtlClient client.Client
 	logger            logger.Interface
 	cfgMgr            *config.CfgManager
 	CoreURL           string
 	redisURL          string
+
+	deleteUntagged bool
 }
 
 // MaxFails implements the interface in job/Interface
@@ -116,11 +120,17 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 	configURL := gc.CoreURL + common.CoreConfigPath
 	gc.cfgMgr = config.NewRESTCfgManager(configURL, secret)
 	gc.redisURL = params["redis_url_reg"].(string)
+
+	// default is to delete the untagged artifact
+	if params["delete_untagged"] == "" {
+		gc.deleteUntagged = true
+	} else {
+		gc.deleteUntagged = params["delete_untagged"].(bool)
+	}
 	return nil
 }
 
 func (gc *GarbageCollector) getReadOnly() (bool, error) {
-
 	if err := gc.cfgMgr.Load(); err != nil {
 		return false, err
 	}
@@ -138,7 +148,6 @@ func (gc *GarbageCollector) setReadOnly(switcher bool) error {
 // cleanCache is to clean the registry cache for GC.
 // To do this is because the issue https://github.com/docker/distribution/issues/2094
 func (gc *GarbageCollector) cleanCache() error {
-
 	con, err := redis.DialURL(
 		gc.redisURL,
 		redis.DialConnectTimeout(dialConnectionTimeout),
