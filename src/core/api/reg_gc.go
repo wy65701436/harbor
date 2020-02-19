@@ -29,6 +29,11 @@ type GCAPI struct {
 	AJAPI
 }
 
+type deleteCandidate struct {
+	repoName string
+	digest   string
+}
+
 // Prepare validates the URL and parms, it needs the system admin permission.
 func (gc *GCAPI) Prepare() {
 	gc.BaseController.Prepare()
@@ -88,7 +93,8 @@ func (gc *GCAPI) Put() {
 	}
 	ajr.Name = common_job.ImageGC
 	ajr.Parameters = map[string]interface{}{
-		"redis_url_reg": os.Getenv("_REDIS_URL_REG"),
+		"redis_url_reg":     os.Getenv("_REDIS_URL_REG"),
+		"delete_candidates": []deleteCandidate{},
 	}
 	gc.updateSchedule(ajr)
 }

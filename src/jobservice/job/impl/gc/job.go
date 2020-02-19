@@ -18,21 +18,20 @@ import (
 	"fmt"
 	"github.com/goharbor/harbor/src/common/utils/registry"
 	"github.com/goharbor/harbor/src/common/utils/registry/auth"
+	"github.com/goharbor/harbor/src/pkg/artifact"
 	"github.com/goharbor/harbor/src/pkg/artifactrash"
+	"github.com/goharbor/harbor/src/pkg/q"
+	"github.com/goharbor/harbor/src/pkg/repository"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/common/config"
-	"github.com/goharbor/harbor/src/common/dao"
-	common_quota "github.com/goharbor/harbor/src/common/quota"
 	"github.com/goharbor/harbor/src/common/registryctl"
 	"github.com/goharbor/harbor/src/jobservice/job"
 	"github.com/goharbor/harbor/src/jobservice/logger"
-	"github.com/goharbor/harbor/src/pkg/types"
 	"github.com/goharbor/harbor/src/registryctl/client"
 )
 
@@ -47,14 +46,15 @@ const (
 
 // GarbageCollector is the struct to run registry's garbage collection
 type GarbageCollector struct {
+	artMgr            artifact.Manager
 	artrashMgr        artifactrash.Manager
+	repoMgr           repository.Manager
 	registryCtlClient client.Client
 	logger            logger.Interface
 	cfgMgr            *config.CfgManager
 	CoreURL           string
 	redisURL          string
-
-	deleteUntagged bool
+	deleteUntagged    bool
 }
 
 // MaxFails implements the interface in job/Interface
@@ -85,6 +85,7 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		if err := gc.setReadOnly(true); err != nil {
 			return err
 		}
+		// defer add the delete all for trash
 		defer gc.setReadOnly(readOnlyCur)
 	}
 	if err := gc.registryCtlClient.Health(); err != nil {
@@ -92,6 +93,9 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		return err
 	}
 	gc.logger.Infof("start to run gc in job.")
+	if err := gc.deleteCandidates(ctx); err != nil {
+		gc.logger.Errorf("failed to delete GC candidates in gc job, with error: %v", err)
+	}
 	gcr, err := gc.registryCtlClient.StartGC()
 	if err != nil {
 		gc.logger.Errorf("failed to get gc result: %v", err)
@@ -99,9 +103,6 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 	}
 	if err := gc.cleanCache(); err != nil {
 		return err
-	}
-	if err := gc.ensureQuota(); err != nil {
-		gc.logger.Warningf("failed to align quota data in gc job, with error: %v", err)
 	}
 	gc.logger.Infof("GC results: status: %t, message: %s, start: %s, end: %s.", gcr.Status, gcr.Msg, gcr.StartTime, gcr.EndTime)
 	gc.logger.Infof("success to run gc in job.")
@@ -112,6 +113,9 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 	registryctl.Init()
 	gc.registryCtlClient = registryctl.RegistryCtlClient
 	gc.logger = ctx.GetLogger()
+	gc.artMgr = artifact.NewManager()
+	gc.artrashMgr = artifactrash.NewManager()
+	gc.repoMgr = repository.New()
 
 	errTpl := "failed to get required property: %s"
 	if v, ok := ctx.Get(common.CoreURL); ok && len(v.(string)) > 0 {
@@ -212,36 +216,41 @@ func delKeys(con redis.Conn, pattern string) error {
 	return nil
 }
 
-func (gc *GarbageCollector) ensureQuota() error {
-	projects, err := dao.GetProjects(nil)
-	if err != nil {
-		return err
-	}
-	for _, project := range projects {
-		pSize, err := dao.CountSizeOfProject(project.ProjectID)
-		if err != nil {
-			gc.logger.Warningf("error happen on counting size of project:%d by artifact, error:%v, just skip it.", project.ProjectID, err)
-			continue
-		}
-		quotaMgr, err := common_quota.NewManager("project", strconv.FormatInt(project.ProjectID, 10))
-		if err != nil {
-			gc.logger.Errorf("Error occurred when to new quota manager %v, just skip it.", err)
-			continue
-		}
-		if err := quotaMgr.SetResourceUsage(types.ResourceStorage, pSize); err != nil {
-			gc.logger.Errorf("cannot ensure quota for the project: %d, err: %v, just skip it.", project.ProjectID, err)
-			continue
-		}
-		if err := dao.RemoveUntaggedBlobs(project.ProjectID); err != nil {
-			gc.logger.Errorf("cannot delete untagged blobs of project: %d, err: %v, just skip it.", project.ProjectID, err)
-			continue
-		}
-	}
-	return nil
+type candidate struct {
+	repoName string
+	digest   string
 }
 
-func (gc *GarbageCollector) deleteArtifacts(repository string, digest string) error {
-	gc.artrashMgr.Filter(ctx)
+func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
+	required, err := gc.artrashMgr.Filter(ctx.SystemContext())
+	if err != nil {
+		return nil
+	}
+
+	_, untagged, err := gc.artMgr.List(ctx.SystemContext(), &q.Query{
+		Keywords: map[string]interface{}{
+			"RepositoryID": 1,
+			"Tags":         "nil",
+		},
+	})
+
+	for _, art := range untagged {
+		repo, err := gc.repoMgr.Get(ctx.SystemContext(), art.RepositoryID)
+		if err != nil {
+			return err
+		}
+		if err := gc.deleteManifest(repo.Name, art.Digest); err != nil {
+			gc.logger.Errorf("failded to delete mainfest, %s:%s", repo.Name, art.Digest)
+		}
+	}
+
+	for _, art := range required {
+		if err := gc.deleteManifest(art.RepositoryName, art.Digest); err != nil {
+			gc.logger.Errorf("failded to delete mainfest, %s:%s", art.RepositoryName, art.Digest)
+		}
+	}
+
+	return nil
 }
 
 func (gc *GarbageCollector) deleteManifest(repository string, digest string) error {
