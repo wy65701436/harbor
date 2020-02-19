@@ -16,7 +16,10 @@ package gc
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor/src/common/utils/registry"
+	"github.com/goharbor/harbor/src/common/utils/registry/auth"
 	"github.com/goharbor/harbor/src/pkg/artifactrash"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -235,4 +238,33 @@ func (gc *GarbageCollector) ensureQuota() error {
 		}
 	}
 	return nil
+}
+
+func (gc *GarbageCollector) deleteArtifacts(repository string, digest string) error {
+	gc.artrashMgr.Filter(ctx)
+}
+
+func (gc *GarbageCollector) deleteManifest(repository string, digest string) error {
+	repoClient, err := gc.newRepositoryClient(repository)
+	if err != nil {
+		return err
+	}
+	if err := repoClient.DeleteManifest(digest); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (gc *GarbageCollector) newRepositoryClient(repository string) (*registry.Repository, error) {
+	uam := &auth.UserAgentModifier{
+		UserAgent: "harbor-registry-client",
+	}
+	authorizer := auth.DefaultBasicAuthorizer()
+	transport := registry.NewTransport(http.DefaultTransport, authorizer, uam)
+	client := &http.Client{
+		Transport: transport,
+	}
+	gc.cfgMgr.Get(common.RegistryURL)
+	endpoint := gc.cfgMgr.Get(common.RegistryURL)
+	return registry.NewRepository(repository, endpoint.GetString(), client)
 }
