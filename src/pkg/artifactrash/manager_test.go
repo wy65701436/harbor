@@ -69,3 +69,10 @@ func (m *managerTestSuite) TestFilter() {
 	m.Require().Nil(err)
 	m.Equal(len(arts), 1)
 }
+
+func (m *managerTestSuite) TestFlush() {
+	m.dao.On("Flush", mock.Anything).Return(nil)
+	err := m.mgr.Flush(nil)
+	m.Require().Nil(err)
+	m.dao.AssertExpectations(m.T())
+}

@@ -77,7 +77,7 @@ func (gc *GarbageCollector) Validate(params job.Parameters) error {
 // 1, set harbor to readonly
 // 2, select the candidate artifacts from Harbor DB.
 // 3, call registry API(--delete-untagged=false) to delete manifest bases on the results of #2
-// 4, clean keys of redis DB of registry
+// 4, clean keys of redis DB of registry, clean artifact trash and untagged from DB.
 // 5, roll back readonly.
 // More details:
 // 1, why disable delete untagged when to call registry API
@@ -101,10 +101,6 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		}
 		// defer add the delete all for trash
 		defer gc.setReadOnly(readOnlyCur)
-	}
-	if err := gc.registryCtlClient.Health(); err != nil {
-		gc.logger.Errorf("failed to start gc as registry controller is unreachable: %v", err)
-		return err
 	}
 	gc.logger.Infof("start to run gc in job.")
 	if err := gc.deleteCandidates(ctx); err != nil {
@@ -130,6 +126,11 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 	gc.artMgr = artifact.NewManager()
 	gc.artrashMgr = artifactrash.NewManager()
 	gc.repoMgr = repository.New()
+
+	if err := gc.registryCtlClient.Health(); err != nil {
+		gc.logger.Errorf("failed to start gc as registry controller is unreachable: %v", err)
+		return err
+	}
 
 	errTpl := "failed to get required property: %s"
 	if v, ok := ctx.Get(common.CoreURL); ok && len(v.(string)) > 0 {
@@ -234,19 +235,28 @@ func delKeys(con redis.Conn, pattern string) error {
 // 1, required part, the artifacts were removed from Harbor.
 // 2, optional part, the untagged artifacts.
 func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
+	var untagged []*artifact.Artifact
+	defer func(arts []*artifact.Artifact) {
+		if err := gc.artrashMgr.Flush(ctx.SystemContext()); err != nil {
+			gc.logger.Errorf("failed to flush artifact trash")
+		}
+		if gc.deleteUntagged {
+			for _, art := range untagged {
+				if err := gc.artMgr.Delete(ctx.SystemContext(), art.ID); err != nil {
+					gc.logger.Errorf("failed to delete untagged:%d artifact, %v", art.ID, err)
+				}
+			}
+		}
+	}(untagged)
+
+	// Mark
+	// get all of required and untagged artifacts
 	required, err := gc.artrashMgr.Filter(ctx.SystemContext())
 	if err != nil {
 		return nil
 	}
-	for _, art := range required {
-		if err := gc.deleteManifest(art.RepositoryName, art.Digest); err != nil {
-			gc.logger.Errorf("failed to delete manifest, %s:%s", art.RepositoryName, art.Digest)
-		}
-	}
-
 	if gc.deleteUntagged {
-		// get all of untagged artifacts
-		_, untagged, err := gc.artMgr.List(ctx.SystemContext(), &q.Query{
+		_, untagged, err = gc.artMgr.List(ctx.SystemContext(), &q.Query{
 			Keywords: map[string]interface{}{
 				"Tags": "nil",
 			},
@@ -254,6 +264,15 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	// Sweep
+	for _, art := range required {
+		if err := gc.deleteManifest(art.RepositoryName, art.Digest); err != nil {
+			gc.logger.Errorf("failed to delete manifest, %s:%s", art.RepositoryName, art.Digest)
+		}
+	}
+	if gc.deleteUntagged {
 		for _, art := range untagged {
 			repo, err := gc.repoMgr.Get(ctx.SystemContext(), art.RepositoryID)
 			if err != nil {
@@ -264,7 +283,6 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 			}
 		}
 	}
-
 	return nil
 }
 

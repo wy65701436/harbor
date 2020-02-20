@@ -285,9 +285,10 @@ func (aj *AJAPI) submit(ajr *models.AdminJobReq) {
 	}
 
 	id, err := dao.AddAdminJob(&common_models.AdminJob{
-		Name: ajr.Name,
-		Kind: ajr.JobKind(),
-		Cron: ajr.CronString(),
+		Name:       ajr.Name,
+		Kind:       ajr.JobKind(),
+		Cron:       ajr.CronString(),
+		Parameters: ajr.ParamString(),
 	})
 	if err != nil {
 		aj.SendInternalServerError(err)
@@ -345,6 +346,7 @@ func convertToAdminJobRep(job *common_models.AdminJob) (models.AdminJobRep, erro
 		Name:         job.Name,
 		Kind:         job.Kind,
 		Status:       job.Status,
+		Parameters:   job.Parameters,
 		CreationTime: job.CreationTime,
 		UpdateTime:   job.UpdateTime,
 	}
