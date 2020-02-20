@@ -15,17 +15,18 @@
 package vulnerable
 
 import (
-	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"net/http"
 
+	"net/http/httptest"
+
+	sc "github.com/goharbor/harbor/src/api/scan"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
-	sc "github.com/goharbor/harbor/src/pkg/scan/api/scan"
+	"github.com/goharbor/harbor/src/core/middlewares/util"
 	"github.com/goharbor/harbor/src/pkg/scan/report"
 	v1 "github.com/goharbor/harbor/src/pkg/scan/rest/v1"
 	"github.com/goharbor/harbor/src/pkg/scan/vuln"
 	"github.com/pkg/errors"
-	"net/http/httptest"
 )
 
 type vulnerableHandler struct {

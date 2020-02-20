@@ -73,6 +73,20 @@ func (gc *GarbageCollector) Validate(params job.Parameters) error {
 }
 
 // Run implements the interface in job/Interface
+// The workflow of GC is:
+// 1, set harbor to readonly
+// 2, select the candidate artifacts from Harbor DB.
+// 3, call registry API(--delete-untagged=false) to delete manifest bases on the results of #2
+// 4, clean keys of redis DB of registry
+// 5, roll back readonly.
+// More details:
+// 1, why disable delete untagged when to call registry API
+// 		there are two parts for putting an manifest in Harbor: write database and write storage, but they're not in a transaction,
+//		which leads to the data mismatching in parallel pushing images with same tag but different digest. The valid artifact in
+//		harbor DB could be a untagged one in the storage. If we enable the delete untagged, the valid data could be removed from the storage.
+// 2, what to be cleaned
+//		> the deleted artifact, bases on table of artifact_trash and artifact
+//		> the untagged artifact(optional), bases on table of artifact.
 func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 	if err := gc.init(ctx, params); err != nil {
 		return err
@@ -216,43 +230,45 @@ func delKeys(con redis.Conn, pattern string) error {
 	return nil
 }
 
-type candidate struct {
-	repoName string
-	digest   string
-}
-
+// deleteCandidates deletes the two parts of artifact from harbor DB
+// 1, required part, the artifacts were removed from Harbor.
+// 2, optional part, the untagged artifacts.
 func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 	required, err := gc.artrashMgr.Filter(ctx.SystemContext())
 	if err != nil {
 		return nil
 	}
-
-	_, untagged, err := gc.artMgr.List(ctx.SystemContext(), &q.Query{
-		Keywords: map[string]interface{}{
-			"RepositoryID": 1,
-			"Tags":         "nil",
-		},
-	})
-
-	for _, art := range untagged {
-		repo, err := gc.repoMgr.Get(ctx.SystemContext(), art.RepositoryID)
-		if err != nil {
-			return err
-		}
-		if err := gc.deleteManifest(repo.Name, art.Digest); err != nil {
-			gc.logger.Errorf("failded to delete mainfest, %s:%s", repo.Name, art.Digest)
+	for _, art := range required {
+		if err := gc.deleteManifest(art.RepositoryName, art.Digest); err != nil {
+			gc.logger.Errorf("failed to delete manifest, %s:%s", art.RepositoryName, art.Digest)
 		}
 	}
 
-	for _, art := range required {
-		if err := gc.deleteManifest(art.RepositoryName, art.Digest); err != nil {
-			gc.logger.Errorf("failded to delete mainfest, %s:%s", art.RepositoryName, art.Digest)
+	if gc.deleteUntagged {
+		// get all of untagged artifacts
+		_, untagged, err := gc.artMgr.List(ctx.SystemContext(), &q.Query{
+			Keywords: map[string]interface{}{
+				"Tags": "nil",
+			},
+		})
+		if err != nil {
+			return err
+		}
+		for _, art := range untagged {
+			repo, err := gc.repoMgr.Get(ctx.SystemContext(), art.RepositoryID)
+			if err != nil {
+				return err
+			}
+			if err := gc.deleteManifest(repo.Name, art.Digest); err != nil {
+				gc.logger.Errorf("failed to delete manifest, %s:%s", repo.Name, art.Digest)
+			}
 		}
 	}
 
 	return nil
 }
 
+// deleteManifest calls the registry API to remove manifest
 func (gc *GarbageCollector) deleteManifest(repository string, digest string) error {
 	repoClient, err := gc.newRepositoryClient(repository)
 	if err != nil {
@@ -273,7 +289,6 @@ func (gc *GarbageCollector) newRepositoryClient(repository string) (*registry.Re
 	client := &http.Client{
 		Transport: transport,
 	}
-	gc.cfgMgr.Get(common.RegistryURL)
 	endpoint := gc.cfgMgr.Get(common.RegistryURL)
 	return registry.NewRepository(repository, endpoint.GetString(), client)
 }
