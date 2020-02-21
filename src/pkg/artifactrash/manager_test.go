@@ -24,6 +24,10 @@ func (f *fakeDao) Filter(ctx context.Context) (arts []model.ArtifactTrash, err e
 	args := f.Called()
 	return args.Get(0).([]model.ArtifactTrash), args.Error(1)
 }
+func (f *fakeDao) Flush(ctx context.Context) (err error) {
+	args := f.Called()
+	return args.Error(0)
+}
 
 type managerTestSuite struct {
 	suite.Suite
