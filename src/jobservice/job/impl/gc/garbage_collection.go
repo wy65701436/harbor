@@ -16,13 +16,10 @@ package gc
 
 import (
 	"fmt"
-	"github.com/goharbor/harbor/src/common/utils/registry"
-	"github.com/goharbor/harbor/src/common/utils/registry/auth"
 	"github.com/goharbor/harbor/src/pkg/artifact"
 	"github.com/goharbor/harbor/src/pkg/artifactrash"
 	"github.com/goharbor/harbor/src/pkg/q"
 	"github.com/goharbor/harbor/src/pkg/repository"
-	"net/http"
 	"os"
 	"time"
 
@@ -54,6 +51,7 @@ type GarbageCollector struct {
 	cfgMgr            *config.CfgManager
 	CoreURL           string
 	redisURL          string
+	registryURL       string
 	deleteUntagged    bool
 }
 
@@ -99,7 +97,6 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		if err := gc.setReadOnly(true); err != nil {
 			return err
 		}
-		// defer add the delete all for trash
 		defer gc.setReadOnly(readOnlyCur)
 	}
 	gc.logger.Infof("start to run gc in job.")
@@ -142,6 +139,7 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 	configURL := gc.CoreURL + common.CoreConfigPath
 	gc.cfgMgr = config.NewRESTCfgManager(configURL, secret)
 	gc.redisURL = params["redis_url_reg"].(string)
+	gc.registryURL = gc.cfgMgr.Get(common.RegistryURL).GetString()
 
 	// default is to delete the untagged artifact
 	if params["delete_untagged"] == "" {
@@ -200,37 +198,6 @@ func (gc *GarbageCollector) cleanCache() error {
 	return nil
 }
 
-func delKeys(con redis.Conn, pattern string) error {
-	iter := 0
-	keys := make([]string, 0)
-	for {
-		arr, err := redis.Values(con.Do("SCAN", iter, "MATCH", pattern))
-		if err != nil {
-			return fmt.Errorf("error retrieving '%s' keys", pattern)
-		}
-		iter, err = redis.Int(arr[0], nil)
-		if err != nil {
-			return fmt.Errorf("unexpected type for Int, got type %T", err)
-		}
-		k, err := redis.Strings(arr[1], nil)
-		if err != nil {
-			return fmt.Errorf("converts an array command reply to a []string %v", err)
-		}
-		keys = append(keys, k...)
-
-		if iter == 0 {
-			break
-		}
-	}
-	for _, key := range keys {
-		_, err := con.Do("DEL", key)
-		if err != nil {
-			return fmt.Errorf("failed to clean registry cache %v", err)
-		}
-	}
-	return nil
-}
-
 // deleteCandidates deletes the two parts of artifact from harbor DB
 // 1, required part, the artifacts were removed from Harbor.
 // 2, optional part, the untagged artifacts.
@@ -268,7 +235,7 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 
 	// Sweep
 	for _, art := range required {
-		if err := gc.deleteManifest(art.RepositoryName, art.Digest); err != nil {
+		if err := deleteManifest(gc.registryURL, art.RepositoryName, art.Digest); err != nil {
 			gc.logger.Errorf("failed to delete manifest, %s:%s", art.RepositoryName, art.Digest)
 		}
 	}
@@ -278,35 +245,10 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 			if err != nil {
 				return err
 			}
-			if err := gc.deleteManifest(repo.Name, art.Digest); err != nil {
+			if err := deleteManifest(gc.registryURL, repo.Name, art.Digest); err != nil {
 				gc.logger.Errorf("failed to delete manifest, %s:%s", repo.Name, art.Digest)
 			}
 		}
 	}
 	return nil
-}
-
-// deleteManifest calls the registry API to remove manifest
-func (gc *GarbageCollector) deleteManifest(repository string, digest string) error {
-	repoClient, err := gc.newRepositoryClient(repository)
-	if err != nil {
-		return err
-	}
-	if err := repoClient.DeleteManifest(digest); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (gc *GarbageCollector) newRepositoryClient(repository string) (*registry.Repository, error) {
-	uam := &auth.UserAgentModifier{
-		UserAgent: "harbor-registry-client",
-	}
-	authorizer := auth.DefaultBasicAuthorizer()
-	transport := registry.NewTransport(http.DefaultTransport, authorizer, uam)
-	client := &http.Client{
-		Transport: transport,
-	}
-	endpoint := gc.cfgMgr.Get(common.RegistryURL)
-	return registry.NewRepository(repository, endpoint.GetString(), client)
 }
