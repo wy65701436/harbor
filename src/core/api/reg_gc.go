@@ -29,11 +29,6 @@ type GCAPI struct {
 	AJAPI
 }
 
-type deleteCandidate struct {
-	repoName string
-	digest   string
-}
-
 // Prepare validates the URL and parms, it needs the system admin permission.
 func (gc *GCAPI) Prepare() {
 	gc.BaseController.Prepare()
