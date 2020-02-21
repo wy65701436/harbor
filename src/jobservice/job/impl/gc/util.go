@@ -46,6 +46,15 @@ func deleteManifest(registryURL, repository, digest string) error {
 	if err != nil {
 		return err
 	}
+	_, exist, err := repoClient.ManifestExist(digest)
+	if err != nil {
+		return err
+	}
+	// it could be happened at remove manifest success but fail to delete harbor DB.
+	// when the GC job executes again, the manifest should not exist.
+	if !exist {
+		return nil
+	}
 	if err := repoClient.DeleteManifest(digest); err != nil {
 		return err
 	}

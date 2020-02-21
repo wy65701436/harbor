@@ -69,4 +69,4 @@ CREATE TABLE label_reference (
  CONSTRAINT unique_label_reference UNIQUE (label_id,artifact_id)
 );
 
-ALTER TABLE admin_job ADD COLUMN job_param varchar(255) Default '';
+ALTER TABLE admin_job ADD COLUMN job_parameters varchar(255) Default '';
