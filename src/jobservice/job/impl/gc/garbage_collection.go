@@ -220,7 +220,7 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 		return nil
 	}
 	if gc.deleteUntagged {
-		_, untagged, err = gc.artCtl.List(ctx.SystemContext(), &q.Query{
+		untagged, err = gc.artCtl.List(ctx.SystemContext(), &q.Query{
 			Keywords: map[string]interface{}{
 				"Tags": "nil",
 			},

@@ -7,12 +7,12 @@ import (
 
 func TestMaxFails(t *testing.T) {
 	rep := &GarbageCollector{}
-	assert.Equal(t, uint(3), rep.MaxFails())
+	assert.Equal(t, uint(1), rep.MaxFails())
 }
 
 func TestShouldRetry(t *testing.T) {
 	rep := &GarbageCollector{}
-	assert.True(t, rep.ShouldRetry())
+	assert.False(t, rep.ShouldRetry())
 }
 
 func TestValidate(t *testing.T) {
