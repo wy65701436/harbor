@@ -426,7 +426,7 @@ gofmt:
 
 commentfmt:
 	@echo checking comment format...
-	@res=$$(find . -type d \( -path ./src/vendor -o -path ./tests \) -prune -o -name '*.go' -print | xargs egrep '(^|\s)\/\/(\S)'); \
+	@res=$$(find . -type d \( -path ./src/vendor -o -path ./tests \) -prune -o -name '*.go' -print | xargs grep -P '(^|\s)\/\/(?!go:generate\s)(\S)'); \
 	if [ -n "$${res}" ]; then \
 		echo checking comment format fail.. ; \
 		echo missing whitespace between // and comment body;\
@@ -496,9 +496,12 @@ swagger_client:
 	@echo "Generate swagger client"
 	wget -q https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.3.1/swagger-codegen-cli-2.3.1.jar -O swagger-codegen-cli.jar
 	rm -rf harborclient
-	mkdir harborclient
-	java -jar swagger-codegen-cli.jar generate -i api/v2.0/legacy_swagger.yaml -l python -o harborclient
-	cd harborclient; python ./setup.py install
+	mkdir  -p harborclient/harbor_swagger_client
+	mkdir  -p harborclient/harbor_v2_swagger_client
+	java -jar swagger-codegen-cli.jar generate -i api/v2.0/legacy_swagger.yaml -l python -o harborclient/harbor_swagger_client -DpackageName=swagger_client
+	java -jar swagger-codegen-cli.jar generate -i api/v2.0/swagger.yaml -l python -o harborclient/harbor_v2_swagger_client -DpackageName=v2_swagger_client
+	cd harborclient/harbor_swagger_client; python ./setup.py install
+	cd harborclient/harbor_v2_swagger_client; python ./setup.py install
 	pip install docker -q
 	pip freeze
 

@@ -13,7 +13,7 @@ The table below lists the parameters that must be set when you deploy Harbor. By
 
 **IMPORTANT**: Harbor does not ship with any certificates. In versions up to and including 1.9.x, by default Harbor uses HTTP to serve registry requests. This is acceptable only in air-gapped test or development environments. In production environments, always use HTTPS. If you enable Content Trust with Notary to properly sign all images, you must use HTTPS. 
   
-You can use certificates that are signed by a trusted third-party CA, or you can use self-signed certificates. For information about how to create a CA, and how to use a CA to sign a server certificate and a client certificate, see [Configuring Harbor with HTTPS Access](../configure-https.md).
+You can use certificates that are signed by a trusted third-party CA, or you can use self-signed certificates. For information about how to create a CA, and how to use a CA to sign a server certificate and a client certificate, see [Configuring Harbor with HTTPS Access](configure-https.md).
 
 <table width="100%" border="0">
   <caption>
@@ -161,7 +161,7 @@ You can use certificates that are signed by a trusted third-party CA, or you can
   </tr>
 </table>
   
-### Optional parameters
+## Optional Parameters
 
 The following table lists the additional, optional parameters that you can set to configure your Harbor deployment beyond the minimum required settings. To enable a setting, you must uncomment it in `harbor.yml` by deleting the leading `#` character.
 
@@ -299,7 +299,7 @@ The following table lists the additional, optional parameters that you can set t
 The `harbor.yml` file includes options to configure a UAA CA certificate. This authentication mode is not recommended and is not documented.
 {{< /note >}}
 
-### Configuring a Storage Backend {#backend}
+## Configuring a Storage Backend {#backend}
 
 By default Harbor uses local storage for the registry, but you can optionally configure the `storage_service` setting so that Harbor uses external storage. For information about how to configure the storage backend of a registry for different storage providers, see the [Registry Configuration Reference](https://docs.docker.com/registry/configuration/#storage) in the Docker documentation. For example, if you use Openstack Swift as your storage backend, the parameters might resemble the following:
 
@@ -320,4 +320,4 @@ storage_service:
 
 ## What to Do Next
 
-To install Harbor, [Run the Installer Script](../run-installer-script.md).
+To install Harbor, [Run the Installer Script](run-installer-script.md).

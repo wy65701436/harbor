@@ -1,6 +1,6 @@
 ---
 title: Configuring Replication
-weight: 15
+weight: 30
 ---
 
 Replication allows users to replicate resources, namely images and charts, between Harbor and non-Harbor registries, in both pull or push mode. 
@@ -12,7 +12,3 @@ There might be some delay during replication based on the condition of the netwo
 {{< note >}}
 Due to API changes, replication between different versions of Harbor is not supported.
 {{< /note >}}
-
-- [Create Replication Endpoints](create-replication-endpoints.md)
-- [Create Replication Rules](create-replication-rules.md)
-- [Running Replication Manually](manage-replications.md)
