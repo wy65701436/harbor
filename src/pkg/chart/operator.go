@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	helm_chart "helm.sh/helm/v3/pkg/chart"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/proto/hapi/chart"
 )
@@ -23,7 +24,7 @@ type Operator interface {
 	// GetChartDetails parse the details from the provided content bytes
 	GetDetails(content []byte) (*VersionDetails, error)
 	// FetchLayer the content of layer under the repository
-	GetData(content []byte) (*chart.Chart, error)
+	GetData(content []byte) (*helm_chart.Chart, error)
 }
 
 var _ Operator = &operator{}
