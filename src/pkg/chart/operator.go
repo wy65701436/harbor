@@ -45,6 +45,7 @@ func (cho *operator) GetDetails(content []byte) (*VersionDetails, error) {
 	}
 
 	// Parse the requirements of chart
+	chartData.Dependencies()
 	requirements, err := loader.LoadRequirements(chartData)
 	if err != nil {
 		// If no requirements.yaml, return empty dependency list
@@ -58,20 +59,20 @@ func (cho *operator) GetDetails(content []byte) (*VersionDetails, error) {
 	}
 
 	var values map[string]interface{}
+
 	files := make(map[string]string)
 	// Parse values
 	if chartData.Values != nil {
-		values = parseRawValues([]byte(chartData.Values.GetRaw()))
+		values = chartData.Values
 		if len(values) > 0 {
-			// Append values.yaml file
-			files[valuesFileName] = chartData.Values.Raw
+			files[valuesFileName] = chartData.Values
 		}
 	}
 
 	// Append other files like 'README.md'
-	for _, v := range chartData.GetFiles() {
-		if v.TypeUrl == readmeFileName {
-			files[readmeFileName] = string(v.GetValue())
+	for _, v := range chartData.Files {
+		if v.Name == readmeFileName {
+			files[readmeFileName] = string(v.Data)
 			break
 		}
 	}
