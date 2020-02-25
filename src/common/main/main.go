@@ -4,7 +4,6 @@ import (
 	"fmt"
 	helm_chart "helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
-	"k8s.io/helm/pkg/chartutil"
 	"net/http"
 )
 
@@ -14,14 +13,13 @@ const (
 )
 
 type ChartVersionDetails struct {
-	Metadata     *helm_repo.ChartVersion  `json:"metadata"`
 	Dependencies []*helm_chart.Dependency `json:"dependencies"`
 	Values       map[string]interface{}   `json:"values"`
 	Files        map[string]string        `json:"files"`
 }
 
 func main() {
-	req, err := http.NewRequest("GET", "http://localhost:5000/v2/myrepo/mychart/blobs/sha256:0bd64cfb958b68c71b46597e22185a41e784dc96e04090bc7d2a480b704c3b65", nil)
+	req, err := http.NewRequest("GET", "http://localhost:5000/v2/myrepo/mychart2/blobs/sha256:c145f3f6b48ca48aa04c32af3ba49bb2f6abbe410e9584b03c3e71bd2719428d", nil)
 	if err != nil {
 		return
 	}
@@ -42,11 +40,30 @@ func main() {
 			return
 		}
 
-		fmt.Println(chartData.Values)
-		fmt.Println(chartData.Dependencies())
-		fmt.Println(chartData.Files)
+		//fmt.Println(chartData.Values)
+		valueMap := make(map[string]interface{})
+		readValue(chartData.Values, "", valueMap)
+		fmt.Println(valueMap)
+		//fmt.Println(chartData.Metadata.Dependencies)
+		//fmt.Println(chartData.Files)
 	}
 	defer resp.Body.Close()
 
 	return
+}
+
+// Recursively read value
+func readValue(values map[string]interface{}, keyPrefix string, valueMap map[string]interface{}) {
+	for key, value := range values {
+		longKey := key
+		if keyPrefix != "" {
+			longKey = fmt.Sprintf("%s.%s", keyPrefix, key)
+		}
+
+		if subValues, ok := value.(map[string]interface{}); ok {
+			readValue(subValues, longKey, valueMap)
+		} else {
+			valueMap[longKey] = value
+		}
+	}
 }

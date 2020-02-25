@@ -6,6 +6,7 @@ import (
 	"fmt"
 	helm_chart "helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
+	helm_chartutil "helm.sh/helm/v3/pkg/chartutil"
 )
 
 var (
@@ -109,7 +110,7 @@ func parseRawValues(rawValue []byte) map[string]interface{} {
 		return valueMap
 	}
 
-	values, err := loader.ReadValues(rawValue)
+	values, err := helm_chartutil.ReadValues(rawValue)
 	if err != nil || len(values) == 0 {
 		return valueMap
 	}
