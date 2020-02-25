@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 	helm_chart "helm.sh/helm/v3/pkg/chart"
-	"k8s.io/helm/pkg/chartutil"
-	"k8s.io/helm/pkg/proto/hapi/chart"
+	"helm.sh/helm/v3/pkg/chart/loader"
 )
 
 var (
@@ -46,12 +45,12 @@ func (cho *operator) GetDetails(content []byte) (*VersionDetails, error) {
 	}
 
 	// Parse the requirements of chart
-	requirements, err := chartutil.LoadRequirements(chartData)
+	requirements, err := loader.LoadRequirements(chartData)
 	if err != nil {
 		// If no requirements.yaml, return empty dependency list
-		if _, ok := err.(chartutil.ErrNoRequirementsFile); ok {
-			requirements = &chartutil.Requirements{
-				Dependencies: make([]*chartutil.Dependency, 0),
+		if _, ok := err.(loader.ErrNoRequirementsFile); ok {
+			requirements = &loader.Requirements{
+				Dependencies: make([]*loader.Dependency, 0),
 			}
 		} else {
 			return nil, err
@@ -87,13 +86,13 @@ func (cho *operator) GetDetails(content []byte) (*VersionDetails, error) {
 }
 
 // GetData returns raw data of chart
-func (cho *operator) GetData(content []byte) (*chart.Chart, error) {
+func (cho *operator) GetData(content []byte) (*helm_chart.Chart, error) {
 	if content == nil || len(content) == 0 {
 		return nil, errors.New("zero content")
 	}
 
 	reader := bytes.NewReader(content)
-	chartData, err := chartutil.LoadArchive(reader)
+	chartData, err := loader.LoadArchive(reader)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +108,7 @@ func parseRawValues(rawValue []byte) map[string]interface{} {
 		return valueMap
 	}
 
-	values, err := chartutil.ReadValues(rawValue)
+	values, err := loader.ReadValues(rawValue)
 	if err != nil || len(values) == 0 {
 		return valueMap
 	}

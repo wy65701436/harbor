@@ -30,12 +30,10 @@ require (
 	github.com/garyburd/redigo v1.6.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/errors v0.19.2
-	github.com/go-openapi/loads v0.19.4
 	github.com/go-openapi/runtime v0.19.5
 	github.com/go-openapi/spec v0.19.3
 	github.com/go-openapi/strfmt v0.19.3
 	github.com/go-openapi/swag v0.19.5
-	github.com/go-openapi/validate v0.19.5
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gocraft/work v0.5.1
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
@@ -45,7 +43,6 @@ require (
 	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/handlers v1.3.0
-	github.com/gorilla/mux v1.7.2
 	github.com/graph-gophers/dataloader v5.0.0+incompatible
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/jinzhu/gorm v1.9.8 // indirect
@@ -59,14 +56,12 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
-	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/robfig/cron v1.0.0
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/spf13/viper v1.4.0 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/theupdateframework/notary v0.6.1
-	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d
 	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	gopkg.in/asn1-ber.v1 v1.0.0-20150924051756-4e86f4367175 // indirect
@@ -76,8 +71,6 @@ require (
 	gopkg.in/ldap.v2 v2.5.0
 	gopkg.in/square/go-jose.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v2 v2.2.4
-	helm.sh/helm/v3 v3.1.1
-	k8s.io/api v0.17.2
-	k8s.io/apimachinery v0.17.2
+	helm.sh/helm/v3 v3.1.1 // indirect
 	k8s.io/client-go v8.0.0+incompatible
 )
