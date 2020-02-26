@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/goharbor/harbor/src/common/utils/log"
 	helm_chart "helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 )
@@ -86,7 +87,9 @@ func (cho *operator) GetData(content []byte) (*helm_chart.Chart, error) {
 	}
 
 	reader := bytes.NewReader(content)
+	log.Info("111111111")
 	chartData, err := loader.LoadArchive(reader)
+	log.Info("111111111")
 	if err != nil {
 		return nil, err
 	}
