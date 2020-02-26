@@ -75,10 +75,10 @@ require (
 	gopkg.in/gorethink/gorethink.v3 v3.0.5 // indirect
 	gopkg.in/ldap.v2 v2.5.0
 	gopkg.in/square/go-jose.v2 v2.3.0 // indirect
-	gopkg.in/yaml.v2 v2.2.4
+	gopkg.in/yaml.v2 v2.2.8
 	helm.sh/helm/v3 v3.1.1
-	k8s.io/api v0.17.2
-	k8s.io/apimachinery v0.17.2
-	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/api v0.17.3
+	k8s.io/apimachinery v0.17.3
+	k8s.io/client-go v0.17.3
 	k8s.io/helm v2.16.3+incompatible
 )

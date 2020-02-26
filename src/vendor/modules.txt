@@ -332,14 +332,15 @@ gopkg.in/ldap.v2
 gopkg.in/square/go-jose.v2
 gopkg.in/square/go-jose.v2/cipher
 gopkg.in/square/go-jose.v2/json
-# gopkg.in/yaml.v2 v2.2.4
+# gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
 # helm.sh/helm/v3 v3.1.1
 helm.sh/helm/v3/internal/ignore
 helm.sh/helm/v3/internal/sympath
 helm.sh/helm/v3/pkg/chart
 helm.sh/helm/v3/pkg/chart/loader
-# k8s.io/api v0.17.2
+# k8s.io/api v0.17.3
+k8s.io/api/admissionregistration/v1
 k8s.io/api/admissionregistration/v1beta1
 k8s.io/api/apps/v1
 k8s.io/api/apps/v1beta1
@@ -359,8 +360,11 @@ k8s.io/api/certificates/v1beta1
 k8s.io/api/coordination/v1
 k8s.io/api/coordination/v1beta1
 k8s.io/api/core/v1
+k8s.io/api/discovery/v1alpha1
+k8s.io/api/discovery/v1beta1
 k8s.io/api/events/v1beta1
 k8s.io/api/extensions/v1beta1
+k8s.io/api/flowcontrol/v1alpha1
 k8s.io/api/networking/v1
 k8s.io/api/networking/v1beta1
 k8s.io/api/node/v1alpha1
@@ -376,7 +380,7 @@ k8s.io/api/settings/v1alpha1
 k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
-# k8s.io/apimachinery v0.17.2
+# k8s.io/apimachinery v0.17.3
 k8s.io/apimachinery/pkg/api/errors
 k8s.io/apimachinery/pkg/api/resource
 k8s.io/apimachinery/pkg/apis/meta/v1
@@ -410,7 +414,7 @@ k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/pkg/version
 k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/third_party/forked/golang/reflect
-# k8s.io/client-go v11.0.0+incompatible
+# k8s.io/client-go v0.17.3
 k8s.io/client-go/kubernetes/scheme
 k8s.io/client-go/pkg/apis/clientauthentication
 k8s.io/client-go/pkg/apis/clientauthentication/v1alpha1
