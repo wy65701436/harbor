@@ -6,7 +6,6 @@ import (
 	"fmt"
 	helm_chart "helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
-	helm_chartutil "helm.sh/helm/v3/pkg/chartutil"
 )
 
 var (
@@ -45,41 +44,34 @@ func (cho *operator) GetDetails(content []byte) (*VersionDetails, error) {
 		return nil, err
 	}
 
-	// Parse the requirements of chart
-	chartData.Dependencies()
-	requirements, err := loader.LoadRequirements(chartData)
-	if err != nil {
-		// If no requirements.yaml, return empty dependency list
-		if _, ok := err.(loader.ErrNoRequirementsFile); ok {
-			requirements = &loader.Requirements{
-				Dependencies: make([]*loader.Dependency, 0),
-			}
-		} else {
-			return nil, err
-		}
+	// Parse the dependencies of chart
+	var depts []*helm_chart.Dependency
+	// for APIVersionV2, the dependency is in the Chart.yaml
+	if chartData.AppVersion() == helm_chart.APIVersionV1 {
+		depts = chartData.Metadata.Dependencies
 	}
 
 	var values map[string]interface{}
-
 	files := make(map[string]string)
 	// Parse values
 	if chartData.Values != nil {
-		values = chartData.Values
-		if len(values) > 0 {
-			files[valuesFileName] = chartData.Values
-		}
+		readValue(values, "", chartData.Values)
 	}
 
-	// Append other files like 'README.md'
-	for _, v := range chartData.Files {
+	// Append other files like 'README.md' 'values.yaml'
+	for _, v := range chartData.Raw {
 		if v.Name == readmeFileName {
 			files[readmeFileName] = string(v.Data)
+			break
+		}
+		if v.Name == valuesFileName {
+			files[valuesFileName] = string(v.Data)
 			break
 		}
 	}
 
 	theChart := &VersionDetails{
-		Dependencies: requirements.Dependencies,
+		Dependencies: depts,
 		Values:       values,
 		Files:        files,
 	}
@@ -100,24 +92,6 @@ func (cho *operator) GetData(content []byte) (*helm_chart.Chart, error) {
 	}
 
 	return chartData, nil
-}
-
-// Parse the raw values to value map
-func parseRawValues(rawValue []byte) map[string]interface{} {
-	valueMap := make(map[string]interface{})
-
-	if len(rawValue) == 0 {
-		return valueMap
-	}
-
-	values, err := helm_chartutil.ReadValues(rawValue)
-	if err != nil || len(values) == 0 {
-		return valueMap
-	}
-
-	readValue(values, "", valueMap)
-
-	return valueMap
 }
 
 // Recursively read value
