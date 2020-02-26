@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/goharbor/harbor/src/common/utils/log"
 	helm_chart "helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"strings"
@@ -47,10 +46,8 @@ func (cho *operator) GetDetails(content []byte) (*VersionDetails, error) {
 	}
 
 	// Parse the dependencies of chart
-	var depts []*helm_chart.Dependency
+	depts := make([]*helm_chart.Dependency, 0)
 
-	log.Info(chartData.AppVersion())
-	log.Info(chartData.Metadata)
 	// for APIVersionV2, the dependency is in the Chart.yaml
 	if chartData.Metadata.APIVersion == helm_chart.APIVersionV1 {
 		depts = chartData.Metadata.Dependencies
