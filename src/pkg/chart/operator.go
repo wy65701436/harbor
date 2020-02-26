@@ -47,6 +47,9 @@ func (cho *operator) GetDetails(content []byte) (*VersionDetails, error) {
 
 	// Parse the dependencies of chart
 	var depts []*helm_chart.Dependency
+
+	log.Info(chartData.AppVersion())
+	log.Info(chartData.Metadata)
 	// for APIVersionV2, the dependency is in the Chart.yaml
 	if chartData.AppVersion() == helm_chart.APIVersionV1 {
 		depts = chartData.Metadata.Dependencies
