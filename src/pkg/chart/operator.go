@@ -7,6 +7,7 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/log"
 	helm_chart "helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
+	"strings"
 )
 
 var (
@@ -51,7 +52,7 @@ func (cho *operator) GetDetails(content []byte) (*VersionDetails, error) {
 	log.Info(chartData.AppVersion())
 	log.Info(chartData.Metadata)
 	// for APIVersionV2, the dependency is in the Chart.yaml
-	if chartData.AppVersion() == helm_chart.APIVersionV1 {
+	if chartData.Metadata.APIVersion == helm_chart.APIVersionV1 {
 		depts = chartData.Metadata.Dependencies
 	}
 
@@ -64,11 +65,11 @@ func (cho *operator) GetDetails(content []byte) (*VersionDetails, error) {
 
 	// Append other files like 'README.md' 'values.yaml'
 	for _, v := range chartData.Raw {
-		if v.Name == readmeFileName {
+		if strings.ToUpper(v.Name) == readmeFileName {
 			files[readmeFileName] = string(v.Data)
 			break
 		}
-		if v.Name == valuesFileName {
+		if strings.ToUpper(v.Name) == valuesFileName {
 			files[valuesFileName] = string(v.Data)
 			break
 		}
@@ -90,9 +91,7 @@ func (cho *operator) GetData(content []byte) (*helm_chart.Chart, error) {
 	}
 
 	reader := bytes.NewReader(content)
-	log.Info("111111111")
 	chartData, err := loader.LoadArchive(reader)
-	log.Info("111111111")
 	if err != nil {
 		return nil, err
 	}
