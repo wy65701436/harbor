@@ -17,6 +17,7 @@ package chart
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/goharbor/harbor/src/api/artifact/abstractor/blob"
 	resolv "github.com/goharbor/harbor/src/api/artifact/abstractor/resolver"
 	"github.com/goharbor/harbor/src/api/artifact/descriptor"
@@ -116,6 +117,7 @@ func (r *resolver) ResolveAddition(ctx context.Context, artifact *artifact.Artif
 			if err != nil {
 				return nil, err
 			}
+			fmt.Sprintf(0)
 			chartDetails, err := r.chartOperator.GetDetails(content)
 			if err != nil {
 				return nil, err

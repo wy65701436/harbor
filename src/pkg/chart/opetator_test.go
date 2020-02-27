@@ -8,7 +8,7 @@ import (
 
 func TestGetChartDetails(t *testing.T) {
 	chartOpr := NewOperator()
-	chartDetails, err := chartOpr.GetDetails(htesting.HelmChartContent)
+	chartDetails, err := chartOpr.GetDetails(htesting.V3HelmChartContent)
 	if err != nil {
 		t.Fatal(err)
 	}
