@@ -16,7 +16,6 @@ package dao
 
 import (
 	"context"
-
 	beegoorm "github.com/astaxie/beego/orm"
 	ierror "github.com/goharbor/harbor/src/internal/error"
 	"github.com/goharbor/harbor/src/internal/orm"

@@ -35,28 +35,7 @@ func PrepareTestForSQLite() {
 
 // PrepareTestForPostgresSQL is for test only.
 func PrepareTestForPostgresSQL() {
-	dbHost := os.Getenv("POSTGRESQL_HOST")
-	if len(dbHost) == 0 {
-		log.Fatalf("environment variable POSTGRESQL_HOST is not set")
-	}
-	dbUser := os.Getenv("POSTGRESQL_USR")
-	if len(dbUser) == 0 {
-		log.Fatalf("environment variable POSTGRESQL_USR is not set")
-	}
-	dbPortStr := os.Getenv("POSTGRESQL_PORT")
-	if len(dbPortStr) == 0 {
-		log.Fatalf("environment variable POSTGRESQL_PORT is not set")
-	}
-	dbPort, err := strconv.Atoi(dbPortStr)
-	if err != nil {
-		log.Fatalf("invalid POSTGRESQL_PORT: %v", err)
-	}
-
-	dbPassword := os.Getenv("POSTGRESQL_PWD")
-	dbDatabase := os.Getenv("POSTGRESQL_DATABASE")
-	if len(dbDatabase) == 0 {
-		log.Fatalf("environment variable POSTGRESQL_DATABASE is not set")
-	}
+	z
 
 	database := &models.Database{
 		Type: "postgresql",
