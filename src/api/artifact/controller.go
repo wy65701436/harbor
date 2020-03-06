@@ -231,9 +231,6 @@ func (c *controller) GetByReference(ctx context.Context, repository, reference s
 	// the reference is tag
 	if _, err := digest.Parse(reference); err != nil {
 		switch err {
-		case digest.ErrDigestUnsupported:
-			return nil, ierror.New(nil).WithCode(ierror.UNSUPPORTED).
-				WithMessage("unsupported digest algorithm")
 		case digest.ErrDigestInvalidFormat:
 			return nil, ierror.New(nil).WithCode(ierror.DIGEST_INVALID).
 				WithMessage("provided digest did not match uploaded content")
