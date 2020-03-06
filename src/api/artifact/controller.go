@@ -230,6 +230,9 @@ func (c *controller) Get(ctx context.Context, id int64, option *Option) (*Artifa
 func (c *controller) GetByReference(ctx context.Context, repository, reference string, option *Option) (*Artifact, error) {
 	// the reference is tag
 	if _, err := digest.Parse(reference); err != nil {
+		log.Info("1111111")
+		log.Info(err)
+		log.Info("1111111")
 		return c.getByTag(ctx, repository, reference, option)
 	}
 	// the reference is digest
