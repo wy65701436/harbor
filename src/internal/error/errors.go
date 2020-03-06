@@ -90,6 +90,7 @@ const (
 	PreconditionCode = "PRECONDITION"
 	// GeneralCode ...
 	GeneralCode = "UNKNOWN"
+
 	// DENIED it's used by middleware(readonly, vul and content trust) and returned to docker client to index the request is denied.
 	DENIED = "DENIED"
 	// PROJECTPOLICYVIOLATION ...
@@ -98,6 +99,8 @@ const (
 	ViolateForeignKeyConstraintCode = "VIOLATE_FOREIGN_KEY_CONSTRAINT"
 	// DIGEST_INVALID
 	DIGEST_INVALID = "DIGEST_INVALID"
+	// UNSUPPORTED
+	UNSUPPORTED = "UNSUPPORTED"
 )
 
 // New ...
