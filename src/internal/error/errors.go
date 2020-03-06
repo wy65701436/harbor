@@ -96,8 +96,8 @@ const (
 	PROJECTPOLICYVIOLATION = "PROJECTPOLICYVIOLATION"
 	// ViolateForeignKeyConstraintCode is the error code for violating foreign key constraint error
 	ViolateForeignKeyConstraintCode = "VIOLATE_FOREIGN_KEY_CONSTRAINT"
-	// DIGESTINVALID
-	DIGESTINVALID = "DIGESTINVALID"
+	// DIGEST_INVALID
+	DIGEST_INVALID = "DIGEST_INVALID"
 )
 
 // New ...
