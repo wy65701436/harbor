@@ -1,0 +1,2425 @@
+Running Suite: OCI Distribution Conformance Tests
+=================================================
+Random Seed: [1m1583476861[0m
+Will run [1m27[0m of [1m27[0m specs
+
+2020/03/06 06:41:01.686671 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:01.685764611Z
+TIME DURATION: 87.34158ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 62
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Set-Cookie: sid=7ab6c6581293a63ff97190b7186ad991; Path=/; HttpOnly
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 8c2c44fe-b991-49e1-94fd-d4bec698ce28
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:01.705949 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 200 OK
+RECEIVED AT  : 2020-03-06T06:41:01.705511944Z
+TIME DURATION: 18.735207ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 2
+	Content-Security-Policy: frame-ancestors 'none'
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: 8a3d16a0-6888-4906-b865-3a4e440aa52e
+BODY         :
+{}
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:01.716008 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:01.715108645Z
+TIME DURATION: 8.95644ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 6337cb67-a16c-47a1-8d55-70cbd68a98ca
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:01.779616 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:01.779117399Z
+TIME DURATION: 62.939439ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Docker-Upload-Uuid: 9220ab7f-4ea3-4173-88ca-5bf52a1b50a7
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/uploads/9220ab7f-4ea3-4173-88ca-5bf52a1b50a7?_state=*****
+	Range: 0-0
+	Server: nginx
+	X-Request-Id: 841ac458-c282-4ca9-be7e-0739b4a44671
+BODY         :
+
+==============================================================================
+
+2020/03/06 06:41:01.787830 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/testproject/testrepo/blobs/uploads/9220ab7f-4ea3-4173-88ca-5bf52a1b50a7?_state=*****  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+TkJBIEphbSBvbiBteSBOQkEgdG9hc3Q=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:01.78694246Z
+TIME DURATION: 6.908978ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 29d875ac-8504-491c-9b57-812bae266ae3
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:01.858256 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/testproject/testrepo/blobs/uploads/9220ab7f-4ea3-4173-88ca-5bf52a1b50a7?_state=*****  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Content-Type: application/octet-stream
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+TkJBIEphbSBvbiBteSBOQkEgdG9hc3Q=
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:01.857773883Z
+TIME DURATION: 69.566806ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Docker-Upload-Uuid: 9220ab7f-4ea3-4173-88ca-5bf52a1b50a7
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/uploads/9220ab7f-4ea3-4173-88ca-5bf52a1b50a7?_state=*****
+	Range: 0-22
+	Server: nginx
+	X-Request-Id: 0e9100cc-1f93-4660-ba85-107343564bbd
+BODY         :
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:01.864565 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/blobs/uploads/9220ab7f-4ea3-4173-88ca-5bf52a1b50a7?_state=*****&digest=sha256%3A852411eaf653ebebfa34b688ad1736c9da4decadb8f55b839b550d64eaad3f75  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Content-Length: 23
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:01.864002986Z
+TIME DURATION: 5.57634ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: e80d01ce-d3b5-4365-b60f-53aa45dea21d
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:01.931425 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/blobs/uploads/9220ab7f-4ea3-4173-88ca-5bf52a1b50a7?_state=*****&digest=sha256%3A852411eaf653ebebfa34b688ad1736c9da4decadb8f55b839b550d64eaad3f75  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Content-Length: 23
+	Content-Type: application/octet-stream
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-03-06T06:41:01.930912949Z
+TIME DURATION: 66.149949ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Content-Security-Policy: frame-ancestors 'none'
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Content-Digest: sha256:852411eaf653ebebfa34b688ad1736c9da4decadb8f55b839b550d64eaad3f75
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/sha256:852411eaf653ebebfa34b688ad1736c9da4decadb8f55b839b550d64eaad3f75
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: 1230bc16-3b73-4cf1-806c-3efa2d8b8ea7
+BODY         :
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:01.937358 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/blobs/sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:01.936832768Z
+TIME DURATION: 5.189467ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 94933be9-434f-47ba-a819-56d10d96fd91
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:01.971939 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/blobs/sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-03-06T06:41:01.971207284Z
+TIME DURATION: 33.701962ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 157
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	X-Request-Id: 228cebd8-cfa4-49ae-8edd-4e412864c18e
+BODY         :
+{
+   "errors": [
+      {
+         "code": "BLOB_UNKNOWN",
+         "message": "blob unknown to registry",
+         "detail": "sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+      }
+   ]
+}
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:01.978286 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/?digest=sha256%3Aca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Content-Length: 3
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+e30K
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:01.977870244Z
+TIME DURATION: 5.671375ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:01 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 2f10e191-dee3-4efa-861c-25ae24444b5b
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.018819 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/?digest=sha256%3Aca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Content-Length: 3
+	Content-Type: application/octet-stream
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+e30K
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:02.018085636Z
+TIME DURATION: 39.650328ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Docker-Upload-Uuid: 514280ab-ca96-4446-9689-8a8e35ac2291
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/uploads/514280ab-ca96-4446-9689-8a8e35ac2291?_state=*****
+	Range: 0-0
+	Server: nginx
+	X-Request-Id: 39407023-823e-4d1b-bbc2-50d2ded47d56
+BODY         :
+
+==============================================================================
+
+
+[90m------------------------------[0m
+[91m[1m• Failure [0.047 seconds][0m
+OCI Distribution Conformance Tests
+[90m/root/Conformance/distribution-spec/conformance/00_conformance_suite_test.go:12[0m
+  Blob Upload Monolithic
+  [90m/root/Conformance/distribution-spec/conformance/03_blob_upload_monolithic_test.go:12[0m
+    [91m[1mPOST request with digest and blob should yield a 201 [It][0m
+    [90m/root/Conformance/distribution-spec/conformance/03_blob_upload_monolithic_test.go:21[0m
+
+    [91mExpected
+        <int>: 202
+    to equal
+        <int>: 201[0m
+
+    /root/Conformance/distribution-spec/conformance/03_blob_upload_monolithic_test.go:31
+[90m------------------------------[0m
+2020/03/06 06:41:02.024902 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/blobs/sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.024374932Z
+TIME DURATION: 4.567127ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: fcd67d6f-ad0f-4e23-8677-50e97a7d8a13
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.062901 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/blobs/sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-03-06T06:41:02.062458364Z
+TIME DURATION: 37.27821ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 157
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	X-Request-Id: d4254e32-ceb2-4f98-82e2-e28253b3b134
+BODY         :
+{
+   "errors": [
+      {
+         "code": "BLOB_UNKNOWN",
+         "message": "blob unknown to registry",
+         "detail": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+      }
+   ]
+}
+
+==============================================================================
+
+[91m[1m• Failure [0.044 seconds][0m
+OCI Distribution Conformance Tests
+[90m/root/Conformance/distribution-spec/conformance/00_conformance_suite_test.go:12[0m
+  Blob Upload Monolithic
+  [90m/root/Conformance/distribution-spec/conformance/03_blob_upload_monolithic_test.go:12[0m
+    [91m[1mGET request to blob URL from prior request should yield 200 [It][0m
+    [90m/root/Conformance/distribution-spec/conformance/03_blob_upload_monolithic_test.go:34[0m
+
+    [91mExpected
+        <int>: 404
+    to equal
+        <int>: 200[0m
+
+    /root/Conformance/distribution-spec/conformance/03_blob_upload_monolithic_test.go:38
+[90m------------------------------[0m
+2020/03/06 06:41:02.069477 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.069102943Z
+TIME DURATION: 5.579204ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 7b4f3bf3-9fd6-481f-bde6-b53cd2ba41a1
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.107544 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:02.106872988Z
+TIME DURATION: 37.278018ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Docker-Upload-Uuid: 1db81ea4-e60b-4808-8a0a-343ccc445fc1
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/uploads/1db81ea4-e60b-4808-8a0a-343ccc445fc1?_state=*****
+	Range: 0-0
+	Server: nginx
+	X-Request-Id: 5b392115-8ddc-40c7-baf9-503028ddf55a
+BODY         :
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.113993 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/blobs/uploads/1db81ea4-e60b-4808-8a0a-343ccc445fc1?_state=*****&digest=sha256%3Aca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Content-Length: 3
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+e30K
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.113291111Z
+TIME DURATION: 5.539976ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 9c207451-026e-4617-9b32-3a4f02de0952
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.173755 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/blobs/uploads/1db81ea4-e60b-4808-8a0a-343ccc445fc1?_state=*****&digest=sha256%3Aca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Content-Length: 3
+	Content-Type: application/octet-stream
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+e30K
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-03-06T06:41:02.17303298Z
+TIME DURATION: 58.753306ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Content-Security-Policy: frame-ancestors 'none'
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Content-Digest: sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: e0f41a2e-52af-48ab-91b6-0f4f4459076c
+BODY         :
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.179310 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/blobs/sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.178841788Z
+TIME DURATION: 4.895152ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 7ca22ae1-fb50-429f-93b9-a6a8c9fdf0d4
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.227001 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/blobs/sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 200 OK
+RECEIVED AT  : 2020-03-06T06:41:02.226268119Z
+TIME DURATION: 46.850646ms
+HEADERS      :
+	Accept-Ranges: bytes
+	Cache-Control: max-age=31536000
+	Connection: keep-alive
+	Content-Length: 3
+	Content-Security-Policy: frame-ancestors 'none'
+	Content-Type: application/octet-stream
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Content-Digest: sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356
+	Docker-Distribution-Api-Version: registry/2.0
+	Etag: "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: f2344b41-33c1-4896-bc71-c8d94dd14607
+BODY         :
+{}
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.234378 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Content-Length: 0
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.23397234Z
+TIME DURATION: 6.537206ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 41710c73-c6b1-43d7-8884-fdc4d1430ba9
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.273314 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Content-Length: 0
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:02.27280243Z
+TIME DURATION: 38.311078ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Docker-Upload-Uuid: 70cfc948-6188-4803-9144-953b622cee6a
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/uploads/70cfc948-6188-4803-9144-953b622cee6a?_state=*****
+	Range: 0-0
+	Server: nginx
+	X-Request-Id: 18f9cdb4-b841-4b76-989d-8a1c4abdbf9e
+BODY         :
+
+==============================================================================
+
+2020/03/06 06:41:02.280184 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/testproject/testrepo/blobs/uploads/70cfc948-6188-4803-9144-953b622cee6a?_state=*****  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Content-Length: 22
+	Content-Range: 3-24
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+bG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.279635808Z
+TIME DURATION: 6.178282ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: f2d05c0d-9a41-4d77-9738-b6c0e040a59c
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.329490 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/testproject/testrepo/blobs/uploads/70cfc948-6188-4803-9144-953b622cee6a?_state=*****  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Content-Length: 22
+	Content-Range: 3-24
+	Content-Type: application/octet-stream
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+bG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:02.329028393Z
+TIME DURATION: 48.593364ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Docker-Upload-Uuid: 70cfc948-6188-4803-9144-953b622cee6a
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/uploads/70cfc948-6188-4803-9144-953b622cee6a?_state=*****
+	Range: 0-21
+	Server: nginx
+	X-Request-Id: e7f54e62-b426-4d04-8883-47e4904d7ab4
+BODY         :
+
+==============================================================================
+
+
+[90m------------------------------[0m
+[91m[1m• Failure [0.103 seconds][0m
+OCI Distribution Conformance Tests
+[90m/root/Conformance/distribution-spec/conformance/00_conformance_suite_test.go:12[0m
+  Blob Upload Chunked
+  [90m/root/Conformance/distribution-spec/conformance/04_blob_upload_chunked_test.go:12[0m
+    [91m[1mOut-of-order blob upload should return 416 [It][0m
+    [90m/root/Conformance/distribution-spec/conformance/04_blob_upload_chunked_test.go:13[0m
+
+    [91mExpected
+        <int>: 202
+    to equal
+        <int>: 416[0m
+
+    /root/Conformance/distribution-spec/conformance/04_blob_upload_chunked_test.go:28
+[90m------------------------------[0m
+2020/03/06 06:41:02.337706 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Content-Length: 0
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.33660458Z
+TIME DURATION: 5.974542ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 2cf41087-e6af-4d93-9460-83a1ef5fcc10
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.381233 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+POST  /v2/testproject/testrepo/blobs/uploads/  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Content-Length: 0
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:02.380385615Z
+TIME DURATION: 42.528549ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Docker-Upload-Uuid: b8b3b6d6-b874-4e84-910b-2ff178837994
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/uploads/b8b3b6d6-b874-4e84-910b-2ff178837994?_state=*****
+	Range: 0-0
+	Server: nginx
+	X-Request-Id: 1067a311-d51b-4174-9e00-48eb44b01ad7
+BODY         :
+
+==============================================================================
+
+2020/03/06 06:41:02.387401 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/testproject/testrepo/blobs/uploads/b8b3b6d6-b874-4e84-910b-2ff178837994?_state=*****  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Content-Length: 3
+	Content-Range: 0-2
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+SGVs
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.386593735Z
+TIME DURATION: 4.956828ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 4e40bfcb-329c-4f9b-b020-c79eaacacb78
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.436674 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PATCH  /v2/testproject/testrepo/blobs/uploads/b8b3b6d6-b874-4e84-910b-2ff178837994?_state=*****  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Content-Length: 3
+	Content-Range: 0-2
+	Content-Type: application/octet-stream
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+SGVs
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:02.435870049Z
+TIME DURATION: 48.179548ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Docker-Upload-Uuid: b8b3b6d6-b874-4e84-910b-2ff178837994
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/uploads/b8b3b6d6-b874-4e84-910b-2ff178837994?_state=*****
+	Range: 0-2
+	Server: nginx
+	X-Request-Id: 849b436c-c8fb-4f68-9189-49c651cba9b1
+BODY         :
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.443494 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/blobs/uploads/b8b3b6d6-b874-4e84-910b-2ff178837994?_state=*****&digest=sha256%3A6e766a49e512e0ba0bc935e2aacd3e5a4a34add17f83afc4c9e669c70241cd48  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Content-Length: 22
+	Content-Range: 3-24
+	Content-Type: application/octet-stream
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+bG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.442609664Z
+TIME DURATION: 5.541228ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 9a43eadd-2d00-470f-832e-eaf64385e363
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.502633 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/blobs/uploads/b8b3b6d6-b874-4e84-910b-2ff178837994?_state=*****&digest=sha256%3A6e766a49e512e0ba0bc935e2aacd3e5a4a34add17f83afc4c9e669c70241cd48  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Content-Length: 22
+	Content-Range: 3-24
+	Content-Type: application/octet-stream
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+bG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-03-06T06:41:02.500611793Z
+TIME DURATION: 56.532504ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Content-Security-Policy: frame-ancestors 'none'
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Content-Digest: sha256:6e766a49e512e0ba0bc935e2aacd3e5a4a34add17f83afc4c9e669c70241cd48
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: https://10.193.21.1/v2/testproject/testrepo/blobs/sha256:6e766a49e512e0ba0bc935e2aacd3e5a4a34add17f83afc4c9e669c70241cd48
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: a3992a7d-2cca-4709-84d6-be1a6d671988
+BODY         :
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.506508 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/manifests/.INVALID_MANIFEST_NAME  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 500 Internal Server Error
+RECEIVED AT  : 2020-03-06T06:41:02.506139295Z
+TIME DURATION: 3.273586ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 66
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Server: nginx
+	X-Request-Id: c1566110-036e-4c51-831d-dce50324063e
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNKNOWN",
+         "message": "internal server error"
+      }
+   ]
+}
+
+==============================================================================
+
+
+[90m------------------------------[0m
+[91m[1m• Failure [0.004 seconds][0m
+OCI Distribution Conformance Tests
+[90m/root/Conformance/distribution-spec/conformance/00_conformance_suite_test.go:12[0m
+  Manifest Upload
+  [90m/root/Conformance/distribution-spec/conformance/05_manifest_upload_test.go:13[0m
+    [91m[1mGET nonexistent manifest should return 404 [It][0m
+    [90m/root/Conformance/distribution-spec/conformance/05_manifest_upload_test.go:14[0m
+
+    [91mExpected
+        <int>: 500
+    to equal
+        <int>: 404[0m
+
+    /root/Conformance/distribution-spec/conformance/05_manifest_upload_test.go:19
+[90m------------------------------[0m
+2020/03/06 06:41:02.512796 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/test0  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"eyAibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UubWFuaWZlc3QudjEranNvbiIsICJjb25maWciOiAgeyAiZGlnZXN0IjogInNoYTI1NjpjYTNkMTYzYmFiMDU1MzgxODI3MjI2MTQwNTY4ZjNiZWY3ZWFhYzE4N2NlYmQ3Njg3OGUwYjYzZTllNDQyMzU2IiwgIm1lZGlhVHlwZSI6ICJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLmNvbmZpZy52MStqc29uIiwgInNpemUiOiAzIH0sICJsYXllcnMiOiBbXSwgInNjaGVtYVZlcnNpb24iOiAyIH0="
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.512352509Z
+TIME DURATION: 5.140522ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: a2ae7416-1305-4591-9f02-9b1c4d583347
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.629351 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/test0  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Authorization: Basic *****
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"eyAibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UubWFuaWZlc3QudjEranNvbiIsICJjb25maWciOiAgeyAiZGlnZXN0IjogInNoYTI1NjpjYTNkMTYzYmFiMDU1MzgxODI3MjI2MTQwNTY4ZjNiZWY3ZWFhYzE4N2NlYmQ3Njg3OGUwYjYzZTllNDQyMzU2IiwgIm1lZGlhVHlwZSI6ICJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLmNvbmZpZy52MStqc29uIiwgInNpemUiOiAzIH0sICJsYXllcnMiOiBbXSwgInNjaGVtYVZlcnNpb24iOiAyIH0="
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-03-06T06:41:02.628864333Z
+TIME DURATION: 115.883014ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Content-Security-Policy: frame-ancestors 'none'
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Content-Digest: sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: https://10.193.21.1/v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: fcade5cd-dd14-4e53-a344-73d357708628
+BODY         :
+
+==============================================================================
+
+2020/03/06 06:41:02.634833 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/test1  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"eyAibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UubWFuaWZlc3QudjEranNvbiIsICJjb25maWciOiAgeyAiZGlnZXN0IjogInNoYTI1NjpjYTNkMTYzYmFiMDU1MzgxODI3MjI2MTQwNTY4ZjNiZWY3ZWFhYzE4N2NlYmQ3Njg3OGUwYjYzZTllNDQyMzU2IiwgIm1lZGlhVHlwZSI6ICJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLmNvbmZpZy52MStqc29uIiwgInNpemUiOiAzIH0sICJsYXllcnMiOiBbXSwgInNjaGVtYVZlcnNpb24iOiAyIH0="
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.634339307Z
+TIME DURATION: 4.854901ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: b104ddc9-bdba-423e-9e5e-e9bf5b028e66
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.701780 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/test1  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Authorization: Basic *****
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"eyAibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UubWFuaWZlc3QudjEranNvbiIsICJjb25maWciOiAgeyAiZGlnZXN0IjogInNoYTI1NjpjYTNkMTYzYmFiMDU1MzgxODI3MjI2MTQwNTY4ZjNiZWY3ZWFhYzE4N2NlYmQ3Njg3OGUwYjYzZTllNDQyMzU2IiwgIm1lZGlhVHlwZSI6ICJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLmNvbmZpZy52MStqc29uIiwgInNpemUiOiAzIH0sICJsYXllcnMiOiBbXSwgInNjaGVtYVZlcnNpb24iOiAyIH0="
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-03-06T06:41:02.701264846Z
+TIME DURATION: 66.216427ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Content-Security-Policy: frame-ancestors 'none'
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Content-Digest: sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: https://10.193.21.1/v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: 4de95545-009d-4914-8821-741c76e4d8ec
+BODY         :
+
+==============================================================================
+
+2020/03/06 06:41:02.706754 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/test2  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"eyAibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UubWFuaWZlc3QudjEranNvbiIsICJjb25maWciOiAgeyAiZGlnZXN0IjogInNoYTI1NjpjYTNkMTYzYmFiMDU1MzgxODI3MjI2MTQwNTY4ZjNiZWY3ZWFhYzE4N2NlYmQ3Njg3OGUwYjYzZTllNDQyMzU2IiwgIm1lZGlhVHlwZSI6ICJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLmNvbmZpZy52MStqc29uIiwgInNpemUiOiAzIH0sICJsYXllcnMiOiBbXSwgInNjaGVtYVZlcnNpb24iOiAyIH0="
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.706335639Z
+TIME DURATION: 4.400485ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 6b4d0d73-190d-443d-855d-c2ab916420bd
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.768328 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/test2  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Authorization: Basic *****
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"eyAibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UubWFuaWZlc3QudjEranNvbiIsICJjb25maWciOiAgeyAiZGlnZXN0IjogInNoYTI1NjpjYTNkMTYzYmFiMDU1MzgxODI3MjI2MTQwNTY4ZjNiZWY3ZWFhYzE4N2NlYmQ3Njg3OGUwYjYzZTllNDQyMzU2IiwgIm1lZGlhVHlwZSI6ICJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLmNvbmZpZy52MStqc29uIiwgInNpemUiOiAzIH0sICJsYXllcnMiOiBbXSwgInNjaGVtYVZlcnNpb24iOiAyIH0="
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-03-06T06:41:02.767732027Z
+TIME DURATION: 60.869681ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Content-Security-Policy: frame-ancestors 'none'
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Content-Digest: sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: https://10.193.21.1/v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: 51350062-5391-4d93-b827-e499e81e2197
+BODY         :
+
+==============================================================================
+
+2020/03/06 06:41:02.775065 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/test3  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"eyAibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UubWFuaWZlc3QudjEranNvbiIsICJjb25maWciOiAgeyAiZGlnZXN0IjogInNoYTI1NjpjYTNkMTYzYmFiMDU1MzgxODI3MjI2MTQwNTY4ZjNiZWY3ZWFhYzE4N2NlYmQ3Njg3OGUwYjYzZTllNDQyMzU2IiwgIm1lZGlhVHlwZSI6ICJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLmNvbmZpZy52MStqc29uIiwgInNpemUiOiAzIH0sICJsYXllcnMiOiBbXSwgInNjaGVtYVZlcnNpb24iOiAyIH0="
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.774518353Z
+TIME DURATION: 5.947426ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: db91ac01-7ed2-4628-a2aa-bda3028e67a7
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.833529 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/test3  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Authorization: Basic *****
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"eyAibWVkaWFUeXBlIjogImFwcGxpY2F0aW9uL3ZuZC5vY2kuaW1hZ2UubWFuaWZlc3QudjEranNvbiIsICJjb25maWciOiAgeyAiZGlnZXN0IjogInNoYTI1NjpjYTNkMTYzYmFiMDU1MzgxODI3MjI2MTQwNTY4ZjNiZWY3ZWFhYzE4N2NlYmQ3Njg3OGUwYjYzZTllNDQyMzU2IiwgIm1lZGlhVHlwZSI6ICJhcHBsaWNhdGlvbi92bmQub2NpLmltYWdlLmNvbmZpZy52MStqc29uIiwgInNpemUiOiAzIH0sICJsYXllcnMiOiBbXSwgInNjaGVtYVZlcnNpb24iOiAyIH0="
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 201 Created
+RECEIVED AT  : 2020-03-06T06:41:02.832846854Z
+TIME DURATION: 57.569805ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Content-Security-Policy: frame-ancestors 'none'
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Content-Digest: sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Docker-Distribution-Api-Version: registry/2.0
+	Location: https://10.193.21.1/v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: b7b5e666-521b-4ece-902f-212cdb05d87b
+BODY         :
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.839543 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.839035086Z
+TIME DURATION: 5.274705ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: d6948c20-b787-47ce-92a5-9cae0039b21b
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.868964 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 200 OK
+RECEIVED AT  : 2020-03-06T06:41:02.868440142Z
+TIME DURATION: 28.690315ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 263
+	Content-Security-Policy: frame-ancestors 'none'
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Content-Digest: sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Docker-Distribution-Api-Version: registry/2.0
+	Etag: "sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c"
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: 0f2664c8-75ef-4849-b662-87e672463c1e
+BODY         :
+{
+   "mediaType": "application/vnd.oci.image.manifest.v1+json",
+   "config": {
+      "digest": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "mediaType": "application/vnd.oci.image.config.v1+json",
+      "size": 3
+   },
+   "layers": [],
+   "schemaVersion": 2
+}
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.874512 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/tags/list  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.873916384Z
+TIME DURATION: 4.726415ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 55b37cba-e52a-434a-ab1f-004b0095db53
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.893907 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/tags/list  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 200 OK
+RECEIVED AT  : 2020-03-06T06:41:02.893458035Z
+TIME DURATION: 18.806543ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 73
+	Content-Security-Policy: frame-ancestors 'none'
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: ede17651-80ea-4367-a495-c00924b5eb4f
+BODY         :
+{
+   "name": "testproject/testrepo",
+   "tags": [
+      "test0",
+      "test1",
+      "test2",
+      "test3"
+   ]
+}
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.899167 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/manifests/test0  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.898762971Z
+TIME DURATION: 4.606864ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: dacb2638-5729-4a3d-8415-c5532cb7930f
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.931905 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/manifests/test0  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 200 OK
+RECEIVED AT  : 2020-03-06T06:41:02.931172904Z
+TIME DURATION: 31.863222ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 263
+	Content-Security-Policy: frame-ancestors 'none'
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Content-Digest: sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c
+	Docker-Distribution-Api-Version: registry/2.0
+	Etag: "sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c"
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: 04a66b01-6e33-4158-b9d1-b7f57b4e192b
+BODY         :
+{
+   "mediaType": "application/vnd.oci.image.manifest.v1+json",
+   "config": {
+      "digest": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "mediaType": "application/vnd.oci.image.config.v1+json",
+      "size": 3
+   },
+   "layers": [],
+   "schemaVersion": 2
+}
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.936881 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/tags/list?n=2  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.936485239Z
+TIME DURATION: 4.373296ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 1e8f9614-a8b0-460b-aae2-1b4fcaccd743
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.961782 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/tags/list?n=2  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 200 OK
+RECEIVED AT  : 2020-03-06T06:41:02.961133897Z
+TIME DURATION: 24.080583ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 57
+	Content-Security-Policy: frame-ancestors 'none'
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Link: </v2/testproject/testrepo/tags/list?last=test1&n=2>; rel="next"
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: daf532d1-b391-4e36-a808-7758acca363e
+BODY         :
+{
+   "name": "testproject/testrepo",
+   "tags": [
+      "test0",
+      "test1"
+   ]
+}
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.968738 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/tags/list?last=test1&n=2  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.968256018Z
+TIME DURATION: 6.117512ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: e2b04c2e-c5e6-4167-be09-e8caae7db2de
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:02.990192 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/tags/list?last=test1&n=2  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 200 OK
+RECEIVED AT  : 2020-03-06T06:41:02.989812981Z
+TIME DURATION: 20.838759ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 57
+	Content-Security-Policy: frame-ancestors 'none'
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: e0742d1a-03da-4d9c-b59e-f1d7212c5e72
+BODY         :
+{
+   "name": "testproject/testrepo",
+   "tags": [
+      "test2",
+      "test3"
+   ]
+}
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:02.995483 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/sha256:totallywrong  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"YmxhYmxhYmxh"
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:02.994913533Z
+TIME DURATION: 4.425691ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:02 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 44717f7c-a0ba-48d0-a8bd-35c3b0b27079
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:03.062696 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+PUT  /v2/testproject/testrepo/manifests/sha256:totallywrong  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Accept: application/vnd.oci.image.manifest.v1+json
+	Authorization: Basic *****
+	Content-Type: application/vnd.oci.image.manifest.v1+json
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+"YmxhYmxhYmxh"
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-03-06T06:41:03.061194066Z
+TIME DURATION: 65.548045ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 19
+	Content-Type: text/plain; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	X-Content-Type-Options: nosniff
+	X-Request-Id: 3fdddbe7-057d-4ba0-af89-eb3d7d388639
+BODY         :
+404 page not found
+==============================================================================
+
+
+[90m------------------------------[0m
+[91m[1m• Failure [0.074 seconds][0m
+OCI Distribution Conformance Tests
+[90m/root/Conformance/distribution-spec/conformance/00_conformance_suite_test.go:12[0m
+  Error codes
+  [90m/root/Conformance/distribution-spec/conformance/07_error_codes_test.go:12[0m
+    [91m[1m400 response body should contain OCI-conforming JSON message [It][0m
+    [90m/root/Conformance/distribution-spec/conformance/07_error_codes_test.go:13[0m
+
+    [91mExpected
+        <int>: 404
+    to equal
+        <int>: 400[0m
+
+    /root/Conformance/distribution-spec/conformance/07_error_codes_test.go:20
+[90m------------------------------[0m
+2020/03/06 06:41:03.074408 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/testproject/testrepo/manifests/test0  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:03.073537069Z
+TIME DURATION: 8.502592ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: c26dbd62-76fe-43f1-8f3f-d9c52bf883b7
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:03.134292 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/testproject/testrepo/manifests/test0  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:03.133873853Z
+TIME DURATION: 59.293067ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Server: nginx
+	X-Request-Id: 3dbd6703-e04a-410e-8cf7-8bd2029b389f
+BODY         :
+
+==============================================================================
+
+[91m[1m• Failure [0.070 seconds][0m
+OCI Distribution Conformance Tests
+[90m/root/Conformance/distribution-spec/conformance/00_conformance_suite_test.go:12[0m
+  Error codes
+  [90m/root/Conformance/distribution-spec/conformance/07_error_codes_test.go:12[0m
+    [91m[1mResponse from DELETE request to manifest URL (tag) should have OCI-conforming code [It][0m
+    [90m/root/Conformance/distribution-spec/conformance/07_error_codes_test.go:29[0m
+
+    [91mExpected
+        <*json.SyntaxError | 0xc00050dc40>: {
+            msg: "unexpected end of JSON input",
+            Offset: 0,
+        }
+    to be nil[0m
+
+    /root/Conformance/distribution-spec/conformance/07_error_codes_test.go:37
+[90m------------------------------[0m
+2020/03/06 06:41:03.140929 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/testproject/testrepo/manifests/test0  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:03.140429963Z
+TIME DURATION: 5.099365ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: c5cd8966-96f3-4bc1-9b98-d1a40ea8842a
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:03.169113 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/testproject/testrepo/manifests/test0  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-03-06T06:41:03.168533045Z
+TIME DURATION: 27.367328ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 92
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Server: nginx
+	X-Request-Id: 3788ec33-0325-4b8e-bac1-196cb9920ce3
+BODY         :
+{
+   "errors": [
+      {
+         "code": "NOT_FOUND",
+         "message": "artifact testproject/testrepo:test0 not found"
+      }
+   ]
+}
+
+==============================================================================
+
+[91m[1m• Failure [0.036 seconds][0m
+OCI Distribution Conformance Tests
+[90m/root/Conformance/distribution-spec/conformance/00_conformance_suite_test.go:12[0m
+  Manifest Delete
+  [90m/root/Conformance/distribution-spec/conformance/08_manifest_delete_test.go:13[0m
+    [91m[1mDELETE request to manifest should return 202, 400, or 405 [It][0m
+    [90m/root/Conformance/distribution-spec/conformance/08_manifest_delete_test.go:14[0m
+
+    [91mExpected
+        <int>: 404
+    To satisfy at least one of these matchers: [%!s(*matchers.EqualMatcher=&{400}) %!s(*matchers.EqualMatcher=&{405}) %!s(*matchers.EqualMatcher=&{202})][0m
+
+    /root/Conformance/distribution-spec/conformance/08_manifest_delete_test.go:19
+[90m------------------------------[0m
+2020/03/06 06:41:03.180228 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:03.179373169Z
+TIME DURATION: 5.977594ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 6dba1cd4-7793-4ba2-928a-5eddbecf3a56
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:03.218343 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-03-06T06:41:03.217670176Z
+TIME DURATION: 36.995828ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 158
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Server: nginx
+	X-Request-Id: 6d57bde8-26f4-414a-b1bd-bf79c1a666e3
+BODY         :
+{
+   "errors": [
+      {
+         "code": "NOT_FOUND",
+         "message": "artifact testproject/testrepo@sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c not found"
+      }
+   ]
+}
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:03.224468 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:03.224045471Z
+TIME DURATION: 5.351134ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: b7d4ed95-29c0-4584-83bf-dd1602516a20
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:03.247496 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/manifests/sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-03-06T06:41:03.246740569Z
+TIME DURATION: 22.139185ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 158
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Server: nginx
+	X-Request-Id: e6812794-795f-4af5-b569-0480cd4269a2
+BODY         :
+{
+   "errors": [
+      {
+         "code": "NOT_FOUND",
+         "message": "artifact testproject/testrepo@sha256:c587b678cb253a746ae98c80371288772b7f5bf796fe6f42c2548207578cb05c not found"
+      }
+   ]
+}
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:03.252956 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/tags/list  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:03.252319661Z
+TIME DURATION: 4.577496ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 98181a16-8df0-4ff0-8af8-d077d2e94090
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:03.278423 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/tags/list  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 200 OK
+RECEIVED AT  : 2020-03-06T06:41:03.277804996Z
+TIME DURATION: 24.658064ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 44
+	Content-Security-Policy: frame-ancestors 'none'
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Server: nginx
+	Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+	X-Frame-Options: DENY
+	X-Request-Id: 1cc7680f-c033-4562-bd42-03683f70c7b2
+BODY         :
+{
+   "name": "testproject/testrepo",
+   "tags": null
+}
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:03.285564 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/testproject/testrepo/blobs/sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:03.284844763Z
+TIME DURATION: 5.708782ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: e86ebffd-326d-4fd9-b459-ee8aa236346c
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: push"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:03.325357 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+DELETE  /v2/testproject/testrepo/blobs/sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 202 Accepted
+RECEIVED AT  : 2020-03-06T06:41:03.324966358Z
+TIME DURATION: 39.238146ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 0
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	X-Request-Id: 4118d213-30fa-4691-a88d-258245cc9074
+BODY         :
+
+==============================================================================
+
+[32m•[0m2020/03/06 06:41:03.332167 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/blobs/sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 401 Unauthorized
+RECEIVED AT  : 2020-03-06T06:41:03.331460778Z
+TIME DURATION: 5.797758ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 119
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	Www-Authenticate: Basic realm="harbor"
+	X-Request-Id: 90b9d363-d8b5-453f-be19-d33a3eaf1138
+BODY         :
+{
+   "errors": [
+      {
+         "code": "UNAUTHORIZED",
+         "message": "unauthorized to access repository: testproject/testrepo, action: pull"
+      }
+   ]
+}
+
+==============================================================================
+
+2020/03/06 06:41:03.363204 DEBUG 
+==============================================================================
+~~~ REQUEST ~~~
+GET  /v2/testproject/testrepo/blobs/sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356  HTTP/1.1
+HOST   : 10.193.21.1
+HEADERS:
+	Authorization: Basic *****
+	Cookie: sid=7ab6c6581293a63ff97190b7186ad991; sid=7ab6c6581293a63ff97190b7186ad991
+	User-Agent: distribution-spec-conformance-tests
+BODY   :
+***** NO CONTENT *****
+------------------------------------------------------------------------------
+~~~ RESPONSE ~~~
+STATUS       : 404 Not Found
+RECEIVED AT  : 2020-03-06T06:41:03.36264496Z
+TIME DURATION: 30.317248ms
+HEADERS      :
+	Connection: keep-alive
+	Content-Length: 157
+	Content-Type: application/json; charset=utf-8
+	Date: Fri, 06 Mar 2020 06:41:03 GMT
+	Docker-Distribution-Api-Version: registry/2.0
+	Server: nginx
+	X-Request-Id: 85e28c32-58b3-4088-aafa-172cc1e3f670
+BODY         :
+{
+   "errors": [
+      {
+         "code": "BLOB_UNKNOWN",
+         "message": "blob unknown to registry",
+         "detail": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+      }
+   ]
+}
+
+==============================================================================
+
+[32m•[0mHTML report was created: /root/Conformance/distribution-spec/conformance/report.html
+JUnit report was created: /root/Conformance/distribution-spec/conformance/junit.xml
+
+
+[91m[1mSummarizing 7 Failures:[0m
+
+[91m[1m[Fail] [0m[90mOCI Distribution Conformance Tests [0m[0mBlob Upload Monolithic [0m[91m[1m[It] POST request with digest and blob should yield a 201 [0m
+[37m/root/Conformance/distribution-spec/conformance/03_blob_upload_monolithic_test.go:31[0m
+
+[91m[1m[Fail] [0m[90mOCI Distribution Conformance Tests [0m[0mBlob Upload Monolithic [0m[91m[1m[It] GET request to blob URL from prior request should yield 200 [0m
+[37m/root/Conformance/distribution-spec/conformance/03_blob_upload_monolithic_test.go:38[0m
+
+[91m[1m[Fail] [0m[90mOCI Distribution Conformance Tests [0m[0mBlob Upload Chunked [0m[91m[1m[It] Out-of-order blob upload should return 416 [0m
+[37m/root/Conformance/distribution-spec/conformance/04_blob_upload_chunked_test.go:28[0m
+
+[91m[1m[Fail] [0m[90mOCI Distribution Conformance Tests [0m[0mManifest Upload [0m[91m[1m[It] GET nonexistent manifest should return 404 [0m
+[37m/root/Conformance/distribution-spec/conformance/05_manifest_upload_test.go:19[0m
+
+[91m[1m[Fail] [0m[90mOCI Distribution Conformance Tests [0m[0mError codes [0m[91m[1m[It] 400 response body should contain OCI-conforming JSON message [0m
+[37m/root/Conformance/distribution-spec/conformance/07_error_codes_test.go:20[0m
+
+[91m[1m[Fail] [0m[90mOCI Distribution Conformance Tests [0m[0mError codes [0m[91m[1m[It] Response from DELETE request to manifest URL (tag) should have OCI-conforming code [0m
+[37m/root/Conformance/distribution-spec/conformance/07_error_codes_test.go:37[0m
+
+[91m[1m[Fail] [0m[90mOCI Distribution Conformance Tests [0m[0mManifest Delete [0m[91m[1m[It] DELETE request to manifest should return 202, 400, or 405 [0m
+[37m/root/Conformance/distribution-spec/conformance/08_manifest_delete_test.go:19[0m
+
+[1m[91mRan 27 of 27 Specs in 1.766 seconds[0m
+[1m[91mFAIL![0m -- [32m[1m20 Passed[0m | [91m[1m7 Failed[0m | [33m[1m0 Pending[0m | [36m[1m0 Skipped[0m
+--- FAIL: TestConformance (1.78s)
+FAIL
+FAIL	github.com/opencontainers/distribution-spec/conformance	1.813s
+FAIL

@@ -37,6 +37,7 @@ var (
 		ierror.PreconditionCode:                http.StatusPreconditionFailed,
 		ierror.ViolateForeignKeyConstraintCode: http.StatusPreconditionFailed,
 		ierror.PROJECTPOLICYVIOLATION:          http.StatusPreconditionFailed,
+		ierror.DIGESTINVALID:                   http.StatusBadRequest,
 		ierror.GeneralCode:                     http.StatusInternalServerError,
 	}
 )
