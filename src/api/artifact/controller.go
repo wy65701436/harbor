@@ -230,11 +230,11 @@ func (c *controller) Get(ctx context.Context, id int64, option *Option) (*Artifa
 func (c *controller) GetByReference(ctx context.Context, repository, reference string, option *Option) (*Artifact, error) {
 	// the reference is tag
 	if _, err := digest.Parse(reference); err != nil {
-		//switch err {
-		//case digest.ErrDigestInvalidFormat:
-		//	return nil, ierror.New(nil).WithCode(ierror.DIGEST_INVALID).
-		//		WithMessage("provided digest did not match uploaded content")
-		//}
+		switch err {
+		case digest.ErrDigestInvalidFormat:
+			return nil, ierror.New(nil).WithCode(ierror.DIGEST_INVALID).
+				WithMessage("provided digest did not match uploaded content")
+		}
 		return c.getByTag(ctx, repository, reference, option)
 	}
 	// the reference is digest
