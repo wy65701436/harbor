@@ -47,7 +47,6 @@ func RegisterRoutes() {
 	root.NewRoute().
 		Method(http.MethodGet).
 		Path("/*/manifests/:reference").
-		Middleware(regtoken.Middleware()).
 		Middleware(contenttrust.Middleware()).
 		Middleware(vulnerable.Middleware()).
 		HandlerFunc(getManifest)
