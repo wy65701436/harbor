@@ -30,7 +30,7 @@ func Middleware() func(http.Handler) http.Handler {
 func parseToken(req *http.Request) error {
 	art, ok := middleware.ArtifactInfoFromContext(req.Context())
 	if !ok {
-		return errors.New("cannot get the manifest information from request context")
+		return nil
 	}
 
 	parts := strings.Split(req.Header.Get("Authorization"), " ")
