@@ -1,7 +1,6 @@
 package regtoken
 
 import (
-	"errors"
 	"github.com/docker/distribution/registry/auth"
 	"github.com/goharbor/harbor/src/common/rbac"
 	"github.com/goharbor/harbor/src/common/utils/log"
