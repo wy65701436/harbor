@@ -54,6 +54,9 @@ func deleteManifest(w http.ResponseWriter, req *http.Request) {
 	reference := router.Param(req.Context(), ":reference")
 	if _, err := digest.Parse(reference); err != nil {
 		switch err {
+		case digest.ErrDigestUnsupported:
+			serror.SendError(w, ierror.New(nil).WithCode(ierror.UNSPPORTED).
+				WithMessage(digest.ErrDigestUnsupported.Error()))
 		case digest.ErrDigestInvalidFormat:
 			serror.SendError(w, ierror.New(nil).WithCode(ierror.DIGEST_INVALID).
 				WithMessage("provided digest did not match uploaded content"))
