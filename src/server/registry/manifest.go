@@ -19,9 +19,7 @@ import (
 	"github.com/goharbor/harbor/src/api/repository"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/internal"
-	ierror "github.com/goharbor/harbor/src/internal/error"
 	serror "github.com/goharbor/harbor/src/server/error"
-	"github.com/goharbor/harbor/src/server/middleware"
 	"github.com/goharbor/harbor/src/server/router"
 	"github.com/opencontainers/go-digest"
 	"net/http"
@@ -56,17 +54,17 @@ func deleteManifest(w http.ResponseWriter, req *http.Request) {
 	// add parse digest here is to return ErrDigestInvalidFormat before GetByReference throws an NOT_FOUND(404)
 	// Do not add the logic into GetByReference as it's a shared method for PUT/GET/DELETE/Internal call,
 	// and NOT_FOUND satisfy PUT/GET/Internal call.
-	af, ok := middleware.ArtifactInfoFromContext(req.Context())
-	if ok && af.Digest != "" {
-		if _, err := digest.Parse(reference); err != nil {
-			switch err {
-			case digest.ErrDigestInvalidFormat:
-				serror.SendError(w, ierror.New(nil).WithCode(ierror.DIGESTINVALID).
-					WithMessage("provided digest did not match uploaded content"))
-				return
-			}
-		}
-	}
+	//af, ok := middleware.ArtifactInfoFromContext(req.Context())
+	//if ok && af.Digest != "" {
+	//	if _, err := digest.Parse(reference); err != nil {
+	//		switch err {
+	//		case digest.ErrDigestInvalidFormat:
+	//			serror.SendError(w, ierror.New(nil).WithCode(ierror.DIGESTINVALID).
+	//				WithMessage("provided digest did not match uploaded content"))
+	//			return
+	//		}
+	//	}
+	//}
 
 	art, err := artifact.Ctl.GetByReference(req.Context(), repository, reference, nil)
 	if err != nil {
