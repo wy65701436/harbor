@@ -99,7 +99,7 @@ func (m *manifestTestSuite) TestDeleteManifest() {
 
 	mock.OnAnything(m.artCtl, "GetByReference").Return(nil, ierror.New(nil).WithCode(ierror.NotFoundCode))
 	deleteManifest(w, req)
-	m.Equal(http.StatusNotFound, w.Code)
+	m.Equal(http.StatusBadRequest, w.Code)
 
 	// reset the mock
 	m.SetupTest()
