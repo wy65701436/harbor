@@ -164,7 +164,6 @@ create table notification_policy (
  creation_time timestamp default CURRENT_TIMESTAMP,
  update_time timestamp default CURRENT_TIMESTAMP,
  PRIMARY KEY (id),
- CONSTRAINT unique_project_id UNIQUE (project_id)
  );
 
 /*add notification job table*/

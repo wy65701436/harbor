@@ -15,6 +15,7 @@ import (
 	notifyModel "github.com/goharbor/harbor/src/pkg/notifier/model"
 	"github.com/goharbor/harbor/src/pkg/project"
 	"github.com/goharbor/harbor/src/pkg/repository"
+	"time"
 )
 
 // ArtifactPreprocessHandler preprocess artifact event data
@@ -28,6 +29,8 @@ func (a *ArtifactPreprocessHandler) Handle(value interface{}) error {
 		log.Debug("notification feature is not enabled")
 		return nil
 	}
+
+	time.Sleep(500 * time.Millisecond)
 
 	pushArtEvent, ok := value.(*event.PushArtifactEvent)
 	if !ok {
