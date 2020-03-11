@@ -163,7 +163,7 @@ create table notification_policy (
  creator varchar(256),
  creation_time timestamp default CURRENT_TIMESTAMP,
  update_time timestamp default CURRENT_TIMESTAMP,
- PRIMARY KEY (id),
+ PRIMARY KEY (id)
  );
 
 /*add notification job table*/
