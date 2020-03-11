@@ -21,8 +21,8 @@ func init() {
 		model.CreateRepositoryTopic: {&auditlog.AuditHandler},
 		model.DeleteRepositoryTopic: {&auditlog.AuditHandler},
 
-		model.CreateArtifactTopic: {&auditlog.AuditHandler},
-		model.DeleteArtifactTopic: {&auditlog.AuditHandler},
+		model.CreateArtifactTopic: {&auditlog.AuditHandler, &notification.ArtifactPreprocessHandler{}},
+		model.DeleteArtifactTopic: {&auditlog.AuditHandler, &notification.HTTPHandler{}},
 
 		model.WebhookTopic:           {&notification.HTTPHandler{}},
 		model.UploadChartTopic:       {&notification.ChartPreprocessHandler{}},

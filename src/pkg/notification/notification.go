@@ -43,6 +43,7 @@ func Init() {
 		model.EventTypePushImage, model.EventTypePullImage, model.EventTypeDeleteImage,
 		model.EventTypeUploadChart, model.EventTypeDeleteChart, model.EventTypeDownloadChart,
 		model.EventTypeScanningCompleted, model.EventTypeScanningFailed, model.EventTypeProjectQuota,
+		model.EventTypeArtifactCreate,
 	)
 
 	initSupportedNotifyType(model.NotifyTypeHTTP)

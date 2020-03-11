@@ -32,6 +32,7 @@ type PushArtifactEventMetadata struct {
 // Resolve to the event from the metadata
 func (p *PushArtifactEventMetadata) Resolve(event *event.Event) error {
 	data := &PushArtifactEvent{
+		EventType:  "createArtifact",
 		Repository: p.Artifact.RepositoryName,
 		Artifact:   p.Artifact,
 		Tag:        p.Tag,

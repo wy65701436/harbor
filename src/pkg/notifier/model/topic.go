@@ -16,7 +16,7 @@ const (
 	DeleteRepositoryTopic = "DeleteRepositoryTopic"
 
 	// ArtifactTopic
-	CreateArtifactTopic = "CreateArtifactTopic"
+	CreateArtifactTopic = "PUSH_ARTIFACT"
 	DeleteArtifactTopic = "DeleteArtifactTopic"
 
 	// PushImageTopic is topic for push image event

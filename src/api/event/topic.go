@@ -56,6 +56,7 @@ type DeleteRepositoryEvent struct {
 
 // PushArtifactEvent is the pushing artifact event
 type PushArtifactEvent struct {
+	EventType  string
 	Repository string
 	Artifact   *artifact.Artifact
 	Tag        string // when the artifact is pushed by digest, the tag here will be null

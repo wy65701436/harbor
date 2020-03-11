@@ -110,4 +110,5 @@ export enum WebhookEventTypes {
   SCANNING_FAILED = "scanningFailed",
   SCANNING_COMPLETED = "scanningCompleted",
   PROJECT_QUOTA = "projectQuota",
+  PUSH_ARTIFACT = "pushArtifact",
 }
