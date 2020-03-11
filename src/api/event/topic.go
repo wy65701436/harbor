@@ -15,7 +15,9 @@
 package event
 
 import (
+	"fmt"
 	"github.com/goharbor/harbor/src/pkg/artifact"
+	"github.com/goharbor/harbor/src/pkg/audit/model"
 	"time"
 )
 
@@ -62,6 +64,19 @@ type PushArtifactEvent struct {
 	Tag        string // when the artifact is pushed by digest, the tag here will be null
 	Operator   string
 	OccurAt    time.Time
+}
+
+// ResolveToAuditLog ...
+func (p *PushArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
+	auditLog := &model.AuditLog{
+		ProjectID:    p.Artifact.ProjectID,
+		OpTime:       p.OccurAt,
+		Operation:    "create",
+		Username:     p.Operator,
+		ResourceType: "project",
+		Resource: fmt.Sprintf("/api/project/%v",
+			p.Artifact.ProjectID)}
+	return auditLog, nil
 }
 
 // PullArtifactEvent is the pulling artifact event

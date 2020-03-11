@@ -46,7 +46,7 @@ func Init() {
 		model.EventTypeArtifactCreate,
 	)
 
-	initSupportedNotifyType(model.NotifyTypeHTTP)
+	initSupportedNotifyType(model.NotifyTypeHTTP, model.NotifyTypeSlack)
 
 	log.Info("notification initialization completed")
 }

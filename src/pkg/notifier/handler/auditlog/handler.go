@@ -2,6 +2,7 @@ package auditlog
 
 import (
 	beegoorm "github.com/astaxie/beego/orm"
+	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/internal/orm"
 	"github.com/goharbor/harbor/src/pkg/audit"
@@ -27,7 +28,8 @@ func (h *Handler) Handle(value interface{}) error {
 	ctx := orm.NewContext(nil, beegoorm.NewOrm())
 	var auditLog *am.AuditLog
 	switch v := value.(type) {
-	case *model.ProjectEvent, *model.RepositoryEvent, *model.ArtifactEvent, *model.TagEvent:
+	case *model.ProjectEvent, *model.RepositoryEvent, *model.ArtifactEvent,
+		*model.TagEvent, *event.PushArtifactEvent:
 		resolver := value.(AuditResolver)
 		al, err := resolver.ResolveToAuditLog()
 		if err != nil {
