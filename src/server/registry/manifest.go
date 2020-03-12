@@ -61,7 +61,7 @@ func getManifest(w http.ResponseWriter, req *http.Request) {
 			e.Tag = reference
 		}
 		ctx := notification.NewContext(req.Context(), e)
-		req = req.WithContext(ctx)
+		*req = *(req.WithContext(ctx))
 	}
 }
 

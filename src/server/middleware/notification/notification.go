@@ -38,6 +38,8 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			if err == nil {
 				log.Info("11111111111")
 				evt.BuildAndPublish(event)
+			} else {
+				log.Infof("2222, %v", err)
 			}
 			log.Info("33333333333333")
 		}
