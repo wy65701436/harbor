@@ -26,7 +26,7 @@ import (
 
 	"github.com/astaxie/beego"
 	_ "github.com/astaxie/beego/session/redis"
-	_ "github.com/goharbor/harbor/src/api/event/handler"
+	_ "github.com/goharbor/harbor/src/api/event/handler/artifact"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/job"
 	"github.com/goharbor/harbor/src/common/models"

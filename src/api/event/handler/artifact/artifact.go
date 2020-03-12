@@ -21,6 +21,7 @@ import (
 func init() {
 	handler := &ArtifactHandler{}
 	notifier.Subscribe(event.TopicPushArtifact, handler)
+	notifier.Subscribe(event.TopicPullArtifact, handler)
 	notifier.Subscribe(event.TopicDeleteArtifact, handler)
 }
 
