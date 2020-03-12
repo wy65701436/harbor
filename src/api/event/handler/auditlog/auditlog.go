@@ -44,10 +44,6 @@ func (h *Handler) Handle(value interface{}) error {
 		log.Errorf("Can not handler this event type! %#v", v)
 	}
 	if auditLog != nil {
-		log.Info("111111")
-		log.Info(auditLog.Username)
-		log.Info(auditLog.TableName())
-		log.Info("111111")
 		_, err := audit.Mgr.Create(ctx, auditLog)
 		if err != nil {
 			log.Debugf("add audit log err: %v", err)

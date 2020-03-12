@@ -89,8 +89,8 @@ func (p *PushArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		Operation:    "create",
 		Username:     p.Operator,
 		ResourceType: "artifact",
-		Resource: fmt.Sprintf("/api/project/%v",
-			p.Artifact.ProjectID)}
+		Resource: fmt.Sprintf("%s:%s",
+			p.Artifact.RepositoryName, p.Tag)}
 	return auditLog, nil
 }
 

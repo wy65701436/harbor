@@ -60,7 +60,8 @@ func getManifest(w http.ResponseWriter, req *http.Request) {
 		if _, err = digest.Parse(reference); err != nil {
 			e.Tag = reference
 		}
-		req.WithContext(notification.NewContext(req.Context(), e))
+		ctx := notification.NewContext(req.Context(), e)
+		req = req.WithContext(ctx)
 	}
 }
 
