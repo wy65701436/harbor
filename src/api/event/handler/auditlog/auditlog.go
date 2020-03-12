@@ -13,6 +13,7 @@ import (
 func init() {
 	handler := &Handler{}
 	notifier.Subscribe(event.TopicPushArtifact, handler)
+	notifier.Subscribe(event.TopicPullArtifact, handler)
 	notifier.Subscribe(event.TopicDeleteArtifact, handler)
 }
 
