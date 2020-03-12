@@ -1,6 +1,7 @@
 package auditlog
 
 import (
+	"context"
 	beegoorm "github.com/astaxie/beego/orm"
 	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/utils/log"
@@ -32,7 +33,7 @@ var AuditHandler = Handler{AuditLogMgr: audit.Mgr}
 
 // Handle ...
 func (h *Handler) Handle(value interface{}) error {
-	ctx := orm.NewContext(nil, beegoorm.NewOrm())
+	ctx := orm.NewContext(context.Background(), beegoorm.NewOrm())
 	var auditLog *am.AuditLog
 	switch v := value.(type) {
 	case *event.PushArtifactEvent:
@@ -47,7 +48,10 @@ func (h *Handler) Handle(value interface{}) error {
 		log.Errorf("Can not handler this event type! %#v", v)
 	}
 	if auditLog != nil {
-		h.AuditLogMgr.Create(ctx, auditLog)
+		_, err := h.AuditLogMgr.Create(ctx, auditLog)
+		if err != nil {
+			log.Debugf("add audit log err: %v", err)
+		}
 	}
 	return nil
 }
