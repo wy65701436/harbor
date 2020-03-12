@@ -1,6 +1,10 @@
-package notification
+package scan
 
 import (
+	"github.com/goharbor/harbor/src/api/event"
+	"github.com/goharbor/harbor/src/api/event/handler"
+	"github.com/goharbor/harbor/src/pkg/notifier"
+	"github.com/goharbor/harbor/src/pkg/notifier/model"
 	"time"
 
 	"github.com/goharbor/harbor/src/api/scan"
@@ -8,17 +12,23 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/pkg/notification"
-	"github.com/goharbor/harbor/src/pkg/notifier/model"
+	"github.com/goharbor/harbor/src/pkg/project"
 	v1 "github.com/goharbor/harbor/src/pkg/scan/rest/v1"
 	"github.com/pkg/errors"
 )
 
-// ScanImagePreprocessHandler preprocess chart event data
-type ScanImagePreprocessHandler struct {
+func init() {
+	handler := &ScanHandler{}
+	notifier.Subscribe(event.TopicScanningFailed, handler)
+	notifier.Subscribe(event.TopicScanningCompleted, handler)
+}
+
+// ScanHandler preprocess scan artifact event
+type ScanHandler struct {
 }
 
 // Handle preprocess chart event data and then publish hook event
-func (si *ScanImagePreprocessHandler) Handle(value interface{}) error {
+func (si *ScanHandler) Handle(value interface{}) error {
 	// if global notification configured disabled, return directly
 	if !config.NotificationEnable() {
 		log.Debug("notification feature is not enabled")
@@ -26,12 +36,12 @@ func (si *ScanImagePreprocessHandler) Handle(value interface{}) error {
 	}
 
 	if value == nil {
-		return errors.New("empty scan image event")
+		return errors.New("empty scan artifact event")
 	}
 
-	e, ok := value.(*model.ScanImageEvent)
+	e, ok := value.(*event.ScanImageEvent)
 	if !ok {
-		return errors.New("invalid scan image event type")
+		return errors.New("invalid scan artifact event type")
 	}
 
 	policies, err := notification.PolicyMgr.GetRelatedPolices(e.Artifact.NamespaceID, e.EventType)
@@ -46,7 +56,7 @@ func (si *ScanImagePreprocessHandler) Handle(value interface{}) error {
 	}
 
 	// Get project
-	project, err := config.GlobalProjectMgr.Get(e.Artifact.NamespaceID)
+	project, err := project.Mgr.Get(e.Artifact.NamespaceID)
 	if err != nil {
 		return errors.Wrap(err, "scan preprocess handler")
 	}
@@ -56,7 +66,7 @@ func (si *ScanImagePreprocessHandler) Handle(value interface{}) error {
 		return errors.Wrap(err, "scan preprocess handler")
 	}
 
-	err = sendHookWithPolicies(policies, payload, e.EventType)
+	err = handler.SendHookWithPolicies(policies, payload, e.EventType)
 	if err != nil {
 		return errors.Wrap(err, "scan preprocess handler")
 	}
@@ -65,17 +75,17 @@ func (si *ScanImagePreprocessHandler) Handle(value interface{}) error {
 }
 
 // IsStateful ...
-func (si *ScanImagePreprocessHandler) IsStateful() bool {
+func (si *ScanHandler) IsStateful() bool {
 	return false
 }
 
-func constructScanImagePayload(event *model.ScanImageEvent, project *models.Project) (*model.Payload, error) {
+func constructScanImagePayload(event *event.ScanImageEvent, project *models.Project) (*model.Payload, error) {
 	repoType := models.ProjectPrivate
 	if project.IsPublic() {
 		repoType = models.ProjectPublic
 	}
 
-	repoName := getNameFromImgRepoFullName(event.Artifact.Repository)
+	repoName := handler.GetNameFromImgRepoFullName(event.Artifact.Repository)
 
 	payload := &model.Payload{
 		Type:    event.EventType,
@@ -91,12 +101,7 @@ func constructScanImagePayload(event *model.ScanImageEvent, project *models.Proj
 		Operator: event.Operator,
 	}
 
-	extURL, err := config.ExtURL()
-	if err != nil {
-		return nil, errors.Wrap(err, "construct scan payload")
-	}
-
-	resURL, err := buildImageResourceURL(extURL, event.Artifact.Repository, event.Artifact.Tag)
+	resURL, err := handler.BuildImageResourceURL(event.Artifact.Repository, event.Artifact.Tag)
 	if err != nil {
 		return nil, errors.Wrap(err, "construct scan payload")
 	}

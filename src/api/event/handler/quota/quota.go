@@ -3,20 +3,30 @@ package notification
 import (
 	"errors"
 	"fmt"
+	"github.com/goharbor/harbor/src/api/event"
+	"github.com/goharbor/harbor/src/api/event/handler"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/pkg/notification"
+	"github.com/goharbor/harbor/src/pkg/notifier"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
 	notifyModel "github.com/goharbor/harbor/src/pkg/notifier/model"
+	"github.com/goharbor/harbor/src/pkg/project"
 )
 
-// QuotaPreprocessHandler preprocess image event data
-type QuotaPreprocessHandler struct {
+func init() {
+	handler := &QuotaHandler{}
+	notifier.Subscribe(event.TopicQuotaExceed, handler)
+	notifier.Subscribe(event.TopicQuotaWarning, handler)
+}
+
+// QuotaHandler preprocess image event data
+type QuotaHandler struct {
 }
 
 // Handle ...
-func (qp *QuotaPreprocessHandler) Handle(value interface{}) error {
+func (qp *QuotaHandler) Handle(value interface{}) error {
 	if !config.NotificationEnable() {
 		log.Debug("notification feature is not enabled")
 		return nil
@@ -30,13 +40,10 @@ func (qp *QuotaPreprocessHandler) Handle(value interface{}) error {
 		return fmt.Errorf("nil quota event")
 	}
 
-	project, err := config.GlobalProjectMgr.Get(quotaEvent.Project.Name)
+	project, err := project.Mgr.Get(quotaEvent.Project.Name)
 	if err != nil {
 		log.Errorf("failed to get project:%s, error: %v", quotaEvent.Project.Name, err)
 		return err
-	}
-	if project == nil {
-		return fmt.Errorf("project not found of quota event: %s", quotaEvent.Project.Name)
 	}
 	policies, err := notification.PolicyMgr.GetRelatedPolices(project.ProjectID, quotaEvent.EventType)
 	if err != nil {
@@ -53,7 +60,7 @@ func (qp *QuotaPreprocessHandler) Handle(value interface{}) error {
 		return err
 	}
 
-	err = sendHookWithPolicies(policies, payload, quotaEvent.EventType)
+	err = handler.SendHookWithPolicies(policies, payload, quotaEvent.EventType)
 	if err != nil {
 		return err
 	}
@@ -61,7 +68,7 @@ func (qp *QuotaPreprocessHandler) Handle(value interface{}) error {
 }
 
 // IsStateful ...
-func (qp *QuotaPreprocessHandler) IsStateful() bool {
+func (qp *QuotaHandler) IsStateful() bool {
 	return false
 }
 
@@ -76,7 +83,7 @@ func constructQuotaPayload(event *model.QuotaEvent) (*model.Payload, error) {
 		repoType = models.ProjectPublic
 	}
 
-	imageName := getNameFromImgRepoFullName(repoName)
+	imageName := handler.GetNameFromImgRepoFullName(repoName)
 	quotaCustom := make(map[string]string)
 	quotaCustom["Details"] = event.Msg
 

@@ -11,6 +11,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/notification/policy"
 	"github.com/goharbor/harbor/src/pkg/notifier"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
+	testing_notification "github.com/goharbor/harbor/src/testing/pkg/notification"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -51,7 +52,7 @@ func (suite *QuotaPreprocessHandlerSuite) SetupSuite() {
 	}
 
 	suite.om = notification.PolicyMgr
-	mp := &fakedPolicyMgr{}
+	mp := &testing_notification.FakedPolicyMgr{}
 	notification.PolicyMgr = mp
 
 	h := &MockHandler{}
@@ -67,7 +68,7 @@ func (suite *QuotaPreprocessHandlerSuite) TearDownSuite() {
 
 // TestHandle ...
 func (suite *QuotaPreprocessHandlerSuite) TestHandle() {
-	handler := &QuotaPreprocessHandler{}
+	handler := &QuotaHandler{}
 	err := handler.Handle(suite.evt)
 	suite.NoError(err)
 }

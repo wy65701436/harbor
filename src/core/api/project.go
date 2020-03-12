@@ -16,7 +16,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/goharbor/harbor/src/api/event"
+	"github.com/goharbor/harbor/src/api/event/Metadata"
 	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/common/dao/project"
@@ -212,7 +212,7 @@ func (p *ProjectAPI) Post() {
 	}
 
 	// fire event
-	evt.BuildAndPublish(&event.CreateProjectEventMetadata{
+	evt.BuildAndPublish(&Metadata.CreateProjectEventMetadata{
 		Project:  pro.Name,
 		Operator: owner,
 	})
@@ -294,7 +294,7 @@ func (p *ProjectAPI) Delete() {
 	}
 
 	// fire event
-	evt.BuildAndPublish(&event.DeleteProjectEventMetadata{
+	evt.BuildAndPublish(&Metadata.DeleteProjectEventMetadata{
 		Project:  p.project.Name,
 		Operator: p.SecurityCtx.GetUsername(),
 	})

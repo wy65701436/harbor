@@ -1,4 +1,4 @@
-package notification
+package scan
 
 import (
 	"testing"
@@ -92,7 +92,7 @@ func (suite *ScanImagePreprocessHandlerSuite) TearDownSuite() {
 
 // TestHandle ...
 func (suite *ScanImagePreprocessHandlerSuite) TestHandle() {
-	handler := &ScanImagePreprocessHandler{}
+	handler := &ScanHandler{}
 
 	err := handler.Handle(suite.evt)
 	suite.NoError(err)
