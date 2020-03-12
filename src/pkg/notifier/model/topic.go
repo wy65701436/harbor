@@ -30,14 +30,6 @@ const (
 	DownloadChartTopic = "OnDownloadChart"
 	// DeleteChartTopic is topic for delete chart event
 	DeleteChartTopic = "OnDeleteChart"
-	// ScanningFailedTopic is topic for scanning failed event
-	ScanningFailedTopic = "OnScanningFailed"
-	// ScanningCompletedTopic is topic for scanning completed event
-	ScanningCompletedTopic = "OnScanningCompleted"
-	// QuotaExceedTopic is topic for quota warning event, the usage reaches the warning bar of limitation, like 85%
-	QuotaWarningTopic = "OnQuotaWarning"
-	// QuotaExceedTopic is topic for quota exceeded event
-	QuotaExceedTopic = "OnQuotaExceed"
 
 	// WebhookTopic is topic for sending webhook payload
 	WebhookTopic = "http"

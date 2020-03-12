@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package event
+package Metadata
 
 import (
 	"context"
+	event2 "github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/security"
 	"github.com/goharbor/harbor/src/pkg/notifier/event"
 	"time"
@@ -29,7 +30,7 @@ type DeleteRepositoryEventMetadata struct {
 
 // Resolve to the event from the metadata
 func (d *DeleteRepositoryEventMetadata) Resolve(event *event.Event) error {
-	data := &DeleteRepositoryEvent{
+	data := &event2.DeleteRepositoryEvent{
 		Repository: d.Repository,
 		OccurAt:    time.Now(),
 	}
@@ -37,7 +38,7 @@ func (d *DeleteRepositoryEventMetadata) Resolve(event *event.Event) error {
 	if exist {
 		data.Operator = cx.GetUsername()
 	}
-	event.Topic = TopicDeleteRepository
+	event.Topic = event2.TopicDeleteRepository
 	event.Data = data
 	return nil
 }

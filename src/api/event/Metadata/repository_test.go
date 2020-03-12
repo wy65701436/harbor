@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package event
+package Metadata
 
 import (
 	"context"
+	event2 "github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/pkg/notifier/event"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -33,9 +34,9 @@ func (r *repositoryEventTestSuite) TestResolveOfDeleteRepositoryEventMetadata() 
 	}
 	err := metadata.Resolve(e)
 	r.Require().Nil(err)
-	r.Equal(TopicDeleteRepository, e.Topic)
+	r.Equal(event2.TopicDeleteRepository, e.Topic)
 	r.Require().NotNil(e.Data)
-	data, ok := e.Data.(*DeleteRepositoryEvent)
+	data, ok := e.Data.(*event2.DeleteRepositoryEvent)
 	r.Require().True(ok)
 	r.Equal("library/hello-world", data.Repository)
 }

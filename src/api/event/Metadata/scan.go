@@ -1,6 +1,7 @@
-package event
+package Metadata
 
 import (
+	event2 "github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/pkg/notifier/event"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
@@ -28,10 +29,10 @@ func (si *ScanImageMetaData) Resolve(evt *event.Event) error {
 	switch si.Status {
 	case models.JobFinished:
 		eventType = notifyModel.EventTypeScanningCompleted
-		topic = TopicScanningCompleted
+		topic = event2.TopicScanningCompleted
 	case models.JobError, models.JobStopped:
 		eventType = notifyModel.EventTypeScanningFailed
-		topic = TopicScanningFailed
+		topic = event2.TopicScanningFailed
 	default:
 		return errors.New("not supported scan hook status")
 	}

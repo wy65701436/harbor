@@ -3,19 +3,30 @@ package notification
 import (
 	"errors"
 	"fmt"
+	"github.com/goharbor/harbor/src/api/event"
+	"github.com/goharbor/harbor/src/api/event/handler"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/pkg/notification"
+	"github.com/goharbor/harbor/src/pkg/notifier"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
+	"github.com/goharbor/harbor/src/pkg/project"
 )
 
-// ChartPreprocessHandler preprocess chart event data
-type ChartPreprocessHandler struct {
+func init() {
+	handler := &ChartHandler{}
+	notifier.Subscribe(event.TopicUploadChart, handler)
+	notifier.Subscribe(event.TopicDeleteChart, handler)
+	notifier.Subscribe(event.TopicDownloadChart, handler)
+}
+
+// ChartHandler preprocess chart event data
+type ChartHandler struct {
 }
 
 // Handle preprocess chart event data and then publish hook event
-func (cph *ChartPreprocessHandler) Handle(value interface{}) error {
+func (cph *ChartHandler) Handle(value interface{}) error {
 	// if global notification configured disabled, return directly
 	if !config.NotificationEnable() {
 		log.Debug("notification feature is not enabled")
@@ -31,7 +42,7 @@ func (cph *ChartPreprocessHandler) Handle(value interface{}) error {
 		return fmt.Errorf("data miss in chart event: %v", chartEvent)
 	}
 
-	project, err := config.GlobalProjectMgr.Get(chartEvent.ProjectName)
+	project, err := project.Mgr.Get(chartEvent.ProjectName)
 	if err != nil {
 		log.Errorf("failed to find project[%s] for chart event: %v", chartEvent.ProjectName, err)
 		return err
@@ -55,7 +66,7 @@ func (cph *ChartPreprocessHandler) Handle(value interface{}) error {
 		return err
 	}
 
-	err = sendHookWithPolicies(policies, payload, chartEvent.EventType)
+	err = handler.SendHookWithPolicies(policies, payload, chartEvent.EventType)
 	if err != nil {
 		return err
 	}
@@ -64,7 +75,7 @@ func (cph *ChartPreprocessHandler) Handle(value interface{}) error {
 }
 
 // IsStateful ...
-func (cph *ChartPreprocessHandler) IsStateful() bool {
+func (cph *ChartHandler) IsStateful() bool {
 	return false
 }
 

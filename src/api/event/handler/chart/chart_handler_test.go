@@ -70,7 +70,7 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 	}()
 	notification.PolicyMgr = &fakedPolicyMgr{}
 
-	handler := &ChartPreprocessHandler{}
+	handler := &ChartHandler{}
 	config.Init()
 
 	name := "project_for_test_chart_event_preprocess"
@@ -99,21 +99,21 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "ChartPreprocessHandler Want Error 1",
+			name: "ChartHandler Want Error 1",
 			args: args{
 				data: nil,
 			},
 			wantErr: true,
 		},
 		{
-			name: "ChartPreprocessHandler Want Error 2",
+			name: "ChartHandler Want Error 2",
 			args: args{
 				data: &model.ChartEvent{},
 			},
 			wantErr: true,
 		},
 		{
-			name: "ChartPreprocessHandler Want Error 3",
+			name: "ChartHandler Want Error 3",
 			args: args{
 				data: &model.ChartEvent{
 					Versions: []string{
@@ -125,7 +125,7 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "ChartPreprocessHandler Want Error 4",
+			name: "ChartHandler Want Error 4",
 			args: args{
 				data: &model.ChartEvent{
 					Versions: []string{
@@ -138,7 +138,7 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "ChartPreprocessHandler Want Error 5",
+			name: "ChartHandler Want Error 5",
 			args: args{
 				data: &model.ChartEvent{
 					Versions: []string{
@@ -166,6 +166,6 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 }
 
 func TestChartPreprocessHandler_IsStateful(t *testing.T) {
-	handler := &ChartPreprocessHandler{}
+	handler := &ChartHandler{}
 	assert.False(t, handler.IsStateful())
 }

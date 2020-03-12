@@ -1,6 +1,7 @@
-package event
+package Metadata
 
 import (
+	event2 "github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/pkg/notifier/event"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
@@ -39,9 +40,9 @@ func (q *QuotaMetaData) Resolve(evt *event.Event) error {
 
 	switch q.Level {
 	case 1:
-		topic = TopicQuotaExceed
+		topic = event2.TopicQuotaExceed
 	case 2:
-		topic = TopicQuotaWarning
+		topic = event2.TopicQuotaWarning
 	default:
 		return errors.New("not supported quota status")
 	}

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/goharbor/harbor/src/pkg/artifact"
 	"github.com/goharbor/harbor/src/pkg/audit/model"
+	v1 "github.com/goharbor/harbor/src/pkg/scan/rest/v1"
 	"time"
 )
 
@@ -25,14 +26,22 @@ import (
 
 // const definition
 const (
-	TopicCreateProject    = "CREATE_PROJECT"
-	TopicDeleteProject    = "DELETE_PROJECT"
-	TopicDeleteRepository = "DELETE_REPOSITORY"
-	TopicPushArtifact     = "PUSH_ARTIFACT"
-	TopicPullArtifact     = "PULL_ARTIFACT"
-	TopicDeleteArtifact   = "DELETE_ARTIFACT"
-	TopicCreateTag        = "CREATE_TAG"
-	TopicDeleteTag        = "DELETE_TAG"
+	TopicCreateProject     = "CREATE_PROJECT"
+	TopicDeleteProject     = "DELETE_PROJECT"
+	TopicDeleteRepository  = "DELETE_REPOSITORY"
+	TopicPushArtifact      = "PUSH_ARTIFACT"
+	TopicPullArtifact      = "PULL_ARTIFACT"
+	TopicDeleteArtifact    = "DELETE_ARTIFACT"
+	TopicCreateTag         = "CREATE_TAG"
+	TopicDeleteTag         = "DELETE_TAG"
+	TopicScanningFailed    = "SCANNING_FAILED"
+	TopicScanningCompleted = "SCANNING_COMPLETED"
+	// QuotaExceedTopic is topic for quota warning event, the usage reaches the warning bar of limitation, like 85%
+	TopicQuotaWarning  = "OnQuotaWarning"
+	TopicQuotaExceed   = "OnQuotaExceed"
+	TopicUploadChart   = "UPLOAD_CHART"
+	TopicDownloadChart = "DOWNLOAD_CHART"
+	TopicDeleteChart   = "DELETE_CHART"
 )
 
 // CreateProjectEvent is the creating project event
@@ -104,6 +113,7 @@ func (p *PullArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 
 // DeleteArtifactEvent is the deleting artifact event
 type DeleteArtifactEvent struct {
+	EventType  string
 	Repository string
 	Artifact   *artifact.Artifact
 	Tags       []string // all the tags that attached to the deleted artifact
@@ -127,4 +137,12 @@ type DeleteTagEvent struct {
 	AttachedArtifact *artifact.Artifact
 	Operator         string
 	OccurAt          time.Time
+}
+
+// ScanImageEvent is scanning image related event data to publish
+type ScanImageEvent struct {
+	EventType string
+	Artifact  *v1.Artifact
+	OccurAt   time.Time
+	Operator  string
 }

@@ -16,7 +16,6 @@ import (
 	notifyModel "github.com/goharbor/harbor/src/pkg/notifier/model"
 	"github.com/goharbor/harbor/src/pkg/project"
 	"github.com/goharbor/harbor/src/pkg/repository"
-	"time"
 )
 
 func init() {
@@ -53,8 +52,6 @@ func (a *ArtifactHandler) IsStateful() bool {
 }
 
 func (a *ArtifactHandler) handle(event *event.ArtifactEvent) error {
-	time.Sleep(500 * time.Millisecond)
-
 	var err error
 	a.project, err = project.Mgr.Get(event.Artifact.ProjectID)
 	if err != nil {

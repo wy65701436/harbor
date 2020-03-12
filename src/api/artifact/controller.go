@@ -19,7 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/goharbor/harbor/src/api/event"
+	"github.com/goharbor/harbor/src/api/event/Metadata"
 	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"strings"
 	"time"
@@ -142,7 +142,7 @@ func (c *controller) Ensure(ctx context.Context, repository, digest string, tags
 		}
 	}
 	// fire event
-	e := &event.PushArtifactEventMetadata{
+	e := &Metadata.PushArtifactEventMetadata{
 		Ctx:      ctx,
 		Artifact: artifact,
 	}
@@ -380,7 +380,7 @@ func (c *controller) deleteDeeply(ctx context.Context, id int64, isRoot bool) er
 		for _, tag := range art.Tags {
 			tags = append(tags, tag.Name)
 		}
-		evt.BuildAndPublish(&event.DeleteArtifactEventMetadata{
+		evt.BuildAndPublish(&Metadata.DeleteArtifactEventMetadata{
 			Ctx:      ctx,
 			Artifact: &art.Artifact,
 			Tags:     tags,

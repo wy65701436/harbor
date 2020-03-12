@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package event
+package Metadata
 
 import (
+	event2 "github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/pkg/notifier/event"
 	"time"
 )
@@ -27,8 +28,8 @@ type CreateProjectEventMetadata struct {
 
 // Resolve to the event from the metadata
 func (c *CreateProjectEventMetadata) Resolve(event *event.Event) error {
-	event.Topic = TopicCreateProject
-	event.Data = &CreateProjectEvent{
+	event.Topic = event2.TopicCreateProject
+	event.Data = &event2.CreateProjectEvent{
 		Project:  c.Project,
 		Operator: c.Operator,
 		OccurAt:  time.Now(),
@@ -44,8 +45,8 @@ type DeleteProjectEventMetadata struct {
 
 // Resolve to the event from the metadata
 func (d *DeleteProjectEventMetadata) Resolve(event *event.Event) error {
-	event.Topic = TopicDeleteProject
-	event.Data = &DeleteProjectEvent{
+	event.Topic = event2.TopicDeleteProject
+	event.Data = &event2.DeleteProjectEvent{
 		Project:  d.Project,
 		Operator: d.Operator,
 		OccurAt:  time.Now(),
