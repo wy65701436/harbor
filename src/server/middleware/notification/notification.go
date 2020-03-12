@@ -15,6 +15,7 @@
 package notification
 
 import (
+	"github.com/goharbor/harbor/src/common/utils/log"
 	"net/http"
 
 	"github.com/goharbor/harbor/src/common"
@@ -36,8 +37,15 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 		if res.Success() {
 			e, ok := r.Context().Value(common.HarborEventCtxKey).(*event.Metadata)
 			if ok {
+				log.Info("11111111111")
 				evt.BuildAndPublish(*e)
 			}
+			e2, ok := r.Context().Value(common.HarborEventCtxKey).(event.Metadata)
+			if ok {
+				log.Info("22222222222")
+				evt.BuildAndPublish(e2)
+			}
+			log.Info("33333333333333")
 		}
 	}, skippers...)
 }
