@@ -17,7 +17,10 @@ package notification
 import (
 	"net/http"
 
+	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/internal"
+	"github.com/goharbor/harbor/src/pkg/notifier/event"
+	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"github.com/goharbor/harbor/src/server/middleware"
 )
 
@@ -31,7 +34,10 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 		}
 		next.ServeHTTP(res, r)
 		if res.Success() {
-			// event.BuildPublish()
+			e, ok := r.Context().Value(common.HarborEventCtxKey).(*event.Metadata)
+			if ok {
+				evt.BuildAndPublish(*e)
+			}
 		}
 	}, skippers...)
 }

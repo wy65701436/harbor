@@ -149,6 +149,7 @@ const (
 	OIDCCallbackPath = "/c/oidc/callback"
 	OIDCLoginPath    = "/c/oidc/login"
 
+	HarborEventCtxKey   = contextKey("harbor_event")
 	ChartUploadCtxKey   = contextKey("chart_upload_event")
 	ChartDownloadCtxKey = contextKey("chart_download_event")
 
