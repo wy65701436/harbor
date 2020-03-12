@@ -150,7 +150,7 @@ func (c *controller) Ensure(ctx context.Context, repository, digest string, tags
 	if len(tags) > 0 {
 		e.Tag = tags[0]
 	}
-	context.WithValue(ctx, common.HarborEventCtxKey, e)
+	ctx = context.WithValue(ctx, common.HarborEventCtxKey, e)
 	return created, artifact.ID, nil
 }
 
