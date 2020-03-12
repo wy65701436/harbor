@@ -12,7 +12,6 @@ const (
 	EventTypeScanningFailed    = "scanningFailed"
 	EventTypeTestEndpoint      = "testEndpoint"
 	EventTypeProjectQuota      = "projectQuota"
-	EventTypeArtifactCreate    = "createArtifact"
 
 	NotifyTypeHTTP  = "http"
 	NotifyTypeSlack = "slack"

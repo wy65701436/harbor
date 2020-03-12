@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification/hook"
 	"github.com/goharbor/harbor/src/pkg/notification/job"
@@ -40,10 +41,7 @@ func Init() {
 	SupportedNotifyTypes = make(map[string]struct{})
 
 	initSupportedEventType(
-		model.EventTypePushImage, model.EventTypePullImage, model.EventTypeDeleteImage,
-		model.EventTypeUploadChart, model.EventTypeDeleteChart, model.EventTypeDownloadChart,
-		model.EventTypeScanningCompleted, model.EventTypeScanningFailed, model.EventTypeProjectQuota,
-		model.EventTypeArtifactCreate,
+		event.TopicPushArtifact, event.TopicPullArtifact, event.TopicDeleteArtifact,
 	)
 
 	initSupportedNotifyType(model.NotifyTypeHTTP, model.NotifyTypeSlack)

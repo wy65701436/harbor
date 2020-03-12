@@ -56,14 +56,19 @@ type DeleteRepositoryEvent struct {
 	OccurAt    time.Time
 }
 
-// PushArtifactEvent is the pushing artifact event
-type PushArtifactEvent struct {
+// ArtifactEvent is the pushing/pulling artifact event
+type ArtifactEvent struct {
 	EventType  string
 	Repository string
 	Artifact   *artifact.Artifact
 	Tag        string // when the artifact is pushed by digest, the tag here will be null
 	Operator   string
 	OccurAt    time.Time
+}
+
+// PushArtifactEvent is the pushing artifact event
+type PushArtifactEvent struct {
+	*ArtifactEvent
 }
 
 // ResolveToAuditLog ...
@@ -73,7 +78,7 @@ func (p *PushArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		OpTime:       p.OccurAt,
 		Operation:    "create",
 		Username:     p.Operator,
-		ResourceType: "project",
+		ResourceType: "artifact",
 		Resource: fmt.Sprintf("/api/project/%v",
 			p.Artifact.ProjectID)}
 	return auditLog, nil
@@ -81,11 +86,20 @@ func (p *PushArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 
 // PullArtifactEvent is the pulling artifact event
 type PullArtifactEvent struct {
-	Repository string
-	Artifact   *artifact.Artifact
-	Tag        string // when the artifact is pulled by digest, the tag here will be null
-	Operator   string
-	OccurAt    time.Time
+	*ArtifactEvent
+}
+
+// ResolveToAuditLog ...
+func (p *PullArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
+	auditLog := &model.AuditLog{
+		ProjectID:    p.Artifact.ProjectID,
+		OpTime:       p.OccurAt,
+		Operation:    "pull",
+		Username:     p.Operator,
+		ResourceType: "artifact",
+		Resource: fmt.Sprintf("/api/project/%v",
+			p.Artifact.ProjectID)}
+	return auditLog, nil
 }
 
 // DeleteArtifactEvent is the deleting artifact event

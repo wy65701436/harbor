@@ -7,7 +7,6 @@ import (
 	"github.com/goharbor/harbor/src/internal/orm"
 	"github.com/goharbor/harbor/src/pkg/audit"
 	am "github.com/goharbor/harbor/src/pkg/audit/model"
-	"github.com/goharbor/harbor/src/pkg/notifier/model"
 )
 
 // Handler - audit log handler
@@ -28,8 +27,7 @@ func (h *Handler) Handle(value interface{}) error {
 	ctx := orm.NewContext(nil, beegoorm.NewOrm())
 	var auditLog *am.AuditLog
 	switch v := value.(type) {
-	case *model.ProjectEvent, *model.RepositoryEvent, *model.ArtifactEvent,
-		*model.TagEvent, *event.PushArtifactEvent:
+	case *event.PushArtifactEvent:
 		resolver := value.(AuditResolver)
 		al, err := resolver.ResolveToAuditLog()
 		if err != nil {

@@ -1,16 +1,17 @@
-package notification
+package artifact
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	beegorm "github.com/astaxie/beego/orm"
 	"github.com/goharbor/harbor/src/api/event"
+	"github.com/goharbor/harbor/src/api/event/handler"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/internal/orm"
 	"github.com/goharbor/harbor/src/pkg/notification"
+	"github.com/goharbor/harbor/src/pkg/notifier"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
 	notifyModel "github.com/goharbor/harbor/src/pkg/notifier/model"
 	"github.com/goharbor/harbor/src/pkg/project"
@@ -18,62 +19,71 @@ import (
 	"time"
 )
 
-// ArtifactPreprocessHandler preprocess artifact event data
-type ArtifactPreprocessHandler struct {
+func init() {
+	handler := &ArtifactHandler{}
+	notifier.Subscribe(event.TopicPushArtifact, handler)
+	notifier.Subscribe(event.TopicDeleteArtifact, handler)
+}
+
+// ArtifactHandler preprocess artifact event data
+type ArtifactHandler struct {
 	project *models.Project
 }
 
 // Handle preprocess artifact event data and then publish hook event
-func (a *ArtifactPreprocessHandler) Handle(value interface{}) error {
+func (a *ArtifactHandler) Handle(value interface{}) error {
 	if !config.NotificationEnable() {
 		log.Debug("notification feature is not enabled")
 		return nil
 	}
+	pushArtEvent, ok := value.(*event.PushArtifactEvent)
+	if ok {
+		return a.handle(pushArtEvent.ArtifactEvent)
+	}
+	pullArtEvent, ok := value.(*event.PullArtifactEvent)
+	if ok {
+		return a.handle(pullArtEvent.ArtifactEvent)
+	}
+	return nil
+}
 
+// IsStateful ...
+func (a *ArtifactHandler) IsStateful() bool {
+	return false
+}
+
+func (a *ArtifactHandler) handle(event *event.ArtifactEvent) error {
 	time.Sleep(500 * time.Millisecond)
 
-	pushArtEvent, ok := value.(*event.PushArtifactEvent)
-	if !ok {
-		return errors.New("invalid push artifact event type")
-	}
-	if pushArtEvent == nil {
-		return fmt.Errorf("nil push artifact event")
-	}
-
 	var err error
-	a.project, err = project.Mgr.Get(pushArtEvent.Artifact.ProjectID)
+	a.project, err = project.Mgr.Get(event.Artifact.ProjectID)
 	if err != nil {
-		log.Errorf("failed to get project:%d, error: %v", pushArtEvent.Artifact.ProjectID, err)
+		log.Errorf("failed to get project:%d, error: %v", event.Artifact.ProjectID, err)
 		return err
 	}
-	policies, err := notification.PolicyMgr.GetRelatedPolices(a.project.ProjectID, pushArtEvent.EventType)
+	policies, err := notification.PolicyMgr.GetRelatedPolices(a.project.ProjectID, event.EventType)
 	if err != nil {
-		log.Errorf("failed to find policy for %s event: %v", pushArtEvent.EventType, err)
+		log.Errorf("failed to find policy for %s event: %v", event.EventType, err)
 		return err
 	}
 	if len(policies) == 0 {
-		log.Debugf("cannot find policy for %s event: %v", pushArtEvent.EventType, pushArtEvent)
+		log.Debugf("cannot find policy for %s event: %v", event.EventType, event)
 		return nil
 	}
 
-	payload, err := a.constructArtifactPayload(pushArtEvent)
+	payload, err := a.constructArtifactPayload(event)
 	if err != nil {
 		return err
 	}
 
-	err = sendHookWithPolicies(policies, payload, pushArtEvent.EventType)
+	err = handler.SendHookWithPolicies(policies, payload, event.EventType)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// IsStateful ...
-func (a *ArtifactPreprocessHandler) IsStateful() bool {
-	return false
-}
-
-func (a *ArtifactPreprocessHandler) constructArtifactPayload(event *event.PushArtifactEvent) (*model.Payload, error) {
+func (a *ArtifactHandler) constructArtifactPayload(event *event.ArtifactEvent) (*model.Payload, error) {
 	repoName := event.Repository
 	if repoName == "" {
 		return nil, fmt.Errorf("invalid %s event with empty repo name", event.EventType)
@@ -84,7 +94,7 @@ func (a *ArtifactPreprocessHandler) constructArtifactPayload(event *event.PushAr
 		repoType = models.ProjectPublic
 	}
 
-	imageName := getNameFromImgRepoFullName(repoName)
+	imageName := handler.GetNameFromImgRepoFullName(repoName)
 
 	payload := &notifyModel.Payload{
 		Type:    event.EventType,
@@ -106,19 +116,9 @@ func (a *ArtifactPreprocessHandler) constructArtifactPayload(event *event.PushAr
 		log.Errorf("failed to get repository with name %s: %v", repoName, err)
 		return nil, err
 	}
-	// once repo has been delete, cannot ensure to get repo record
-	if repoRecord == nil {
-		log.Debugf("cannot find repository info with repo %s", repoName)
-	} else {
-		payload.EventData.Repository.DateCreated = repoRecord.CreationTime.Unix()
-	}
+	payload.EventData.Repository.DateCreated = repoRecord.CreationTime.Unix()
 
-	extURL, err := config.ExtURL()
-	if err != nil {
-		return nil, fmt.Errorf("get external endpoint failed: %v", err)
-	}
-
-	resURL, err := buildImageResourceURL(extURL, repoName, event.Tag)
+	resURL, err := handler.BuildImageResourceURL(repoName, event.Tag)
 	if err != nil {
 		log.Errorf("get resource URL failed: %v", err)
 		return nil, err
