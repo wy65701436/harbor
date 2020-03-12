@@ -150,6 +150,7 @@ func (c *controller) Ensure(ctx context.Context, repository, digest string, tags
 	if len(tags) > 0 {
 		e.Tag = tags[0]
 	}
+	evt.BuildAndPublish(e)
 	ctx = notification.NewContext(ctx, e)
 	return created, artifact.ID, nil
 }
