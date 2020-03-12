@@ -16,11 +16,10 @@ package notification
 
 import (
 	"github.com/goharbor/harbor/src/common/utils/log"
+	"github.com/goharbor/harbor/src/pkg/notification"
 	"net/http"
 
-	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/internal"
-	"github.com/goharbor/harbor/src/pkg/notifier/event"
 	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"github.com/goharbor/harbor/src/server/middleware"
 )
@@ -35,15 +34,10 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 		}
 		next.ServeHTTP(res, r)
 		if res.Success() {
-			e, ok := r.Context().Value(common.HarborEventCtxKey).(*event.Metadata)
-			if ok {
+			event, err := notification.FromContext(r.Context())
+			if err == nil {
 				log.Info("11111111111")
-				evt.BuildAndPublish(*e)
-			}
-			e2, ok := r.Context().Value(common.HarborEventCtxKey).(event.Metadata)
-			if ok {
-				log.Info("22222222222")
-				evt.BuildAndPublish(e2)
+				evt.BuildAndPublish(event)
 			}
 			log.Info("33333333333333")
 		}

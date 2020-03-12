@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/goharbor/harbor/src/api/event/metadata"
 	"github.com/goharbor/harbor/src/common"
+	"github.com/goharbor/harbor/src/pkg/notification"
 	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"strings"
 	"time"
@@ -150,7 +151,7 @@ func (c *controller) Ensure(ctx context.Context, repository, digest string, tags
 	if len(tags) > 0 {
 		e.Tag = tags[0]
 	}
-	ctx = context.WithValue(ctx, common.HarborEventCtxKey, e)
+	ctx = notification.NewContext(ctx, e)
 	return created, artifact.ID, nil
 }
 

@@ -1,6 +1,8 @@
 package notification
 
 import (
+	"context"
+	"errors"
 	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification/hook"
@@ -8,6 +10,7 @@ import (
 	jobMgr "github.com/goharbor/harbor/src/pkg/notification/job/manager"
 	"github.com/goharbor/harbor/src/pkg/notification/policy"
 	"github.com/goharbor/harbor/src/pkg/notification/policy/manager"
+	n_event "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
 )
 
@@ -60,4 +63,23 @@ func initSupportedNotifyType(notifyTypes ...string) {
 	for _, notifyType := range notifyTypes {
 		SupportedNotifyTypes[notifyType] = struct{}{}
 	}
+}
+
+type eventKey struct{}
+
+// FromContext returns event from context
+func FromContext(ctx context.Context) (n_event.Metadata, error) {
+	o, ok := ctx.Value(eventKey{}).(n_event.Metadata)
+	if !ok {
+		return nil, errors.New("cannot get the EVENT from context")
+	}
+	return o, nil
+}
+
+// NewContext returns new context with event
+func NewContext(ctx context.Context, m n_event.Metadata) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return context.WithValue(ctx, eventKey{}, m)
 }
