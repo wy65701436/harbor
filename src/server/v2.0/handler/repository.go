@@ -17,7 +17,7 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/goharbor/harbor/src/api/event/Metadata"
+	"github.com/goharbor/harbor/src/api/event/metadata"
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/goharbor/harbor/src/api/artifact"
@@ -145,7 +145,7 @@ func (r *repositoryAPI) DeleteRepository(ctx context.Context, params operation.D
 	}
 
 	// fire event
-	evt.BuildAndPublish(&Metadata.DeleteRepositoryEventMetadata{
+	evt.BuildAndPublish(&metadata.DeleteRepositoryEventMetadata{
 		Ctx:        ctx,
 		Repository: repository.Name,
 	})

@@ -62,7 +62,7 @@ type ClairVulnerability struct {
 	Description   string                 `json:"Description,omitempty"`
 	Link          string                 `json:"Link,omitempty"`
 	Severity      string                 `json:"Severity,omitempty"`
-	Metadata      map[string]interface{} `json:"Metadata,omitempty"`
+	Metadata      map[string]interface{} `json:"metadata,omitempty"`
 	FixedBy       string                 `json:"FixedBy,omitempty"`
 	FixedIn       []ClairFeature         `json:"FixedIn,omitempty"`
 }

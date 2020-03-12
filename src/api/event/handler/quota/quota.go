@@ -32,7 +32,7 @@ func (qp *QuotaHandler) Handle(value interface{}) error {
 		return nil
 	}
 
-	quotaEvent, ok := value.(*model.QuotaEvent)
+	quotaEvent, ok := value.(*event.QuotaEvent)
 	if !ok {
 		return errors.New("invalid quota event type")
 	}
@@ -72,7 +72,7 @@ func (qp *QuotaHandler) IsStateful() bool {
 	return false
 }
 
-func constructQuotaPayload(event *model.QuotaEvent) (*model.Payload, error) {
+func constructQuotaPayload(event *event.QuotaEvent) (*model.Payload, error) {
 	repoName := event.RepoName
 	if repoName == "" {
 		return nil, fmt.Errorf("invalid %s event with empty repo name", event.EventType)

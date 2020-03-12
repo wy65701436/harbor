@@ -42,6 +42,7 @@ func Init() {
 
 	initSupportedEventType(
 		event.TopicPushArtifact, event.TopicPullArtifact, event.TopicDeleteArtifact,
+		event.TopicUploadChart, event.TopicDownloadChart, event.TopicDeleteChart,
 	)
 
 	initSupportedNotifyType(model.NotifyTypeHTTP, model.NotifyTypeSlack)

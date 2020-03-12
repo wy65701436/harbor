@@ -18,7 +18,7 @@ import (
 	"github.com/astaxie/beego/validation"
 )
 
-// Metadata of the retention rule
+// metadata of the retention rule
 type Metadata struct {
 	// UUID of rule
 	ID int `json:"id"`

@@ -32,7 +32,7 @@ import (
 // index for keeping the mapping between template ID and evaluator
 var index sync.Map
 
-// Metadata defines metadata for rule registration
+// metadata defines metadata for rule registration
 type Metadata struct {
 	TemplateID string `json:"rule_template"`
 
@@ -123,7 +123,7 @@ func init() {
 	}, lastx.New)
 
 	// Register nothing
-	// Register(&Metadata{
+	// Register(&metadata{
 	// 	TemplateID: nothing.TemplateID,
 	// 	Action:     action.Retain,
 	// 	Parameters: []*IndexedParam{},

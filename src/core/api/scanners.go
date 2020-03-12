@@ -62,7 +62,7 @@ func (sa *ScannerAPI) Get() {
 	}
 }
 
-// Metadata returns the metadata of the given scanner.
+// metadata returns the metadata of the given scanner.
 func (sa *ScannerAPI) Metadata() {
 	uuid := sa.GetStringFromPath(":uuid")
 

@@ -16,6 +16,7 @@ package event
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/pkg/artifact"
 	"github.com/goharbor/harbor/src/pkg/audit/model"
 	v1 "github.com/goharbor/harbor/src/pkg/scan/rest/v1"
@@ -37,8 +38,8 @@ const (
 	TopicScanningFailed    = "SCANNING_FAILED"
 	TopicScanningCompleted = "SCANNING_COMPLETED"
 	// QuotaExceedTopic is topic for quota warning event, the usage reaches the warning bar of limitation, like 85%
-	TopicQuotaWarning  = "OnQuotaWarning"
-	TopicQuotaExceed   = "OnQuotaExceed"
+	TopicQuotaWarning  = "QUOTA_WARNNING"
+	TopicQuotaExceed   = "QUOTA_EXCEED"
 	TopicUploadChart   = "UPLOAD_CHART"
 	TopicDownloadChart = "DOWNLOAD_CHART"
 	TopicDeleteChart   = "DELETE_CHART"
@@ -145,4 +146,30 @@ type ScanImageEvent struct {
 	Artifact  *v1.Artifact
 	OccurAt   time.Time
 	Operator  string
+}
+
+// ChartEvent is chart related event data to publish
+type ChartEvent struct {
+	EventType   string
+	ProjectName string
+	ChartName   string
+	Versions    []string
+	OccurAt     time.Time
+	Operator    string
+}
+
+// QuotaEvent is project quota related event data to publish
+type QuotaEvent struct {
+	EventType string
+	Project   *models.Project
+	Resource  *ImgResource
+	OccurAt   time.Time
+	RepoName  string
+	Msg       string
+}
+
+// ImgResource include image digest and tag
+type ImgResource struct {
+	Digest string
+	Tag    string
 }

@@ -36,7 +36,7 @@ type Builder interface {
 	// Builds runnable processor
 	//
 	//  Arguments:
-	//    policy *Metadata : the simple metadata of retention policy
+	//    policy *metadata : the simple metadata of retention policy
 	//    isDryRun bool    : indicate if we need to build a processor for dry run
 	//
 	//  Returns:

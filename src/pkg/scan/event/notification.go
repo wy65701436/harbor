@@ -18,11 +18,11 @@ import (
 	"context"
 	bo "github.com/astaxie/beego/orm"
 	"github.com/goharbor/harbor/src/api/artifact"
+	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/api/scan"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/internal/orm"
 	"github.com/goharbor/harbor/src/pkg/notifier"
-	"github.com/goharbor/harbor/src/pkg/notifier/model"
 	"github.com/goharbor/harbor/src/pkg/q"
 	"github.com/pkg/errors"
 )
@@ -58,7 +58,7 @@ func (o *onDelImageHandler) Handle(value interface{}) error {
 		return errors.New("delete image event handler: nil value ")
 	}
 
-	evt, ok := value.(*model.ImageEvent)
+	evt, ok := value.(*event.ArtifactEvent)
 	if !ok {
 		return errors.New("delete image event handler: malformed image event model")
 	}
@@ -71,21 +71,19 @@ func (o *onDelImageHandler) Handle(value interface{}) error {
 	}
 
 	ctx := orm.NewContext(context.TODO(), bo.NewOrm())
-	for _, res := range evt.Resource {
-		// Check if it is safe to delete the reports.
-		query.Keywords["digest"] = res.Digest
-		l, err := o.artCtl().List(ctx, query, nil)
+	// Check if it is safe to delete the reports.
+	query.Keywords["digest"] = evt.Artifact.Digest
+	l, err := o.artCtl().List(ctx, query, nil)
 
-		if err != nil {
-			// Just logged
-			log.Error(errors.Wrap(err, "delete image event handler"))
-			// Passed for safe consideration
-			continue
-		}
-
+	if err != nil && len(l) != 0 {
+		// Just logged
+		log.Error(errors.Wrap(err, "delete image event handler"))
+		// Passed for safe consideration
+	} else {
 		if len(l) == 0 {
-			digests = append(digests, res.Digest)
-			log.Debugf("prepare to remove the scan report linked with artifact: %s", res.Digest)
+			digests = append(digests, evt.Artifact.Digest)
+			log.Debugf("prepare to remove the scan report linked with artifact: %s", evt.Artifact.Digest)
+
 		}
 	}
 

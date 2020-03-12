@@ -6,8 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/goharbor/harbor/src/pkg/notifier/model"
-
+	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/pkg/notification"
 )
@@ -24,8 +23,8 @@ func (f *fakedNotificationPlyMgr) List(id int64) ([]*models.NotificationPolicy, 
 		{
 			ID: 1,
 			EventTypes: []string{
-				model.EventTypePullImage,
-				model.EventTypePushImage,
+				event.TopicPullArtifact,
+				event.TopicPushArtifact,
 			},
 		},
 	}, nil

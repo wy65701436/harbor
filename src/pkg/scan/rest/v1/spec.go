@@ -77,7 +77,7 @@ func NewSpec(base string) *Spec {
 	return s
 }
 
-// Metadata API
+// metadata API
 func (s *Spec) Metadata() Definition {
 	return Definition{
 		URL: fmt.Sprintf("%s%s", s.baseRoute, "/metadata"),

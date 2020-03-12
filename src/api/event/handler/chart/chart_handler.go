@@ -33,7 +33,7 @@ func (cph *ChartHandler) Handle(value interface{}) error {
 		return nil
 	}
 
-	chartEvent, ok := value.(*model.ChartEvent)
+	chartEvent, ok := value.(*event.ChartEvent)
 	if !ok {
 		return errors.New("invalid chart event type")
 	}
@@ -79,7 +79,7 @@ func (cph *ChartHandler) IsStateful() bool {
 	return false
 }
 
-func constructChartPayload(event *model.ChartEvent, project *models.Project) (*model.Payload, error) {
+func constructChartPayload(event *event.ChartEvent, project *models.Project) (*model.Payload, error) {
 	repoType := models.ProjectPrivate
 	if project.IsPublic() {
 		repoType = models.ProjectPublic

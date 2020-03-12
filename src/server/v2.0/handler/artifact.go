@@ -17,7 +17,7 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/goharbor/harbor/src/api/event/Metadata"
+	"github.com/goharbor/harbor/src/api/event/metadata"
 	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"net/http"
 	"strings"
@@ -242,7 +242,7 @@ func (a *artifactAPI) CreateTag(ctx context.Context, params operation.CreateTagP
 	}
 
 	// fire event
-	evt.BuildAndPublish(&Metadata.CreateTagEventMetadata{
+	evt.BuildAndPublish(&metadata.CreateTagEventMetadata{
 		Ctx:              ctx,
 		Tag:              tag.Name,
 		AttachedArtifact: &art.Artifact,
@@ -281,7 +281,7 @@ func (a *artifactAPI) DeleteTag(ctx context.Context, params operation.DeleteTagP
 	}
 
 	// fire event
-	evt.BuildAndPublish(&Metadata.DeleteTagEventMetadata{
+	evt.BuildAndPublish(&metadata.DeleteTagEventMetadata{
 		Ctx:              ctx,
 		Tag:              params.TagName,
 		AttachedArtifact: &artifact.Artifact,

@@ -49,7 +49,7 @@ func TestGetMetadatas(t *testing.T) {
 func TestCreatePolicy(t *testing.T) {
 	// mock retention api controller
 	mockController := &mocks.APIController{}
-	mockController.On("CreateRetention", mock.AnythingOfType("*policy.Metadata")).Return(int64(1), nil)
+	mockController.On("CreateRetention", mock.AnythingOfType("*policy.metadata")).Return(int64(1), nil)
 
 	controller := retentionController
 	retentionController = mockController
@@ -297,7 +297,7 @@ func TestPolicy(t *testing.T) {
 	// mock retention api controller
 	mockController := &mocks.APIController{}
 	mockController.On("GetRetention", mock.AnythingOfType("int64")).Return(p, nil)
-	mockController.On("UpdateRetention", mock.AnythingOfType("*policy.Metadata")).Return(nil)
+	mockController.On("UpdateRetention", mock.AnythingOfType("*policy.metadata")).Return(nil)
 	mockController.On("TriggerRetentionExec",
 		mock.AnythingOfType("int64"),
 		mock.AnythingOfType("string"),

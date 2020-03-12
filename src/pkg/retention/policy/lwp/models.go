@@ -22,8 +22,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Metadata contains partial metadata of policy
-// It's a lightweight version of policy.Metadata
+// metadata contains partial metadata of policy
+// It's a lightweight version of policy.metadata
 type Metadata struct {
 	// ID of the policy
 	ID int64 `json:"id"`

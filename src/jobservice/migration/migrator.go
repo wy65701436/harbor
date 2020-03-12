@@ -20,7 +20,7 @@ import (
 
 // RDBMigrator defines the action to migrate redis data
 type RDBMigrator interface {
-	// Metadata info of the migrator
+	// metadata info of the migrator
 	Metadata() *MigratorMeta
 
 	// Migrate executes the real migration work

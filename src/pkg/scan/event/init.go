@@ -15,17 +15,17 @@
 package event
 
 import (
+	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notifier"
-	"github.com/goharbor/harbor/src/pkg/notifier/model"
 	"github.com/pkg/errors"
 )
 
 // Init the events for scan
 func Init() {
-	log.Debugf("Subscribe topic %s for cascade deletion of scan reports", model.DeleteImageTopic)
+	log.Debugf("Subscribe topic %s for cascade deletion of scan reports", event.TopicDeleteArtifact)
 
-	err := notifier.Subscribe(model.DeleteImageTopic, NewOnDelImageHandler())
+	err := notifier.Subscribe(event.TopicDeleteArtifact, NewOnDelImageHandler())
 	if err != nil {
 		log.Error(errors.Wrap(err, "register on delete image handler: init: scan"))
 	}

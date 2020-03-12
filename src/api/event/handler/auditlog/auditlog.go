@@ -7,7 +7,14 @@ import (
 	"github.com/goharbor/harbor/src/internal/orm"
 	"github.com/goharbor/harbor/src/pkg/audit"
 	am "github.com/goharbor/harbor/src/pkg/audit/model"
+	"github.com/goharbor/harbor/src/pkg/notifier"
 )
+
+func init() {
+	handler := &Handler{}
+	notifier.Subscribe(event.TopicPushArtifact, handler)
+	notifier.Subscribe(event.TopicDeleteArtifact, handler)
+}
 
 // Handler - audit log handler
 type Handler struct {

@@ -4,7 +4,7 @@ import (
 	"github.com/astaxie/beego/validation"
 )
 
-// Metadata of the immutable rule
+// metadata of the immutable rule
 type Metadata struct {
 	// UUID of rule
 	ID int64 `json:"id"`

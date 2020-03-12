@@ -54,7 +54,7 @@ func PolicyMigratorFactory(pool *redis.Pool, namespace string) (RDBMigrator, err
 	}, nil
 }
 
-// Metadata returns the base information of this migrator
+// metadata returns the base information of this migrator
 func (pm *PolicyMigrator) Metadata() *MigratorMeta {
 	return &MigratorMeta{
 		FromVersion: "<1.8.0",

@@ -6,7 +6,7 @@ type Project struct {
 	Metadata *Metadata `json:"metadata,omitempty"`
 }
 
-// Metadata : Metadata for project
+// metadata : metadata for project
 type Metadata struct {
 	AccessLevel string `json:"public"`
 }

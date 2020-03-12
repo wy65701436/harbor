@@ -36,7 +36,7 @@ const (
 	ScopeLevelProject = "project"
 )
 
-// Metadata of policy
+// metadata of policy
 type Metadata struct {
 	// ID of the policy
 	ID int64 `json:"id"`

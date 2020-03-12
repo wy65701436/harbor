@@ -12,33 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package Metadata
+package metadata
 
 import (
 	"context"
 	event2 "github.com/goharbor/harbor/src/api/event"
-	"github.com/goharbor/harbor/src/common/security"
 	"github.com/goharbor/harbor/src/pkg/notifier/event"
-	"time"
+	"github.com/stretchr/testify/suite"
+	"testing"
 )
 
-// DeleteRepositoryEventMetadata is the metadata from which the delete repository event can be resolved
-type DeleteRepositoryEventMetadata struct {
-	Ctx        context.Context
-	Repository string
+type repositoryEventTestSuite struct {
+	suite.Suite
 }
 
-// Resolve to the event from the metadata
-func (d *DeleteRepositoryEventMetadata) Resolve(event *event.Event) error {
-	data := &event2.DeleteRepositoryEvent{
-		Repository: d.Repository,
-		OccurAt:    time.Now(),
+func (r *repositoryEventTestSuite) TestResolveOfDeleteRepositoryEventMetadata() {
+	e := &event.Event{}
+	metadata := &DeleteRepositoryEventMetadata{
+		Ctx:        context.Background(),
+		Repository: "library/hello-world",
 	}
-	cx, exist := security.FromContext(d.Ctx)
-	if exist {
-		data.Operator = cx.GetUsername()
-	}
-	event.Topic = event2.TopicDeleteRepository
-	event.Data = data
-	return nil
+	err := metadata.Resolve(e)
+	r.Require().Nil(err)
+	r.Equal(event2.TopicDeleteRepository, e.Topic)
+	r.Require().NotNil(e.Data)
+	data, ok := e.Data.(*event2.DeleteRepositoryEvent)
+	r.Require().True(ok)
+	r.Equal("library/hello-world", data.Repository)
+}
+
+func TestRepositoryEventTestSuite(t *testing.T) {
+	suite.Run(t, &repositoryEventTestSuite{})
 }

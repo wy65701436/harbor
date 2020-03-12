@@ -35,7 +35,7 @@ type RequestBody struct {
 	StatusHook string     `json:"status_hook"`
 }
 
-// Metadata stores the metadata of job.
+// metadata stores the metadata of job.
 type Metadata struct {
 	JobKind       string `json:"kind"`
 	ScheduleDelay uint64 `json:"schedule_delay,omitempty"`

@@ -54,7 +54,7 @@ type Launcher interface {
 	// A separate job will be launched for each repository
 	//
 	//  Arguments:
-	//   policy *policy.Metadata: the policy info
+	//   policy *policy.metadata: the policy info
 	//   executionID int64      : the execution ID
 	//   isDryRun bool          : indicate if it is a dry run
 	//

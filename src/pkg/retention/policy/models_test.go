@@ -20,7 +20,7 @@ func TestAlgorithm(t *testing.T) {
 
 // beego 1.9.0 has bug to deal with nil interface
 // func TestTrigger(t *testing.T) {
-// 	p := Metadata{
+// 	p := metadata{
 // 		Algorithm: "or",
 // 	}
 // 	v := &validation.Validation{}

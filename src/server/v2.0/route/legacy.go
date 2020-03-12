@@ -136,7 +136,7 @@ func registerLegacyRoutes() {
 	scannerAPI := &api.ScannerAPI{}
 	beego.Router("/api/"+version+"/scanners", scannerAPI, "post:Create;get:List")
 	beego.Router("/api/"+version+"/scanners/:uuid", scannerAPI, "get:Get;delete:Delete;put:Update;patch:SetAsDefault")
-	beego.Router("/api/"+version+"/scanners/:uuid/metadata", scannerAPI, "get:Metadata")
+	beego.Router("/api/"+version+"/scanners/:uuid/metadata", scannerAPI, "get:metadata")
 	beego.Router("/api/"+version+"/scanners/ping", scannerAPI, "post:Ping")
 
 	// Add routes for project level scanner

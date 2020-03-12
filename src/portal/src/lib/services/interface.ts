@@ -195,7 +195,7 @@ export interface ReplicationTasks extends Base {
  * Interface for storing metadata of response.
  *
  **
- * interface Metadata
+ * interface metadata
  */
 export interface Metadata {
   xTotalCount: number;

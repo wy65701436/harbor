@@ -473,7 +473,7 @@ paths:
         - Products
       responses:
         '200':
-          description: Metadata is deleted successfully.
+          description: metadata is deleted successfully.
         '400':
           description: Invalid requst.
         '403':

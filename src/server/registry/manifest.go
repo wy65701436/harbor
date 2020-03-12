@@ -16,7 +16,7 @@ package registry
 
 import (
 	"github.com/goharbor/harbor/src/api/artifact"
-	"github.com/goharbor/harbor/src/api/event/Metadata"
+	"github.com/goharbor/harbor/src/api/event/metadata"
 	"github.com/goharbor/harbor/src/api/repository"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/internal"
@@ -51,7 +51,7 @@ func getManifest(w http.ResponseWriter, req *http.Request) {
 	// fire event
 	if recorder.Success() {
 		// TODO don't fire event for the pulling from replication
-		e := &Metadata.PullArtifactEventMetadata{
+		e := &metadata.PullArtifactEventMetadata{
 			Ctx:      req.Context(),
 			Artifact: &artifact.Artifact,
 		}

@@ -8,52 +8,7 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/audit/model"
-	v1 "github.com/goharbor/harbor/src/pkg/scan/rest/v1"
 )
-
-// ImageEvent is image related event data to publish
-type ImageEvent struct {
-	EventType string
-	Project   *models.Project
-	Resource  []*ImgResource
-	OccurAt   time.Time
-	Operator  string
-	RepoName  string
-}
-
-// ImgResource include image digest and tag
-type ImgResource struct {
-	Digest string
-	Tag    string
-}
-
-// ChartEvent is chart related event data to publish
-type ChartEvent struct {
-	EventType   string
-	ProjectName string
-	ChartName   string
-	Versions    []string
-	OccurAt     time.Time
-	Operator    string
-}
-
-// ScanImageEvent is scanning image related event data to publish
-type ScanImageEvent struct {
-	EventType string
-	Artifact  *v1.Artifact
-	OccurAt   time.Time
-	Operator  string
-}
-
-// QuotaEvent is project quota related event data to publish
-type QuotaEvent struct {
-	EventType string
-	Project   *models.Project
-	Resource  *ImgResource
-	OccurAt   time.Time
-	RepoName  string
-	Msg       string
-}
 
 // HookEvent is hook related event data to publish
 type HookEvent struct {
@@ -119,35 +74,6 @@ func (r *RepositoryEvent) Topic() string {
 	return r.TargetTopic
 }
 
-// ArtifactEvent info of artifact related event
-type ArtifactEvent struct {
-	TargetTopic string
-	Project     *models.Project
-	RepoName    string
-	Digest      string
-	OccurAt     time.Time
-	Operator    string
-	Operation   string
-}
-
-// ResolveToAuditLog ...
-func (a *ArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
-	auditLog := &model.AuditLog{
-		ProjectID:    a.Project.ProjectID,
-		OpTime:       a.OccurAt,
-		Operation:    a.Operation,
-		Username:     a.Operator,
-		ResourceType: "artifact",
-		Resource: fmt.Sprintf("/api/project/%v/repository/%v/artifact/%v",
-			a.Project.ProjectID, a.RepoName, a.Digest)}
-	return auditLog, nil
-}
-
-// Topic ...
-func (a *ArtifactEvent) Topic() string {
-	return a.TargetTopic
-}
-
 // TagEvent info of tag related event
 type TagEvent struct {
 	TargetTopic string
@@ -179,27 +105,27 @@ func (t *TagEvent) Topic() string {
 	return t.TargetTopic
 }
 
-// ToImageEvent ...
-func (t *TagEvent) ToImageEvent() *ImageEvent {
-	var eventType string
-	// convert tag operation to previous event type so that webhook can handle it
-	if t.Operation == "push" {
-		eventType = EventTypePushImage
-	} else if t.Operation == "pull" {
-		eventType = EventTypePullImage
-	} else if t.Operation == "delete" {
-		eventType = EventTypeDeleteImage
-	}
-	imgEvent := &ImageEvent{
-		EventType: eventType,
-		Project:   t.Project,
-		Resource:  []*ImgResource{{Tag: t.TagName}},
-		Operator:  t.Operator,
-		OccurAt:   t.OccurAt,
-		RepoName:  t.RepoName,
-	}
-	return imgEvent
-}
+//// ToImageEvent ...
+//func (t *TagEvent) ToImageEvent() *ImageEvent {
+//	var eventType string
+//	// convert tag operation to previous event type so that webhook can handle it
+//	if t.Operation == "push" {
+//		eventType = EventTypePushImage
+//	} else if t.Operation == "pull" {
+//		eventType = EventTypePullImage
+//	} else if t.Operation == "delete" {
+//		eventType = EventTypeDeleteImage
+//	}
+//	imgEvent := &ImageEvent{
+//		EventType: eventType,
+//		Project:   t.Project,
+//		Resource:  []*ImgResource{{Tag: t.TagName}},
+//		Operator:  t.Operator,
+//		OccurAt:   t.OccurAt,
+//		RepoName:  t.RepoName,
+//	}
+//	return imgEvent
+//}
 
 // Payload of notification event
 type Payload struct {
