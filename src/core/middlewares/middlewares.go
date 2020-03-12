@@ -16,6 +16,7 @@ package middlewares
 
 import (
 	"github.com/goharbor/harbor/src/server/middleware/csrf"
+	"github.com/goharbor/harbor/src/server/middleware/notification"
 	"github.com/goharbor/harbor/src/server/middleware/readonly"
 	"net/http"
 	"path"
@@ -77,5 +78,6 @@ func MiddleWares() []beego.MiddleWare {
 		readonly.Middleware(readonlySkippers...),
 		orm.Middleware(legacyAPISkipper),
 		transaction.Middleware(legacyAPISkipper, fetchBlobAPISkipper),
+		notification.Middleware(),
 	}
 }
