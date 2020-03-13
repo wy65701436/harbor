@@ -86,9 +86,14 @@ func NewContext(ctx context.Context, m n_event.Metadata) context.Context {
 	return context.WithValue(ctx, eventKey{}, m)
 }
 
+type EventContext struct {
+	context.Context
+	Events []n_event.Metadata
+}
+
 // AddEvent ....
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
-	c, ok := ctx.(notification.EventContext)
+	c, ok := ctx.(EventContext)
 	if !ok {
 		return fmt.Errorf("%s URL %s without event, no event send", r.Method, r.URL.Path)
 	}

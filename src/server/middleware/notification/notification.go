@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/orm"
 	"github.com/goharbor/harbor/src/common/utils/log"
-	"github.com/goharbor/harbor/src/pkg/notifier/event"
+	"github.com/goharbor/harbor/src/pkg/notification"
 	"net/http"
 
 	"github.com/goharbor/harbor/src/internal"
@@ -28,24 +28,9 @@ import (
 	"github.com/goharbor/harbor/src/server/middleware"
 )
 
-type EventContext struct {
-	context.Context
-	Events []event.Metadata
-}
-
-// AddEvent ....
-func AddEvent(ctx context.Context, e event.Metadata) error {
-	c, ok := ctx.(EventContext)
-	if !ok {
-		return fmt.Errorf("%s URL %s without event, no event send", r.Method, r.URL.Path)
-	}
-	c.Events = append(c.Events, e)
-	return nil
-}
-
 // publishEvent publishes the events in the context, it ensures publish happens after transaction success.
 func publishEvent(r *http.Request) error {
-	c, ok := r.Context().(EventContext)
+	c, ok := r.Context().(notification.EventContext)
 	if !ok {
 		return fmt.Errorf("%s URL %s without event, no event send", r.Method, r.URL.Path)
 	}
@@ -61,25 +46,6 @@ func publishEvent(r *http.Request) error {
 	return nil
 }
 
-type eventKey struct{}
-
-// FromContext returns orm from context
-func FromContext(ctx context.Context) (orm.Ormer, error) {
-	o, ok := ctx.Value(eventKey{}).(orm.Ormer)
-	if !ok {
-		return nil, errors.New("cannot get the Event from context")
-	}
-	return o, nil
-}
-
-// NewContext returns new context with orm
-func NewContext(ctx context.Context, o orm.Ormer) context.Context {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	return context.WithValue(ctx, eventKey{}, o)
-}
-
 // Middleware sends the notification after transaction success
 func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler {
 	return middleware.New(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
@@ -88,7 +54,7 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			res = internal.NewResponseBuffer(w)
 			defer res.Flush()
 		}
-		ec := &EventContext{Context: r.Context()}
+		ec := &notification.EventContext{Context: r.Context()}
 		next.ServeHTTP(res, r.WithContext(ec))
 		if res.Success() {
 			if err := publishEvent(r); err != nil {
