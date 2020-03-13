@@ -3,7 +3,6 @@ package notification
 import (
 	"container/list"
 	"context"
-	"errors"
 	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification/hook"
@@ -67,15 +66,6 @@ func initSupportedNotifyType(notifyTypes ...string) {
 }
 
 type eventKey struct{}
-
-// FromContext returns event from context
-func FromContext(ctx context.Context) (*list.List, error) {
-	o, ok := ctx.Value(eventKey{}).(*list.List)
-	if !ok {
-		return nil, errors.New("cannot get the EVENT from context")
-	}
-	return o, nil
-}
 
 // NewContext returns new context with event
 func NewContext(ctx context.Context, m *list.List) context.Context {

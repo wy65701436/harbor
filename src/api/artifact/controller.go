@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"github.com/goharbor/harbor/src/api/event/metadata"
 	"github.com/goharbor/harbor/src/pkg/notification"
-	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"strings"
 	"time"
 
@@ -381,11 +380,6 @@ func (c *controller) deleteDeeply(ctx context.Context, id int64, isRoot bool) er
 		for _, tag := range art.Tags {
 			tags = append(tags, tag.Name)
 		}
-		evt.BuildAndPublish(&metadata.DeleteArtifactEventMetadata{
-			Ctx:      ctx,
-			Artifact: &art.Artifact,
-			Tags:     tags,
-		})
 		notification.AddEvent(ctx, &metadata.DeleteArtifactEventMetadata{
 			Ctx:      ctx,
 			Artifact: &art.Artifact,
