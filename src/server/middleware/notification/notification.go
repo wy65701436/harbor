@@ -28,6 +28,8 @@ import (
 // publishEvent publishes the events in the context, it ensures publish happens after transaction success.
 func publishEvent(r *http.Request) error {
 	es, err := notification.FromContext(r.Context())
+	fmt.Println("33333333333")
+	fmt.Println(es)
 	if err != nil {
 		return nil
 	}
