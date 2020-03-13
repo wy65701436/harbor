@@ -27,7 +27,7 @@ import (
 
 // publishEvent publishes the events in the context, it ensures publish happens after transaction success.
 func publishEvent(r *http.Request) error {
-	c, ok := r.Context().(notification.EventContext)
+	c, ok := r.Context().(*notification.EventContext)
 	if !ok {
 		return fmt.Errorf("%s URL %s without event, no event send", r.Method, r.URL.Path)
 	}
