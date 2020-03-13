@@ -54,6 +54,8 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 		ec := &notification.EventContext{Context: r.Context()}
 		next.ServeHTTP(res, r.WithContext(ec))
 		if res.Success() {
+			fmt.Println("1111111")
+			fmt.Println(ec.Events)
 			if err := publishEvent(r); err != nil {
 				log.Errorf("send webhook error, %v", err)
 			}
