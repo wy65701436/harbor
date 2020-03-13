@@ -150,7 +150,6 @@ func (c *controller) Ensure(ctx context.Context, repository, digest string, tags
 	if len(tags) > 0 {
 		e.Tag = tags[0]
 	}
-	ctx.Value()
 	notification.AddEvent(ctx, e)
 	return created, artifact.ID, nil
 }
