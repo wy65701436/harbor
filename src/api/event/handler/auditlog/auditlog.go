@@ -16,6 +16,8 @@ func init() {
 	notifier.Subscribe(event.TopicPushArtifact, handler)
 	notifier.Subscribe(event.TopicPullArtifact, handler)
 	notifier.Subscribe(event.TopicDeleteArtifact, handler)
+	notifier.Subscribe(event.TopicDeleteProject, handler)
+	notifier.Subscribe(event.TopicCreateProject, handler)
 }
 
 // Handler - audit log handler
