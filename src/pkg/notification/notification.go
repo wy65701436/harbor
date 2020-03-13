@@ -94,7 +94,7 @@ type EventContext struct {
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
 	c, ok := ctx.(EventContext)
 	if !ok {
-		return fmt.Errorf("%s URL %s without event, no event send", r.Method, r.URL.Path)
+		return nil
 	}
 	c.Events = append(c.Events, m)
 	return nil
