@@ -87,7 +87,7 @@ func NewContext(ctx context.Context, m n_event.Metadata) context.Context {
 
 // AddEvent ....
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
-	e, ok := ctx.Value(eventKey{}).(*n_event.Metadata)
+	e, ok := ctx.Value(eventKey{}).(*interface{})
 	if !ok {
 		fmt.Println("1111111")
 		return nil

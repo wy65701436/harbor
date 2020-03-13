@@ -45,7 +45,6 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			res = internal.NewResponseBuffer(w)
 			defer res.Flush()
 		}
-
 		ctx := notification.NewContext(r.Context(), nil)
 		next.ServeHTTP(res, r.WithContext(ctx))
 		if res.Success() {
