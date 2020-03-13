@@ -22,7 +22,6 @@ import (
 	"github.com/goharbor/harbor/src/api/event/metadata"
 	"github.com/goharbor/harbor/src/pkg/notification"
 	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
-	middleware_notification "github.com/goharbor/harbor/src/server/middleware/notification"
 	"strings"
 	"time"
 
