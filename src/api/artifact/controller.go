@@ -22,6 +22,7 @@ import (
 	"github.com/goharbor/harbor/src/api/event/metadata"
 	"github.com/goharbor/harbor/src/pkg/notification"
 	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
+	middleware_notification "github.com/goharbor/harbor/src/server/middleware/notification"
 	"strings"
 	"time"
 
@@ -150,8 +151,9 @@ func (c *controller) Ensure(ctx context.Context, repository, digest string, tags
 	if len(tags) > 0 {
 		e.Tag = tags[0]
 	}
-	evt.BuildAndPublish(e)
-	ctx = notification.NewContext(ctx, e)
+	//evt.BuildAndPublish(e)
+	//ctx = notification.NewContext(ctx, e)
+	middleware_notification.AddEvent(ctx, e)
 	return created, artifact.ID, nil
 }
 
