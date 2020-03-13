@@ -22,34 +22,38 @@ import (
 
 // CreateProjectEventMetadata is the metadata from which the create project event can be resolved
 type CreateProjectEventMetadata struct {
-	Project  string
-	Operator string
+	ProjectID int64
+	Project   string
+	Operator  string
 }
 
 // Resolve to the event from the metadata
 func (c *CreateProjectEventMetadata) Resolve(event *event.Event) error {
 	event.Topic = event2.TopicCreateProject
 	event.Data = &event2.CreateProjectEvent{
-		Project:  c.Project,
-		Operator: c.Operator,
-		OccurAt:  time.Now(),
+		ProjectID: c.ProjectID,
+		Project:   c.Project,
+		Operator:  c.Operator,
+		OccurAt:   time.Now(),
 	}
 	return nil
 }
 
 // DeleteProjectEventMetadata is the metadata from which the delete project event can be resolved
 type DeleteProjectEventMetadata struct {
-	Project  string
-	Operator string
+	ProjectID int64
+	Project   string
+	Operator  string
 }
 
 // Resolve to the event from the metadata
 func (d *DeleteProjectEventMetadata) Resolve(event *event.Event) error {
 	event.Topic = event2.TopicDeleteProject
 	event.Data = &event2.DeleteProjectEvent{
-		Project:  d.Project,
-		Operator: d.Operator,
-		OccurAt:  time.Now(),
+		ProjectID: d.ProjectID,
+		Project:   d.Project,
+		Operator:  d.Operator,
+		OccurAt:   time.Now(),
 	}
 	return nil
 }

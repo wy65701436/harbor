@@ -47,16 +47,42 @@ const (
 
 // CreateProjectEvent is the creating project event
 type CreateProjectEvent struct {
-	Project  string
-	Operator string
-	OccurAt  time.Time
+	ProjectID int64
+	Project   string
+	Operator  string
+	OccurAt   time.Time
+}
+
+// ResolveToAuditLog ...
+func (c *CreateProjectEvent) ResolveToAuditLog() (*model.AuditLog, error) {
+	auditLog := &model.AuditLog{
+		ProjectID:    c.ProjectID,
+		OpTime:       c.OccurAt,
+		Operation:    "create",
+		Username:     c.Operator,
+		ResourceType: "project",
+		Resource:     fmt.Sprintf("%s", c.Project)}
+	return auditLog, nil
 }
 
 // DeleteProjectEvent is the deleting project event
 type DeleteProjectEvent struct {
-	Project  string
-	Operator string
-	OccurAt  time.Time
+	ProjectID int64
+	Project   string
+	Operator  string
+	OccurAt   time.Time
+}
+
+// ResolveToAuditLog ...
+func (d *DeleteProjectEvent) ResolveToAuditLog() (*model.AuditLog, error) {
+	auditLog := &model.AuditLog{
+		ProjectID:    d.ProjectID,
+		OpTime:       d.OccurAt,
+		Operation:    "delete",
+		Username:     d.Operator,
+		ResourceType: "project",
+		Resource:     fmt.Sprintf("%s", c.Project)}
+	return auditLog, nil
 }
 
 // DeleteRepositoryEvent is the deleting repository event
