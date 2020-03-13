@@ -150,8 +150,6 @@ func (c *controller) Ensure(ctx context.Context, repository, digest string, tags
 	if len(tags) > 0 {
 		e.Tag = tags[0]
 	}
-	//evt.BuildAndPublish(e)
-	//ctx = notification.NewContext(ctx, e)
 	notification.AddEvent(ctx, e)
 	return created, artifact.ID, nil
 }
@@ -384,6 +382,11 @@ func (c *controller) deleteDeeply(ctx context.Context, id int64, isRoot bool) er
 			tags = append(tags, tag.Name)
 		}
 		evt.BuildAndPublish(&metadata.DeleteArtifactEventMetadata{
+			Ctx:      ctx,
+			Artifact: &art.Artifact,
+			Tags:     tags,
+		})
+		notification.AddEvent(ctx, &metadata.DeleteArtifactEventMetadata{
 			Ctx:      ctx,
 			Artifact: &art.Artifact,
 			Tags:     tags,

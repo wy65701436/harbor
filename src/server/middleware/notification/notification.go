@@ -25,19 +25,15 @@ import (
 )
 
 // publishEvent publishes the events in the context, it ensures publish happens after transaction success.
-func publishEvent(e *notification.EventContext) error {
+func publishEvent(r *http.Request) error {
+	e, err := notification.FromContext(r.Context())
+	if err != nil {
+		return nil
+	}
 	if e == nil {
 		return nil
 	}
-
-	if len(e.Events) != 0 {
-		return nil
-	}
-
-	for _, e := range e.Events {
-		evt.BuildAndPublish(e)
-	}
-
+	evt.BuildAndPublish(e)
 	return nil
 }
 
@@ -49,10 +45,11 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			res = internal.NewResponseBuffer(w)
 			defer res.Flush()
 		}
-		ec := &notification.EventContext{Context: r.Context()}
-		next.ServeHTTP(res, r.WithContext(ec))
+
+		ctx := notification.NewContext(r.Context(), nil)
+		next.ServeHTTP(res, r.WithContext(ctx))
 		if res.Success() {
-			if err := publishEvent(ec); err != nil {
+			if err := publishEvent(r); err != nil {
 				log.Errorf("send webhook error, %v", err)
 			}
 		}

@@ -107,8 +107,8 @@ func (p *PullArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		Operation:    "pull",
 		Username:     p.Operator,
 		ResourceType: "artifact",
-		Resource: fmt.Sprintf("/api/project/%v",
-			p.Artifact.ProjectID)}
+		Resource: fmt.Sprintf("%s:%s",
+			p.Artifact.RepositoryName, p.Tag)}
 	return auditLog, nil
 }
 
@@ -120,6 +120,18 @@ type DeleteArtifactEvent struct {
 	Tags       []string // all the tags that attached to the deleted artifact
 	Operator   string
 	OccurAt    time.Time
+}
+
+// ResolveToAuditLog ...
+func (p *DeleteArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
+	auditLog := &model.AuditLog{
+		ProjectID:    p.Artifact.ProjectID,
+		OpTime:       p.OccurAt,
+		Operation:    "delete",
+		Username:     p.Operator,
+		ResourceType: "artifact",
+		Resource:     fmt.Sprintf("%s", p.Artifact.RepositoryName)}
+	return auditLog, nil
 }
 
 // CreateTagEvent is the creating tag event
