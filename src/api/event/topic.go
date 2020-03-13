@@ -81,7 +81,7 @@ func (d *DeleteProjectEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		Operation:    "delete",
 		Username:     d.Operator,
 		ResourceType: "project",
-		Resource:     fmt.Sprintf("%s", c.Project)}
+		Resource:     fmt.Sprintf("%s", d.Project)}
 	return auditLog, nil
 }
 
