@@ -31,6 +31,7 @@ type CreateProjectEventMetadata struct {
 func (c *CreateProjectEventMetadata) Resolve(event *event.Event) error {
 	event.Topic = event2.TopicCreateProject
 	event.Data = &event2.CreateProjectEvent{
+		EventType: event2.TopicCreateProject,
 		ProjectID: c.ProjectID,
 		Project:   c.Project,
 		Operator:  c.Operator,
@@ -50,6 +51,7 @@ type DeleteProjectEventMetadata struct {
 func (d *DeleteProjectEventMetadata) Resolve(event *event.Event) error {
 	event.Topic = event2.TopicDeleteProject
 	event.Data = &event2.DeleteProjectEvent{
+		EventType: event2.TopicDeleteProject,
 		ProjectID: d.ProjectID,
 		Project:   d.Project,
 		Operator:  d.Operator,

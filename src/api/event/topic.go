@@ -47,6 +47,7 @@ const (
 
 // CreateProjectEvent is the creating project event
 type CreateProjectEvent struct {
+	EventType string
 	ProjectID int64
 	Project   string
 	Operator  string
@@ -67,6 +68,7 @@ func (c *CreateProjectEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 
 // DeleteProjectEvent is the deleting project event
 type DeleteProjectEvent struct {
+	EventType string
 	ProjectID int64
 	Project   string
 	Operator  string
@@ -87,6 +89,7 @@ func (d *DeleteProjectEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 
 // DeleteRepositoryEvent is the deleting repository event
 type DeleteRepositoryEvent struct {
+	EventType  string
 	ProjectID  int64
 	Repository string
 	Operator   string
@@ -176,6 +179,7 @@ func (p *DeleteArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 
 // CreateTagEvent is the creating tag event
 type CreateTagEvent struct {
+	EventType        string
 	Repository       string
 	Tag              string
 	AttachedArtifact *artifact.Artifact
@@ -197,6 +201,7 @@ func (c *CreateTagEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 
 // DeleteTagEvent is the deleting tag event
 type DeleteTagEvent struct {
+	EventType        string
 	Repository       string
 	Tag              string
 	AttachedArtifact *artifact.Artifact

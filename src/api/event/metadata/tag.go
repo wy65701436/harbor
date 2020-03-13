@@ -33,6 +33,7 @@ type CreateTagEventMetadata struct {
 // Resolve to the event from the metadata
 func (c *CreateTagEventMetadata) Resolve(event *event.Event) error {
 	data := &event2.CreateTagEvent{
+		EventType:        event2.TopicCreateTag,
 		Repository:       c.AttachedArtifact.RepositoryName,
 		Tag:              c.Tag,
 		AttachedArtifact: c.AttachedArtifact,
@@ -57,6 +58,7 @@ type DeleteTagEventMetadata struct {
 // Resolve to the event from the metadata
 func (d *DeleteTagEventMetadata) Resolve(event *event.Event) error {
 	data := &event2.DeleteTagEvent{
+		EventType:        event2.TopicDeleteTag,
 		Repository:       d.AttachedArtifact.RepositoryName,
 		Tag:              d.Tag,
 		AttachedArtifact: d.AttachedArtifact,

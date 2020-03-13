@@ -213,8 +213,9 @@ func (p *ProjectAPI) Post() {
 
 	// fire event
 	evt.BuildAndPublish(&metadata.CreateProjectEventMetadata{
-		Project:  pro.Name,
-		Operator: owner,
+		ProjectID: projectID,
+		Project:   pro.Name,
+		Operator:  owner,
 	})
 
 	p.Redirect(http.StatusCreated, strconv.FormatInt(projectID, 10))
@@ -295,8 +296,9 @@ func (p *ProjectAPI) Delete() {
 
 	// fire event
 	evt.BuildAndPublish(&metadata.DeleteProjectEventMetadata{
-		Project:  p.project.Name,
-		Operator: p.SecurityCtx.GetUsername(),
+		ProjectID: p.project.ProjectID,
+		Project:   p.project.Name,
+		Operator:  p.SecurityCtx.GetUsername(),
 	})
 }
 
