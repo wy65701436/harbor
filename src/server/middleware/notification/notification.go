@@ -33,7 +33,7 @@ func publishEvent(r *http.Request) error {
 	if e == nil {
 		return nil
 	}
-	evt.BuildAndPublish(e)
+	evt.BuildAndPublish(*e)
 	return nil
 }
 
