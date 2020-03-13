@@ -67,21 +67,29 @@ func initSupportedNotifyType(notifyTypes ...string) {
 
 type eventKey struct{}
 
+type EventCtx struct {
+	Events     *list.List
+	MustCommit bool
+}
+
 // NewContext returns new context with event
-func NewContext(ctx context.Context, m *list.List) context.Context {
+func NewContext(ctx context.Context, ec *EventCtx) context.Context {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	return context.WithValue(ctx, eventKey{}, m)
+	return context.WithValue(ctx, eventKey{}, ec)
 }
 
 // AddEvent ....
-func AddEvent(ctx context.Context, m n_event.Metadata) error {
-	e, ok := ctx.Value(eventKey{}).(*list.List)
+func AddEvent(ctx context.Context, m n_event.Metadata, commit ...bool) error {
+	e, ok := ctx.Value(eventKey{}).(*EventCtx)
 	if !ok {
 		log.Debug("request has not event list, cannot add event into context")
 		return nil
 	}
-	e.PushBack(m)
+	if len(commit) != 0 {
+		e.MustCommit = commit[0]
+	}
+	e.Events.PushBack(m)
 	return nil
 }

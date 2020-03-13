@@ -43,11 +43,14 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			res = internal.NewResponseBuffer(w)
 			defer res.Flush()
 		}
-		events := list.New()
-		ctx := notification.NewContext(r.Context(), events)
+		eveCtx := &notification.EventCtx{
+			Events:     list.New(),
+			MustCommit: false,
+		}
+		ctx := notification.NewContext(r.Context(), eveCtx)
 		next.ServeHTTP(res, r.WithContext(ctx))
-		if res.Success() {
-			publishEvent(events)
+		if res.Success() || eveCtx.MustCommit {
+			publishEvent(eveCtx.Events)
 		}
 	}, skippers...)
 }
