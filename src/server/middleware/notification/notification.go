@@ -15,6 +15,7 @@
 package notification
 
 import (
+	"container/list"
 	"fmt"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification"
@@ -33,18 +34,14 @@ func publishEvent(r *http.Request) error {
 	if err != nil {
 		return nil
 	}
-	if es == nil {
-		fmt.Println("5555555")
-		return nil
+	for e := es.Front(); e != nil; e = e.Next() {
+		evt.BuildAndPublish(e.Value.(evt.Metadata))
 	}
-	fmt.Println(es)
-	for _, e := range es {
-		evt.BuildAndPublish(*e)
-	}
+
 	return nil
 }
 
-// Middleware sends the notification after transaction success
+// Middleware sends the notific*ation after transaction success
 func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler {
 	return middleware.New(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
 		res, ok := w.(*internal.ResponseBuffer)
@@ -52,7 +49,7 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			res = internal.NewResponseBuffer(w)
 			defer res.Flush()
 		}
-		placeholder := make(notification.Events, 0)
+		placeholder := list.New()
 		ctx := notification.NewContext(r.Context(), placeholder)
 		next.ServeHTTP(res, r.WithContext(ctx))
 		if res.Success() {

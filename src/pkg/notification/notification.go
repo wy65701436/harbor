@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"container/list"
 	"context"
 	"errors"
 	"fmt"
@@ -68,13 +69,13 @@ func initSupportedNotifyType(notifyTypes ...string) {
 
 type eventKey struct{}
 
-type Events []*n_event.Metadata
+type Events []list.List
 
 // FromContext returns event from context
-func FromContext(ctx context.Context) (Events, error) {
-	o, ok := ctx.Value(eventKey{}).(Events)
+func FromContext(ctx context.Context) (list.List, error) {
+	o, ok := ctx.Value(eventKey{}).(list.List)
 	if !ok {
-		return nil, errors.New("cannot get the EVENT from context")
+		return list.List{}, errors.New("cannot get the EVENT from context")
 	}
 	return o, nil
 }
@@ -91,11 +92,11 @@ func NewContext(ctx context.Context, m interface{}) context.Context {
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
 	fmt.Println(ctx.Value(eventKey{}))
 	fmt.Println(222222222)
-	e, ok := ctx.Value(eventKey{}).(Events)
+	e, ok := ctx.Value(eventKey{}).(list.List)
 	if !ok {
 		fmt.Println("1111111")
 		return nil
 	}
-	e = append(e, &m)
+	e.PushBack(m)
 	return nil
 }
