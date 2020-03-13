@@ -36,7 +36,7 @@ func publishEvent(es *list.List) error {
 	return nil
 }
 
-// Middleware sends the notific*ation after transaction success
+// Middleware sends the notification after transaction success
 func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler {
 	return middleware.New(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
 		res, ok := w.(*internal.ResponseBuffer)
@@ -44,11 +44,11 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			res = internal.NewResponseBuffer(w)
 			defer res.Flush()
 		}
-		placeholder := list.New()
-		ctx := notification.NewContext(r.Context(), placeholder)
+		events := list.New()
+		ctx := notification.NewContext(r.Context(), events)
 		next.ServeHTTP(res, r.WithContext(ctx))
 		if res.Success() {
-			if err := publishEvent(placeholder); err != nil {
+			if err := publishEvent(events); err != nil {
 				log.Errorf("send webhook error, %v", err)
 			}
 		}

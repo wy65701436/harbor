@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/goharbor/harbor/src/api/event/metadata"
+	"github.com/goharbor/harbor/src/pkg/notification"
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/goharbor/harbor/src/api/artifact"
@@ -145,10 +146,9 @@ func (r *repositoryAPI) DeleteRepository(ctx context.Context, params operation.D
 	}
 
 	// fire event
-	evt.BuildAndPublish(&metadata.DeleteRepositoryEventMetadata{
+	notification.AddEvent(ctx, &metadata.DeleteRepositoryEventMetadata{
 		Ctx:        ctx,
 		Repository: repository.Name,
 	})
-
 	return operation.NewDeleteRepositoryOK()
 }

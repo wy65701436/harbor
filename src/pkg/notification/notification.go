@@ -79,6 +79,7 @@ func NewContext(ctx context.Context, m *list.List) context.Context {
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
 	e, ok := ctx.Value(eventKey{}).(*list.List)
 	if !ok {
+		log.Debug("request has not event list, cannot add event into context")
 		return nil
 	}
 	e.PushBack(m)

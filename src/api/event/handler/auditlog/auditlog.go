@@ -32,7 +32,8 @@ func (h *Handler) Handle(value interface{}) error {
 	ctx := orm.NewContext(context.Background(), beegorm.NewOrm())
 	var auditLog *am.AuditLog
 	switch v := value.(type) {
-	case *event.PushArtifactEvent, *event.PullArtifactEvent, *event.DeleteArtifactEvent:
+	case *event.PushArtifactEvent, *event.PullArtifactEvent, *event.DeleteArtifactEvent,
+		*event.DeleteRepositoryEvent, *event.CreateProjectEvent, *event.DeleteProjectEvent:
 		resolver := value.(AuditResolver)
 		al, err := resolver.ResolveToAuditLog()
 		if err != nil {
