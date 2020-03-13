@@ -77,7 +77,7 @@ func MiddleWares() []beego.MiddleWare {
 		requestid.Middleware(),
 		readonly.Middleware(readonlySkippers...),
 		orm.Middleware(legacyAPISkipper),
-		transaction.Middleware(legacyAPISkipper, fetchBlobAPISkipper),
 		notification.Middleware(),
+		transaction.Middleware(legacyAPISkipper, fetchBlobAPISkipper),
 	}
 }
