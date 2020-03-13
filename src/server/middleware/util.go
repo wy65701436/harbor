@@ -29,6 +29,8 @@ const (
 	DigestSubexp = "digest"
 	// ArtifactInfoKey the context key for artifact info
 	ArtifactInfoKey = contextKey("artifactInfo")
+	// ArtifactInfoKey the context key for artifact info
+	EEEE = contextKey("event")
 )
 
 var (
