@@ -85,18 +85,27 @@ func NewContext(ctx context.Context, m n_event.Metadata) context.Context {
 	return context.WithValue(ctx, eventKey{}, m)
 }
 
+type Notifier interface {
+	AddEvent(m n_event.Metadata) error
+}
+
 type EventContext struct {
 	context.Context
 	Events []n_event.Metadata
 }
 
 // AddEvent ....
+func (c *EventContext) AddEvent(m n_event.Metadata) {
+	c.Events = append(c.Events, m)
+}
+
+// AddEvent ....
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
-	c, ok := ctx.(*EventContext)
+	c, ok := ctx.(Notifier)
 	if !ok {
 		fmt.Println("22222")
 		return nil
 	}
-	c.Events = append(c.Events, m)
+	c.AddEvent(m)
 	return nil
 }
