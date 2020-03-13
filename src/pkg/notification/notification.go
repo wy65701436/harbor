@@ -78,7 +78,7 @@ func FromContext(ctx context.Context) (n_event.Metadata, error) {
 }
 
 // NewContext returns new context with event
-func NewContext(ctx context.Context, m n_event.Metadata) context.Context {
+func NewContext(ctx context.Context, m interface{}) context.Context {
 	if ctx == nil {
 		ctx = context.Background()
 	}
