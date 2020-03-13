@@ -21,7 +21,7 @@ import (
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/internal"
 	ierror "github.com/goharbor/harbor/src/internal/error"
-	"github.com/goharbor/harbor/src/pkg/notification"
+	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
 	serror "github.com/goharbor/harbor/src/server/error"
 	"github.com/goharbor/harbor/src/server/router"
 	"github.com/opencontainers/go-digest"
@@ -60,8 +60,7 @@ func getManifest(w http.ResponseWriter, req *http.Request) {
 		if _, err = digest.Parse(reference); err != nil {
 			e.Tag = reference
 		}
-		ctx := notification.NewContext(req.Context(), e)
-		*req = *(req.WithContext(ctx))
+		evt.BuildAndPublish(e)
 	}
 }
 
