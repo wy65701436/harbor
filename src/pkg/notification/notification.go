@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification/hook"
@@ -91,8 +92,9 @@ type EventContext struct {
 
 // AddEvent ....
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
-	c, ok := ctx.(EventContext)
+	c, ok := ctx.(*EventContext)
 	if !ok {
+		fmt.Println("22222")
 		return nil
 	}
 	c.Events = append(c.Events, m)
