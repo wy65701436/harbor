@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/goharbor/harbor/src/api/event/metadata"
 	"github.com/goharbor/harbor/src/pkg/notification"
-	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"net/http"
 	"strings"
 	"time"
