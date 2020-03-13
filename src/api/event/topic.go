@@ -87,9 +87,23 @@ func (d *DeleteProjectEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 
 // DeleteRepositoryEvent is the deleting repository event
 type DeleteRepositoryEvent struct {
+	ProjectID  int64
 	Repository string
 	Operator   string
 	OccurAt    time.Time
+}
+
+// ResolveToAuditLog ...
+func (d *DeleteRepositoryEvent) ResolveToAuditLog() (*model.AuditLog, error) {
+	auditLog := &model.AuditLog{
+		ProjectID:    d.ProjectID,
+		OpTime:       d.OccurAt,
+		Operation:    "delete",
+		Username:     d.Operator,
+		ResourceType: "project",
+		Resource:     d.Repository,
+	}
+	return auditLog, nil
 }
 
 // ArtifactEvent is the pushing/pulling artifact event
@@ -169,6 +183,18 @@ type CreateTagEvent struct {
 	OccurAt          time.Time
 }
 
+// ResolveToAuditLog ...
+func (c *CreateTagEvent) ResolveToAuditLog() (*model.AuditLog, error) {
+	auditLog := &model.AuditLog{
+		ProjectID:    c.AttachedArtifact.ProjectID,
+		OpTime:       c.OccurAt,
+		Operation:    "create",
+		Username:     c.Operator,
+		ResourceType: "tag",
+		Resource:     fmt.Sprintf("%s:%s", c.Repository, c.Tag)}
+	return auditLog, nil
+}
+
 // DeleteTagEvent is the deleting tag event
 type DeleteTagEvent struct {
 	Repository       string
@@ -176,6 +202,18 @@ type DeleteTagEvent struct {
 	AttachedArtifact *artifact.Artifact
 	Operator         string
 	OccurAt          time.Time
+}
+
+// ResolveToAuditLog ...
+func (d *DeleteTagEvent) ResolveToAuditLog() (*model.AuditLog, error) {
+	auditLog := &model.AuditLog{
+		ProjectID:    d.AttachedArtifact.ProjectID,
+		OpTime:       d.OccurAt,
+		Operation:    "delete",
+		Username:     d.Operator,
+		ResourceType: "tag",
+		Resource:     fmt.Sprintf("%s:%s", d.Repository, d.Tag)}
+	return auditLog, nil
 }
 
 // ScanImageEvent is scanning image related event data to publish

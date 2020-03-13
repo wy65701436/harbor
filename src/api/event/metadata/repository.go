@@ -26,12 +26,14 @@ import (
 type DeleteRepositoryEventMetadata struct {
 	Ctx        context.Context
 	Repository string
+	ProjectID  int64
 }
 
 // Resolve to the event from the metadata
 func (d *DeleteRepositoryEventMetadata) Resolve(event *event.Event) error {
 	data := &event2.DeleteRepositoryEvent{
 		Repository: d.Repository,
+		ProjectID:  d.ProjectID,
 		OccurAt:    time.Now(),
 	}
 	cx, exist := security.FromContext(d.Ctx)

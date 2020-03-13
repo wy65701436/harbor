@@ -16,8 +16,11 @@ func init() {
 	notifier.Subscribe(event.TopicPushArtifact, handler)
 	notifier.Subscribe(event.TopicPullArtifact, handler)
 	notifier.Subscribe(event.TopicDeleteArtifact, handler)
-	notifier.Subscribe(event.TopicDeleteProject, handler)
 	notifier.Subscribe(event.TopicCreateProject, handler)
+	notifier.Subscribe(event.TopicDeleteProject, handler)
+	notifier.Subscribe(event.TopicDeleteRepository, handler)
+	notifier.Subscribe(event.TopicCreateTag, handler)
+	notifier.Subscribe(event.TopicDeleteTag, handler)
 }
 
 // Handler - audit log handler
@@ -35,7 +38,8 @@ func (h *Handler) Handle(value interface{}) error {
 	var auditLog *am.AuditLog
 	switch v := value.(type) {
 	case *event.PushArtifactEvent, *event.PullArtifactEvent, *event.DeleteArtifactEvent,
-		*event.DeleteRepositoryEvent, *event.CreateProjectEvent, *event.DeleteProjectEvent:
+		*event.DeleteRepositoryEvent, *event.CreateProjectEvent, *event.DeleteProjectEvent,
+		*event.DeleteTagEvent, *event.CreateTagEvent:
 		resolver := value.(AuditResolver)
 		al, err := resolver.ResolveToAuditLog()
 		if err != nil {
