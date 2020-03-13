@@ -68,7 +68,7 @@ func initSupportedNotifyType(notifyTypes ...string) {
 
 type eventKey struct{}
 
-type Events []n_event.Metadata
+type Events []*n_event.Metadata
 
 // FromContext returns event from context
 func FromContext(ctx context.Context) (Events, error) {
@@ -91,11 +91,11 @@ func NewContext(ctx context.Context, m interface{}) context.Context {
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
 	fmt.Println(ctx.Value(eventKey{}))
 	fmt.Println(222222222)
-	e, ok := ctx.Value(eventKey{}).(*Events)
+	e, ok := ctx.Value(eventKey{}).(Events)
 	if !ok {
 		fmt.Println("1111111")
 		return nil
 	}
-	*e = append(*e, m)
+	e = append(e, &m)
 	return nil
 }

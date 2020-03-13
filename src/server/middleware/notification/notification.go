@@ -15,6 +15,7 @@
 package notification
 
 import (
+	"fmt"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification"
 	"github.com/goharbor/harbor/src/server/middleware"
@@ -31,10 +32,12 @@ func publishEvent(r *http.Request) error {
 		return nil
 	}
 	if es == nil {
+		fmt.Println("5555555")
 		return nil
 	}
+	fmt.Println(es)
 	for _, e := range es {
-		evt.BuildAndPublish(e)
+		evt.BuildAndPublish(*e)
 	}
 	return nil
 }
