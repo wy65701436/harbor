@@ -26,14 +26,16 @@ import (
 
 // publishEvent publishes the events in the context, it ensures publish happens after transaction success.
 func publishEvent(r *http.Request) error {
-	e, err := notification.FromContext(r.Context())
+	es, err := notification.FromContext(r.Context())
 	if err != nil {
 		return nil
 	}
-	if e == nil {
+	if es == nil {
 		return nil
 	}
-	evt.BuildAndPublish(*e)
+	for _, e := range es {
+		evt.BuildAndPublish(e)
+	}
 	return nil
 }
 
@@ -45,8 +47,8 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			res = internal.NewResponseBuffer(w)
 			defer res.Flush()
 		}
-		var evts *evt.Metadata
-		ctx := notification.NewContext(r.Context(), evts)
+		placeholder := make(notification.Events, 0)
+		ctx := notification.NewContext(r.Context(), placeholder)
 		next.ServeHTTP(res, r.WithContext(ctx))
 		if res.Success() {
 			if err := publishEvent(r); err != nil {
