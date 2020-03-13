@@ -86,7 +86,7 @@ func NewContext(ctx context.Context, m n_event.Metadata) context.Context {
 }
 
 type Notifier interface {
-	AddEvent(m n_event.Metadata) error
+	AddEvent(m n_event.Metadata)
 }
 
 type EventContext struct {
