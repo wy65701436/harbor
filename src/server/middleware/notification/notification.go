@@ -15,7 +15,6 @@
 package notification
 
 import (
-	"fmt"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification"
 	"github.com/goharbor/harbor/src/server/middleware"
@@ -26,17 +25,16 @@ import (
 )
 
 // publishEvent publishes the events in the context, it ensures publish happens after transaction success.
-func publishEvent(r *http.Request) error {
-	c, ok := r.Context().(*notification.EventContext)
-	if !ok {
-		return fmt.Errorf("%s URL %s without event, no event send", r.Method, r.URL.Path)
-	}
-
-	if len(c.Events) != 0 {
+func publishEvent(e *notification.EventContext) error {
+	if e == nil {
 		return nil
 	}
 
-	for _, e := range c.Events {
+	if len(e.Events) != 0 {
+		return nil
+	}
+
+	for _, e := range e.Events {
 		evt.BuildAndPublish(e)
 	}
 
@@ -51,10 +49,10 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			res = internal.NewResponseBuffer(w)
 			defer res.Flush()
 		}
-		ec := notification.EventContext{Context: r.Context()}
+		ec := &notification.EventContext{Context: r.Context()}
 		next.ServeHTTP(res, r.WithContext(ec))
 		if res.Success() {
-			if err := publishEvent(r); err != nil {
+			if err := publishEvent(ec); err != nil {
 				log.Errorf("send webhook error, %v", err)
 			}
 		}

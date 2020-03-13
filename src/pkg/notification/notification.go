@@ -92,7 +92,7 @@ type EventContext struct {
 
 // AddEvent ....
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
-	c, ok := ctx.(EventContext)
+	c, ok := ctx.(*EventContext)
 	if !ok {
 		fmt.Println("22222")
 		return nil
