@@ -62,7 +62,7 @@ func (c *CreateProjectEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		Operation:    "create",
 		Username:     c.Operator,
 		ResourceType: "project",
-		Resource:     fmt.Sprintf("%s", c.Project)}
+		Resource:     c.Project}
 	return auditLog, nil
 }
 
@@ -83,7 +83,7 @@ func (d *DeleteProjectEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		Operation:    "delete",
 		Username:     d.Operator,
 		ResourceType: "project",
-		Resource:     fmt.Sprintf("%s", d.Project)}
+		Resource:     d.Project}
 	return auditLog, nil
 }
 
@@ -103,7 +103,7 @@ func (d *DeleteRepositoryEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		OpTime:       d.OccurAt,
 		Operation:    "delete",
 		Username:     d.Operator,
-		ResourceType: "project",
+		ResourceType: "repository",
 		Resource:     d.Repository,
 	}
 	return auditLog, nil
@@ -134,6 +134,11 @@ func (p *PushArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		ResourceType: "artifact",
 		Resource: fmt.Sprintf("%s:%s",
 			p.Artifact.RepositoryName, p.Tag)}
+
+	if p.Tag == "" {
+		auditLog.Resource = fmt.Sprintf("%s:%s",
+			p.Artifact.RepositoryName, p.Artifact.Digest)
+	}
 	return auditLog, nil
 }
 
@@ -152,6 +157,12 @@ func (p *PullArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		ResourceType: "artifact",
 		Resource: fmt.Sprintf("%s:%s",
 			p.Artifact.RepositoryName, p.Tag)}
+
+	if p.Tag == "" {
+		auditLog.Resource = fmt.Sprintf("%s:%s",
+			p.Artifact.RepositoryName, p.Artifact.Digest)
+	}
+
 	return auditLog, nil
 }
 
@@ -173,7 +184,7 @@ func (p *DeleteArtifactEvent) ResolveToAuditLog() (*model.AuditLog, error) {
 		Operation:    "delete",
 		Username:     p.Operator,
 		ResourceType: "artifact",
-		Resource:     fmt.Sprintf("%s", p.Artifact.RepositoryName)}
+		Resource:     fmt.Sprintf("%s:%s", p.Artifact.RepositoryName, p.Artifact.Digest)}
 	return auditLog, nil
 }
 
