@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification/hook"
@@ -12,6 +13,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/notification/policy/manager"
 	n_event "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
+	"github.com/goharbor/harbor/src/server/middleware/notification"
 )
 
 var (
@@ -82,4 +84,14 @@ func NewContext(ctx context.Context, m n_event.Metadata) context.Context {
 		ctx = context.Background()
 	}
 	return context.WithValue(ctx, eventKey{}, m)
+}
+
+// AddEvent ....
+func AddEvent(ctx context.Context, m n_event.Metadata) error {
+	c, ok := ctx.(notification.EventContext)
+	if !ok {
+		return fmt.Errorf("%s URL %s without event, no event send", r.Method, r.URL.Path)
+	}
+	c.Events = append(c.Events, m)
+	return nil
 }

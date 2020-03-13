@@ -153,7 +153,7 @@ func (c *controller) Ensure(ctx context.Context, repository, digest string, tags
 	}
 	//evt.BuildAndPublish(e)
 	//ctx = notification.NewContext(ctx, e)
-	middleware_notification.AddEvent(ctx, e)
+	notification.AddEvent(ctx, e)
 	return created, artifact.ID, nil
 }
 

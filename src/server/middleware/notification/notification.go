@@ -28,34 +28,33 @@ import (
 	"github.com/goharbor/harbor/src/server/middleware"
 )
 
-type eventContext struct {
+type EventContext struct {
 	context.Context
-	events []event.Metadata
+	Events []event.Metadata
 }
 
 // AddEvent ....
 func AddEvent(ctx context.Context, e event.Metadata) error {
-	c, ok := ctx.(eventContext)
+	c, ok := ctx.(EventContext)
 	if !ok {
 		return fmt.Errorf("%s URL %s without event, no event send", r.Method, r.URL.Path)
 	}
-	c.events = append(c.events, e)
+	c.Events = append(c.Events, e)
 	return nil
-
 }
 
 // publishEvent publishes the events in the context, it ensures publish happens after transaction success.
 func publishEvent(r *http.Request) error {
-	c, ok := r.Context().(eventContext)
+	c, ok := r.Context().(EventContext)
 	if !ok {
 		return fmt.Errorf("%s URL %s without event, no event send", r.Method, r.URL.Path)
 	}
 
-	if len(c.events) != 0 {
+	if len(c.Events) != 0 {
 		return nil
 	}
 
-	for _, e := range c.events {
+	for _, e := range c.Events {
 		evt.BuildAndPublish(e)
 	}
 
@@ -89,7 +88,7 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			res = internal.NewResponseBuffer(w)
 			defer res.Flush()
 		}
-		ec := &eventContext{Context: r.Context()}
+		ec := &EventContext{Context: r.Context()}
 		next.ServeHTTP(res, r.WithContext(ec))
 		if res.Success() {
 			if err := publishEvent(r); err != nil {
