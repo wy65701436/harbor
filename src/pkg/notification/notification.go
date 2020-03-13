@@ -4,7 +4,6 @@ import (
 	"container/list"
 	"context"
 	"errors"
-	"fmt"
 	"github.com/goharbor/harbor/src/api/event"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification/hook"
@@ -88,11 +87,8 @@ func NewContext(ctx context.Context, m *list.List) context.Context {
 
 // AddEvent ....
 func AddEvent(ctx context.Context, m n_event.Metadata) error {
-	fmt.Println(ctx.Value(eventKey{}))
-	fmt.Println(222222222)
 	e, ok := ctx.Value(eventKey{}).(*list.List)
 	if !ok {
-		fmt.Println("1111111")
 		return nil
 	}
 	e.PushBack(m)
