@@ -15,17 +15,14 @@
 package notification
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"github.com/astaxie/beego/orm"
 	"github.com/goharbor/harbor/src/common/utils/log"
 	"github.com/goharbor/harbor/src/pkg/notification"
+	"github.com/goharbor/harbor/src/server/middleware"
 	"net/http"
 
 	"github.com/goharbor/harbor/src/internal"
 	evt "github.com/goharbor/harbor/src/pkg/notifier/event"
-	"github.com/goharbor/harbor/src/server/middleware"
 )
 
 // publishEvent publishes the events in the context, it ensures publish happens after transaction success.

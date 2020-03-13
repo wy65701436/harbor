@@ -13,7 +13,6 @@ import (
 	"github.com/goharbor/harbor/src/pkg/notification/policy/manager"
 	n_event "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
-	"github.com/goharbor/harbor/src/server/middleware/notification"
 )
 
 var (
