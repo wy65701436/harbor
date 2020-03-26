@@ -94,6 +94,8 @@ func (s *SecurityContext) Can(action types.Action, resource types.Resource) bool
 	})
 
 	log.Info("============")
+	log.Info(action)
+	log.Info(resource)
 	log.Info(s.evaluator)
 	log.Info(s.evaluator.HasPermission(resource, action))
 	log.Info("============")
