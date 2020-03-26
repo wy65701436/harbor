@@ -134,7 +134,7 @@ func Middleware() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			log.Info("==============")
 			log.Info("==============")
-			log.Info(httputil.DumpRequest(req, true))
+			log.Info(httputil.DumpRequest(req, false))
 			log.Info("==============")
 			log.Info("==============")
 			if err := checker.check(req); err != nil {
