@@ -15,6 +15,7 @@
 package robot
 
 import (
+	"github.com/goharbor/harbor/src/common/utils/log"
 	"sync"
 
 	"github.com/goharbor/harbor/src/common/models"
@@ -91,6 +92,11 @@ func (s *SecurityContext) Can(action types.Action, resource types.Resource) bool
 
 		s.evaluator = rbac.NewProjectRobotEvaluator(s, s.pm, robotFactory)
 	})
+
+	log.Info("============")
+	log.Info(s.evaluator)
+	log.Info(s.evaluator.HasPermission(resource, action))
+	log.Info("============")
 
 	return s.evaluator != nil && s.evaluator.HasPermission(resource, action)
 }
