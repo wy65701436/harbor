@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"sync"
 
 	"github.com/goharbor/harbor/src/common/rbac"
@@ -131,6 +132,11 @@ func Middleware() func(http.Handler) http.Handler {
 	})
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			log.Info("==============")
+			log.Info("==============")
+			log.Info(httputil.DumpRequest(req, true))
+			log.Info("==============")
+			log.Info("==============")
 			if err := checker.check(req); err != nil {
 				// the header is needed for "docker manifest" commands: https://github.com/docker/cli/issues/989
 				rw.Header().Set("Docker-Distribution-Api-Version", "registry/2.0")
