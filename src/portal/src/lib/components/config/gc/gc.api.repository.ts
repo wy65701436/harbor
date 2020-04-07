@@ -46,7 +46,7 @@ export class GcApiDefaultRepository extends GcApiRepository {
     }
 
     public getLog(id): Observable<any> {
-        return this.http.get(`${this.config.gcEndpoint}/${id}/log`)
+        return this.http.get(`${this.config.gcEndpoint}/schedule/${id}/log`)
             .pipe(catchError(error => observableThrowError(error)));
     }
 
@@ -61,7 +61,7 @@ export class GcApiDefaultRepository extends GcApiRepository {
     }
 
     public getLogLink(id) {
-        return `${this.config.gcEndpoint}/${id}/log`;
+        return `${this.config.gcEndpoint}/schedule/${id}/log`;
     }
 
 }

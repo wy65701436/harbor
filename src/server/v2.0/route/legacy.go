@@ -54,7 +54,7 @@ func registerLegacyRoutes() {
 
 	beego.Router("/api/"+version+"/system/gc", &api.GCAPI{}, "get:List")
 	beego.Router("/api/"+version+"/system/gc/:id", &api.GCAPI{}, "get:GetGC")
-	beego.Router("/api/"+version+"/system/gc/:id([0-9]+)/log", &api.GCAPI{}, "get:GetLog")
+	beego.Router("/api/"+version+"/system/gc/schedule/:id([0-9]+)/log", &api.GCAPI{}, "get:GetLog")
 	beego.Router("/api/"+version+"/system/gc/schedule", &api.GCAPI{}, "get:Get;put:Put;post:Post")
 	beego.Router("/api/"+version+"/system/scanAll/schedule", &api.ScanAllAPI{}, "get:Get;put:Put;post:Post")
 	beego.Router("/api/"+version+"/system/CVEWhitelist", &api.SysCVEWhitelistAPI{}, "get:Get;put:Put")

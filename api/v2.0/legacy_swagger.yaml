@@ -1992,7 +1992,7 @@ paths:
           description: User does not have permission of admin role.
         '500':
           description: Unexpected internal errors.
-  '/system/gc/{id}/log':
+  '/system/gc/schedule/{id}/log':
     get:
       summary: Get gc job log.
       description: This endpoint let user get gc job logs filtered by specific ID.
