@@ -45,7 +45,7 @@ func attachToken(w http.ResponseWriter, r *http.Request) {
 
 func handleError(w http.ResponseWriter, r *http.Request) {
 	attachToken(w, r)
-	serror.SendError(w, errors.New(csrf.FailureReason(r)).WithCode(errors.ForbiddenCode))
+	serror.SendError(w, errors.New(csrf.FailureReason(r)).WithCode(errors.ForbiddenCode).WithMessage("csrf failure"))
 	return
 }
 
