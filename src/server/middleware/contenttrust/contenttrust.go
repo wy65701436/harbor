@@ -56,6 +56,11 @@ func Middleware() func(http.Handler) http.Handler {
 			if err != nil {
 				return err
 			}
+			logger.Info("1111111")
+			logger.Info(af.Digest)
+			logger.Info(af.Repository)
+			logger.Info(match)
+			logger.Info("1111111")
 			if !match {
 				pkgE := errors.New(nil).WithCode(errors.PROJECTPOLICYVIOLATION).WithMessage("The image is not signed in Notary.")
 				return pkgE
