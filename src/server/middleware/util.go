@@ -53,7 +53,8 @@ func EnsureArtifactDigest(ctx context.Context) error {
 	log.Info("55555555")
 	af, err := artifact.Ctl.GetByReference(ctx, info.Repository, info.Reference, nil)
 	if err != nil || af == nil {
-		return fmt.Errorf("failed to get artifact for populating digest, error: %v", err)
+		log.Infof("failed to get artifact for populating digest, error: %v", err)
+		return err
 	}
 
 	log.Info("66666666")
