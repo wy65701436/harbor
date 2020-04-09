@@ -39,7 +39,11 @@ func (sc Checker) IsTagSigned(tag, digest string) bool {
 
 // IsArtifactSigned checks if the artifact with given digest is signed.
 func (sc Checker) IsArtifactSigned(digest string) bool {
+	log.Info("11111111")
+	log.Info(digest)
+	log.Info("11111111")
 	for _, v := range sc.signatures {
+		log.Info(v)
 		if v == digest {
 			return true
 		}

@@ -8,6 +8,7 @@ import (
 	"github.com/goharbor/harbor/src/jobservice/logger"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/lib/errors"
+	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/pkg/signature"
 	"github.com/goharbor/harbor/src/server/middleware"
 	"net/http"
@@ -21,6 +22,8 @@ var (
 		if err != nil {
 			return false, err
 		}
+		log.Info("22222")
+		log.Info(checker.IsTagSigned(art.Tag, art.Digest))
 		return checker.IsArtifactSigned(art.Digest), nil
 	}
 )
