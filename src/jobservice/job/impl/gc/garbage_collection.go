@@ -175,6 +175,7 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 			gc.deleteUntagged = untagged
 		}
 	}
+	gc.logger.Infof("untagged status: %v", gc.deleteUntagged)
 	return nil
 }
 
@@ -227,6 +228,7 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 
 	// handle the optional ones, and the artifact controller will move them into trash.
 	if gc.deleteUntagged {
+		gc.logger.Info("start to delete the untagged artifacts")
 		untagged, err := gc.artCtl.List(ctx.SystemContext(), &q.Query{
 			Keywords: map[string]interface{}{
 				"Tags": "nil",
@@ -235,6 +237,7 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 		if err != nil {
 			return err
 		}
+		gc.logger.Info("untagged candidates: %v", untagged)
 		for _, art := range untagged {
 			gc.logger.Infof("delete the untagged artifact: ProjectID:(%d)-RepositoryName(%s)-MediaType:(%s)-Digest:(%s)",
 				art.ProjectID, art.RepositoryName, art.ManifestMediaType, art.Digest)
@@ -243,6 +246,7 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 				gc.logger.Errorf("failed to delete untagged:%d artifact in DB, error, %v", art.ID, err)
 			}
 		}
+		gc.logger.Info("finish to delete the untagged artifacts")
 	}
 
 	// handle the trash
@@ -250,6 +254,7 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 	if err != nil {
 		return err
 	}
+	gc.logger.Info("required candidates: %v", required)
 	for _, art := range required {
 		gc.logger.Infof("delete the manifest with registry v2 API: RepositoryName(%s)-MediaType:(%s)-Digest:(%s)",
 			art.RepositoryName, art.ManifestMediaType, art.Digest)
