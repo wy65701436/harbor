@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"github.com/goharbor/harbor/src/lib/log"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -40,16 +41,24 @@ func EnsureArtifactDigest(ctx context.Context) error {
 	info := lib.GetArtifactInfo(ctx)
 	none := lib.ArtifactInfo{}
 
+	log.Info("4444444")
+
 	if info == none {
 		return fmt.Errorf("no artifact info in context")
 	}
 	if len(info.Digest) > 0 {
 		return nil
 	}
+
+	log.Info("55555555")
 	af, err := artifact.Ctl.GetByReference(ctx, info.Repository, info.Reference, nil)
 	if err != nil || af == nil {
 		return fmt.Errorf("failed to get artifact for populating digest, error: %v", err)
 	}
+
+	log.Info("66666666")
+	log.Info(af)
+	log.Info("66666666")
 	info.Digest = af.Digest
 	return nil
 }

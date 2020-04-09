@@ -40,6 +40,9 @@ func Middleware() func(http.Handler) http.Handler {
 		if af == none {
 			return fmt.Errorf("artifactinfo middleware required before this middleware")
 		}
+		log.Info("3333333")
+		log.Info(af.Digest)
+		log.Info("3333333")
 		pro, err := project.Ctl.GetByName(ctx, af.ProjectName)
 		if err != nil {
 			return err
