@@ -131,7 +131,7 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		gc.logger.Errorf("failed to get gc result: %v", err)
 		return err
 	}
-	gc.removeUntaggedBlobs(ctx)
+	//gc.removeUntaggedBlobs(ctx)
 	if err := gc.cleanCache(); err != nil {
 		return err
 	}
