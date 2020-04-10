@@ -15,7 +15,6 @@
 package gc
 
 import (
-	"fmt"
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/controller/artifact"
 	"github.com/goharbor/harbor/src/controller/project"
@@ -112,16 +111,16 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 	if err := gc.init(ctx, params); err != nil {
 		return err
 	}
-	readOnlyCur, err := getReadOnly(gc.cfgMgr)
-	if err != nil {
-		return err
-	}
-	if readOnlyCur != true {
-		if err := setReadOnly(gc.cfgMgr, true); err != nil {
-			return err
-		}
-		defer setReadOnly(gc.cfgMgr, readOnlyCur)
-	}
+	//readOnlyCur, err := getReadOnly(gc.cfgMgr)
+	//if err != nil {
+	//	return err
+	//}
+	//if readOnlyCur != true {
+	//	if err := setReadOnly(gc.cfgMgr, true); err != nil {
+	//		return err
+	//	}
+	//	defer setReadOnly(gc.cfgMgr, readOnlyCur)
+	//}
 	gc.logger.Infof("start to run gc in job.")
 	gc.logger.Infof("@@@@@@@@@@@")
 	//if err := gc.deleteCandidates(ctx); err != nil {
@@ -147,38 +146,38 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 	regCtlInit()
 	gc.logger = ctx.GetLogger()
-	// UT will use the mock client, ctl and mgr
-	if os.Getenv("UTTEST") != "true" {
-		gc.registryCtlClient = registryctl.RegistryCtlClient
-		gc.artCtl = artifact.Ctl
-		gc.artrashMgr = artifactrash.NewManager()
-		gc.blobMgr = blob.NewManager()
-		gc.projectCtl = project.Ctl
-	}
-	if err := gc.registryCtlClient.Health(); err != nil {
-		gc.logger.Errorf("failed to start gc as registry controller is unreachable: %v", err)
-		return err
-	}
-
-	errTpl := "failed to get required property: %s"
-	if v, ok := ctx.Get(common.CoreURL); ok && len(v.(string)) > 0 {
-		gc.CoreURL = v.(string)
-	} else {
-		return fmt.Errorf(errTpl, common.CoreURL)
-	}
-	secret := os.Getenv("JOBSERVICE_SECRET")
-	configURL := gc.CoreURL + common.CoreConfigPath
-	gc.cfgMgr = config.NewRESTCfgManager(configURL, secret)
-	gc.redisURL = params["redis_url_reg"].(string)
-
-	// default is to delete the untagged artifact
-	gc.deleteUntagged = true
-	deleteUntagged, exist := params["delete_untagged"]
-	if exist {
-		if untagged, ok := deleteUntagged.(bool); ok && !untagged {
-			gc.deleteUntagged = untagged
-		}
-	}
+	//// UT will use the mock client, ctl and mgr
+	//if os.Getenv("UTTEST") != "true" {
+	//	gc.registryCtlClient = registryctl.RegistryCtlClient
+	//	gc.artCtl = artifact.Ctl
+	//	gc.artrashMgr = artifactrash.NewManager()
+	//	gc.blobMgr = blob.NewManager()
+	//	gc.projectCtl = project.Ctl
+	//}
+	//if err := gc.registryCtlClient.Health(); err != nil {
+	//	gc.logger.Errorf("failed to start gc as registry controller is unreachable: %v", err)
+	//	return err
+	//}
+	//
+	//errTpl := "failed to get required property: %s"
+	//if v, ok := ctx.Get(common.CoreURL); ok && len(v.(string)) > 0 {
+	//	gc.CoreURL = v.(string)
+	//} else {
+	//	return fmt.Errorf(errTpl, common.CoreURL)
+	//}
+	//secret := os.Getenv("JOBSERVICE_SECRET")
+	//configURL := gc.CoreURL + common.CoreConfigPath
+	//gc.cfgMgr = config.NewRESTCfgManager(configURL, secret)
+	//gc.redisURL = params["redis_url_reg"].(string)
+	//
+	//// default is to delete the untagged artifact
+	//gc.deleteUntagged = true
+	//deleteUntagged, exist := params["delete_untagged"]
+	//if exist {
+	//	if untagged, ok := deleteUntagged.(bool); ok && !untagged {
+	//		gc.deleteUntagged = untagged
+	//	}
+	//}
 	return nil
 }
 
