@@ -259,9 +259,9 @@ func (gc *GarbageCollector) deleteCandidates(ctx job.Context) error {
 	}
 	gc.logger.Info("required candidate: %+v", required)
 	for _, art := range required {
-		if err := deleteManifest(art.RepositoryName, art.Digest); err != nil {
-			return fmt.Errorf("failed to delete manifest, %s:%s with error: %v", art.RepositoryName, art.Digest, err)
-		}
+		//if err := deleteManifest(art.RepositoryName, art.Digest); err != nil {
+		//	return fmt.Errorf("failed to delete manifest, %s:%s with error: %v", art.RepositoryName, art.Digest, err)
+		//}
 		gc.logger.Infof("delete the manifest with registry v2 API: RepositoryName(%s)-MediaType:(%s)-Digest:(%s)",
 			art.RepositoryName, art.ManifestMediaType, art.Digest)
 	}
