@@ -314,6 +314,7 @@ func (gc *GarbageCollector) removeUntaggedBlobs(ctx job.Context) {
 			gc.logger.Errorf("failed to get blobs of project, %v", err)
 			continue
 		}
+		gc.logger.Info("all blobs of project %v", all)
 		if err := gc.blobMgr.CleanupAssociationsForProject(ctx.SystemContext(), project.ProjectID, all); err != nil {
 			gc.logger.Errorf("failed to clean untagged blobs of project, %v", err)
 			continue
