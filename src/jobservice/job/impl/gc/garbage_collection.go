@@ -108,9 +108,9 @@ func (gc *GarbageCollector) Validate(params job.Parameters) error {
 //		> the deleted artifact, bases on table of artifact_trash and artifact
 //		> the untagged artifact(optional), bases on table of artifact.
 func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
-	if err := gc.init(ctx, params); err != nil {
-		return err
-	}
+	//if err := gc.init(ctx, params); err != nil {
+	//	return err
+	//}
 	//readOnlyCur, err := getReadOnly(gc.cfgMgr)
 	//if err != nil {
 	//	return err
@@ -121,25 +121,25 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 	//	}
 	//	defer setReadOnly(gc.cfgMgr, readOnlyCur)
 	//}
-	gc.logger.Infof("start to run gc in job.")
-	gc.logger.Infof("@@@@@@@@@@@")
+	//gc.logger.Infof("start to run gc in job.")
+	//gc.logger.Infof("@@@@@@@@@@@")
 	//if err := gc.deleteCandidates(ctx); err != nil {
 	//	gc.logger.Errorf("failed to delete GC candidates in gc job, with error: %v", err)
 	//}
-	gc.logger.Infof("@@@@@@@@@@@")
+	//gc.logger.Infof("@@@@@@@@@@@")
 	//gcr, err := gc.registryCtlClient.StartGC()
 	//if err != nil {
 	//	gc.logger.Errorf("failed to get gc result: %v", err)
 	//	return err
 	//}
-	gc.logger.Infof("@@@@@@@@@@@")
-	gc.logger.Infof("@@@@@@@@@@@")
+	//gc.logger.Infof("@@@@@@@@@@@")
+	//gc.logger.Infof("@@@@@@@@@@@")
 	//gc.removeUntaggedBlobs(ctx)
 	//if err := gc.cleanCache(); err != nil {
 	//	return err
 	//}
 	//gc.logger.Infof("GC results: status: %t, message: %s, start: %s, end: %s.", gcr.Status, gcr.Msg, gcr.StartTime, gcr.EndTime)
-	gc.logger.Infof("success to run gc in job.")
+	//gc.logger.Infof("success to run gc in job.")
 	return nil
 }
 
