@@ -127,11 +127,12 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 	//if err := gc.deleteCandidates(ctx); err != nil {
 	//	gc.logger.Errorf("failed to delete GC candidates in gc job, with error: %v", err)
 	//}
-	gcr, err := gc.registryCtlClient.StartGC()
-	if err != nil {
-		gc.logger.Errorf("failed to get gc result: %v", err)
-		return err
-	}
+	gc.logger.Infof("@@@@@@@@@@@")
+	//gcr, err := gc.registryCtlClient.StartGC()
+	//if err != nil {
+	//	gc.logger.Errorf("failed to get gc result: %v", err)
+	//	return err
+	//}
 	gc.logger.Infof("@@@@@@@@@@@")
 	gc.logger.Infof("@@@@@@@@@@@")
 	//gc.removeUntaggedBlobs(ctx)
