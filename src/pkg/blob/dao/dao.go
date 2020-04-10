@@ -324,6 +324,10 @@ func (d *dao) DeleteProjectBlob(ctx context.Context, projectID int64, blobIDs ..
 		return err
 	}
 
+	log.Info("77777777")
+	log.Infof("%v", qs)
+	log.Info("77777777")
+
 	_, err = qs.Delete()
 	return err
 }
