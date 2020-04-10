@@ -133,10 +133,11 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		return err
 	}
 	gc.logger.Infof("@@@@@@@@@@@")
+	gc.logger.Infof("@@@@@@@@@@@")
 	//gc.removeUntaggedBlobs(ctx)
-	if err := gc.cleanCache(); err != nil {
-		return err
-	}
+	//if err := gc.cleanCache(); err != nil {
+	//	return err
+	//}
 	gc.logger.Infof("GC results: status: %t, message: %s, start: %s, end: %s.", gcr.Status, gcr.Msg, gcr.StartTime, gcr.EndTime)
 	gc.logger.Infof("success to run gc in job.")
 	return nil
