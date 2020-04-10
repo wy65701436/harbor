@@ -17,6 +17,7 @@ package dao
 import (
 	"context"
 	"fmt"
+	"github.com/goharbor/harbor/src/lib/log"
 	"strings"
 	"time"
 
@@ -217,6 +218,10 @@ func (d *dao) FindBlobsShouldUnassociatedWithProject(ctx context.Context, projec
 		return nil, err
 	}
 
+	log.Info("22222222")
+	log.Infof("%v", blobs)
+	log.Info("22222222")
+
 	sql := `SELECT b.digest_blob FROM artifact a, artifact_blob b WHERE a.digest = b.digest_af AND a.project_id = ? AND b.digest_blob IN (%s)`
 	params := []interface{}{projectID}
 	for _, blob := range blobs {
@@ -233,6 +238,10 @@ func (d *dao) FindBlobsShouldUnassociatedWithProject(ctx context.Context, projec
 	for _, digest := range digests {
 		shouldAssociated[digest] = true
 	}
+
+	log.Info("33333333")
+	log.Infof("%v", digests)
+	log.Info("33333333")
 
 	var results []*models.Blob
 	for _, blob := range blobs {

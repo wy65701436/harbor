@@ -16,6 +16,7 @@ package blob
 
 import (
 	"context"
+	"github.com/goharbor/harbor/src/lib/log"
 
 	"github.com/goharbor/harbor/src/pkg/blob/dao"
 	"github.com/goharbor/harbor/src/pkg/blob/models"
@@ -95,6 +96,10 @@ func (m *manager) CleanupAssociationsForProject(ctx context.Context, projectID i
 	if err != nil {
 		return err
 	}
+
+	log.Info("1111111")
+	log.Infof("%v", shouldUnassociatedBlobs)
+	log.Info("1111111")
 
 	var blobIDs []int64
 	for _, blob := range shouldUnassociatedBlobs {
