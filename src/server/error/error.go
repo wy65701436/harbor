@@ -51,7 +51,7 @@ func SendError(w http.ResponseWriter, err error) {
 	// the error detail is logged only, and will not be sent to the client to avoid leaking server information
 	if statusCode >= http.StatusInternalServerError {
 		log.Error(errPayload)
-		log.Debug(stackTrace)
+		log.Error(stackTrace)
 		err = errors.New(nil).WithCode(errors.GeneralCode).WithMessage("internal server error")
 		errPayload = errors.NewErrs(err).Error()
 	} else {
