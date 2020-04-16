@@ -123,7 +123,7 @@ func (b *BaseController) RequireProjectAccess(projectIDOrName interface{}, actio
 		if !b.SecurityCtx.IsAuthenticated() {
 			b.SendError(errors.UnauthorizedError(errors.New("Unauthorized")))
 		} else {
-			b.SendError(errors.New(errors.New(b.SecurityCtx.GetUsername())).WithCode(errors.ForbiddenCode))
+			b.SendError(errors.New(errors.New(b.SecurityCtx.GetUsername() + " debugging")).WithCode(errors.ForbiddenCode))
 		}
 
 		return false
