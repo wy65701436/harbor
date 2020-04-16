@@ -45,5 +45,8 @@ func (s *session) Generate(req *http.Request) security.Context {
 		return nil
 	}
 	log.Debugf("a session security context generated for request %s %s", req.Method, req.URL.Path)
+	log.Info("1111111111")
+	log.Info("%v", user)
+	log.Info("1111111111")
 	return local.NewSecurityContext(&user, config.GlobalProjectMgr)
 }
