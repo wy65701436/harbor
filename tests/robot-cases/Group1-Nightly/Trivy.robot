@@ -47,7 +47,7 @@ Test Case - Disable Scan Schedule
     Close Browser
 
 Test Case - Scan A Tag In The Repo
-    Body Of Scan A Tag In The Repo Use Trivy
+    Body Of Scan A Tag In The Repo  vmware/photon  1.0
 
 Test Case - Scan As An Unprivileged User
     Init Chrome Driver

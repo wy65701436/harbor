@@ -21,7 +21,14 @@ import {
   UserPermissionService, USERSTATICPERMISSION
 } from "../../../../../lib/services";
 import { ClrDatagridStateInterface } from '@clr/angular';
-import { DEFAULT_PAGE_SIZE, calculatePage } from '../../../../../lib/utils/utils';
+import {
+  DEFAULT_PAGE_SIZE,
+  calculatePage,
+  dbEncodeURIComponent,
+  doFiltering,
+  doSorting
+} from '../../../../../lib/utils/utils';
+import { AppConfigService } from "../../../../services/app-config.service";
 
 class InitTag {
   name = "";
@@ -64,6 +71,7 @@ export class ArtifactTagComponent implements OnInit, OnDestroy {
     private artifactService: ArtifactService,
     private translateService: TranslateService,
     private userPermissionService: UserPermissionService,
+    private appConfigService: AppConfigService,
     private errorHandlerService: ErrorHandler
 
   ) { }
@@ -74,7 +82,7 @@ export class ArtifactTagComponent implements OnInit, OnDestroy {
   checkTagName(name) {
       let listArtifactParams: ArtifactService.ListArtifactsParams = {
         projectName: this.projectName,
-        repositoryName: this.repositoryName,
+        repositoryName: dbEncodeURIComponent(this.repositoryName),
         withLabel: true,
         withScanOverview: true,
         withTag: true,
@@ -111,7 +119,7 @@ export class ArtifactTagComponent implements OnInit, OnDestroy {
       if (pageNumber <= 0) { pageNumber = 1; }
     let params: ArtifactService.ListTagsParams = {
       projectName: this.projectName,
-      repositoryName: this.repositoryName,
+      repositoryName: dbEncodeURIComponent(this.repositoryName),
       reference: this.artifactDetails.digest,
       page: pageNumber,
       withSignature: true,
@@ -128,6 +136,9 @@ export class ArtifactTagComponent implements OnInit, OnDestroy {
         }
       }
       this.currentTags = res.body;
+      // Do customising filtering and sorting
+      this.currentTags = doFiltering<Tag>(this.currentTags, state);
+      this.currentTags = doSorting<Tag>(this.currentTags, state);
     }, error => {
       this.errorHandlerService.error(error);
     });
@@ -156,7 +167,7 @@ export class ArtifactTagComponent implements OnInit, OnDestroy {
     // const tag: NewTag = {name: this.newTagName};
     const createTagParams: ArtifactService.CreateTagParams = {
       projectName: this.projectName,
-      repositoryName: this.repositoryName,
+      repositoryName: dbEncodeURIComponent(this.repositoryName),
       reference: this.artifactDetails.digest,
       tag:  this.newTagName
     };
@@ -249,7 +260,7 @@ export class ArtifactTagComponent implements OnInit, OnDestroy {
     this.operationService.publishInfo(operMessage);
      const deleteTagParams: ArtifactService.DeleteTagParams = {
       projectName: this.projectName,
-      repositoryName: this.repositoryName,
+      repositoryName: dbEncodeURIComponent(this.repositoryName),
       reference: this.artifactDetails.digest,
       tagName: tag.name
     };
@@ -272,6 +283,8 @@ export class ArtifactTagComponent implements OnInit, OnDestroy {
   existValid(name) {
     if (name) {
       this.tagNameChecker.next(name);
+    } else {
+      this.isTagNameExist = false;
     }
   }
   toggleTagListOpenOrClose() {
@@ -289,5 +302,8 @@ export class ArtifactTagComponent implements OnInit, OnDestroy {
   }
   ngOnDestroy(): void {
     this.tagNameCheckSub.unsubscribe();
+  }
+  get withNotary(): boolean {
+    return this.appConfigService.getConfig().with_notary;
   }
 }

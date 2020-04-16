@@ -167,7 +167,9 @@
         },
         "LOGS": "Logs",
         "TASKS": "Tasks",
-        "API_EXPLORER": "API EXPLORER"
+        "API_EXPLORER": "Api Explorer",
+        "HARBOR_API_MANAGEMENT": "Harbor API V2.0",
+        "HELM_API_MANAGEMENT": "Harbor API"
     },
     "USER": {
         "ADD_ACTION": "UTILISATEUR",
@@ -328,8 +330,8 @@
         "ENABLE_ACCOUNT": "permettre à compte ",
         "DELETE": "Supprimer",
         "CREAT_ROBOT_ACCOUNT": "créat robot compte ",
-        "PERMISSIONS_IMAGE": "Image",
-        "PERMISSIONS_HELMCHART": "Helm Chart",
+        "PERMISSIONS_ARTIFACT": "Artifact",
+        "PERMISSIONS_HELMCHART": "Helm Chart (Chart Museum)",
         "PUSH": "Push",
         "PULL": "Pull",
         "FILTER_PLACEHOLDER": "Filter Robot Accounts",
@@ -460,7 +462,7 @@
         "MONTH": "Month",
         "DAY_MONTH": "Day of month",
         "DAY_WEEK": "Day of week",
-        "CRON-TITLE": "Pattern description for cron '* * * * * *'",
+        "CRON_TITLE": "Pattern description for cron '* * * * * *'.The cron string is based on UTC time",
         "FIELD_NAME": "Field name",
         "MANDATORY": "Mandatory?",
         "ALLOWED_VALUES": "Allowed values",
@@ -631,7 +633,7 @@
         "NAME": "Nom",
         "TAGS": "Tags",
         "PLATFORM": "OS/ARCH",
-        "ARTIFACT_TOOTIP": "Click this icon to enter the Artifact list of refer",
+        "ARTIFACT_TOOTIP": "Click to view this OCI index's artifact list",
         "ARTIFACTS_COUNT": "Artifacts",
         "PULL_COUNT": "Pulls",
         "PULL_COMMAND": "Commande de Pull",
@@ -775,6 +777,7 @@
         "SUB_TITLE_SUFIX": "logs"
     },
     "CONFIG": {
+        "HISTORY": "History",
         "TITLE": "Configuration",
         "AUTH": "Identification",
         "REPLICATION": "Réplication",
@@ -988,8 +991,14 @@
         "SCAN_NOW": "Analyser"
     },
     "PUSH_IMAGE": {
-        "TITLE": "Pousser l'Image",
-        "TOOLTIP": "Commandes de références pour pousser une image vers ce projet.",
+        "TITLE": "Push Command",
+        "DOCKER": "Docker",
+        "HELM": "Helm",
+        "CNAB": "CNAB",
+        "TAG_COMMAND_CHART": "Tag a chart for this project:",
+        "PUSH_COMMAND_CHART": "Push a chart to this project:",
+        "PUSH_COMMAND_CNAB": "Push a CNAB to this project:",
+        "TOOLTIP": "Command references for pushing an artifact to this project.",
         "TAG_COMMAND": "Tagger une image pour ce projet :",
         "PUSH_COMMAND": "Pousser une image dans ce projet :",
         "COPY_ERROR": "Copie échouée, veuillez essayer de copier manuellement les commandes de référence."

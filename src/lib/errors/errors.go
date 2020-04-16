@@ -18,8 +18,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/goharbor/harbor/src/lib/log"
 )
 
@@ -39,29 +37,29 @@ type Error struct {
 }
 
 // Error returns a human readable error, error.Error() will not contains the track information. Needs it? just call error.StackTrace()
+// Code will not be in the error output.
 func (e *Error) Error() string {
-	var parts []string
-
-	var causeStr string
+	out := e.Message
 	if e.Cause != nil {
-		causeStr = e.Cause.Error()
-		parts = append(parts, causeStr)
+		out = out + ": " + e.Cause.Error()
 	}
-
-	if e.Code != "" {
-		parts = append(parts, e.Code)
-	}
-
-	if e.Message != causeStr {
-		parts = append(parts, e.Message)
-	}
-
-	return strings.Join(parts, ", ")
+	return out
 }
 
 // StackTrace ...
 func (e *Error) StackTrace() string {
 	return e.Stack.frames().format()
+}
+
+// MarshalJSON ...
+func (e *Error) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	}{
+		Code:    e.Code,
+		Message: e.Error(),
+	})
 }
 
 // WithMessage ...
@@ -99,7 +97,7 @@ func (errs Errors) Error() string {
 	for _, e := range errs {
 		err, ok := e.(*Error)
 		if !ok {
-			err = UnknownError(e).WithMessage(e.Error())
+			err = UnknownError(e)
 		}
 		if err.Code == "" {
 			err.Code = GeneralCode
@@ -137,8 +135,8 @@ func New(in interface{}) *Error {
 	default:
 		err = fmt.Errorf("%v", in)
 	}
+
 	return &Error{
-		Cause:   err,
 		Message: err.Error(),
 		Stack:   newStack(),
 	}
@@ -163,16 +161,18 @@ func Wrapf(err error, format string, args ...interface{}) *Error {
 		return nil
 	}
 	e := &Error{
-		Cause: err,
-		Stack: newStack(),
+		Cause:   err,
+		Message: fmt.Sprintf(format, args...),
+		Stack:   newStack(),
 	}
-	return e.WithMessage(format, args...)
+	return e
 }
 
 // Errorf ...
 func Errorf(format string, args ...interface{}) *Error {
 	return &Error{
 		Message: fmt.Sprintf(format, args...),
+		Stack:   newStack(),
 	}
 }
 
@@ -183,6 +183,9 @@ func Cause(err error) error {
 		if !ok {
 			break
 		}
+		if cause.Cause == nil {
+			break
+		}
 		err = cause.Cause
 	}
 	return err
@@ -191,20 +194,10 @@ func Cause(err error) error {
 // IsErr checks whether the err chain contains error matches the code
 func IsErr(err error, code string) bool {
 	var e *Error
-	if errors.As(err, &e) {
+	if As(err, &e) {
 		return e.Code == code
 	}
 	return false
-}
-
-// IsNotFoundErr returns true when the error is NotFoundError
-func IsNotFoundErr(err error) bool {
-	return IsErr(err, NotFoundCode)
-}
-
-// IsConflictErr checks whether the err chain contains conflict error
-func IsConflictErr(err error) bool {
-	return IsErr(err, ConflictCode)
 }
 
 // ErrCode returns code of err
@@ -214,7 +207,7 @@ func ErrCode(err error) string {
 	}
 
 	var e *Error
-	if ok := errors.As(err, &e); ok && e.Code != "" {
+	if ok := As(err, &e); ok && e.Code != "" {
 		return e.Code
 	} else if ok && e.Cause != nil {
 		return ErrCode(e.Cause)

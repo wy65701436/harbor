@@ -12,19 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package quota
+package config
 
 import (
-	"github.com/goharbor/harbor/src/pkg/types"
+	"context"
 )
 
-var (
-	// ResourceStorage alias types.ResourceStorage
-	ResourceStorage = types.ResourceStorage
-)
+type cfgMgrKey struct{}
 
-// ResourceName alias types.ResourceName
-type ResourceName = types.ResourceName
+// FromContext returns CfgManager from context
+func FromContext(ctx context.Context) (*CfgManager, bool) {
+	m, ok := ctx.Value(cfgMgrKey{}).(*CfgManager)
+	return m, ok
+}
 
-// ResourceList alias types.ResourceList
-type ResourceList = types.ResourceList
+// NewContext returns context with CfgManager
+func NewContext(ctx context.Context, m *CfgManager) context.Context {
+	return context.WithValue(ctx, cfgMgrKey{}, m)
+}

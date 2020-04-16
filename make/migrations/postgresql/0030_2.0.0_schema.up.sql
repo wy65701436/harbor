@@ -98,15 +98,6 @@ FROM (
 ) AS s
 WHERE artifact.digest=s.digest;
 
-/*repair the count usage as we calculate the count quota against artifact rather than tag*/
-/*count=count-(tag count-artifact count)*/
-UPDATE quota_usage SET used=jsonb_set(used, '{count}', ((used->>'count')::int - (SELECT (
-	SELECT COUNT (*) FROM tag
-		JOIN artifact ON tag.artifact_id=artifact.id
-		WHERE artifact.project_id=quota_usage.reference_id::int)-(
-	SELECT COUNT (*) FROM artifact
-		WHERE project_id=quota_usage.reference_id::int)))::text::jsonb);
-
 /* artifact_reference records the child artifact referenced by parent artifact */
 CREATE TABLE artifact_reference
 (
@@ -200,6 +191,9 @@ DROP TABLE IF EXISTS access_log;
 /*remove the constraint for project_id in table 'notification_policy'*/
 ALTER TABLE notification_policy DROP CONSTRAINT unique_project_id;
 
+/*the existing policy has no name, to make sure the unique constraint for name works, use the id as name*/
+/*if the name is set via API, it will be force to be changed with new pattern*/
+UPDATE notification_policy SET name=CONCAT('policy_', id);
 /*add the unique constraint for name in table 'notification_policy'*/
 ALTER TABLE notification_policy ADD UNIQUE (name);
 
@@ -209,3 +203,7 @@ ALTER TABLE replication_task ALTER COLUMN dst_resource TYPE varchar(512);
 /*remove count from quota hard and quota_usage used json*/
 UPDATE quota SET hard = hard - 'count';
 UPDATE quota_usage SET used = used - 'count';
+
+/* make Clair and Trivy as reserved name for scanners in-tree */
+UPDATE scanner_registration SET name = concat_ws('-', name, uuid) WHERE name IN ('Clair', 'Trivy') AND immutable = FALSE;
+UPDATE scanner_registration SET name = split_part(name, '-', 1) WHERE immutable = TRUE;

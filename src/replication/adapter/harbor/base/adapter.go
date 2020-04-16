@@ -17,6 +17,7 @@ package base
 import (
 	"errors"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -32,19 +33,16 @@ import (
 
 // New creates an instance of the base adapter
 func New(registry *model.Registry) (*Adapter, error) {
-	if isLocalHarbor(registry) {
-		// when the adapter is created for local Harbor, returns the "http://127.0.0.1:8080"
-		// as URL to avoid issue https://github.com/goharbor/harbor-helm/issues/222
-		// when harbor is deployed on Kubernetes
-		url := "http://127.0.0.1:8080"
-		if common_http.InternalTLSEnabled() {
-			url = "https://127.0.0.1:8443"
-		}
+	if isLocalHarbor(registry.URL) {
 		authorizer := common_http_auth.NewSecretAuthorizer(registry.Credential.AccessSecret)
 		httpClient := common_http.NewClient(&http.Client{
-			Transport: common_http.GetHTTPTransport(common_http.SecureTransport),
+			// when it's a local Harbor instance, the code runs inside the same process with
+			// core, so insecure transport is ok
+			// If using the secure one, as we'll replace the URL with 127.0.0.1 and this will
+			// cause error "x509: cannot validate certificate for 127.0.0.1 because it doesn't contain any IP SANs"
+			Transport: common_http.GetHTTPTransport(common_http.InsecureTransport),
 		}, authorizer)
-		client, err := NewClient(url, httpClient)
+		client, err := NewClient(registry.URL, httpClient)
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +50,7 @@ func New(registry *model.Registry) (*Adapter, error) {
 			Adapter:    native.NewAdapterWithAuthorizer(registry, authorizer),
 			Registry:   registry,
 			Client:     client,
-			url:        url,
+			url:        registry.URL,
 			httpClient: httpClient,
 		}, nil
 	}
@@ -273,6 +271,11 @@ type Project struct {
 	Metadata map[string]interface{} `json:"metadata"`
 }
 
-func isLocalHarbor(registry *model.Registry) bool {
-	return registry.Type == model.RegistryTypeHarbor && registry.Name == "Local"
+func isLocalHarbor(url string) bool {
+	return url == os.Getenv("CORE_URL")
+}
+
+// check whether the current process is running inside core
+func isInCore() bool {
+	return len(os.Getenv("EXT_ENDPOINT")) > 0
 }
