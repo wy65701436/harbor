@@ -15,6 +15,7 @@
 package local
 
 import (
+	"github.com/goharbor/harbor/src/lib/log"
 	"sync"
 
 	"github.com/goharbor/harbor/src/common/models"
@@ -68,9 +69,13 @@ func (s *SecurityContext) User() *models.User {
 // IsSysAdmin returns whether the authenticated user is system admin
 // It returns false if the user has not been authenticated
 func (s *SecurityContext) IsSysAdmin() bool {
+	log.Info("IsSysAdmin .......")
 	if !s.IsAuthenticated() {
 		return false
 	}
+	log.Info("IsSysAdmin user %v.......", s.user)
+	log.Info("IsSysAdmin user1 %v.......", s.user.SysAdminFlag)
+	log.Info("IsSysAdmin user2 %v.......", s.user.AdminRoleInAuth)
 	return s.user.SysAdminFlag || s.user.AdminRoleInAuth
 }
 
