@@ -372,6 +372,8 @@ func (p *ProjectAPI) List() {
 		},
 	}
 
+	log.Info("222222222")
+
 	public := p.GetString("public")
 	if len(public) > 0 {
 		pub, err := strconv.ParseBool(public)
@@ -393,7 +395,9 @@ func (p *ProjectAPI) List() {
 		projects = []*models.Project{}
 		projects = append(projects, pros...)
 	} else {
+		log.Info("222222222")
 		if !(p.SecurityCtx.IsSysAdmin() || p.SecurityCtx.IsSolutionUser()) {
+			log.Info("3333333333")
 			projects = []*models.Project{}
 			// login, but not system admin or solution user, get public projects and
 			// projects that the user is member of
@@ -412,6 +416,7 @@ func (p *ProjectAPI) List() {
 				projects = append(projects, mps...)
 			}
 		}
+		log.Info("222222222")
 	}
 	// Query projects by user group
 
