@@ -36,7 +36,7 @@ type User struct {
 	// to it.
 	Role         int  `orm:"-" json:"role_id"`
 	SysAdminFlag bool `orm:"column(sysadmin_flag)" json:"sysadmin_flag"`
-	HasAdminRole bool `orm:"column(sysadmin_flag)" json:"has_admin_role"`
+	HasAdminRole bool `orm:"-" json:"has_admin_role"`
 	// AdminRoleInAuth to store the admin privilege granted by external authentication provider
 	AdminRoleInAuth bool      `orm:"-" json:"admin_role_in_auth"`
 	ResetUUID       string    `orm:"column(reset_uuid)" json:"reset_uuid"`
