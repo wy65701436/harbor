@@ -302,7 +302,7 @@ jobs:
 
   CONFORMANCE_TEST:
     env:
-      UI_UT: true
+      CONFORMANCE_TEST: true
     runs-on:
       #- self-hosted
       - ubuntu-latest
@@ -312,21 +312,24 @@ jobs:
         with:
           go-version: 1.13.8
         id: go
-      - uses: actions/checkout@v2
+      - name: setup Docker
+        uses: docker-practice/actions-setup-docker@0.0.1
         with:
-          path: src/github.com/wy65701436/distribution-spec/
+          docker_version: 18.09
+          docker_channel: stable
       - uses: actions/checkout@v2
         with:
           path: src/github.com/goharbor/harbor
+      - name: install
+        run: |
+          cd src/github.com/goharbor/harbor
+          env
+          df -h
+          bash ./tests/showtime.sh ./tests/ci/api_common_install.sh $IP DB
       - name: script
         run: |
           echo IP: $IP
           df -h
           cd src/github.com/goharbor/harbor
-          bash ./tests/showtime.sh ./tests/ci/ui_ut_run.sh
+          bash ./tests/showtime.sh ./tests/ci/conformance_test.sh $IP
           df -h
-      - name: Codecov For UI
-        uses: codecov/codecov-action@v1
-        with:
-          file:  ./src/github.com/goharbor/harbor/src/portal/coverage/lcov.info
-          flags: unittests
