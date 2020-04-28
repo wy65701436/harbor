@@ -6,7 +6,7 @@ git clone -b disable-cookie https://www.github.com/wy65701436/distribution-spec.
 
 echo "create testing project"
 STATUS=$(curl -w '%{http_code}' -H 'Content-Type: application/json' -H 'Accept: application/json' -X POST -u "admin:Harbor12345" -s --insecure "https://$IP/api/v2.0/projects" --data '{"project_name":"conformance","metadata":{"public":"false"},"storage_limit":-1}')
-if [ $STATUS -eq 201 ]; then
+if [ $STATUS -ne 201 ]; then
 		exit 1
 fi
 
