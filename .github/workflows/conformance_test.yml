@@ -1,4 +1,6 @@
 name: CONFORMANCE_TEST
+env:
+  DOCKER_COMPOSE_VERSION: 1.23.0
 
 on:
   pull_request:
