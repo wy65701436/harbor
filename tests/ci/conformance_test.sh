@@ -2,7 +2,7 @@ set -e
 
 echo "get the conformance testing code..."
 ## ToDo use the official code as PR https://github.com/opencontainers/distribution-spec/pull/144 merged
-git clone -b disable-cookie src/github.com/wy65701436/distribution-spec.git
+git clone -b disable-cookie https://www.github.com/wy65701436/distribution-spec.git
 
 echo "create testing project"
 STATUS=$(curl -w '%{http_code}' -H 'Content-Type: application/json' -H 'Accept: application/json' -X POST -u "admin:Harbor12345" -s --insecure "https://$IP/api/v2.0/projects" --data '{"project_name":"conformance","metadata":{"public":"false"},"storage_limit":-1}')
