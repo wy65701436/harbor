@@ -1,5 +1,13 @@
 set -e
 
+harbor_logs_bucket="harbor-ci-logs"
+
+# GS util
+function uploader {
+   sudo gsutil cp $1 gs://$2/$1
+   sudo gsutil acl ch -u AllUsers:R gs://$2/$1
+}
+
 echo "get the conformance testing code..."
 ## ToDo use the official code as PR https://github.com/opencontainers/distribution-spec/pull/144 merged
 git clone -b disable-cookie https://www.github.com/wy65701436/distribution-spec.git
@@ -22,3 +30,5 @@ export OCI_TEST_PULL=1
 
 cd ./distribution-spec/conformance
 go test .
+
+uploader report.html $harbor_logs_bucket
