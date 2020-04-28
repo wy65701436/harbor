@@ -29,6 +29,6 @@ export OCI_TEST_PUSH=1
 export OCI_TEST_PULL=1
 
 cd ./distribution-spec/conformance
-go test .
+go test . || true
 
 uploader report.html $harbor_logs_bucket
