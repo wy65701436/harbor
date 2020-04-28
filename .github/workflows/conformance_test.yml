@@ -61,5 +61,6 @@ jobs:
           gsutil cp report.html gs://harbor-conformance-test/report.html
           gsutil acl ch -u AllUsers:R gs://harbor-conformance-test/report.html
         if: always()
+        env:
           GS_ACCESS_KEY_ID: ${{ secrets.GS_ACCESS_KEY_ID }}
           GS_SECRET_ACCESS_KEY: ${{ secrets.GS_ACCESS_KEY_SECRET }}
