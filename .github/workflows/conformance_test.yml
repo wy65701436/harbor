@@ -58,11 +58,13 @@ jobs:
           cd src/github.com/goharbor/harbor
           bash ./tests/showtime.sh ./tests/ci/conformance_test.sh $IP
           df -h
+      - name: Authenticate on GCS
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          service_account_email: ${{ secrets.GKE_EMAIL }}
+          service_account_key: ${{ secrets.GKE_KEY }}
       - name: upload test result to gs
         run: |
           gsutil cp report.html gs://harbor-conformance-test/report.html
           gsutil acl ch -u AllUsers:R gs://harbor-conformance-test/report.html
         if: always()
-        env:
-          GS_ACCESS_KEY_ID: ${{ secrets.GS_ACCESS_KEY_ID }}
-          GS_SECRET_ACCESS_KEY: ${{ secrets.GS_ACCESS_KEY_SECRET }}
