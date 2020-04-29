@@ -50,7 +50,7 @@ jobs:
           cd src/github.com/goharbor/harbor
           env
           df -h
-          bash ./tests/showtime.sh ./tests/ci/api_common_install.sh $IP DB
+          #bash ./tests/showtime.sh ./tests/ci/api_common_install.sh $IP DB
       - name: script
         run: |
           echo IP: $IP
@@ -61,8 +61,11 @@ jobs:
       - name: Authenticate on GCS
         uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
+          version: '285.0.0'
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_email: ${{ secrets.GKE_EMAIL }}
           service_account_key: ${{ secrets.GKE_KEY }}
+      - run: gcloud info
       - name: upload test result to gs
         run: |
           gsutil cp report.html gs://harbor-conformance-test/report.html
