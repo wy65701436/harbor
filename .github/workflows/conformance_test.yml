@@ -21,8 +21,8 @@ jobs:
         with:
           version: '285.0.0'
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          service_account_email: ${{ secrets.GKE_EMAIL }}
+          service_account_key: ${{ secrets.GKE_KEY }}
           export_default_credentials: true
       - run: gcloud info
       - name: Set up Go 1.13
