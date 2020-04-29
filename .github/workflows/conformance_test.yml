@@ -16,6 +16,7 @@ jobs:
       #- self-hosted
       - ubuntu-latest
     steps:
+      - name: Authenticate on GCS
       - uses: actions/checkout@v2
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
@@ -59,7 +60,7 @@ jobs:
           cd src/github.com/goharbor/harbor
           env
           df -h
-          #bash ./tests/showtime.sh ./tests/ci/api_common_install.sh $IP DB
+          bash ./tests/showtime.sh ./tests/ci/api_common_install.sh $IP DB
       - name: script
         run: |
           echo IP: $IP
