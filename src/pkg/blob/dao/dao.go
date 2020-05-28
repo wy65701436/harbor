@@ -17,6 +17,7 @@ package dao
 import (
 	"context"
 	"fmt"
+	"github.com/goharbor/harbor/src/lib/errors"
 	"strings"
 	"time"
 
@@ -66,6 +67,9 @@ type DAO interface {
 
 	// ExistProjectBlob returns true when ProjectBlob exist
 	ExistProjectBlob(ctx context.Context, projectID int64, blobDigest string) (bool, error)
+
+	// DeleteBlob delete blob
+	DeleteBlob(ctx context.Context, id int64) (err error)
 }
 
 // New returns an instance of the default DAO
@@ -317,4 +321,21 @@ func (d *dao) DeleteProjectBlob(ctx context.Context, projectID int64, blobIDs ..
 
 	_, err = qs.Delete()
 	return err
+}
+
+func (d *dao) DeleteBlob(ctx context.Context, id int64) error {
+	ormer, err := orm.FromContext(ctx)
+	if err != nil {
+		return err
+	}
+	n, err := ormer.Delete(&models.Blob{
+		ID: id,
+	})
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return errors.NotFoundError(nil).WithMessage("blob %d not found", id)
+	}
+	return nil
 }

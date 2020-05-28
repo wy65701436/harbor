@@ -15,6 +15,7 @@
 package dao
 
 import (
+	"github.com/goharbor/harbor/src/lib/errors"
 	"testing"
 
 	"github.com/goharbor/harbor/src/pkg/blob/models"
@@ -320,6 +321,20 @@ func (suite *DaoTestSuite) TestDeleteProjectBlob() {
 		suite.Nil(err)
 		suite.True(exist)
 	}
+}
+
+func (suite *DaoTestSuite) TestDelete() {
+	ctx := suite.Context()
+
+	err := suite.dao.DeleteBlob(ctx, 100021)
+	suite.Require().NotNil(err)
+	suite.True(errors.IsErr(err, errors.NotFoundCode))
+
+	digest := suite.DigestString()
+	id, err := suite.dao.CreateBlob(ctx, &models.Blob{Digest: digest})
+	suite.Nil(err)
+	err = suite.dao.DeleteBlob(ctx, id)
+	suite.Require().Nil(err)
 }
 
 func TestDaoTestSuite(t *testing.T) {

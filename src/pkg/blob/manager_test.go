@@ -256,6 +256,16 @@ func (suite *ManagerTestSuite) TestListByArtifact() {
 	suite.Len(blobs, 3)
 }
 
+func (suite *ManagerTestSuite) TestDelete() {
+	ctx := suite.Context()
+	digest := suite.DigestString()
+	blobID, err := Mgr.Create(ctx, digest, "media type", 100)
+	suite.Nil(err)
+
+	err = Mgr.Delete(ctx, blobID)
+	suite.Nil(err)
+}
+
 func TestManagerTestSuite(t *testing.T) {
 	suite.Run(t, &ManagerTestSuite{})
 }

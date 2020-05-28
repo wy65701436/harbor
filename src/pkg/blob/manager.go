@@ -60,6 +60,9 @@ type Manager interface {
 
 	// List returns blobs by params
 	List(ctx context.Context, params ListParams) ([]*Blob, error)
+
+	// DeleteBlob delete blob
+	Delete(ctx context.Context, id int64) (err error)
 }
 
 type manager struct {
@@ -114,6 +117,10 @@ func (m *manager) Update(ctx context.Context, blob *Blob) error {
 
 func (m *manager) List(ctx context.Context, params ListParams) ([]*Blob, error) {
 	return m.dao.ListBlobs(ctx, params)
+}
+
+func (m *manager) Delete(ctx context.Context, id int64) error {
+	return m.dao.DeleteBlob(ctx, id)
 }
 
 // NewManager returns blob manager

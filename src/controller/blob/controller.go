@@ -20,12 +20,12 @@ import (
 
 	"github.com/docker/distribution"
 	"github.com/garyburd/redigo/redis"
-	"github.com/goharbor/harbor/src/common/models"
 	util "github.com/goharbor/harbor/src/common/utils/redis"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/orm"
 	"github.com/goharbor/harbor/src/pkg/blob"
+	"time"
 )
 
 var (
@@ -75,6 +75,9 @@ type Controller interface {
 
 	// GetAcceptedBlobSize returns the accepted size of stream upload blob.
 	GetAcceptedBlobSize(sessionID string) (int64, error)
+
+	// FreshUpdateTime updates the update time for the blob.
+	FreshUpdateTime(ctx context.Context, blobID int64, time time.Time) (err error)
 }
 
 // NewController creates an instance of the default repository controller
@@ -184,7 +187,7 @@ func (c *controller) FindMissingAssociationsForProject(ctx context.Context, proj
 		associated[blob.Digest] = true
 	}
 
-	var results []*models.Blob
+	var results []*blob.Blob
 	for _, blob := range blobs {
 		if !associated[blob.Digest] {
 			results = append(results, blob)
@@ -313,4 +316,14 @@ func (c *controller) GetAcceptedBlobSize(sessionID string) (int64, error) {
 	}
 
 	return size, nil
+}
+
+func (c *controller) FreshUpdateTime(ctx context.Context, blobID int64, time time.Time) (err error) {
+	if err := c.blobMgr.Update(ctx, &blob.Blob{
+		ID:         blobID,
+		UpdateTime: time,
+	}); err != nil {
+		return err
+	}
+	return nil
 }

@@ -188,3 +188,17 @@ func (_m *Manager) Update(ctx context.Context, _a1 *models.Blob) error {
 
 	return r0
 }
+
+// Delete provides a mock function with given fields: ctx, id
+func (_m *Manager) Delete(ctx context.Context, id int64) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, artifactDigest)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
