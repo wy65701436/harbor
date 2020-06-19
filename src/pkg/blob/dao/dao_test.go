@@ -29,7 +29,7 @@ type DaoTestSuite struct {
 
 func (suite *DaoTestSuite) SetupSuite() {
 	suite.Suite.SetupSuite()
-	suite.Suite.ClearTables = []string{"blob", "artifact_blob", "project_blob"}
+	//suite.Suite.ClearTables = []string{"blob", "artifact_blob", "project_blob"}
 	suite.dao = New()
 }
 
@@ -374,6 +374,30 @@ func (suite *DaoTestSuite) TestDelete() {
 	suite.Nil(err)
 	err = suite.dao.DeleteBlob(ctx, id)
 	suite.Require().Nil(err)
+}
+
+func (suite *DaoTestSuite) TestGetBlobsNotRefedByProjectBlob() {
+	ctx := suite.Context()
+
+	blobs, err := suite.dao.GetBlobsNotRefedByProjectBlob(ctx)
+	suite.Require().Nil(err)
+	beforeAdd := len(blobs)
+
+	suite.dao.CreateBlob(ctx, &models.Blob{Digest: suite.DigestString()})
+	suite.dao.CreateBlob(ctx, &models.Blob{Digest: suite.DigestString()})
+	digest := suite.DigestString()
+	suite.dao.CreateBlob(ctx, &models.Blob{Digest: digest})
+
+	blob, err := suite.dao.GetBlobByDigest(ctx, digest)
+	suite.Nil(err)
+
+	projectID := int64(1)
+	_, err = suite.dao.CreateProjectBlob(ctx, projectID, blob.ID)
+	suite.Nil(err)
+
+	blobs, err = suite.dao.GetBlobsNotRefedByProjectBlob(ctx)
+	suite.Require().Nil(err)
+	suite.Require().Equal(2+beforeAdd, len(blobs))
 }
 
 func TestDaoTestSuite(t *testing.T) {

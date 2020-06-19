@@ -22,7 +22,7 @@ import (
 )
 
 func init() {
-	orm.RegisterModel(&Blob{})
+	orm.RegisterModel(&Blob{}, &ProjectBlob{})
 }
 
 // TODO: move ArtifactAndBlob, ProjectBlob to here
@@ -83,8 +83,18 @@ func (b *Blob) IsForeignLayer() bool {
 	return b.ContentType == schema2.MediaTypeForeignLayer
 }
 
-// ProjectBlob alias ProjectBlob model
-type ProjectBlob = models.ProjectBlob
+// ProjectBlob holds the relationship between manifest and blob.
+type ProjectBlob struct {
+	ID           int64     `orm:"pk;auto;column(id)" json:"id"`
+	ProjectID    int64     `orm:"column(project_id)" json:"project_id"`
+	BlobID       int64     `orm:"column(blob_id)" json:"blob_id"`
+	CreationTime time.Time `orm:"column(creation_time);auto_now_add" json:"creation_time"`
+}
+
+// TableName ...
+func (*ProjectBlob) TableName() string {
+	return "project_blob"
+}
 
 // ListParams list params
 type ListParams struct {

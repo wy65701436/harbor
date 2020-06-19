@@ -74,6 +74,9 @@ type DAO interface {
 
 	// DeleteBlob delete blob
 	DeleteBlob(ctx context.Context, id int64) (err error)
+
+	// GetBlobsNotRefedByProjectBlob get the blobs that are not referenced by the table project_blob
+	GetBlobsNotRefedByProjectBlob(ctx context.Context) ([]*models.Blob, error)
 }
 
 // New returns an instance of the default DAO
@@ -379,4 +382,20 @@ func (d *dao) DeleteBlob(ctx context.Context, id int64) error {
 		return errors.NotFoundError(nil).WithMessage("blob %d not found", id)
 	}
 	return nil
+}
+
+func (d *dao) GetBlobsNotRefedByProjectBlob(ctx context.Context) ([]*models.Blob, error) {
+	var noneRefed []*models.Blob
+	ormer, err := orm.FromContext(ctx)
+	if err != nil {
+		return noneRefed, err
+	}
+
+	sql := `SELECT b.* FROM blob AS b LEFT JOIN project_blob pb ON b.id = pb.blob_id WHERE pb.id IS NULL;`
+	_, err = ormer.Raw(sql).QueryRows(&noneRefed)
+	if err != nil {
+		return noneRefed, err
+	}
+
+	return noneRefed, nil
 }

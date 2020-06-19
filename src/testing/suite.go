@@ -118,6 +118,7 @@ func (suite *Suite) WithProject(f func(int64, string), projectNames ...string) {
 
 // Context ...
 func (suite *Suite) Context() context.Context {
+	o.Debug = true
 	return orm.NewContext(context.TODO(), o.NewOrm())
 }
 

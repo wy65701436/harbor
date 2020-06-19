@@ -24,6 +24,7 @@ import (
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/orm"
 	"github.com/goharbor/harbor/src/pkg/blob"
+	"github.com/goharbor/harbor/src/pkg/blob/models"
 )
 
 var (
@@ -82,6 +83,9 @@ type Controller interface {
 
 	// Delete deletes the blob by its id
 	Delete(ctx context.Context, id int64) error
+
+	// UselessBlobs gives the candidate of garbage collection
+	UselessBlobs(ctx context.Context) ([]*models.Blob, error)
 }
 
 // NewController creates an instance of the default repository controller
@@ -332,4 +336,8 @@ func (c *controller) Update(ctx context.Context, blob *blob.Blob) error {
 
 func (c *controller) Delete(ctx context.Context, id int64) error {
 	return c.blobMgr.Delete(ctx, id)
+}
+
+func (c *controller) UselessBlobs(ctx context.Context) ([]*models.Blob, error) {
+	return c.blobMgr.UselessBlobs(ctx)
 }

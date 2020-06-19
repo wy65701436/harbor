@@ -16,9 +16,6 @@ package dao
 
 import (
 	"fmt"
-	"os"
-	"strconv"
-
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/lib/log"
 )
@@ -35,41 +32,41 @@ func PrepareTestForSQLite() {
 
 // PrepareTestForPostgresSQL is for test only.
 func PrepareTestForPostgresSQL() {
-	dbHost := os.Getenv("POSTGRESQL_HOST")
-	if len(dbHost) == 0 {
-		log.Fatalf("environment variable POSTGRESQL_HOST is not set")
-	}
-	dbUser := os.Getenv("POSTGRESQL_USR")
-	if len(dbUser) == 0 {
-		log.Fatalf("environment variable POSTGRESQL_USR is not set")
-	}
-	dbPortStr := os.Getenv("POSTGRESQL_PORT")
-	if len(dbPortStr) == 0 {
-		log.Fatalf("environment variable POSTGRESQL_PORT is not set")
-	}
-	dbPort, err := strconv.Atoi(dbPortStr)
-	if err != nil {
-		log.Fatalf("invalid POSTGRESQL_PORT: %v", err)
-	}
-
-	dbPassword := os.Getenv("POSTGRESQL_PWD")
-	dbDatabase := os.Getenv("POSTGRESQL_DATABASE")
-	if len(dbDatabase) == 0 {
-		log.Fatalf("environment variable POSTGRESQL_DATABASE is not set")
-	}
+	//dbHost := os.Getenv("POSTGRESQL_HOST")
+	//if len(dbHost) == 0 {
+	//	log.Fatalf("environment variable POSTGRESQL_HOST is not set")
+	//}
+	//dbUser := os.Getenv("POSTGRESQL_USR")
+	//if len(dbUser) == 0 {
+	//	log.Fatalf("environment variable POSTGRESQL_USR is not set")
+	//}
+	//dbPortStr := os.Getenv("POSTGRESQL_PORT")
+	//if len(dbPortStr) == 0 {
+	//	log.Fatalf("environment variable POSTGRESQL_PORT is not set")
+	//}
+	//dbPort, err := strconv.Atoi(dbPortStr)
+	//if err != nil {
+	//	log.Fatalf("invalid POSTGRESQL_PORT: %v", err)
+	//}
+	//
+	//dbPassword := os.Getenv("POSTGRESQL_PWD")
+	//dbDatabase := os.Getenv("POSTGRESQL_DATABASE")
+	//if len(dbDatabase) == 0 {
+	//	log.Fatalf("environment variable POSTGRESQL_DATABASE is not set")
+	//}
 
 	database := &models.Database{
 		Type: "postgresql",
 		PostGreSQL: &models.PostGreSQL{
-			Host:     dbHost,
-			Port:     dbPort,
-			Username: dbUser,
-			Password: dbPassword,
-			Database: dbDatabase,
+			Host:     "10.193.21.1",
+			Port:     5432,
+			Username: "postgres",
+			Password: "root123",
+			Database: "registry",
 		},
 	}
 
-	log.Infof("POSTGRES_HOST: %s, POSTGRES_USR: %s, POSTGRES_PORT: %d, POSTGRES_PWD: %s\n", dbHost, dbUser, dbPort, dbPassword)
+	//log.Infof("POSTGRES_HOST: %s, POSTGRES_USR: %s, POSTGRES_PORT: %d, POSTGRES_PWD: %s\n", dbHost, dbUser, dbPort, dbPassword)
 	initDatabaseForTest(database)
 }
 
@@ -89,9 +86,9 @@ func initDatabaseForTest(db *models.Database) {
 	if err := database.Register(alias); err != nil {
 		panic(err)
 	}
-	if err := database.UpgradeSchema(); err != nil {
-		panic(err)
-	}
+	//if err := database.UpgradeSchema(); err != nil {
+	//	panic(err)
+	//}
 
 	if alias != "default" {
 		if err = globalOrm.Using(alias); err != nil {

@@ -302,6 +302,28 @@ func (suite *ControllerTestSuite) TestDelete() {
 	suite.False(exist)
 }
 
+func (suite *ControllerTestSuite) TestUselessBlobs() {
+	ctx := suite.Context()
+
+	blobs, err := Ctl.UselessBlobs(ctx)
+	suite.Require().Nil(err)
+	beforeAdd := len(blobs)
+
+	Ctl.Ensure(ctx, suite.DigestString(), "media type", 100)
+	Ctl.Ensure(ctx, suite.DigestString(), "media type", 100)
+	digest := suite.DigestString()
+	blobID, err := Ctl.Ensure(ctx, digest, "media type", 100)
+	suite.Nil(err)
+
+	projectID := int64(1)
+	err = Ctl.AssociateWithProjectByID(ctx, blobID, projectID)
+	suite.Nil(err)
+
+	blobs, err = Ctl.UselessBlobs(ctx)
+	suite.Require().Nil(err)
+	suite.Require().Equal(2+beforeAdd, len(blobs))
+}
+
 func TestControllerTestSuite(t *testing.T) {
 	suite.Run(t, &ControllerTestSuite{})
 }
