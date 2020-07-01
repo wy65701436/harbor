@@ -157,7 +157,7 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 				// for manifest, it has to delete the revisions folder of each repository
 				gc.logger.Infof("delete manifest from storage: %s", blob.Digest)
 				if err := gc.registryCtlClient.DeleteManifest(repo, blob.Digest); err != nil {
-					gc.logger.Errorf("failed to remove manifest revision of repository %s, %v")
+					gc.logger.Errorf("failed to remove manifest revision of repository %s, %s, %v", repo, blob.Digest, err)
 				}
 			}
 		}
