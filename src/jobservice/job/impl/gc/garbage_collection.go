@@ -147,19 +147,18 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 	for _, blob := range blobs {
 		if blob.IsManifest() {
 			for _, repo := range blob.Repositories {
-				go func() {
-					// Harbor cannot know the existing tags in the backend from its database, so let the v2 DELETE manifest to remove all of them.
-					if err := v2DeleteManifest(repo, blob.Digest); err != nil {
-						gc.logger.Infof("failed to delete manifest, %s:%s with error: %v", repo, blob.Digest, err)
-						return
-					}
-					gc.logger.Infof("delete the manifest with registry v2 API: RepositoryName(%s)-MediaType:(%s)-Digest:(%s)",
-						repo, blob.ContentType, blob.Digest)
-					// for manifest, it has to delete the revisions folder of each repository
-					if err := gc.registryCtlClient.DeleteManifest(repo, blob.Digest); err != nil {
-						gc.logger.Infof("failed to remove manifest revision of repository %s, %v")
-					}
-				}()
+				// Harbor cannot know the existing tags in the backend from its database, so let the v2 DELETE manifest to remove all of them.
+				if err := v2DeleteManifest(repo, blob.Digest); err != nil {
+					gc.logger.Errorf("failed to delete manifest, %s:%s with error: %v", repo, blob.Digest, err)
+					continue
+				}
+				gc.logger.Infof("delete the manifest with registry v2 API: RepositoryName(%s)-MediaType:(%s)-Digest:(%s)",
+					repo, blob.ContentType, blob.Digest)
+				// for manifest, it has to delete the revisions folder of each repository
+				gc.logger.Infof("delete manifest from storage: %s", blob.Digest)
+				if err := gc.registryCtlClient.DeleteManifest(repo, blob.Digest); err != nil {
+					gc.logger.Errorf("failed to remove manifest revision of repository %s, %v")
+				}
 			}
 		}
 
@@ -170,6 +169,7 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 			gc.logger.Errorf("failed to mark gc candidate deleting: %s, %s", blob.Digest, blob.Status)
 			continue
 		}
+		gc.logger.Infof("delete blob from storage: %s", blob.Digest)
 		if err := gc.registryCtlClient.DeleteBlob(blob.Digest); err != nil {
 			blob.Status = blob_models.StatusDeleteFailed
 			_, err := gc.blobMgr.UpdateBlobStatus(ctx.SystemContext(), blob)
