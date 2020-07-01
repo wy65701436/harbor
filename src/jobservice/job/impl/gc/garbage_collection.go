@@ -109,6 +109,7 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 	// no need to execute GC as there is no removed artifacts.
 	// Do this is to handle if user trigger GC job several times, only one job should do the following logic.
 	if len(removedArtifacts) == 0 {
+		gc.logger.Info("no need to execute GC as there is no removed artifacts.")
 		return nil
 	}
 
@@ -118,7 +119,7 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		gc.logger.Errorf("failed to get gc candidate: %v", err)
 		return err
 	}
-	setRepositories(removedArtifacts, blobs)
+	gc.setRepositories(removedArtifacts, blobs)
 
 	// mark delete status
 	blobCt := 0
@@ -194,9 +195,12 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 }
 
 // as table blob has no repository name, here needs to use the ArtifactTrash to fill it in.
-func setRepositories(ats []model.ArtifactTrash, blobs []*blob_models.Blob) {
+func (gc *GarbageCollector) setRepositories(ats []model.ArtifactTrash, blobs []*blob_models.Blob) {
 	for _, at := range ats {
 		for _, blob := range blobs {
+			gc.logger.Infof("setRepositories ....")
+			gc.logger.Infof("at .... %v", at)
+			gc.logger.Infof("blob .... %v", blob)
 			if at.Digest == blob.Digest {
 				blob.Repositories = append(blob.Repositories, at.RepositoryName)
 			}
