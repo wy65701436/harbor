@@ -120,6 +120,10 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		return err
 	}
 	gc.setRepositories(removedArtifacts, blobs)
+	for _, blob := range blobs {
+		gc.logger.Infof(" ------------ %v", blob)
+		gc.logger.Infof(" ------------ %v", blob.Repositories)
+	}
 
 	// mark delete status
 	blobCt := 0
