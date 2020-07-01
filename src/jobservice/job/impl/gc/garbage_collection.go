@@ -120,10 +120,6 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		return err
 	}
 	gc.setRepositories(removedArtifacts, blobs)
-	for _, blob := range blobs {
-		gc.logger.Infof(" ------------ %v", blob)
-		gc.logger.Infof(" ------------ %v", blob.Repositories)
-	}
 
 	// mark delete status
 	blobCt := 0
@@ -202,9 +198,6 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 func (gc *GarbageCollector) setRepositories(ats []model.ArtifactTrash, blobs []*blob_models.Blob) {
 	for _, at := range ats {
 		for _, blob := range blobs {
-			gc.logger.Infof("setRepositories ....")
-			gc.logger.Infof("at .... %v", at)
-			gc.logger.Infof("blob .... %v", blob)
 			if at.Digest == blob.Digest {
 				blob.Repositories = append(blob.Repositories, at.RepositoryName)
 			}
