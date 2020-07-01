@@ -38,8 +38,8 @@ func delKeys(con redis.Conn, pattern string) error {
 	return nil
 }
 
-// deleteManifest calls the registry API to remove manifest
-func deleteManifest(repository, digest string) error {
+// v2DeleteManifest calls the registry API to remove manifest
+func v2DeleteManifest(repository, digest string) error {
 	exist, _, err := registry.Cli.ManifestExist(repository, digest)
 	if err != nil {
 		return err
