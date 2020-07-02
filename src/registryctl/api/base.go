@@ -16,6 +16,7 @@ package api
 
 import (
 	"encoding/json"
+	storagedriver "github.com/docker/distribution/registry/storage/driver"
 	"github.com/goharbor/harbor/src/lib/errors"
 	lib_http "github.com/goharbor/harbor/src/lib/http"
 	"net/http"
@@ -38,6 +39,10 @@ func HandleBadRequest(w http.ResponseWriter, err error) {
 
 // HandleError ...
 func HandleError(w http.ResponseWriter, err error) {
+	var e *storagedriver.PathNotFoundError
+	if errors.As(err, e) {
+		err = errors.New(nil).WithCode(errors.NotFoundCode).WithMessage(e.Error())
+	}
 	lib_http.SendError(w, err)
 }
 

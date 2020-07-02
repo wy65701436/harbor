@@ -79,7 +79,7 @@ func (suite *gcTestSuite) TestDeleteCandidates() {
 		artCtl:     suite.artifactCtl,
 		artrashMgr: suite.artrashMgr,
 	}
-	suite.Nil(gc.getDeletedArtifact(ctx))
+	suite.Nil(gc.allDeletedArt(ctx))
 }
 
 func (suite *gcTestSuite) TestRemoveUntaggedBlobs() {
