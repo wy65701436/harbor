@@ -54,3 +54,30 @@ func v2DeleteManifest(repository, digest string) error {
 	}
 	return nil
 }
+
+func IgnoreNotFound(f func(int64, string), projectNames ...string) {
+
+}
+
+//func (suite *Suite) WithProject(f func(int64, string), projectNames ...string) {
+//	var projectName string
+//	if len(projectNames) > 0 {
+//		projectName = projectNames[0]
+//	} else {
+//		projectName = suite.RandString(5)
+//	}
+//
+//	projectID, err := dao.AddProject(models.Project{
+//		Name:    projectName,
+//		OwnerID: 1,
+//	})
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	defer func() {
+//		dao.DeleteProject(projectID)
+//	}()
+//
+//	f(projectID, projectName)
+//}
