@@ -19,6 +19,7 @@ import (
 	"github.com/docker/distribution/manifest/schema1"
 	"github.com/docker/distribution/manifest/schema2"
 	"github.com/goharbor/harbor/src/common/models"
+	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"time"
 )
 
@@ -72,7 +73,6 @@ type Blob struct {
 	UpdateTime   time.Time `orm:"column(update_time);auto_now_add" json:"update_time"`
 	Version      int64     `orm:"column(version)" json:"version"`
 	CreationTime time.Time `orm:"column(creation_time);auto_now_add" json:"creation_time"`
-	Repositories []string  `orm:"-" json:"repositories"`
 }
 
 // TableName ...
@@ -87,7 +87,8 @@ func (b *Blob) IsForeignLayer() bool {
 
 // IsManifest returns true if the blob is manifest layer
 func (b *Blob) IsManifest() bool {
-	return b.ContentType == schema2.MediaTypeManifest || b.ContentType == schema1.MediaTypeManifest
+	return b.ContentType == schema2.MediaTypeManifest || b.ContentType == schema1.MediaTypeManifest ||
+		b.ContentType == v1.MediaTypeImageManifest
 }
 
 // ProjectBlob alias ProjectBlob model

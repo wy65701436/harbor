@@ -59,8 +59,13 @@ type GarbageCollector struct {
 	redisURL          string
 	deleteUntagged    bool
 	dryRun            bool
-	deleteSet         []*blob_models.Blob
-	timeWindowHours   int64
+	// holds all of trashed artifacts' digest and repositories.
+	// The source data of trashedArts is the table ArtifactTrash and it's only used as a dictionary by sweep when to delete a manifest.
+	// As table blob has no repositories data, and the repositories are required when to delete a manifest, so use the table ArtifactTrash to capture them.
+	trashedArts map[string][]string
+	// hold all of GC candidates(non-referenced blobs), it's captured by mark and consumed by sweep.
+	deleteSet       []*blob_models.Blob
+	timeWindowHours int64
 }
 
 // MaxFails implements the interface in job/Interface
@@ -87,6 +92,7 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 	regCtlInit()
 	gc.logger = ctx.GetLogger()
 	gc.deleteSet = make([]*blob_models.Blob, 0)
+	gc.trashedArts = make(map[string][]string, 0)
 	opCmd, flag := ctx.OPCommand()
 	if flag && opCmd.IsStop() {
 		gc.logger.Info("received the stop signal, quit GC job.")
@@ -117,7 +123,7 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 	// default is not execute dry run, and for dry run we can have button in the UI.
 	dryRun, exist := params["dry_run"]
 	if exist {
-		if dryRun, ok := dryRun.(bool); ok && !dryRun {
+		if dryRun, ok := dryRun.(bool); ok && dryRun {
 			gc.dryRun = dryRun
 		}
 	}
@@ -157,7 +163,7 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 func (gc *GarbageCollector) mark(ctx job.Context) error {
 	arts, err := gc.deletedArt(ctx)
 	if err != nil {
-		gc.logger.Errorf("failed to delete GC candidates in gc job, with error: %v", err)
+		gc.logger.Errorf("failed to get deleted Artifacts in gc job, with error: %v", err)
 		return err
 	}
 	// no need to execute GC as there is no removed artifacts.
@@ -166,6 +172,7 @@ func (gc *GarbageCollector) mark(ctx job.Context) error {
 		gc.logger.Info("no need to execute GC as there is no removed artifacts.")
 		return nil
 	}
+	gc.trashedArts = arts
 
 	// get gc candidates, and set the repositories.
 	// AS the reference count is calculated by joining table project_blob and blob, here needs to call removeUntaggedBlobs to remove these non-used blobs from table project_blob firstly.
@@ -190,7 +197,7 @@ func (gc *GarbageCollector) mark(ctx job.Context) error {
 			blob.Status = blob_models.StatusDelete
 			_, err := gc.blobMgr.UpdateBlobStatus(ctx.SystemContext(), blob)
 			if err != nil {
-				gc.logger.Errorf("failed to mark gc candidate, skip it.: %s", blob.Digest)
+				gc.logger.Warningf("failed to mark gc candidate, skip it.: %s, error: %v", blob.Digest, err)
 				continue
 			}
 		}
@@ -198,11 +205,6 @@ func (gc *GarbageCollector) mark(ctx job.Context) error {
 		gc.deleteSet = append(gc.deleteSet, blob)
 		// as table blob has no repository name, here needs to use the ArtifactTrash to fill it in.
 		if blob.IsManifest() {
-			for _, at := range arts {
-				if at.Digest == blob.Digest {
-					blob.Repositories = append(blob.Repositories, at.RepositoryName)
-				}
-			}
 			mfCt++
 		} else {
 			blobCt++
@@ -223,8 +225,9 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 			continue
 		}
 
-		if blob.IsManifest() {
-			for _, repo := range blob.Repositories {
+		// remove tags and revisions of a manifest
+		if _, exist := gc.trashedArts[blob.Digest]; exist && blob.IsManifest() {
+			for _, repo := range gc.trashedArts[blob.Digest] {
 				// Harbor cannot know the existing tags in the backend from its database, so let the v2 DELETE manifest to remove all of them.
 				gc.logger.Infof("delete the manifest with registry v2 API: %s, %s, %s",
 					repo, blob.ContentType, blob.Digest)
@@ -309,7 +312,7 @@ func (gc *GarbageCollector) cleanCache() error {
 // deletedArt contains the two parts of artifact
 // 1, required part, the artifacts were removed from Harbor.
 // 2, optional part, the untagged artifacts.
-func (gc *GarbageCollector) deletedArt(ctx job.Context) ([]model.ArtifactTrash, error) {
+func (gc *GarbageCollector) deletedArt(ctx job.Context) (map[string][]string, error) {
 	if os.Getenv("UTTEST") == "true" {
 		gc.logger = ctx.GetLogger()
 	}
@@ -324,6 +327,9 @@ func (gc *GarbageCollector) deletedArt(ctx job.Context) ([]model.ArtifactTrash, 
 		}
 	}()
 	arts := make([]model.ArtifactTrash, 0)
+
+	// artMap : map[digest : []repo list]
+	artMap := make(map[string][]string)
 	// handle the optional ones, and the artifact controller will move them into trash.
 	if gc.deleteUntagged {
 		untagged, err := gc.artCtl.List(ctx.SystemContext(), &q.Query{
@@ -332,7 +338,7 @@ func (gc *GarbageCollector) deletedArt(ctx job.Context) ([]model.ArtifactTrash, 
 			},
 		}, nil)
 		if err != nil {
-			return arts, err
+			return artMap, err
 		}
 		gc.logger.Info("start to delete untagged artifact.")
 		for _, art := range untagged {
@@ -350,13 +356,26 @@ func (gc *GarbageCollector) deletedArt(ctx job.Context) ([]model.ArtifactTrash, 
 	// filter gets all of deleted artifact, here do not need time window as the manifest candidate has to remove all of its reference.
 	arts, err := gc.artrashMgr.Filter(ctx.SystemContext(), 0)
 	if err != nil {
-		return arts, err
+		return artMap, err
 	}
+
+	// the repositories of blob is needed when to delete as a manifest.
+	for _, art := range arts {
+		_, exist := artMap[art.Digest]
+		if !exist {
+			artMap[art.Digest] = []string{art.RepositoryName}
+		} else {
+			repos := artMap[art.Digest]
+			repos = append(repos, art.RepositoryName)
+			artMap[art.Digest] = repos
+		}
+	}
+
 	gc.logger.Info("required candidate: %+v", arts)
 	if !gc.dryRun {
 		flushTrash = true
 	}
-	return arts, nil
+	return artMap, nil
 }
 
 // clean the untagged blobs in each project, these blobs are not referenced by any manifest and will be cleaned by GC

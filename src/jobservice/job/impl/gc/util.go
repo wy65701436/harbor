@@ -58,10 +58,8 @@ func v2DeleteManifest(repository, digest string) error {
 
 // ignoreNotFound ignores the NotFoundErr error
 func ignoreNotFound(f func() error) error {
-	if err := f(); err != nil {
-		if !errors.IsNotFoundErr(err) {
-			return err
-		}
+	if err := f(); err != nil && !errors.IsNotFoundErr(err) {
+		return err
 	}
 	return nil
 }
