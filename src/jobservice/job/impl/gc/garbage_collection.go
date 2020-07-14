@@ -19,6 +19,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/artifactrash/model"
 	blob_models "github.com/goharbor/harbor/src/pkg/blob/models"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/goharbor/harbor/src/common/models"
@@ -132,12 +133,23 @@ func (gc *GarbageCollector) parseParams(params job.Parameters) {
 	gc.timeWindowHours = 2
 	timeWindow, exist := params["time_window"]
 	if exist {
+		gc.logger.Info("00000000000")
+
 		if timeWindowHours, ok := timeWindow.(int64); ok {
+			gc.logger.Info("000000000001")
 			gc.timeWindowHours = timeWindowHours
 		}
 		if timeWindowHours, ok := timeWindow.(int); ok {
+			gc.logger.Info("000000000002")
 			gc.timeWindowHours = int64(timeWindowHours)
 		}
+		if timeWindowHours, ok := timeWindow.(string); ok {
+			gc.logger.Info("000000000003")
+			str, _ := strconv.ParseInt(timeWindowHours, 10, 64)
+			gc.timeWindowHours = str
+		}
+		gc.logger.Info("00000000000")
+
 	}
 
 	gc.logger.Info("11111111112")
