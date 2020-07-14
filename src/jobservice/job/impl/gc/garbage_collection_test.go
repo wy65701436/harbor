@@ -133,6 +133,7 @@ func (suite *gcTestSuite) TestInit() {
 	params := map[string]interface{}{
 		"delete_untagged": true,
 		"redis_url_reg":   "redis url",
+		"time_window":     1,
 	}
 	suite.Nil(gc.init(ctx, params))
 	suite.True(gc.deleteUntagged)
@@ -231,6 +232,7 @@ func (suite *gcTestSuite) TestRun() {
 		"delete_untagged": false,
 		// ToDo add a redis testing pkg, we do have a 'localhost' redis server in UT
 		"redis_url_reg": "redis://localhost:6379",
+		"time_window":   1,
 	}
 
 	suite.Nil(gc.Run(ctx, params))

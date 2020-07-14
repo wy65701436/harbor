@@ -105,14 +105,21 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 		gc.artrashMgr = artifactrash.NewManager()
 		gc.blobMgr = blob.NewManager()
 		gc.projectCtl = project.Ctl
-		gc.timeWindowHours = 2
 	}
 	if err := gc.registryCtlClient.Health(); err != nil {
 		gc.logger.Errorf("failed to start gc as registry controller is unreachable: %v", err)
 		return err
 	}
+	gc.setParams(params)
+	return nil
+}
+
+// setParams set the parameters according to the GC API call.
+func (gc *GarbageCollector) setParams(params job.Parameters) {
+	// redis url
 	gc.redisURL = params["redis_url_reg"].(string)
-	// default is to delete the untagged artifact
+
+	// delete untagged: default is to delete the untagged artifact
 	gc.deleteUntagged = true
 	deleteUntagged, exist := params["delete_untagged"]
 	if exist {
@@ -120,14 +127,24 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 			gc.deleteUntagged = untagged
 		}
 	}
-	// default is not execute dry run, and for dry run we can have button in the UI.
+
+	// time window: default is 2 hours, and for testing/debugging, it can be set to 0.
+	gc.timeWindowHours = 2
+	timeWindow, exist := params["time_window"]
+	if exist {
+		if timeWindowHours, ok := timeWindow.(int64); ok {
+			gc.timeWindowHours = timeWindowHours
+		}
+	}
+
+	// dry run: default is false. And for dry run we can have button in the UI.
+	gc.dryRun = false
 	dryRun, exist := params["dry_run"]
 	if exist {
 		if dryRun, ok := dryRun.(bool); ok && dryRun {
 			gc.dryRun = dryRun
 		}
 	}
-	return nil
 }
 
 // Run implements the interface in job/Interface
