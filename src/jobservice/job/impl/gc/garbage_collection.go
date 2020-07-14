@@ -140,7 +140,7 @@ func (gc *GarbageCollector) parseParams(params job.Parameters) {
 		}
 	}
 
-	gc.logger.Info("1111111111")
+	gc.logger.Info("11111111112")
 	gc.logger.Info(gc.timeWindowHours)
 	gc.logger.Info("1111111111")
 
