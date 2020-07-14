@@ -135,6 +135,9 @@ func (gc *GarbageCollector) parseParams(params job.Parameters) {
 		if timeWindowHours, ok := timeWindow.(int64); ok {
 			gc.timeWindowHours = timeWindowHours
 		}
+		if timeWindowHours, ok := timeWindow.(int); ok {
+			gc.timeWindowHours = int64(timeWindowHours)
+		}
 	}
 
 	gc.logger.Info("1111111111")
