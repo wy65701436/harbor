@@ -110,12 +110,12 @@ func (gc *GarbageCollector) init(ctx job.Context, params job.Parameters) error {
 		gc.logger.Errorf("failed to start gc as registry controller is unreachable: %v", err)
 		return err
 	}
-	gc.setParams(params)
+	gc.parseParams(params)
 	return nil
 }
 
-// setParams set the parameters according to the GC API call.
-func (gc *GarbageCollector) setParams(params job.Parameters) {
+// parseParams set the parameters according to the GC API call.
+func (gc *GarbageCollector) parseParams(params job.Parameters) {
 	// redis url
 	gc.redisURL = params["redis_url_reg"].(string)
 
@@ -136,6 +136,10 @@ func (gc *GarbageCollector) setParams(params job.Parameters) {
 			gc.timeWindowHours = timeWindowHours
 		}
 	}
+
+	gc.logger.Info("1111111111")
+	gc.logger.Info(gc.timeWindowHours)
+	gc.logger.Info("1111111111")
 
 	// dry run: default is false. And for dry run we can have button in the UI.
 	gc.dryRun = false
