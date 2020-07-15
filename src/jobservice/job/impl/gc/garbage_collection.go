@@ -133,28 +133,11 @@ func (gc *GarbageCollector) parseParams(params job.Parameters) {
 	gc.timeWindowHours = 2
 	timeWindow, exist := params["time_window"]
 	if exist {
-		gc.logger.Info("00000000000")
-
-		if timeWindowHours, ok := timeWindow.(int64); ok {
-			gc.logger.Info("000000000001")
-			gc.timeWindowHours = timeWindowHours
-		}
-		if timeWindowHours, ok := timeWindow.(int); ok {
-			gc.logger.Info("000000000002")
-			gc.timeWindowHours = int64(timeWindowHours)
-		}
 		if timeWindowHours, ok := timeWindow.(string); ok {
 			str, _ := strconv.ParseInt(timeWindowHours, 10, 64)
 			gc.timeWindowHours = str
 		}
-		gc.logger.Info("00000000000")
-
 	}
-
-	gc.logger.Info("111111111123")
-	gc.logger.Info(params)
-	gc.logger.Info(gc.timeWindowHours)
-	gc.logger.Info("1111111111")
 
 	// dry run: default is false. And for dry run we can have button in the UI.
 	gc.dryRun = false
