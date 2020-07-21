@@ -27,6 +27,9 @@ func probeBlob(r *http.Request, digest string) error {
 
 	switch bb.Status {
 	case models.StatusNone, models.StatusDelete, models.StatusDeleteFailed:
+		log.Info("---------")
+		log.Info(bb.Digest)
+		log.Info("---------")
 		if err := blobController.Touch(r.Context(), bb); err != nil {
 			logger.Errorf("failed to update blob: %s status to StatusNone, error:%v", bb.Digest, err)
 			return errors.Wrapf(err, fmt.Sprintf("the request id is: %s", r.Header.Get(requestid.HeaderXRequestID)))
