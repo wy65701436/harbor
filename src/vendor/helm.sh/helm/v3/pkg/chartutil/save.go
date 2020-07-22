@@ -103,12 +103,17 @@ func Save(c *chart.Chart, outDir string) (string, error) {
 
 	filename := fmt.Sprintf("%s-%s.tgz", c.Name(), c.Metadata.Version)
 	filename = filepath.Join(outDir, filename)
-	if stat, err := os.Stat(filepath.Dir(filename)); os.IsNotExist(err) {
-		if err := os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
-			return "", err
+	dir := filepath.Dir(filename)
+	if stat, err := os.Stat(dir); err != nil {
+		if os.IsNotExist(err) {
+			if err2 := os.MkdirAll(dir, 0755); err2 != nil {
+				return "", err2
+			}
+		} else {
+			return "", errors.Wrapf(err, "stat %s", dir)
 		}
 	} else if !stat.IsDir() {
-		return "", errors.Errorf("is not a directory: %s", filepath.Dir(filename))
+		return "", errors.Errorf("is not a directory: %s", dir)
 	}
 
 	f, err := os.Create(filename)
@@ -161,6 +166,20 @@ func writeTarContents(out *tar.Writer, c *chart.Chart, prefix string) error {
 		return err
 	}
 
+	// Save Chart.lock
+	// TODO: remove the APIVersion check when APIVersionV1 is not used anymore
+	if c.Metadata.APIVersion == chart.APIVersionV2 {
+		if c.Lock != nil {
+			ldata, err := yaml.Marshal(c.Lock)
+			if err != nil {
+				return err
+			}
+			if err := writeToTar(out, filepath.Join(base, "Chart.lock"), ldata); err != nil {
+				return err
+			}
+		}
+	}
+
 	// Save values.yaml
 	for _, f := range c.Raw {
 		if f.Name == ValuesfileName {
@@ -209,7 +228,7 @@ func writeTarContents(out *tar.Writer, c *chart.Chart, prefix string) error {
 func writeToTar(out *tar.Writer, name string, body []byte) error {
 	// TODO: Do we need to create dummy parent directory names if none exist?
 	h := &tar.Header{
-		Name:    name,
+		Name:    filepath.ToSlash(name),
 		Mode:    0644,
 		Size:    int64(len(body)),
 		ModTime: time.Now(),
