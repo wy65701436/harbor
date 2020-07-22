@@ -170,7 +170,7 @@ github.com/dghubble/sling
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 ## explicit
 github.com/dgrijalva/jwt-go
-# github.com/docker/distribution v2.7.1+incompatible
+# github.com/docker/distribution v2.7.2-0.20200708230840-70e0022e42fd+incompatible
 ## explicit
 github.com/docker/distribution
 github.com/docker/distribution/configuration
