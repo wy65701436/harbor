@@ -31,7 +31,7 @@ type Manager interface {
 	// Create ...
 	Create(ctx context.Context, artifactrsh *model.ArtifactTrash) (id int64, err error)
 	// Delete ...
-	Delete(ctx context.Context, id int64) (err error)
+	Delete(ctx context.Context, digest, repo string) (err error)
 	// Filter lists the artifact that needs to be cleaned, which creation_time is not in the time window.
 	// The unit of timeWindow is hour, the represent cut-off is time.now() - timeWindow * time.Hours
 	Filter(ctx context.Context, timeWindow int64) (arts []model.ArtifactTrash, err error)
@@ -56,8 +56,8 @@ type manager struct {
 func (m *manager) Create(ctx context.Context, artifactrsh *model.ArtifactTrash) (id int64, err error) {
 	return m.dao.Create(ctx, artifactrsh)
 }
-func (m *manager) Delete(ctx context.Context, id int64) error {
-	return m.dao.Delete(ctx, id)
+func (m *manager) Delete(ctx context.Context, digest, repo string) error {
+	return m.dao.Delete(ctx, digest, repo)
 }
 func (m *manager) Filter(ctx context.Context, timeWindow int64) (arts []model.ArtifactTrash, err error) {
 	return m.dao.Filter(ctx, time.Now().Add(-time.Duration(timeWindow)*time.Hour))

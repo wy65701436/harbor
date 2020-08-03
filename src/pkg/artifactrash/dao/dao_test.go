@@ -80,7 +80,7 @@ func (d *daoTestSuite) TestCreate() {
 }
 
 func (d *daoTestSuite) TestDelete() {
-	err := d.dao.Delete(d.ctx, 100021)
+	err := d.dao.Delete(d.ctx, "sha256:digestunknown", "library/notfound")
 	d.Require().NotNil(err)
 	var e *errors.Error
 	d.Require().True(errors.As(err, &e))

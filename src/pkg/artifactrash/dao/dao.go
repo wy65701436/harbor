@@ -14,8 +14,8 @@ import (
 type DAO interface {
 	// Create the artifact trash
 	Create(ctx context.Context, artifactrsh *model.ArtifactTrash) (id int64, err error)
-	// Delete the artifact trash specified by ID
-	Delete(ctx context.Context, id int64) (err error)
+	// Delete the artifact trash specified by digest and repository
+	Delete(ctx context.Context, digest, repo string) (err error)
 	// Filter lists the artifact that needs to be cleaned, which creation_time must be less than or equal to the cut-off.
 	Filter(ctx context.Context, cutOff time.Time) (arts []model.ArtifactTrash, err error)
 	// Flush cleans the trash table record, which creation_time must be less than or equal to the cut-off.
@@ -47,19 +47,20 @@ func (d *dao) Create(ctx context.Context, artifactrsh *model.ArtifactTrash) (id 
 }
 
 // Delete ...
-func (d *dao) Delete(ctx context.Context, id int64) (err error) {
+func (d *dao) Delete(ctx context.Context, digest, repo string) (err error) {
 	ormer, err := orm.FromContext(ctx)
 	if err != nil {
 		return err
 	}
 	n, err := ormer.Delete(&model.ArtifactTrash{
-		ID: id,
+		Digest:         digest,
+		RepositoryName: repo,
 	})
 	if err != nil {
 		return err
 	}
 	if n == 0 {
-		return errors.NotFoundError(nil).WithMessage("artifact trash %d not found", id)
+		return errors.NotFoundError(nil).WithMessage("artifact trash %s,%s not found", digest, repo)
 	}
 	return nil
 }

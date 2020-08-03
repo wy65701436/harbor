@@ -17,7 +17,7 @@ func (f *fakeDao) Create(ctx context.Context, artifactrsh *model.ArtifactTrash) 
 	args := f.Called()
 	return int64(args.Int(0)), args.Error(1)
 }
-func (f *fakeDao) Delete(ctx context.Context, id int64) (err error) {
+func (f *fakeDao) Delete(ctx context.Context, digest, repo string) (err error) {
 	args := f.Called()
 	return args.Error(0)
 }
@@ -57,7 +57,7 @@ func (m *managerTestSuite) TestCreate() {
 
 func (m *managerTestSuite) TestDelete() {
 	m.dao.On("Delete", mock.Anything).Return(nil)
-	err := m.mgr.Delete(nil, 1)
+	err := m.mgr.Delete(nil, "sha256:testdelelte", "library/hello-world")
 	m.Require().Nil(err)
 	m.dao.AssertExpectations(m.T())
 }
