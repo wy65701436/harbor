@@ -17,6 +17,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/goharbor/harbor/src/controller/gc"
 	"net/http"
 
 	"github.com/ghodss/yaml"
@@ -49,6 +50,7 @@ var (
 	retentionMgr        retention.Manager
 	retentionLauncher   retention.Launcher
 	retentionController retention.APIController
+	gcController        gc.Controller
 )
 
 // GetRetentionController returns the retention API controller
@@ -197,6 +199,8 @@ func Init() error {
 
 	retentionController = retention.NewAPIController(retentionMgr, projectMgr, repository.Mgr, scheduler.Sched, retentionLauncher)
 
+	gcController = gc.NewController()
+
 	retentionCallbackFun := func(p interface{}) error {
 		str, ok := p.(string)
 		if !ok {
@@ -227,6 +231,19 @@ func Init() error {
 		return err
 	}
 	err = scheduler.RegisterCallbackFunc(preheat.SchedulerCallback, p2pPreheatCallbackFun)
+
+	gcCallbackFun := func(p interface{}) error {
+		str, ok := p.(string)
+		if !ok {
+			return fmt.Errorf("the type of param %v isn't string", p)
+		}
+		param := make(map[string]interface{})
+		if err := json.Unmarshal([]byte(str), &param); err != nil {
+			return fmt.Errorf("failed to unmarshal the param: %v", err)
+		}
+		return gcController.Start(orm.Context(), param)
+	}
+	err = scheduler.RegisterCallbackFunc(gc.SchedulerCallback, gcCallbackFun)
 
 	return err
 }
