@@ -2,6 +2,7 @@ package gc
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/goharbor/harbor/src/jobservice/job"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
@@ -29,7 +30,7 @@ type Controller interface {
 	// GetLog get the gc log by id
 	GetLog(ctx context.Context, id int64) ([]byte, error)
 	// History list all of gc executions
-	History(ctx context.Context, query *q.Query) ([]*history, error)
+	History(ctx context.Context, query *q.Query) ([]*History, error)
 	// Count count the gc executions
 	Count(ctx context.Context, query *q.Query) (int64, error)
 	// GetSchedule get the current gc schedule
@@ -106,8 +107,9 @@ func (c *controller) Count(ctx context.Context, query *q.Query) (int64, error) {
 }
 
 // History ...
-func (c *controller) History(ctx context.Context, query *q.Query) ([]*history, error) {
-	var hs []*history
+func (c *controller) History(ctx context.Context, query *q.Query) ([]*History, error) {
+	var hs []*History
+
 	query.Keywords["VendorType"] = gcVendorType
 	exes, err := c.exeMgr.List(ctx, query)
 	if err != nil {
@@ -122,10 +124,17 @@ func (c *controller) History(ctx context.Context, query *q.Query) ([]*history, e
 			continue
 		}
 
-		hs = append(hs, &history{
+		extraAttrsString, err := json.Marshal(exe.ExtraAttrs)
+		if err != nil {
+			return nil, err
+		}
+
+		hs = append(hs, &History{
 			ID:           exe.ID,
-			Trigger:      exe.Trigger,
-			DryRun:       exe.ExtraAttrs["dry_run"].(string),
+			Name:         gcVendorType,
+			Kind:         exe.Trigger,
+			Parameters:   string(extraAttrsString),
+			Deleted:      false,
 			Status:       tasks[0].Status,
 			CreationTime: tasks[0].CreationTime,
 			UpdateTime:   tasks[0].UpdateTime,

@@ -1314,7 +1314,9 @@
     "COUNT_LARGE": "參數“個數”太大",
     "DAYS_LARGE": "參數“天數”太大",
     "EXECUTION_TYPE": "執行類型",
-    "ACTION": "操作"
+    "ACTION": "操作",
+    "YES": "Yes",
+    "NO": "No"
   },
   "IMMUTABLE_TAG": {
     "IMMUTABLE_RULES": "不可變的 Tag 規則",
@@ -1509,7 +1511,7 @@
     "PROVIDER_REQUIRED": "Provider is required",
     "ADDED_SUCCESS": "Added policy successfully",
     "UPDATED_SUCCESS": "Updated policy successfully",
-    "EXECUTE": "Execute",
+    "EXECUTE": "EXECUTE",
     "EXECUTE_SUCCESSFULLY": "Executed successfully",
     "EXECUTE_TITLE": "Confirm Policy Execution",
     "EXECUTE_SUMMARY": "Do you want to execute the policy {{param}}?",
