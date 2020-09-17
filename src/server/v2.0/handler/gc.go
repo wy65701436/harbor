@@ -22,26 +22,30 @@ func newGCAPI() *gcAPI {
 	}
 }
 
-func (g *gcAPI) ParseSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
+func (g *gcAPI) PostSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
+	return g.createSchedule(ctx, params)
+}
+
+func (g *gcAPI) PutSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
 	switch params.Schedule.Type {
 	case "Manual":
-		return g.Start(ctx, params)
+		return g.start(ctx, params)
 	case "None":
-		return g.DeleteSchedule(ctx)
+		return g.deleteSchedule(ctx)
 	case "Hourly", "Daily", "Weekly", "Custom":
-		return g.UpdateSchedule(ctx, params)
+		return g.updateSchedule(ctx, params)
 	}
 	return nil
 }
 
-func (g *gcAPI) Start(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
+func (g *gcAPI) start(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
 	if err := g.gcCtr.Start(ctx, params); err != nil {
 		return g.SendError(ctx, err)
 	}
 	return operation.NewStartOK()
 }
 
-func (g *gcAPI) CreateSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
+func (g *gcAPI) createSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
 	cron := params.Schedule.Cron
 	if cron == "" {
 		return g.SendError(ctx, errors.New(nil).WithCode(errors.BadRequestCode).
@@ -54,14 +58,14 @@ func (g *gcAPI) CreateSchedule(ctx context.Context, params gc.parseScheduleParam
 	return operation.NewCreateScheduleOK()
 }
 
-func (g *gcAPI) UpdateSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
+func (g *gcAPI) updateSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
 	if err := g.gcCtr.DeleteSchedule(ctx); err != nil {
 		return g.SendError(ctx, err)
 	}
-	return g.CreateSchedule(ctx, params)
+	return g.createSchedule(ctx, params)
 }
 
-func (g *gcAPI) DeleteSchedule(ctx context.Context) middleware.Responder {
+func (g *gcAPI) deleteSchedule(ctx context.Context) middleware.Responder {
 	if err := g.gcCtr.DeleteSchedule(ctx); err != nil {
 		return g.SendError(ctx, err)
 	}

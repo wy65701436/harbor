@@ -1506,7 +1506,7 @@ paths:
       summary: Create a gc schedule.
       description: |
         This endpoint is for update gc schedule.
-      operationId: parseSchedule
+      operationId: postSchedule
       parameters:
         - name: schedule
           in: body
@@ -1533,7 +1533,7 @@ paths:
       summary: Update gc's schedule.
       description: |
         This endpoint is for update gc schedule.
-      operationId: parseSchedule
+      operationId: putSchedule
       parameters:
         - name: schedule
           in: body
