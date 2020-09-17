@@ -1646,6 +1646,13 @@ parameters:
     description: Task ID
     required: true
     type: integer
+  gcId:
+    name: gc_id
+    in: path
+    description: The ID of the gc log
+    required: true
+    type: integer
+    format: int64
 responses:
   '200':
     description: Success
