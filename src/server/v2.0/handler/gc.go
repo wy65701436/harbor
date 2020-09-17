@@ -34,14 +34,14 @@ func (g *gcAPI) ParseSchedule(ctx context.Context, params gc.parseScheduleParams
 	return nil
 }
 
-func (g *gcAPI) Start(ctx context.Context, params gc.startParams) middleware.Responder {
+func (g *gcAPI) Start(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
 	if err := g.gcCtr.Start(ctx, params); err != nil {
 		return g.SendError(ctx, err)
 	}
 	return operation.NewStartOK()
 }
 
-func (g *gcAPI) CreateSchedule(ctx context.Context, params gc.createScheduleParams) middleware.Responder {
+func (g *gcAPI) CreateSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
 	cron := params.Schedule.Cron
 	if cron == "" {
 		return g.SendError(ctx, errors.New(nil).WithCode(errors.BadRequestCode).
@@ -54,7 +54,7 @@ func (g *gcAPI) CreateSchedule(ctx context.Context, params gc.createSchedulePara
 	return operation.NewCreateScheduleOK()
 }
 
-func (g *gcAPI) UpdateSchedule(ctx context.Context, params gc.createScheduleParams) middleware.Responder {
+func (g *gcAPI) UpdateSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
 	if err := g.gcCtr.DeleteSchedule(ctx); err != nil {
 		return g.SendError(ctx, err)
 	}
@@ -77,7 +77,7 @@ func (g *gcAPI) GetSchedule(ctx context.Context) middleware.Responder {
 	return operation.NewGetScheduleOK().WithPayload(model.NewSchedule(schedule).ToSwagger())
 }
 
-func (g *gcAPI) History(ctx context.Context, params gc.historyParams) middleware.Responder {
+func (g *gcAPI) GetGCHistory(ctx context.Context, params gc.getGCHistoryParams) middleware.Responder {
 	query, err := g.BuildQuery(ctx, params.Q, params.Page, params.PageSize)
 	if err != nil {
 		return g.SendError(ctx, err)
@@ -102,8 +102,8 @@ func (g *gcAPI) History(ctx context.Context, params gc.historyParams) middleware
 		WithPayload(results)
 }
 
-func (g *gcAPI) GetLog(ctx context.Context, id int64) middleware.Responder {
-	log, err := g.gcCtr.GetLog(ctx, id)
+func (g *gcAPI) GetGCLog(ctx context.Context, params operation.getGCLogParams) middleware.Responder {
+	log, err := g.gcCtr.GetLog(ctx, params.GcID)
 	if err != nil {
 		return g.SendError(ctx, err)
 	}
