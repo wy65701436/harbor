@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/goharbor/harbor/src/common/security/local"
 	"github.com/goharbor/harbor/src/controller/gc"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
@@ -22,54 +21,47 @@ func newGCAPI() *gcAPI {
 	}
 }
 
-func (g *gcAPI) PostSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
-	return g.createSchedule(ctx, params)
+func (g *gcAPI) PostSchedule(ctx context.Context, params operation.PostScheduleParams) middleware.Responder {
+	if err := g.createSchedule(ctx, params); err != nil {
+		return g.SendError(ctx, err)
+	}
+	return operation.NewPostScheduleOK()
 }
 
-func (g *gcAPI) PutSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
-	switch params.Schedule.Type {
-	case "Manual":
-		return g.start(ctx, params)
-	case "None":
-		return g.deleteSchedule(ctx)
-	case "Hourly", "Daily", "Weekly", "Custom":
-		return g.updateSchedule(ctx, params)
+func (g *gcAPI) PutSchedule(ctx context.Context, params operation.PostScheduleParams) middleware.Responder {
+	var err error
+	switch params.Schedule.Schedule.Type {
+	case model.ScheduleManual:
+		err = g.gcCtr.Start(ctx, params.Schedule.Parameters)
+	case model.ScheduleNone:
+		err = g.gcCtr.DeleteSchedule(ctx)
+	case model.ScheduleHourly, model.ScheduleDaily, model.ScheduleWeekly, model.ScheduleCustom:
+		err = g.updateSchedule(ctx, params)
+	}
+	if err != nil {
+		return g.SendError(ctx, err)
+	}
+	return operation.NewPutScheduleOK()
+}
+
+func (g *gcAPI) createSchedule(ctx context.Context, params operation.PostScheduleParams) error {
+	cron := params.Schedule.Schedule.Cron
+	if cron == "" {
+		return errors.New(nil).WithCode(errors.BadRequestCode).
+			WithMessage("empty cron string for gc schedule")
+	}
+	_, err := g.gcCtr.CreateSchedule(ctx, cron, params.Schedule.Parameters)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (g *gcAPI) start(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
-	if err := g.gcCtr.Start(ctx, params); err != nil {
-		return g.SendError(ctx, err)
-	}
-	return operation.NewStartOK()
-}
-
-func (g *gcAPI) createSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
-	cron := params.Schedule.Cron
-	if cron == "" {
-		return g.SendError(ctx, errors.New(nil).WithCode(errors.BadRequestCode).
-			WithMessage("empty cron string for gc schedule"))
-	}
-	_, err := g.gcCtr.CreateSchedule(ctx, cron, params)
-	if err != nil {
-		return g.SendError(ctx, err)
-	}
-	return operation.NewCreateScheduleOK()
-}
-
-func (g *gcAPI) updateSchedule(ctx context.Context, params gc.parseScheduleParams) middleware.Responder {
+func (g *gcAPI) updateSchedule(ctx context.Context, params operation.PostScheduleParams) error {
 	if err := g.gcCtr.DeleteSchedule(ctx); err != nil {
-		return g.SendError(ctx, err)
+		return err
 	}
 	return g.createSchedule(ctx, params)
-}
-
-func (g *gcAPI) deleteSchedule(ctx context.Context) middleware.Responder {
-	if err := g.gcCtr.DeleteSchedule(ctx); err != nil {
-		return g.SendError(ctx, err)
-	}
-	return operation.NewDeleteScheduleOK()
 }
 
 func (g *gcAPI) GetSchedule(ctx context.Context) middleware.Responder {
@@ -81,7 +73,7 @@ func (g *gcAPI) GetSchedule(ctx context.Context) middleware.Responder {
 	return operation.NewGetScheduleOK().WithPayload(model.NewSchedule(schedule).ToSwagger())
 }
 
-func (g *gcAPI) GetGCHistory(ctx context.Context, params gc.getGCHistoryParams) middleware.Responder {
+func (g *gcAPI) GetGCHistory(ctx context.Context, params operation.GetGCHistoryParams) middleware.Responder {
 	query, err := g.BuildQuery(ctx, params.Q, params.Page, params.PageSize)
 	if err != nil {
 		return g.SendError(ctx, err)
@@ -100,16 +92,16 @@ func (g *gcAPI) GetGCHistory(ctx context.Context, params gc.getGCHistoryParams) 
 		res.History = h
 		results = append(results, res.ToSwagger())
 	}
-	return operation.NewHistoryOK().
+	return operation.NewGetGCHistoryOK().
 		WithXTotalCount(total).
 		WithLink(g.Links(ctx, params.HTTPRequest.URL, total, query.PageNumber, query.PageSize).String()).
 		WithPayload(results)
 }
 
-func (g *gcAPI) GetGCLog(ctx context.Context, params operation.getGCLogParams) middleware.Responder {
+func (g *gcAPI) GetGCLog(ctx context.Context, params operation.GetGCLogParams) middleware.Responder {
 	log, err := g.gcCtr.GetLog(ctx, params.GcID)
 	if err != nil {
 		return g.SendError(ctx, err)
 	}
-	return operation.NewGetLogOK().WithPayload(string(log))
+	return operation.NewGetGCLogOK().WithPayload(string(log))
 }

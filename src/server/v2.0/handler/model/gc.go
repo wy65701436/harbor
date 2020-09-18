@@ -1,9 +1,25 @@
 package model
 
 import (
+	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/harbor/src/controller/gc"
 	"github.com/goharbor/harbor/src/pkg/scheduler"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
+)
+
+const (
+	// ScheduleHourly : 'Hourly'
+	ScheduleHourly = "Hourly"
+	// ScheduleDaily : 'Daily'
+	ScheduleDaily = "Daily"
+	// ScheduleWeekly : 'Weekly'
+	ScheduleWeekly = "Weekly"
+	// ScheduleCustom : 'Custom'
+	ScheduleCustom = "Custom"
+	// ScheduleManual : 'Manual'
+	ScheduleManual = "Manual"
+	// ScheduleNone : 'None'
+	ScheduleNone = "None"
 )
 
 type History struct {
@@ -13,14 +29,14 @@ type History struct {
 // ToSwagger converts the history to the swagger model
 func (h *History) ToSwagger() *models.History {
 	return &models.History{
-		ID:           h.ID,
-		Name:         h.Name,
-		Kind:         h.Kind,
-		Parameters:   h.Parameters,
-		Deleted:      h.Deleted,
-		Status:       h.Status,
-		CreationTime: h.CreationTime,
-		UpdateTime:   h.UpdateTime,
+		ID:            h.ID,
+		JobName:       h.Name,
+		JobKind:       h.Kind,
+		JobParameters: h.Parameters,
+		Deleted:       h.Deleted,
+		JobStatus:     h.Status,
+		CreationTime:  strfmt.DateTime(h.CreationTime),
+		UpdateTime:    strfmt.DateTime(h.UpdateTime),
 	}
 }
 

@@ -1445,11 +1445,19 @@ paths:
         - gc
       operationId: getGCHistory
       parameters:
+        - $ref: '#/parameters/query'
         - $ref: '#/parameters/page'
         - $ref: '#/parameters/pageSize'
       responses:
         '200':
           description: Get gc results successfully.
+          headers:
+            X-Total-Count:
+              description: The total count of history
+              type: integer
+            Link:
+              description: Link refers to the previous page and next page
+              type: string
           schema:
             type: array
             items:
@@ -2567,9 +2575,11 @@ definitions:
         description: if gc job was deleted.
       creation_time:
         type: string
+        format: date-time
         description: the creation time of gc job.
       update_time:
         type: string
+        format: date-time
         description: the update time of gc job.
   Schedule:
     type: object
@@ -2580,7 +2590,7 @@ definitions:
         type: object
         description: The parameters of admin job
         additionalProperties:
-          type: boolean
+          type: object
   ScheduleObj:
     type: object
     properties:
