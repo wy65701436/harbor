@@ -86,9 +86,9 @@ func (g *gcAPI) GetGCHistory(ctx context.Context, params operation.GetGCHistoryP
 	if err != nil {
 		return g.SendError(ctx, err)
 	}
-	var results []*models.History
+	var results []*models.GCHistory
 	for _, h := range hs {
-		res := &model.History{}
+		res := &model.GCHistory{}
 		res.History = h
 		results = append(results, res.ToSwagger())
 	}

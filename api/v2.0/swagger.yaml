@@ -1461,7 +1461,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/History'
+              $ref: '#/definitions/GCHistory'
         '401':
           $ref: '#/responses/401'
         '403':
@@ -2550,7 +2550,7 @@ definitions:
     additionalProperties:
       type: integer
       format: int64
-  History:
+  GCHistory:
     type: object
     properties:
       id:

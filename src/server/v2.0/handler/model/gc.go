@@ -22,13 +22,13 @@ const (
 	ScheduleNone = "None"
 )
 
-type History struct {
+type GCHistory struct {
 	*gc.History
 }
 
 // ToSwagger converts the history to the swagger model
-func (h *History) ToSwagger() *models.History {
-	return &models.History{
+func (h *GCHistory) ToSwagger() *models.GCHistory {
+	return &models.GCHistory{
 		ID:            h.ID,
 		JobName:       h.Name,
 		JobKind:       h.Kind,
