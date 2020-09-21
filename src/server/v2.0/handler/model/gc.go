@@ -1,7 +1,6 @@
 package model
 
 import (
-	"encoding/json"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/harbor/src/controller/gc"
 	"github.com/goharbor/harbor/src/pkg/scheduler"
@@ -56,27 +55,25 @@ type Schedule struct {
 // TODO remove the hard code when after issue https://github.com/goharbor/harbor/issues/13047 is resolved.
 // ToSwagger converts the schedule to the swagger model
 func (s *Schedule) ToSwagger() *models.GCHistory {
-	sche := &models.ScheduleObj{
-		Cron: s.CRON,
-		Type: "Custom",
-	}
-	para := make(map[string]interface{})
-	para["delete_untagged"] = true
-	paraStr, err := json.Marshal(para)
-	if err != nil {
-		return nil
-	}
-
+	//para := make(map[string]interface{})
+	//para["delete_untagged"] = false
+	//paraStr, err := json.Marshal(para)
+	//if err != nil {
+	//	return nil
+	//}
 	return &models.GCHistory{
 		ID:            0,
 		JobName:       "",
 		JobKind:       s.CRON,
-		JobParameters: string(paraStr),
+		JobParameters: s.Param,
 		Deleted:       false,
 		JobStatus:     "",
-		Schedule:      sche,
-		CreationTime:  strfmt.DateTime(s.CreationTime),
-		UpdateTime:    strfmt.DateTime(s.UpdateTime),
+		Schedule: &models.ScheduleObj{
+			Cron: s.CRON,
+			Type: "Custom",
+		},
+		CreationTime: strfmt.DateTime(s.CreationTime),
+		UpdateTime:   strfmt.DateTime(s.UpdateTime),
 	}
 }
 
