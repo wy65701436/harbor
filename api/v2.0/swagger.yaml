@@ -1503,7 +1503,7 @@ paths:
         '200':
           description: Get gc's schedule.
           schema:
-            $ref: '#/definitions/Schedule'
+            $ref: '#/definitions/GCHistory'
         '401':
           $ref: '#/responses/401'
         '403':
