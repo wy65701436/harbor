@@ -70,7 +70,8 @@ func (g *gcAPI) updateSchedule(ctx context.Context, cron string, parameters map[
 func (g *gcAPI) GetSchedule(ctx context.Context, params operation.GetScheduleParams) middleware.Responder {
 	schedule, err := g.gcCtr.GetSchedule(ctx)
 	if errors.IsNotFoundErr(err) {
-		return operation.NewGetScheduleOK().WithPayload(&models.Schedule{})
+		return operation.NewGetScheduleOK().WithPayload(&models.Schedule)
+		model.NewSchedule(&models.Schedule).ToSwagger()
 	}
 	if err != nil {
 		return g.SendError(ctx, err)
