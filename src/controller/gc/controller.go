@@ -128,13 +128,15 @@ func (c *controller) History(ctx context.Context, query *q.Query) ([]*History, e
 		if err != nil {
 			return nil, err
 		}
-
 		hs = append(hs, &History{
-			ID:           exe.ID,
-			Name:         gcVendorType,
-			Kind:         exe.Trigger,
-			Parameters:   string(extraAttrsString),
-			Deleted:      false,
+			ID:         exe.ID,
+			Name:       gcVendorType,
+			Kind:       exe.Trigger,
+			Parameters: string(extraAttrsString),
+			Deleted:    false,
+			Schedule: Schedule{Schedule: &ScheduleParam{
+				Type: exe.Trigger,
+			}},
 			Status:       tasks[0].Status,
 			CreationTime: tasks[0].CreationTime,
 			UpdateTime:   tasks[0].UpdateTime,
