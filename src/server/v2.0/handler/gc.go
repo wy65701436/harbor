@@ -5,6 +5,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/goharbor/harbor/src/controller/gc"
 	"github.com/goharbor/harbor/src/lib/errors"
+	"github.com/goharbor/harbor/src/pkg/scheduler"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
 	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/gc"
@@ -70,7 +71,7 @@ func (g *gcAPI) updateSchedule(ctx context.Context, cron string, parameters map[
 func (g *gcAPI) GetSchedule(ctx context.Context, params operation.GetScheduleParams) middleware.Responder {
 	schedule, err := g.gcCtr.GetSchedule(ctx)
 	if errors.IsNotFoundErr(err) {
-		return operation.NewGetScheduleOK().WithPayload(&models.GCHistory{})
+		return operation.NewGetScheduleOK().WithPayload(model.NewSchedule(&scheduler.Schedule{}).ToSwagger())
 	}
 	if err != nil {
 		return g.SendError(ctx, err)

@@ -67,11 +67,6 @@ func (s *Schedule) ToSwagger() *models.GCHistory {
 		return nil
 	}
 
-	//sche.Schedule.Type = "Custom"
-	//sche.Schedule.Cron = s.CRON
-	//sche.Parameters = para
-	//return sche
-
 	return &models.GCHistory{
 		ID:            0,
 		JobName:       "",
