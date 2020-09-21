@@ -5,11 +5,11 @@ UPDATE project_metadata SET name='reuse_sys_cve_allowlist' WHERE name='reuse_sys
 
 CREATE TABLE IF NOT EXISTS execution (
     id SERIAL NOT NULL,
-    vendor_type varchar(64) NOT NULL,
+    vendor_type varchar(16) NOT NULL,
     vendor_id int,
-    status varchar(64),
+    status varchar(16),
     status_message text,
-    trigger varchar(64) NOT NULL,
+    trigger varchar(16) NOT NULL,
     extra_attrs JSON,
     start_time timestamp DEFAULT CURRENT_TIMESTAMP,
     end_time timestamp,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS task (
     id SERIAL PRIMARY KEY NOT NULL,
     execution_id int NOT NULL,
     job_id varchar(64),
-    status varchar(64) NOT NULL,
+    status varchar(16) NOT NULL,
     status_code int NOT NULL,
     status_revision int,
     status_message text,
