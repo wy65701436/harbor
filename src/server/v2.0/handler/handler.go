@@ -36,7 +36,7 @@ func New() http.Handler {
 		ProjectAPI:    newProjectAPI(),
 		PreheatAPI:    newPreheatAPI(),
 		IconAPI:       newIconAPI(),
-		GCAPI:         newGCAPI(),
+		GcAPI:         newGCAPI(),
 	})
 	if err != nil {
 		log.Fatal(err)

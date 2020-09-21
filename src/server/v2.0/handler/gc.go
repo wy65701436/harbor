@@ -22,13 +22,13 @@ func newGCAPI() *gcAPI {
 }
 
 func (g *gcAPI) PostSchedule(ctx context.Context, params operation.PostScheduleParams) middleware.Responder {
-	if err := g.createSchedule(ctx, params); err != nil {
+	if err := g.createSchedule(ctx, params.Schedule.Schedule.Cron, params.Schedule.Parameters); err != nil {
 		return g.SendError(ctx, err)
 	}
 	return operation.NewPostScheduleOK()
 }
 
-func (g *gcAPI) PutSchedule(ctx context.Context, params operation.PostScheduleParams) middleware.Responder {
+func (g *gcAPI) PutSchedule(ctx context.Context, params operation.PutScheduleParams) middleware.Responder {
 	var err error
 	switch params.Schedule.Schedule.Type {
 	case model.ScheduleManual:
@@ -44,27 +44,26 @@ func (g *gcAPI) PutSchedule(ctx context.Context, params operation.PostSchedulePa
 	return operation.NewPutScheduleOK()
 }
 
-func (g *gcAPI) createSchedule(ctx context.Context, params operation.PostScheduleParams) error {
-	cron := params.Schedule.Schedule.Cron
+func (g *gcAPI) createSchedule(ctx context.Context, cron string, parameters map[string]interface{}) error {
 	if cron == "" {
 		return errors.New(nil).WithCode(errors.BadRequestCode).
 			WithMessage("empty cron string for gc schedule")
 	}
-	_, err := g.gcCtr.CreateSchedule(ctx, cron, params.Schedule.Parameters)
+	_, err := g.gcCtr.CreateSchedule(ctx, cron, parameters)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (g *gcAPI) updateSchedule(ctx context.Context, params operation.PostScheduleParams) error {
+func (g *gcAPI) updateSchedule(ctx context.Context, params operation.PutScheduleParams) error {
 	if err := g.gcCtr.DeleteSchedule(ctx); err != nil {
 		return err
 	}
-	return g.createSchedule(ctx, params)
+	return g.createSchedule(ctx, params.Schedule.Schedule.Cron, params.Schedule.Parameters)
 }
 
-func (g *gcAPI) GetSchedule(ctx context.Context) middleware.Responder {
+func (g *gcAPI) GetSchedule(ctx context.Context, params operation.GetScheduleParams) middleware.Responder {
 	schedule, err := g.gcCtr.GetSchedule(ctx)
 	if err != nil {
 		return g.SendError(ctx, err)

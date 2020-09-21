@@ -56,9 +56,11 @@ type Schedule struct {
 // ToSwagger converts the schedule to the swagger model
 func (s *Schedule) ToSwagger() *models.Schedule {
 	sche := &models.Schedule{}
+	para := make(map[string]interface{})
+	para["delete_untagged"] = true
 	sche.Schedule.Type = "Custom"
 	sche.Schedule.Cron = s.CRON
-	sche.Parameters = "{\"delete_untagged\":false,\"time_window\":0}"
+	sche.Parameters = para
 	return sche
 }
 

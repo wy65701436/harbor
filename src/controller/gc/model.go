@@ -9,20 +9,6 @@ import (
 	"time"
 )
 
-//// AdminJobRep holds the response of query admin job
-//type AdminJobRep struct {
-//	AdminJobSchedule
-//	Parameters   string    `json:"job_parameters"`
-//	ID           int64     `json:"id"`
-//	Name         string    `json:"job_name"`
-//	Kind         string    `json:"job_kind"`
-//	Status       string    `json:"job_status"`
-//	UUID         string    `json:"-"`
-//	Deleted      bool      `json:"deleted"`
-//	CreationTime time.Time `json:"creation_time"`
-//	UpdateTime   time.Time `json:"update_time"`
-//}
-
 // Schedule ...
 type Schedule struct {
 	Schedule *ScheduleParam `json:"schedule"`
@@ -36,7 +22,7 @@ type ScheduleParam struct {
 	Cron string `json:"cron"`
 }
 
-// AdminJobRep holds the response of query admin job
+// History gc execution history
 type History struct {
 	Schedule
 	ID           int64     `json:"id"`
