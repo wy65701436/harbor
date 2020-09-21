@@ -22,26 +22,30 @@ func newGCAPI() *gcAPI {
 }
 
 func (g *gcAPI) PostSchedule(ctx context.Context, params operation.PostScheduleParams) middleware.Responder {
-	if err := g.createSchedule(ctx, params.Schedule.Schedule.Cron, params.Schedule.Parameters); err != nil {
+	if err := g.parseParam(ctx, params.Schedule.Schedule.Type, params.Schedule.Schedule.Cron, params.Schedule.Parameters); err != nil {
 		return g.SendError(ctx, err)
 	}
 	return operation.NewPostScheduleOK()
 }
 
 func (g *gcAPI) PutSchedule(ctx context.Context, params operation.PutScheduleParams) middleware.Responder {
-	var err error
-	switch params.Schedule.Schedule.Type {
-	case model.ScheduleManual:
-		err = g.gcCtr.Start(ctx, params.Schedule.Parameters)
-	case model.ScheduleNone:
-		err = g.gcCtr.DeleteSchedule(ctx)
-	case model.ScheduleHourly, model.ScheduleDaily, model.ScheduleWeekly, model.ScheduleCustom:
-		err = g.updateSchedule(ctx, params)
-	}
-	if err != nil {
+	if err := g.parseParam(ctx, params.Schedule.Schedule.Type, params.Schedule.Schedule.Cron, params.Schedule.Parameters); err != nil {
 		return g.SendError(ctx, err)
 	}
 	return operation.NewPutScheduleOK()
+}
+
+func (g *gcAPI) parseParam(ctx context.Context, scheType string, cron string, parameters map[string]interface{}) error {
+	var err error
+	switch scheType {
+	case model.ScheduleManual:
+		err = g.gcCtr.Start(ctx, parameters)
+	case model.ScheduleNone:
+		err = g.gcCtr.DeleteSchedule(ctx)
+	case model.ScheduleHourly, model.ScheduleDaily, model.ScheduleWeekly, model.ScheduleCustom:
+		err = g.updateSchedule(ctx, cron, parameters)
+	}
+	return err
 }
 
 func (g *gcAPI) createSchedule(ctx context.Context, cron string, parameters map[string]interface{}) error {
@@ -56,11 +60,11 @@ func (g *gcAPI) createSchedule(ctx context.Context, cron string, parameters map[
 	return nil
 }
 
-func (g *gcAPI) updateSchedule(ctx context.Context, params operation.PutScheduleParams) error {
+func (g *gcAPI) updateSchedule(ctx context.Context, cron string, parameters map[string]interface{}) error {
 	if err := g.gcCtr.DeleteSchedule(ctx); err != nil {
 		return err
 	}
-	return g.createSchedule(ctx, params.Schedule.Schedule.Cron, params.Schedule.Parameters)
+	return g.createSchedule(ctx, cron, parameters)
 }
 
 func (g *gcAPI) GetSchedule(ctx context.Context, params operation.GetScheduleParams) middleware.Responder {
