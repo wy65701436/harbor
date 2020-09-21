@@ -22,6 +22,7 @@ const (
 	ScheduleNone = "None"
 )
 
+// GCHistory ...
 type GCHistory struct {
 	*gc.History
 }
@@ -35,32 +36,23 @@ func (h *GCHistory) ToSwagger() *models.GCHistory {
 		JobParameters: h.Parameters,
 		Deleted:       h.Deleted,
 		JobStatus:     h.Status,
-		CreationTime:  strfmt.DateTime(h.CreationTime),
-		UpdateTime:    strfmt.DateTime(h.UpdateTime),
+		Schedule: &models.ScheduleObj{
+			Cron: h.Schedule.Schedule.Cron,
+			Type: h.Schedule.Schedule.Type,
+		},
+		CreationTime: strfmt.DateTime(h.CreationTime),
+		UpdateTime:   strfmt.DateTime(h.UpdateTime),
 	}
 }
 
+// Schedule ...
 type Schedule struct {
 	*scheduler.Schedule
 }
 
-// A GC schedule
-//{
-//    "schedule": {
-//        "type": "Daily",
-//        "cron": "0 0 0 * * *"
-//    },
-//    "job_parameters": "{\"delete_untagged\":false,\"time_window\":0}",
-//}
-// TODO remove the hard code when after issue https://github.com/goharbor/harbor/issues/13047 is resolved.
 // ToSwagger converts the schedule to the swagger model
+// TODO remove the hard code when after issue https://github.com/goharbor/harbor/issues/13047 is resolved.
 func (s *Schedule) ToSwagger() *models.GCHistory {
-	//para := make(map[string]interface{})
-	//para["delete_untagged"] = false
-	//paraStr, err := json.Marshal(para)
-	//if err != nil {
-	//	return nil
-	//}
 	return &models.GCHistory{
 		ID:            0,
 		JobName:       "",
