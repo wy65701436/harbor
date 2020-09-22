@@ -39,7 +39,7 @@ func (g *gcAPI) PutSchedule(ctx context.Context, params operation.PutSchedulePar
 }
 
 func (g *gcAPI) parseParam(ctx context.Context, scheType string, cron string, parameters map[string]interface{}) error {
-	// set the parameters of GC
+	// set the required parameters for GC
 	parameters["redis_url_reg"] = os.Getenv("_REDIS_URL_REG")
 	parameters["time_window"] = config.GetGCTimeWindow()
 
