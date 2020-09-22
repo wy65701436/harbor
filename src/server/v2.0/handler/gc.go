@@ -4,11 +4,13 @@ import (
 	"context"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/goharbor/harbor/src/controller/gc"
+	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/pkg/scheduler"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
 	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/gc"
+	"os"
 )
 
 type gcAPI struct {
@@ -45,6 +47,11 @@ func (g *gcAPI) parseParam(ctx context.Context, scheType string, cron string, pa
 		err = g.gcCtr.DeleteSchedule(ctx)
 	case model.ScheduleHourly, model.ScheduleDaily, model.ScheduleWeekly, model.ScheduleCustom:
 		err = g.updateSchedule(ctx, cron, parameters)
+	}
+	// set the parameters of GC
+	if err == nil {
+		parameters["redis_url_reg"] = os.Getenv("_REDIS_URL_REG")
+		parameters["time_window"] = config.GetGCTimeWindow()
 	}
 	return err
 }
