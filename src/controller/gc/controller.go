@@ -58,7 +58,7 @@ type controller struct {
 
 // Start starts the manual GC
 func (c *controller) Start(ctx context.Context, parameters map[string]interface{}) error {
-	execID, err := c.exeMgr.Create(ctx, gcVendorType, -1, task.ExecutionTriggerManual)
+	execID, err := c.exeMgr.Create(ctx, gcVendorType, -1, task.ExecutionTriggerManual, parameters)
 	if err != nil {
 		return err
 	}
