@@ -39,6 +39,10 @@ func (g *gcAPI) PutSchedule(ctx context.Context, params operation.PutSchedulePar
 }
 
 func (g *gcAPI) parseParam(ctx context.Context, scheType string, cron string, parameters map[string]interface{}) error {
+	// set the parameters of GC
+	parameters["redis_url_reg"] = os.Getenv("_REDIS_URL_REG")
+	parameters["time_window"] = config.GetGCTimeWindow()
+
 	var err error
 	switch scheType {
 	case model.ScheduleManual:
@@ -47,11 +51,6 @@ func (g *gcAPI) parseParam(ctx context.Context, scheType string, cron string, pa
 		err = g.gcCtr.DeleteSchedule(ctx)
 	case model.ScheduleHourly, model.ScheduleDaily, model.ScheduleWeekly, model.ScheduleCustom:
 		err = g.updateSchedule(ctx, cron, parameters)
-	}
-	// set the parameters of GC
-	if err == nil {
-		parameters["redis_url_reg"] = os.Getenv("_REDIS_URL_REG")
-		parameters["time_window"] = config.GetGCTimeWindow()
 	}
 	return err
 }
