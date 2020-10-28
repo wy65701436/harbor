@@ -22,10 +22,10 @@ func init() {
 type Robot struct {
 	ID           int64     `orm:"pk;auto;column(id)" json:"id"`
 	Name         string    `orm:"column(name)" json:"name"`
-	Token        string    `orm:"-" json:"token"`
 	Description  string    `orm:"column(description)" json:"description"`
 	ProjectID    int64     `orm:"column(project_id)" json:"project_id"`
 	ExpiresAt    int64     `orm:"column(expiresat)" json:"expires_at"`
+	Secret       string    `orm:"column(secret)" json:"secret"`
 	Disabled     bool      `orm:"column(disabled)" json:"disabled"`
 	Visible      bool      `orm:"column(visible)" json:"-"`
 	CreationTime time.Time `orm:"column(creation_time);auto_now_add" json:"creation_time"`
@@ -68,12 +68,19 @@ type RobotQuery struct {
 // RobotCreate ...
 type RobotCreate struct {
 	Name        string          `json:"name"`
-	ProjectID   int64           `json:"pid"`
+	ProjectName int64           `json:"project_name"`
 	Description string          `json:"description"`
 	Disabled    bool            `json:"disabled"`
 	ExpiresAt   int64           `json:"expires_at"`
 	Visible     bool            `json:"-"`
-	Access      []*types.Policy `json:"access"`
+	Level       string          `json:"level"`
+	Permissions RobotPermission `json:"permissions"`
+}
+
+type RobotPermission struct {
+	Kind      string          `json:"kind"`
+	Namespace string          `json:"namespace"`
+	Access    []*types.Policy `json:"access"`
 }
 
 // Pagination ...
