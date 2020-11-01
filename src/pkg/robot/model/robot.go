@@ -67,14 +67,14 @@ type RobotQuery struct {
 
 // RobotCreate ...
 type RobotCreate struct {
-	Name        string          `json:"name"`
-	ProjectName int64           `json:"project_name"`
-	Description string          `json:"description"`
-	Disabled    bool            `json:"disabled"`
-	ExpiresAt   int64           `json:"expires_at"`
-	Visible     bool            `json:"-"`
-	Level       string          `json:"level"`
-	Permissions RobotPermission `json:"permissions"`
+	Name        string            `json:"name"`
+	ProjectName int64             `json:"project_name"`
+	Description string            `json:"description"`
+	Disabled    bool              `json:"disabled"`
+	ExpiresAt   int64             `json:"expires_at"`
+	Visible     bool              `json:"-"`
+	Level       string            `json:"level"`
+	Permissions []RobotPermission `json:"permissions"`
 }
 
 type RobotPermission struct {

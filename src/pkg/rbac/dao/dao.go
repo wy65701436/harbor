@@ -1,0 +1,146 @@
+package dao
+
+import (
+	"context"
+	"github.com/goharbor/harbor/src/lib/errors"
+	"github.com/goharbor/harbor/src/lib/orm"
+	"github.com/goharbor/harbor/src/lib/q"
+	"github.com/goharbor/harbor/src/pkg/rbac/model"
+	"time"
+)
+
+// DAO is the data access object interface for artifact trash
+type DAO interface {
+	// CreatePermission ...
+	CreatePermission(ctx context.Context, rp *model.RolePermission) (int64, error)
+	// DeletePermission ...
+	DeletePermission(ctx context.Context, id int64) error
+	// ListPermission ...
+	ListPermission(ctx context.Context, query *q.Query) ([]*model.RolePermission, error)
+	// DeletePermissionByRole
+	DeletePermissionByRole(ctx context.Context, role_type string, role_id int64) error
+
+	// CreateRbacPolicy ...
+	CreateRbacPolicy(ctx context.Context, rp *model.RbacPolicy) (int64, error)
+	// DeleteRbacPolicy ...
+	DeleteRbacPolicy(ctx context.Context, id int64) error
+	// ListRbacPolicy list RbacPolicy according to the query.
+	ListRbacPolicy(ctx context.Context, query *q.Query) ([]*model.RbacPolicy, error)
+	// GetPermissionsByRole ...
+	GetPermissionsByRole(ctx context.Context, role_type string, role_id int64) *model.RolePermissions
+}
+
+// New returns an instance of the default DAO
+func New() DAO {
+	return &dao{}
+}
+
+type dao struct{}
+
+func (d *dao) CreatePermission(ctx context.Context, rp *model.RolePermission) (id int64, err error) {
+	ormer, err := orm.FromContext(ctx)
+	if err != nil {
+		return 0, err
+	}
+	rp.CreationTime = time.Now()
+	id, err = ormer.Insert(rp)
+	if err != nil {
+		if e := orm.AsConflictError(err, "role permission %s:%s:%s already exists",
+			rp.RoleType, rp.RoleID, rp.RBACPolicyID); e != nil {
+			err = e
+		}
+	}
+	return id, err
+}
+
+func (d *dao) DeletePermission(ctx context.Context, id int64) (err error) {
+	ormer, err := orm.FromContext(ctx)
+	if err != nil {
+		return err
+	}
+	n, err := ormer.Delete(&model.RolePermission{
+		ID: id,
+	})
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return errors.NotFoundError(nil).WithMessage("role permission %d not found", id)
+	}
+	return nil
+}
+
+func (d *dao) ListPermission(ctx context.Context, query *q.Query) ([]*model.RolePermission, error) {
+	rps := []*model.RolePermission{}
+	qs, err := orm.QuerySetter(ctx, &model.RolePermission{}, query)
+	if err != nil {
+		return nil, err
+	}
+	if _, err = qs.All(&rps); err != nil {
+		return nil, err
+	}
+	return rps, nil
+}
+
+func (d *dao) DeletePermissionByRole(ctx context.Context, role_type string, role_id int64) error {
+	qs, err := orm.QuerySetter(ctx, &model.RolePermission{}, &q.Query{
+		Keywords: map[string]interface{}{
+			"role_type": role_type,
+			"role_id":   role_id,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	_, err = qs.Delete()
+	return err
+}
+
+func (d *dao) CreateRbacPolicy(ctx context.Context, rp *model.RbacPolicy) (id int64, err error) {
+	ormer, err := orm.FromContext(ctx)
+	if err != nil {
+		return 0, err
+	}
+	rp.CreationTime = time.Now()
+	id, err = ormer.Insert(rp)
+	if err != nil {
+		if e := orm.AsConflictError(err, "rbac policy %s:%s:%s:%s already exists",
+			rp.Scope, rp.Resource, rp.Action, rp.Effect); e != nil {
+			err = e
+		}
+	}
+	return id, err
+}
+
+func (d *dao) DeleteRbacPolicy(ctx context.Context, id int64) (err error) {
+	ormer, err := orm.FromContext(ctx)
+	if err != nil {
+		return err
+	}
+	n, err := ormer.Delete(&model.RbacPolicy{
+		ID: id,
+	})
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return errors.NotFoundError(nil).WithMessage("rbac policy %d not found", id)
+	}
+	return nil
+}
+
+func (d *dao) ListRbacPolicy(ctx context.Context, query *q.Query) ([]*model.RbacPolicy, error) {
+	rps := []*model.RbacPolicy{}
+	qs, err := orm.QuerySetter(ctx, &model.RbacPolicy{}, query)
+	if err != nil {
+		return nil, err
+	}
+	if _, err = qs.All(&rps); err != nil {
+		return nil, err
+	}
+	return rps, nil
+}
+
+func (d *dao) GetPermissionsByRole(ctx context.Context, role_type string, role_id int64) *model.RolePermissions {
+
+}
