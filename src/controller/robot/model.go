@@ -8,7 +8,6 @@ import (
 type Robot struct {
 	model.Robot
 	ProjectName string
-	Secret      string
 	Level       string
 	Permissions []Permission `json:"permissions"`
 }

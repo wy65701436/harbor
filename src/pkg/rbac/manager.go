@@ -29,7 +29,6 @@ type Manager interface {
 	DeleteRbacPolicy(ctx context.Context, id int64) error
 	// ListRbacPolicy list RbacPolicy according to the query.
 	ListRbacPolicy(ctx context.Context, query *q.Query) ([]*model.RbacPolicy, error)
-
 	// GetPermissionsByRole
 	GetPermissionsByRole(ctx context.Context, role_type string, role_id int64) ([]*model.RolePermissions, error)
 }
@@ -76,5 +75,5 @@ func (m *manager) ListRbacPolicy(ctx context.Context, query *q.Query) ([]*model.
 }
 
 func (m *manager) GetPermissionsByRole(ctx context.Context, role_type string, role_id int64) ([]*model.RolePermissions, error) {
-	return nil, nil
+	return m.dao.GetPermissionsByRole(ctx, role_type, role_id)
 }

@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"fmt"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/orm"
 	"github.com/goharbor/harbor/src/lib/q"
@@ -26,8 +27,9 @@ type DAO interface {
 	DeleteRbacPolicy(ctx context.Context, id int64) error
 	// ListRbacPolicy list RbacPolicy according to the query.
 	ListRbacPolicy(ctx context.Context, query *q.Query) ([]*model.RbacPolicy, error)
+
 	// GetPermissionsByRole ...
-	GetPermissionsByRole(ctx context.Context, role_type string, role_id int64) *model.RolePermissions
+	GetPermissionsByRole(ctx context.Context, role_type string, role_id int64) ([]*model.RolePermissions, error)
 }
 
 // New returns an instance of the default DAO
@@ -141,6 +143,18 @@ func (d *dao) ListRbacPolicy(ctx context.Context, query *q.Query) ([]*model.Rbac
 	return rps, nil
 }
 
-func (d *dao) GetPermissionsByRole(ctx context.Context, role_type string, role_id int64) *model.RolePermissions {
+func (d *dao) GetPermissionsByRole(ctx context.Context, role_type string, role_id int64) ([]*model.RolePermissions, error) {
+	var rps []*model.RolePermissions
+	ormer, err := orm.FromContext(ctx)
+	if err != nil {
+		return rps, err
+	}
+	sql := fmt.Sprintf(`SELECT rper.role_type, rper.role_id, rper.scope, rper.resource, rper.action, rper.effect FROM role_permission AS rper LEFT JOIN rbac_policy rpo ON (rper.rbac_policy_id=rpo.id) where rper.role_type=%s and rper.role_id=%d`, role_type, role_id)
 
+	_, err = ormer.Raw(sql).QueryRows(&rps)
+	if err != nil {
+		return rps, err
+	}
+
+	return rps, nil
 }

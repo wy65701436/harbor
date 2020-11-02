@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/astaxie/beego/orm"
-	"github.com/goharbor/harbor/src/pkg/permission/types"
 	"time"
 )
 
@@ -49,10 +48,4 @@ type RolePermissions struct {
 	Resource string `orm:"column(resource)"`
 	Action   string `orm:"column(action)"`
 	Effect   string `orm:"column(effect)"`
-
-	Permissions struct {
-		Kind      string          `json:"kind"`
-		Namespace string          `json:"namespace"`
-		Access    []*types.Policy `json:"access"`
-	} `json:"permissions"`
 }

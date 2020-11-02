@@ -27,3 +27,4 @@ CREATE TABLE  IF NOT EXISTS rbac_policy (
  update_time timestamp default CURRENT_TIMESTAMP,
  CONSTRAINT unique_rbac_policy UNIQUE (scope, resource, action, effect)
 );
+
