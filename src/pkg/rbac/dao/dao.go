@@ -47,7 +47,7 @@ func (d *dao) CreatePermission(ctx context.Context, rp *model.RolePermission) (i
 	rp.CreationTime = time.Now()
 	id, err = ormer.Insert(rp)
 	if err != nil {
-		if e := orm.AsConflictError(err, "role permission %s:%s:%s already exists",
+		if e := orm.AsConflictError(err, "role permission %s:%d:%d already exists",
 			rp.RoleType, rp.RoleID, rp.RBACPolicyID); e != nil {
 			err = e
 		}
@@ -155,7 +155,7 @@ func (d *dao) GetPermissionsByRole(ctx context.Context, role_type string, role_i
 	if err != nil {
 		return rps, err
 	}
-	sql := fmt.Sprintf(`SELECT rper.role_type, rper.role_id, rper.scope, rper.resource, rper.action, rper.effect FROM role_permission AS rper LEFT JOIN rbac_policy rpo ON (rper.rbac_policy_id=rpo.id) where rper.role_type=%s and rper.role_id=%d`, role_type, role_id)
+	sql := fmt.Sprintf(`SELECT rper.role_type, rper.role_id, rpo.scope, rpo.resource, rpo.action, rpo.effect FROM role_permission AS rper LEFT JOIN rbac_policy rpo ON (rper.rbac_policy_id=rpo.id) where rper.role_type='%s' and rper.role_id=%d`, role_type, role_id)
 
 	_, err = ormer.Raw(sql).QueryRows(&rps)
 	if err != nil {
