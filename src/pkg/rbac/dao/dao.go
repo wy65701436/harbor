@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// DAO is the data access object interface for artifact trash
+// DAO is the data access object interface for rbac policy
 type DAO interface {
 	// CreatePermission ...
 	CreatePermission(ctx context.Context, rp *model.RolePermission) (int64, error)
@@ -94,7 +94,13 @@ func (d *dao) DeletePermissionByRole(ctx context.Context, role_type string, role
 	if err != nil {
 		return err
 	}
-	_, err = qs.Delete()
+	n, err := qs.Delete()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return errors.NotFoundError(nil).WithMessage("role permission %s:%d not found", role_type, role_id)
+	}
 	return err
 }
 

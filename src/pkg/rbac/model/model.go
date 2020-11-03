@@ -32,7 +32,6 @@ type RbacPolicy struct {
 	Action       string    `orm:"column(action)"`
 	Effect       string    `orm:"column(effect)"`
 	CreationTime time.Time `orm:"column(creation_time);auto_now_add" json:"creation_time"`
-	UpdateTime   time.Time `orm:"column(update_time);auto_now_add" json:"update_time"`
 }
 
 // TableName for role permission
