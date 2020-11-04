@@ -15,22 +15,22 @@ var (
 // Manager ...
 type Manager interface {
 	// GetRobotAccount ...
-	GetRobotAccount(id int64) (*model.Robot, error)
+	GetRobotAccount(ctx context.Context, id int64) (*model.Robot, error)
 
 	// CreateRobotAccount ...
-	CreateRobotAccount(m *model.Robot) (int64, error)
+	CreateRobotAccount(ctx context.Context, m *model.Robot) (int64, error)
 
 	// DeleteRobotAccount ...
-	DeleteRobotAccount(id int64) error
+	DeleteRobotAccount(ctx context.Context, id int64) error
 
 	// DeleteByProjectID ...
 	DeleteByProjectID(ctx context.Context, projectID int64) error
 
 	// UpdateRobotAccount ...
-	UpdateRobotAccount(m *model.Robot) error
+	UpdateRobotAccount(ctx context.Context, m *model.Robot) error
 
 	// ListRobotAccount ...
-	ListRobotAccount(query *q.Query) ([]*model.Robot, error)
+	ListRobotAccount(ctx context.Context, query *q.Query) ([]*model.Robot, error)
 }
 
 type defaultRobotManager struct {
@@ -45,17 +45,17 @@ func NewDefaultRobotAccountManager() Manager {
 }
 
 // GetRobotAccount ...
-func (drm *defaultRobotManager) GetRobotAccount(id int64) (*model.Robot, error) {
+func (drm *defaultRobotManager) GetRobotAccount(ctx context.Context, id int64) (*model.Robot, error) {
 	return drm.dao.GetRobotAccount(id)
 }
 
 // CreateRobotAccount ...
-func (drm *defaultRobotManager) CreateRobotAccount(r *model.Robot) (int64, error) {
+func (drm *defaultRobotManager) CreateRobotAccount(ctx context.Context, r *model.Robot) (int64, error) {
 	return drm.dao.CreateRobotAccount(r)
 }
 
 // DeleteRobotAccount ...
-func (drm *defaultRobotManager) DeleteRobotAccount(id int64) error {
+func (drm *defaultRobotManager) DeleteRobotAccount(ctx context.Context, id int64) error {
 	return drm.dao.DeleteRobotAccount(id)
 }
 
@@ -65,11 +65,11 @@ func (drm *defaultRobotManager) DeleteByProjectID(ctx context.Context, projectID
 }
 
 // UpdateRobotAccount ...
-func (drm *defaultRobotManager) UpdateRobotAccount(r *model.Robot) error {
+func (drm *defaultRobotManager) UpdateRobotAccount(ctx context.Context, r *model.Robot) error {
 	return drm.dao.UpdateRobotAccount(r)
 }
 
 // ListRobotAccount ...
-func (drm *defaultRobotManager) ListRobotAccount(query *q.Query) ([]*model.Robot, error) {
+func (drm *defaultRobotManager) ListRobotAccount(ctx context.Context, query *q.Query) ([]*model.Robot, error) {
 	return drm.dao.ListRobotAccounts(query)
 }
