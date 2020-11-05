@@ -487,3 +487,17 @@ func GetGCTimeWindow() int64 {
 	}
 	return common.DefaultGCTimeWindowHours
 }
+
+// RobotPrefix user defined robot name prefix.
+func RobotPrefix() string {
+	return cfgMgr.Get(common.RobotNamePrefix).GetString()
+}
+
+// Metric returns the overall metric settings
+func Metric() *models.Metric {
+	return &models.Metric{
+		Enabled: cfgMgr.Get(common.MetricEnable).GetBool(),
+		Port:    cfgMgr.Get(common.MetricPort).GetInt(),
+		Path:    cfgMgr.Get(common.MetricPath).GetString(),
+	}
+}

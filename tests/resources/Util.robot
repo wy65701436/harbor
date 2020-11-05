@@ -88,7 +88,7 @@ Wait Until Element Is Visible And Enabled
 
 Retry Action Keyword
     [Arguments]  ${keyword}  @{param}
-    Retry Keyword N Times When Error  3  ${keyword}  @{param}
+    Retry Keyword N Times When Error  8  ${keyword}  @{param}
 
 Retry Wait Element
     [Arguments]  ${element_xpath}
@@ -237,7 +237,7 @@ Retry Keyword N Times When Error
         Log To Console  Trying ${keyword} elements @{elements} ${n} times ...
         ${out}  Run Keyword And Ignore Error  ${keyword}  @{elements}
         Log To Console  Return value is ${out} and ${out[0]}
-        Capture Page Screenshot  record.png
+        Capture Page Screenshot
         Run Keyword If  '${keyword}'=='Make Swagger Client'  Exit For Loop If  '${out[0]}'=='PASS' and '${out[1]}'=='0'
         ...  ELSE  Exit For Loop If  '${out[0]}'=='PASS'
         Sleep  10
