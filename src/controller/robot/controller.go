@@ -3,7 +3,6 @@ package robot
 import (
 	"context"
 	"fmt"
-	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/lib/errors"
@@ -13,49 +12,36 @@ import (
 	"github.com/goharbor/harbor/src/pkg/project"
 	"github.com/goharbor/harbor/src/pkg/rbac"
 	rbac_model "github.com/goharbor/harbor/src/pkg/rbac/model"
-	"github.com/goharbor/harbor/src/pkg/robot"
-	"github.com/goharbor/harbor/src/pkg/robot/model"
+	robot "github.com/goharbor/harbor/src/pkg/robot2"
+	"github.com/goharbor/harbor/src/pkg/robot2/model"
 	"time"
 )
 
 var (
-	// RobotCtr is a global variable for the default robot account controller implementation
-	RobotCtr = NewController()
-)
-
-const (
-	LEVELSYSTEM  = "system"
-	LEVELPROJECT = "project"
-
-	ALLPROJECT = "*"
-
-	SCOPESYSTEM     = "/system"
-	SCOPEALLPROJECT = "/project/*"
-
-	ROBOTTYPE       = "robotaccount"
-	SYSTEMPROJECTID = 0
+	// Ctr is a global variable for the default robot account controller implementation
+	Ctr = NewController()
 )
 
 // Controller to handle the requests related with robot account
 type Controller interface {
-	// GetRobotAccount ...
-	GetRobotAccount(ctx context.Context, id int64, option *Option) (*Robot, error)
+	// Get ...
+	Get(ctx context.Context, id int64, option *Option) (*Robot, error)
 
-	// CreateRobotAccount ...
-	CreateRobotAccount(ctx context.Context, r *Robot) (*Robot, error)
+	// Create ...
+	Create(ctx context.Context, r *Robot) (*Robot, error)
 
-	// DeleteRobotAccount ...
-	DeleteRobotAccount(ctx context.Context, id int64) error
+	// Delete ...
+	Delete(ctx context.Context, id int64) error
 
-	// UpdateRobotAccount ...
-	UpdateRobotAccount(ctx context.Context, r *Robot) error
+	// Update ...
+	Update(ctx context.Context, r *Robot) error
 
-	// ListRobotAccount ...
-	ListRobotAccount(ctx context.Context, query *q.Query, option *Option) ([]*Robot, error)
+	// List ...
+	List(ctx context.Context, query *q.Query, option *Option) ([]*Robot, error)
 }
 
-// DefaultAPIController ...
-type DefaultAPIController struct {
+// controller ...
+type controller struct {
 	robotMgr robot.Manager
 	proMgr   project.Manager
 	rbacMgr  rbac.Manager
@@ -63,24 +49,24 @@ type DefaultAPIController struct {
 
 // NewController ...
 func NewController() Controller {
-	return &DefaultAPIController{
+	return &controller{
 		robotMgr: robot.Mgr,
 		proMgr:   project.Mgr,
 		rbacMgr:  rbac.Mgr,
 	}
 }
 
-// GetRobotAccount ...
-func (d *DefaultAPIController) GetRobotAccount(ctx context.Context, id int64, option *Option) (*Robot, error) {
-	robot, err := d.robotMgr.GetRobotAccount(id)
+// Get ...
+func (d *controller) Get(ctx context.Context, id int64, option *Option) (*Robot, error) {
+	robot, err := d.robotMgr.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	return d.populate(ctx, robot, option), nil
 }
 
-// CreateRobotAccount ...
-func (d *DefaultAPIController) CreateRobotAccount(ctx context.Context, r *Robot) (*Robot, error) {
+// Create ...
+func (d *controller) Create(ctx context.Context, r *Robot) (*Robot, error) {
 	// TODO add data validation
 	if err := d.setProjectID(ctx, r); err != nil {
 		return nil, err
@@ -101,7 +87,7 @@ func (d *DefaultAPIController) CreateRobotAccount(ctx context.Context, r *Robot)
 		return nil, err
 	}
 
-	robotId, err := d.robotMgr.CreateRobotAccount(&model.Robot{
+	robotId, err := d.robotMgr.Create(ctx, &model.Robot{
 		Name:        r.Name,
 		Description: r.Description,
 		ProjectID:   r.ProjectID,
@@ -112,7 +98,7 @@ func (d *DefaultAPIController) CreateRobotAccount(ctx context.Context, r *Robot)
 		return nil, err
 	}
 	r.ID = robotId
-	r.Name = fmt.Sprintf("%s%s", common.RobotPrefix, r.Name)
+	r.Name = fmt.Sprintf("%s%s", config.RobotPrefix(), r.Name)
 	r.Secret = secret
 
 	if err := d.createPermission(ctx, r); err != nil {
@@ -121,9 +107,9 @@ func (d *DefaultAPIController) CreateRobotAccount(ctx context.Context, r *Robot)
 	return r, nil
 }
 
-// DeleteRobotAccount ...
-func (d *DefaultAPIController) DeleteRobotAccount(ctx context.Context, id int64) error {
-	if err := d.robotMgr.DeleteRobotAccount(id); err != nil {
+// Delete ...
+func (d *controller) Delete(ctx context.Context, id int64) error {
+	if err := d.robotMgr.Delete(ctx, id); err != nil {
 		return err
 	}
 	if err := d.rbacMgr.DeletePermissionByRole(ctx, ROBOTTYPE, id); err != nil {
@@ -132,17 +118,18 @@ func (d *DefaultAPIController) DeleteRobotAccount(ctx context.Context, id int64)
 	return nil
 }
 
-// UpdateRobotAccount ...
-func (d *DefaultAPIController) UpdateRobotAccount(ctx context.Context, r *Robot) error {
+// Update ...
+func (d *controller) Update(ctx context.Context, r *Robot) error {
 	if r == nil {
 		return errors.New("cannot update a nil robot").WithCode(errors.BadRequestCode)
 	}
-	if err := d.robotMgr.UpdateRobotAccount(&r.Robot); err != nil {
+	if err := d.robotMgr.Update(ctx, &r.Robot); err != nil {
 		return err
 	}
 	if err := d.setProjectID(ctx, r); err != nil {
 		return err
 	}
+	// update the permission
 	if err := d.rbacMgr.DeletePermissionByRole(ctx, ROBOTTYPE, r.ID); err != nil {
 		return err
 	}
@@ -152,9 +139,9 @@ func (d *DefaultAPIController) UpdateRobotAccount(ctx context.Context, r *Robot)
 	return nil
 }
 
-// ListRobotAccount ...
-func (d *DefaultAPIController) ListRobotAccount(ctx context.Context, query *q.Query, option *Option) ([]*Robot, error) {
-	robots, err := d.robotMgr.ListRobotAccount(query)
+// List ...
+func (d *controller) List(ctx context.Context, query *q.Query, option *Option) ([]*Robot, error) {
+	robots, err := d.robotMgr.List(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -165,22 +152,15 @@ func (d *DefaultAPIController) ListRobotAccount(ctx context.Context, query *q.Qu
 	return robotAccounts, nil
 }
 
-func (d *DefaultAPIController) createPermission(ctx context.Context, r *Robot) error {
+func (d *controller) createPermission(ctx context.Context, r *Robot) error {
 	if r == nil {
 		return nil
 	}
 
 	for _, per := range r.Permissions {
 		policy := &rbac_model.RbacPolicy{}
-		switch per.Kind {
-		case LEVELSYSTEM:
-			policy.Scope = SCOPESYSTEM
-			if per.Namespace == ALLPROJECT {
-				policy.Scope = SCOPEALLPROJECT
-			}
-		case LEVELPROJECT:
-			policy.Scope = fmt.Sprintf("/project/%d", r.ProjectID)
-		}
+		policy.Scope = per.toScope(r.ProjectID)
+
 		for _, access := range per.Access {
 			policy.Resource = access.Resource.String()
 			policy.Action = access.Action.String()
@@ -204,15 +184,14 @@ func (d *DefaultAPIController) createPermission(ctx context.Context, r *Robot) e
 	return nil
 }
 
-func (d *DefaultAPIController) setProjectID(ctx context.Context, r *Robot) error {
+func (d *controller) setProjectID(ctx context.Context, r *Robot) error {
 	if r == nil {
 		return nil
 	}
-
 	var projectID int64
 	switch r.Level {
 	case LEVELSYSTEM:
-		projectID = SYSTEMPROJECTID
+		projectID = 0
 	case LEVELPROJECT:
 		pro, err := d.proMgr.Get(ctx, r.Permissions[0].Namespace)
 		if err != nil {
@@ -226,18 +205,14 @@ func (d *DefaultAPIController) setProjectID(ctx context.Context, r *Robot) error
 	return nil
 }
 
-func (d *DefaultAPIController) populate(ctx context.Context, r *model.Robot, option *Option) *Robot {
+func (d *controller) populate(ctx context.Context, r *model.Robot, option *Option) *Robot {
 	if r == nil {
 		return nil
 	}
 	robot := &Robot{
 		Robot: *r,
 	}
-	if r.ProjectID == SYSTEMPROJECTID {
-		robot.Level = LEVELSYSTEM
-	} else {
-		robot.Level = LEVELPROJECT
-	}
+	robot.setLevel()
 	if option == nil {
 		return robot
 	}
@@ -247,7 +222,7 @@ func (d *DefaultAPIController) populate(ctx context.Context, r *model.Robot, opt
 	return robot
 }
 
-func (d *DefaultAPIController) populatePermissions(ctx context.Context, r *Robot) {
+func (d *controller) populatePermissions(ctx context.Context, r *Robot) {
 	if r == nil {
 		return
 	}
@@ -283,19 +258,10 @@ func (d *DefaultAPIController) populatePermissions(ctx context.Context, r *Robot
 		}
 	}
 
-	var permissions []Permission
+	var permissions []*Permission
 	for scope, accesses := range accessMap {
-		p := Permission{}
-		if scope == SCOPESYSTEM {
-			p.Kind = LEVELSYSTEM
-			p.Namespace = "/"
-		} else if scope == SCOPEALLPROJECT {
-			p.Kind = LEVELPROJECT
-			p.Namespace = ALLPROJECT
-		} else {
-			p.Kind = LEVELPROJECT
-			p.Namespace = "??"
-		}
+		p := &Permission{}
+		p.fromScope(scope)
 		p.Access = accesses
 		permissions = append(permissions, p)
 	}
