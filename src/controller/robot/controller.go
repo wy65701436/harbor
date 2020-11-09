@@ -3,6 +3,7 @@ package robot
 import (
 	"context"
 	"fmt"
+	rbac_common "github.com/goharbor/harbor/src/common/rbac"
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/lib/errors"
@@ -62,7 +63,7 @@ func (d *controller) Get(ctx context.Context, id int64, option *Option) (*Robot,
 	if err != nil {
 		return nil, err
 	}
-	return d.populate(ctx, robot, option), nil
+	return d.populate(ctx, robot, option)
 }
 
 // Create ...
@@ -146,7 +147,11 @@ func (d *controller) List(ctx context.Context, query *q.Query, option *Option) (
 	}
 	var robotAccounts []*Robot
 	for _, r := range robots {
-		robotAccounts = append(robotAccounts, d.populate(ctx, r, option))
+		rb, err := d.populate(ctx, r, option)
+		if err != nil {
+			return nil, err
+		}
+		robotAccounts = append(robotAccounts, rb)
 	}
 	return robotAccounts, nil
 }
@@ -187,34 +192,36 @@ func (d *controller) createPermission(ctx context.Context, r *Robot) error {
 	return nil
 }
 
-func (d *controller) populate(ctx context.Context, r *model.Robot, option *Option) *Robot {
+func (d *controller) populate(ctx context.Context, r *model.Robot, option *Option) (*Robot, error) {
 	if r == nil {
-		return nil
+		return nil, nil
 	}
 	robot := &Robot{
 		Robot: *r,
 	}
 	robot.setLevel()
 	if option == nil {
-		return robot
+		return robot, nil
 	}
 	if option.WithPermission {
-		d.populatePermissions(ctx, robot)
+		if err := d.populatePermissions(ctx, robot); err != nil {
+			return nil, err
+		}
 	}
-	return robot
+	return robot, nil
 }
 
-func (d *controller) populatePermissions(ctx context.Context, r *Robot) {
+func (d *controller) populatePermissions(ctx context.Context, r *Robot) error {
 	if r == nil {
-		return
+		return nil
 	}
 	rolePermissions, err := d.rbacMgr.GetPermissionsByRole(ctx, ROBOTTYPE, r.ID)
 	if err != nil {
 		log.Errorf("failed to get permissions of robot %d: %v", r.ID, err)
-		return
+		return err
 	}
 	if len(rolePermissions) == 0 {
-		return
+		return nil
 	}
 
 	// scope: accesses
@@ -243,10 +250,10 @@ func (d *controller) populatePermissions(ctx context.Context, r *Robot) {
 	var permissions []*Permission
 	for scope, accesses := range accessMap {
 		p := &Permission{}
-		kind, namespace, err := d.decodeScope(ctx, scope, r.ProjectID)
+		kind, namespace, err := d.convertScope(ctx, scope)
 		if err != nil {
 			log.Errorf("failed to decode scope of robot %d: %v", r.ID, err)
-			continue
+			return err
 		}
 		p.Kind = kind
 		p.Namespace = namespace
@@ -254,6 +261,7 @@ func (d *controller) populatePermissions(ctx context.Context, r *Robot) {
 		permissions = append(permissions, p)
 	}
 	r.Permissions = permissions
+	return nil
 }
 
 func (d *controller) setProjectID(ctx context.Context, r *Robot) error {
@@ -277,7 +285,11 @@ func (d *controller) setProjectID(ctx context.Context, r *Robot) error {
 	return nil
 }
 
-func (d *controller) decodeScope(ctx context.Context, scope string, projectID int64) (kind, namespace string, err error) {
+// convertScope converts the db scope into robot model
+// /system    =>  Kind: system  Namespace: /
+// /project/* =>  Kind: project Namespace: *
+// /project/1 =>  Kind: project Namespace: library
+func (d *controller) convertScope(ctx context.Context, scope string) (kind, namespace string, err error) {
 	if scope == "" {
 		return
 	}
@@ -289,7 +301,12 @@ func (d *controller) decodeScope(ctx context.Context, scope string, projectID in
 		namespace = "*"
 	} else {
 		kind = LEVELPROJECT
-		pro, err := d.proMgr.Get(ctx, projectID)
+		ns, ok := rbac_common.ProjectNamespaceParse(types.Resource(scope))
+		if !ok {
+			log.Debugf("got no namespace from the resource %s", scope)
+			return "", "", errors.Errorf("got no namespace from the resource %s", scope)
+		}
+		pro, err := d.proMgr.Get(ctx, ns.Identity())
 		if err != nil {
 			return "", "", err
 		}
