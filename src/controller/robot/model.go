@@ -2,6 +2,7 @@ package robot
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/pkg/permission/types"
 	"github.com/goharbor/harbor/src/pkg/robot2/model"
 )
@@ -16,6 +17,7 @@ const (
 	ROBOTTYPE = "robotaccount"
 )
 
+// Robot ...
 type Robot struct {
 	model.Robot
 	ProjectName string
@@ -32,37 +34,28 @@ func (r *Robot) setLevel() {
 	}
 }
 
+// Permission ...
 type Permission struct {
 	Kind      string          `json:"kind"`
 	Namespace string          `json:"namespace"`
 	Access    []*types.Policy `json:"access"`
 }
 
-func (p *Permission) toScope(projectID int64) string {
+// toScope is to translate the permission kind and namespace to scope.
+func (p *Permission) toScope(projectID int64) (string, error) {
 	switch p.Kind {
 	case LEVELSYSTEM:
-		return SCOPESYSTEM
+		return SCOPESYSTEM, nil
 		if p.Namespace == "*" {
-			return SCOPEALLPROJECT
+			return SCOPEALLPROJECT, nil
 		}
 	case LEVELPROJECT:
-		return fmt.Sprintf("/project/%d", projectID)
+		return fmt.Sprintf("/project/%d", projectID), nil
 	}
+	return "", errors.New(nil).WithMessage("unknown robot kind").WithCode(errors.BadRequestCode)
 }
 
-func (p *Permission) fromScope(scope string, projectID int64) {
-	if scope == SCOPESYSTEM {
-		p.Kind = LEVELSYSTEM
-		p.Namespace = "/"
-	} else if scope == SCOPEALLPROJECT {
-		p.Kind = LEVELPROJECT
-		p.Namespace = "*"
-	} else {
-		p.Kind = LEVELPROJECT
-		p.Namespace = "??"
-	}
-}
-
+// Option ...
 type Option struct {
 	WithPermission bool
 }

@@ -67,7 +67,6 @@ func (d *controller) Get(ctx context.Context, id int64, option *Option) (*Robot,
 
 // Create ...
 func (d *controller) Create(ctx context.Context, r *Robot) (*Robot, error) {
-	// TODO add data validation
 	if err := d.setProjectID(ctx, r); err != nil {
 		return nil, err
 	}
@@ -159,7 +158,11 @@ func (d *controller) createPermission(ctx context.Context, r *Robot) error {
 
 	for _, per := range r.Permissions {
 		policy := &rbac_model.RbacPolicy{}
-		policy.Scope = per.toScope(r.ProjectID)
+		scope, err := per.toScope(r.ProjectID)
+		if err != nil {
+			return err
+		}
+		policy.Scope = scope
 
 		for _, access := range per.Access {
 			policy.Resource = access.Resource.String()
@@ -181,27 +184,6 @@ func (d *controller) createPermission(ctx context.Context, r *Robot) error {
 			}
 		}
 	}
-	return nil
-}
-
-func (d *controller) setProjectID(ctx context.Context, r *Robot) error {
-	if r == nil {
-		return nil
-	}
-	var projectID int64
-	switch r.Level {
-	case LEVELSYSTEM:
-		projectID = 0
-	case LEVELPROJECT:
-		pro, err := d.proMgr.Get(ctx, r.Permissions[0].Namespace)
-		if err != nil {
-			return err
-		}
-		projectID = pro.ProjectID
-	default:
-		return errors.New(nil).WithMessage("unknown robot account level").WithCode(errors.BadRequestCode)
-	}
-	r.ProjectID = projectID
 	return nil
 }
 
@@ -261,9 +243,57 @@ func (d *controller) populatePermissions(ctx context.Context, r *Robot) {
 	var permissions []*Permission
 	for scope, accesses := range accessMap {
 		p := &Permission{}
-		p.fromScope(scope)
+		kind, namespace, err := d.decodeScope(ctx, scope, r.ProjectID)
+		if err != nil {
+			log.Errorf("failed to decode scope of robot %d: %v", r.ID, err)
+			continue
+		}
+		p.Kind = kind
+		p.Namespace = namespace
 		p.Access = accesses
 		permissions = append(permissions, p)
 	}
 	r.Permissions = permissions
+}
+
+func (d *controller) setProjectID(ctx context.Context, r *Robot) error {
+	if r == nil {
+		return nil
+	}
+	var projectID int64
+	switch r.Level {
+	case LEVELSYSTEM:
+		projectID = 0
+	case LEVELPROJECT:
+		pro, err := d.proMgr.Get(ctx, r.Permissions[0].Namespace)
+		if err != nil {
+			return err
+		}
+		projectID = pro.ProjectID
+	default:
+		return errors.New(nil).WithMessage("unknown robot account level").WithCode(errors.BadRequestCode)
+	}
+	r.ProjectID = projectID
+	return nil
+}
+
+func (d *controller) decodeScope(ctx context.Context, scope string, projectID int64) (kind, namespace string, err error) {
+	if scope == "" {
+		return
+	}
+	if scope == SCOPESYSTEM {
+		kind = LEVELSYSTEM
+		namespace = "/"
+	} else if scope == SCOPEALLPROJECT {
+		kind = LEVELPROJECT
+		namespace = "*"
+	} else {
+		kind = LEVELPROJECT
+		pro, err := d.proMgr.Get(ctx, projectID)
+		if err != nil {
+			return "", "", err
+		}
+		namespace = pro.Name
+	}
+	return
 }
