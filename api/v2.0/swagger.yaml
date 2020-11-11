@@ -1468,7 +1468,7 @@ paths:
       description: Create a robot account
       tags:
         - robot
-        operationId: CreateRobot
+      operationId: CreateRobot
       parameters:
         - $ref: '#/parameters/requestId'
         - name: robot
