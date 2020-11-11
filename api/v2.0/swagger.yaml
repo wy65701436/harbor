@@ -1433,9 +1433,9 @@ paths:
           $ref: '#/responses/500'
   /robots:
     get:
-      summary: Get artifact icon
-      description: Get the artifact icon with the specified digest. As the original icon image is resized and encoded before returning, the parameter "digest" in the path doesn't match the hash of the returned content
-      tags:
+      summary: Get robot account
+      description: Get the robot accounts with the specified level and project.
+     tags:
         - robot
       operationId: getRobot
       parameters:
@@ -1463,6 +1463,41 @@ paths:
           $ref: '#/responses/404'
         '500':
           $ref: '#/responses/500'
+    post:
+      summary: Create a robot account
+      description: Create a robot account
+      tags:
+        - robot
+        operationId: createRobot
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - name: robot
+          in: body
+          description: The JSON object of a robot account.
+          required: true
+          schema:
+            $ref: '#/definitions/Instance'
+        responses:
+          '200':
+            description: Success
+            headers:
+              X-Total-Count:
+                description: The total count of robot accounts
+                type: integer
+              Link:
+                description: Link refers to the previous page and next page
+                type: string
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/Robot'
+          '400':
+            $ref: '#/responses/400'
+          '404':
+            $ref: '#/responses/404'
+          '500':
+            $ref: '#/responses/500'
+
 parameters:
   query:
     name: q
