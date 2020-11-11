@@ -1435,7 +1435,7 @@ paths:
     get:
       summary: Get robot account
       description: Get the robot accounts with the specified level and project.
-     tags:
+      tags:
         - robot
       operationId: GetRobot
       parameters:
