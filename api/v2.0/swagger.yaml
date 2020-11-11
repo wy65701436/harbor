@@ -1479,7 +1479,16 @@ paths:
             $ref: '#/definitions/Robot'
       responses:
         '201':
-          $ref: '#/responses/201'
+          description: Created
+          headers:
+            X-Request-Id:
+              description: The ID of the corresponding request for the response
+              type: string
+            Location:
+              description: The location of the resource
+              type: string
+          schema:
+            $ref: '#/definitions/Robot'
         '400':
           $ref: '#/responses/400'
         '401':
