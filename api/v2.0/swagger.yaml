@@ -1436,16 +1436,27 @@ paths:
       summary: Get artifact icon
       description: Get the artifact icon with the specified digest. As the original icon image is resized and encoded before returning, the parameter "digest" in the path doesn't match the hash of the returned content
       tags:
-        - icon
-      operationId: getIcon
+        - robot
+      operationId: getRobot
       parameters:
         - $ref: '#/parameters/requestId'
-        - $ref: '#/parameters/digest'
+        - $ref: '#/parameters/query'
+        - $ref: '#/parameters/page'
+        - $ref: '#/parameters/pageSize'
       responses:
         '200':
           description: Success
+          headers:
+            X-Total-Count:
+              description: The total count of robot accounts
+              type: integer
+            Link:
+              description: Link refers to the previous page and next page
+              type: string
           schema:
-            $ref: '#/definitions/Icon'
+            type: array
+            items:
+              $ref: '#/definitions/Robot'
         '400':
           $ref: '#/responses/400'
         '404':
