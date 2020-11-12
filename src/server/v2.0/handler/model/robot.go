@@ -29,6 +29,7 @@ func (r *Robot) ToSwagger() *models.Robot {
 		Disable:      r.Disabled,
 		CreationTime: strfmt.DateTime(r.CreationTime),
 		UpdateTime:   strfmt.DateTime(r.UpdateTime),
+		Permissions:  perms,
 	}
 }
 

@@ -9,7 +9,6 @@ import (
 	"github.com/goharbor/harbor/src/controller/robot"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/lib/errors"
-	"github.com/goharbor/harbor/src/lib/log"
 	pkg "github.com/goharbor/harbor/src/pkg/robot2/model"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
@@ -45,11 +44,7 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 		},
 		Level: params.Robot.Level,
 	}
-	log.Infof("%t", params.Robot.Permissions)
-
-	if err := lib.JSONCopy(&r.Permissions, params.Robot.Permissions); err != nil {
-		log.Error(err)
-	}
+	lib.JSONCopy(&r.Permissions, params.Robot.Permissions)
 
 	created, err := rAPI.robotCtl.Create(ctx, r)
 	if err != nil {
