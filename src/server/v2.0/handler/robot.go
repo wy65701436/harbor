@@ -40,8 +40,12 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 		Level: params.Robot.Level,
 	}
 
-	lib.JSONCopy(r.Permissions, params.Robot.Permissions)
-	lib.JSONCopy(r.Robot, params.Robot)
+	if err := lib.JSONCopy(r.Permissions, params.Robot.Permissions); err != nil {
+		log.Error(err)
+	}
+	if err := lib.JSONCopy(r.Robot, params.Robot); err != nil {
+		log.Error(err)
+	}
 
 	log.Infof("%t", r)
 	log.Infof("%t", params.Robot)
