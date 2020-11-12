@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/harbor/src/common/rbac"
 	"github.com/goharbor/harbor/src/controller/robot"
 	"github.com/goharbor/harbor/src/lib"
@@ -50,7 +51,12 @@ func (api *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRob
 	}
 
 	location := fmt.Sprintf("%s/%d", strings.TrimSuffix(params.HTTPRequest.URL.Path, "/"), created.ID)
-	return operation.NewCreateRobotCreated().WithLocation(location)
+	return operation.NewCreateRobotCreated().WithLocation(location).WithPayload(&models.RobotCreated{
+		ID:           created.ID,
+		Name:         created.Name,
+		Secret:       created.Secret,
+		CreationTime: strfmt.DateTime(created.CreationTime),
+	})
 
 }
 

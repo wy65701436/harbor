@@ -1513,7 +1513,7 @@ paths:
         '200':
           description: Return matched robot information.
           schema:
-            $ref: '#/definitions/Robot'
+            $ref: '#/definitions/RobotCreated'
         '401':
           $ref: '#/responses/401'
         '403':
