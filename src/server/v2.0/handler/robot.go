@@ -51,7 +51,7 @@ func (api *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRob
 	}
 
 	location := fmt.Sprintf("%s/%d", strings.TrimSuffix(params.HTTPRequest.URL.Path, "/"), created.ID)
-	return operation.NewCreateRobotCreated().WithLocation(location).WithPayload(models.RobotCreated{
+	return operation.NewCreateRobotCreated().WithLocation(location).WithPayload(&models.RobotCreated{
 		ID:           created.ID,
 		Name:         created.Name,
 		Secret:       created.Secret,
@@ -75,6 +75,10 @@ func (api *robotAPI) requireAccess(ctx context.Context, r *models.Robot) error {
 
 // more validation
 func (api *robotAPI) validate(r *models.Robot) error {
+	if !isValidLevel(r.Level) {
+		return errors.New(nil).WithMessage("bad request error level input").WithCode(errors.BadRequestCode)
+	}
+
 	if len(r.Permissions) == 0 {
 		return errors.New(nil).WithMessage("bad request empty permission").WithCode(errors.BadRequestCode)
 	}
@@ -86,4 +90,14 @@ func (api *robotAPI) validate(r *models.Robot) error {
 		}
 	}
 	return nil
+}
+
+func isValidLevel(l string) bool {
+	switch l {
+	case
+		robot.LEVELSYSTEM,
+		robot.LEVELPROJECT:
+		return true
+	}
+	return false
 }
