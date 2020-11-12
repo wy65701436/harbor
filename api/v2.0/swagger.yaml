@@ -1488,7 +1488,7 @@ paths:
               description: The location of the resource
               type: string
           schema:
-            $ref: '#/definitions/Robot'
+            $ref: '#/definitions/RobotCreated'
         '400':
           $ref: '#/responses/400'
         '401':
@@ -1513,7 +1513,7 @@ paths:
         '200':
           description: Return matched robot information.
           schema:
-            $ref: '#/definitions/RobotCreated'
+            $ref: '#/definitions/Robot'
         '401':
           $ref: '#/responses/401'
         '403':

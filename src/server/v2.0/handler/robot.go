@@ -51,7 +51,7 @@ func (api *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRob
 	}
 
 	location := fmt.Sprintf("%s/%d", strings.TrimSuffix(params.HTTPRequest.URL.Path, "/"), created.ID)
-	return operation.NewCreateRobotCreated().WithLocation(location).WithPayload(&models.RobotCreated{
+	return operation.NewCreateRobotCreated().WithLocation(location).WithPayload(models.RobotCreated{
 		ID:           created.ID,
 		Name:         created.Name,
 		Secret:       created.Secret,
