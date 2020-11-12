@@ -163,7 +163,11 @@ func (d *controller) createPermission(ctx context.Context, r *Robot) error {
 
 	for _, per := range r.Permissions {
 		policy := &rbac_model.RbacPolicy{}
-		scope, err := per.toScope(r.ProjectID)
+		pro, err := d.proMgr.Get(ctx, per.Namespace)
+		if err != nil {
+			return err
+		}
+		scope, err := per.toScope(pro.ProjectID)
 		if err != nil {
 			return err
 		}
