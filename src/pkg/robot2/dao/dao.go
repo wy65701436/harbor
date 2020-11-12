@@ -123,8 +123,6 @@ func (d *dao) Delete(ctx context.Context, id int64) error {
 
 func (d *dao) List(ctx context.Context, query *q.Query) ([]*model.Robot, error) {
 	robots := []*model.Robot{}
-	query = q.MustClone(query)
-	query.Keywords["deleted"] = false
 
 	qs, err := orm.QuerySetter(ctx, &model.Robot{}, query)
 	if err != nil {
