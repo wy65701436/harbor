@@ -61,7 +61,19 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 }
 
 func (rAPI *robotAPI) DeleteRobot(ctx context.Context, params operation.DeleteRobotParams) middleware.Responder {
+	return nil
+}
 
+func (rAPI *robotAPI) GetRobot(ctx context.Context, params operation.GetRobotParams) middleware.Responder {
+	return nil
+}
+
+func (rAPI *robotAPI) GetRobotByID(ctx context.Context, params operation.GetRobotByIDParams) middleware.Responder {
+	return nil
+}
+
+func (rAPI *robotAPI) UpdateRobot(ctx context.Context, params operation.UpdateRobotParams) middleware.Responder {
+	return nil
 }
 
 func (rAPI *robotAPI) requireAccess(ctx context.Context, r *models.Robot) error {
