@@ -2585,6 +2585,23 @@ definitions:
         type: string
         format: date-time
         description: The update time of the robot.
+  RobotCreated:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: The ID of the robot
+      name:
+        type: string
+        description: The name of the tag
+      secret:
+        type: string
+        description: The secret of the robot
+      creation_time:
+        type: string
+        format: date-time
+        description: The creation time of the robot.
   Permission:
     type: object
     properties:
