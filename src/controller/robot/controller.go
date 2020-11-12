@@ -163,11 +163,7 @@ func (d *controller) createPermission(ctx context.Context, r *Robot) error {
 
 	for _, per := range r.Permissions {
 		policy := &rbac_model.RbacPolicy{}
-		pro, err := d.proMgr.Get(ctx, per.Namespace)
-		if err != nil {
-			return err
-		}
-		scope, err := per.toScope(pro.ProjectID)
+		scope, err := d.toScope(ctx, per)
 		if err != nil {
 			return err
 		}
@@ -317,4 +313,22 @@ func (d *controller) convertScope(ctx context.Context, scope string) (kind, name
 		namespace = pro.Name
 	}
 	return
+}
+
+// toScope ...
+func (d *controller) toScope(ctx context.Context, p *Permission) (string, error) {
+	switch p.Kind {
+	case LEVELSYSTEM:
+		return SCOPESYSTEM, nil
+		if p.Namespace == "*" {
+			return SCOPEALLPROJECT, nil
+		}
+	case LEVELPROJECT:
+		pro, err := d.proMgr.Get(ctx, p.Namespace)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("/project/%d", pro.ProjectID), nil
+	}
+	return "", errors.New(nil).WithMessage("unknown robot kind").WithCode(errors.BadRequestCode)
 }
