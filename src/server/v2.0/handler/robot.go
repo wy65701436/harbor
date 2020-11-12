@@ -25,9 +25,9 @@ type robotAPI struct {
 	robotCtl robot.Controller
 }
 
-func (api *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRobotParams) middleware.Responder {
-	if err := api.RequireAuthenticated(ctx); err != nil {
-		return api.SendError(ctx, err)
+func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRobotParams) middleware.Responder {
+	if err := rAPI.RequireAuthenticated(ctx); err != nil {
+		return rAPI.SendError(ctx, err)
 	}
 
 	robotAccount := &robot.Robot{
@@ -37,17 +37,17 @@ func (api *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRob
 	lib.JSONCopy(robotAccount.Robot, params.Robot)
 	lib.JSONCopy(robotAccount.Permissions, params.Robot.Permissions)
 
-	if err := api.validate(params.Robot); err != nil {
-		return api.SendError(ctx, err)
+	if err := rAPI.validate(params.Robot); err != nil {
+		return rAPI.SendError(ctx, err)
 	}
 
-	if err := api.requireAccess(ctx, params.Robot); err != nil {
-		return api.SendError(ctx, err)
+	if err := rAPI.requireAccess(ctx, params.Robot); err != nil {
+		return rAPI.SendError(ctx, err)
 	}
 
-	created, err := api.robotCtl.Create(ctx, robotAccount)
+	created, err := rAPI.robotCtl.Create(ctx, robotAccount)
 	if err != nil {
-		return api.SendError(ctx, err)
+		return rAPI.SendError(ctx, err)
 	}
 
 	location := fmt.Sprintf("%s/%d", strings.TrimSuffix(params.HTTPRequest.URL.Path, "/"), created.ID)
@@ -60,13 +60,17 @@ func (api *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRob
 
 }
 
-func (api *robotAPI) requireAccess(ctx context.Context, r *models.Robot) error {
+func (rAPI *robotAPI) DeleteRobot(ctx context.Context, params operation.DeleteRobotParams) middleware.Responder {
+
+}
+
+func (rAPI *robotAPI) requireAccess(ctx context.Context, r *models.Robot) error {
 	if r.Level == robot.LEVELSYSTEM {
-		if err := api.RequireSysAdmin(ctx); err != nil {
+		if err := rAPI.RequireSysAdmin(ctx); err != nil {
 			return err
 		}
 	} else if r.Level == robot.LEVELPROJECT {
-		if err := api.RequireProjectAccess(ctx, r.Permissions[0].Namespace, rbac.ActionCreate, rbac.ResourceRobot); err != nil {
+		if err := rAPI.RequireProjectAccess(ctx, r.Permissions[0].Namespace, rbac.ActionCreate, rbac.ResourceRobot); err != nil {
 			return err
 		}
 	}
@@ -74,7 +78,7 @@ func (api *robotAPI) requireAccess(ctx context.Context, r *models.Robot) error {
 }
 
 // more validation
-func (api *robotAPI) validate(r *models.Robot) error {
+func (rAPI *robotAPI) validate(r *models.Robot) error {
 	if !isValidLevel(r.Level) {
 		return errors.New(nil).WithMessage("bad request error level input").WithCode(errors.BadRequestCode)
 	}

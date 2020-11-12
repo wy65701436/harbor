@@ -1505,7 +1505,7 @@ paths:
       description: This endpoint returns specific robot account information by robot ID.
       tags:
         - robot
-      operationId: getRobot
+      operationId: GetRobotByID
       parameters:
         - $ref: '#/parameters/requestId'
         - $ref: '#/parameters/robotId'
@@ -1556,7 +1556,7 @@ paths:
       summary: Delete a robot account
       description: This endpoint deletes specific robot account information by robot ID.
       tags:
-        - preheat
+        - robot
       operationId: DeleteRobot
       parameters:
         - $ref: '#/parameters/requestId'
