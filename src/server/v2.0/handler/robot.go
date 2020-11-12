@@ -90,6 +90,9 @@ func (rAPI *robotAPI) ListRobot(ctx context.Context, params operation.ListRobotP
 	if err != nil {
 		return rAPI.SendError(ctx, err)
 	}
+	if query.Keywords["level"] == robot.LEVELSYSTEM {
+		query.Keywords["project_id"] = 0
+	}
 
 	//total, err := rAPI.robotCtl.Count(ctx, query)
 	//if err != nil {
