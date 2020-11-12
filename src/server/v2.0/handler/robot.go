@@ -187,7 +187,7 @@ func (rAPI *robotAPI) requireAccess(ctx context.Context, level string, projectID
 }
 
 // more validation
-func (rAPI *robotAPI) validate(r *models.Robot) error {
+func (rAPI *robotAPI) validate(r *models.RobotCreate) error {
 	if !isValidLevel(r.Level) {
 		return errors.New(nil).WithMessage("bad request error level input").WithCode(errors.BadRequestCode)
 	}
