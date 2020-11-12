@@ -77,7 +77,7 @@ func (rAPI *robotAPI) DeleteRobot(ctx context.Context, params operation.DeleteRo
 	return operation.NewDeleteRobotOK()
 }
 
-func (rAPI *robotAPI) ListRobot(ctx context.Context, params operation.GetRobotParams) middleware.Responder {
+func (rAPI *robotAPI) ListRobot(ctx context.Context, params operation.ListRobotParams) middleware.Responder {
 	if err := rAPI.RequireAuthenticated(ctx); err != nil {
 		return rAPI.SendError(ctx, err)
 	}
@@ -104,7 +104,7 @@ func (rAPI *robotAPI) ListRobot(ctx context.Context, params operation.GetRobotPa
 		results = append(results, model.NewRobot(r).ToSwagger())
 	}
 
-	return operation.NewGetRobotOK().
+	return operation.NewListRobotOK().
 		WithXTotalCount(100).
 		WithLink(rAPI.Links(ctx, params.HTTPRequest.URL, 100, query.PageNumber, query.PageSize).String()).
 		WithPayload(results)
