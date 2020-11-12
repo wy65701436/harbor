@@ -5,7 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/astaxie/beego/orm"
 	"github.com/astaxie/beego/validation"
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/pkg/permission/types"
@@ -15,7 +14,7 @@ import (
 const RobotTable = "robot"
 
 func init() {
-	orm.RegisterModel(&Robot{})
+	//orm.RegisterModel(&Robot{})
 }
 
 // Robot holds the details of a robot.

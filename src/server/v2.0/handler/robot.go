@@ -61,7 +61,10 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 }
 
 func (rAPI *robotAPI) DeleteRobot(ctx context.Context, params operation.DeleteRobotParams) middleware.Responder {
-	return nil
+	if err := rAPI.robotCtl.Delete(ctx, params.RobotID); err != nil {
+		return rAPI.SendError(ctx, err)
+	}
+	return operation.NewDeleteRobotOK()
 }
 
 func (rAPI *robotAPI) GetRobot(ctx context.Context, params operation.GetRobotParams) middleware.Responder {
@@ -69,7 +72,15 @@ func (rAPI *robotAPI) GetRobot(ctx context.Context, params operation.GetRobotPar
 }
 
 func (rAPI *robotAPI) GetRobotByID(ctx context.Context, params operation.GetRobotByIDParams) middleware.Responder {
-	return nil
+	r, err := rAPI.robotCtl.Get(ctx, params.RobotID, &robot.Option{
+		WithPermission: true,
+	})
+	if err != nil {
+		return rAPI.SendError(ctx, err)
+	}
+	result := &models.Robot{}
+	lib.JSONCopy(result, r)
+	return operation.NewGetRobotByIDOK().WithPayload(result)
 }
 
 func (rAPI *robotAPI) UpdateRobot(ctx context.Context, params operation.UpdateRobotParams) middleware.Responder {
