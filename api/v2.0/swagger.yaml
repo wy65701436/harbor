@@ -1434,10 +1434,10 @@ paths:
   /robots:
     get:
       summary: Get robot account
-      description: Get the robot accounts with the specified level and project.
+      description: List the robot accounts with the specified level and project.
       tags:
         - robot
-      operationId: GetRobot
+      operationId: ListRobot
       parameters:
         - $ref: '#/parameters/requestId'
         - $ref: '#/parameters/query'
@@ -1476,7 +1476,7 @@ paths:
           description: The JSON object of a robot account.
           required: true
           schema:
-            $ref: '#/definitions/Robot'
+            $ref: '#/definitions/RobotCreate'
       responses:
         '201':
           description: Created
@@ -1536,7 +1536,7 @@ paths:
           description: The JSON object of a robot account.
           required: true
           schema:
-            $ref: '#/definitions/Robot'
+            $ref: '#/definitions/RobotCreate'
       responses:
         '200':
           $ref: '#/responses/200'
@@ -2585,8 +2585,36 @@ definitions:
         type: string
         format: date-time
         description: The update time of the robot.
+  RobotCreate:
+    type: object
+    description: The request for robot account creation.
+    properties:
+      name:
+        type: string
+        description: The name of the tag
+      description:
+        type: string
+        description: The description of the robot
+      secret:
+        type: string
+        description: The secret of the robot
+      level:
+        type: string
+        description: The level of the robot, project or system
+      disable:
+        type: boolean
+        description: The disable status of the robot
+      expires_at:
+        type: integer
+        format: int64
+        description: The expiration data of the robot
+      permissions:
+        type: array
+        items:
+          $ref: '#/definitions/Permission'
   RobotCreated:
     type: object
+    description: The response for robot account creation.
     properties:
       id:
         type: integer
