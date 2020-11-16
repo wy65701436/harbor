@@ -58,7 +58,6 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 		Secret:       created.Secret,
 		CreationTime: strfmt.DateTime(created.CreationTime),
 	})
-
 }
 
 func (rAPI *robotAPI) DeleteRobot(ctx context.Context, params operation.DeleteRobotParams) middleware.Responder {
@@ -90,8 +89,29 @@ func (rAPI *robotAPI) ListRobot(ctx context.Context, params operation.ListRobotP
 	if err != nil {
 		return rAPI.SendError(ctx, err)
 	}
-	if query.Keywords["level"] == robot.LEVELSYSTEM {
+
+	var projectID int64
+	var level string
+	// GET /api/v2.0/robots or GET /api/v2.0/robots?level=system to get all of system level robots.
+	// GET /api/v2.0/robots?level=project&project_id=1
+	if _, ok := query.Keywords["level"]; ok {
+		if !isValidLevel(query.Keywords["level"].(string)) {
+			return rAPI.SendError(ctx, errors.New(nil).WithMessage("bad request error level input").WithCode(errors.BadRequestCode))
+		}
+		level = query.Keywords["level"].(string)
+		if _, ok := query.Keywords["project_id"]; !ok && level == robot.LEVELPROJECT {
+			return rAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("must with project ID when to query project robots"))
+		}
+		projectID = query.Keywords["project_id"].(int64)
+
+	} else {
+		level = robot.LEVELSYSTEM
+		projectID = 0
 		query.Keywords["project_id"] = 0
+	}
+
+	if err := rAPI.requireAccess(ctx, level, projectID, rbac.ActionList); err != nil {
+		return rAPI.SendError(ctx, err)
 	}
 
 	//total, err := rAPI.robotCtl.Count(ctx, query)
@@ -152,25 +172,23 @@ func (rAPI *robotAPI) UpdateRobot(ctx context.Context, params operation.UpdateRo
 		return rAPI.SendError(ctx, err)
 	}
 
+	if params.Robot.Level != r.Level || params.Robot.Name != r.Name {
+		return rAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("cannot update the level or name of robot"))
+	}
+
 	// refresh secret only
-	if params.Robot.Secret != r.Secret {
+	if params.Robot.Secret != r.Secret && params.Robot.Secret != "" {
 		r.Secret = params.Robot.Secret
 		if err := rAPI.robotCtl.Update(ctx, r); err != nil {
 			return rAPI.SendError(ctx, err)
 		}
-	}
-	if params.Robot.Level != r.Level {
-		return rAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("cannot update the level of robot"))
-	}
-	if params.Robot.Name != r.Name {
-		return rAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("cannot update the name of robot"))
 	}
 
 	r.Description = params.Robot.Description
 	r.ExpiresAt = params.Robot.ExpiresAt
 	r.Disabled = params.Robot.Disable
 	if len(params.Robot.Permissions) != 0 {
-		lib.JSONCopy(r.Permissions, params.Robot.Permissions)
+		lib.JSONCopy(&r.Permissions, params.Robot.Permissions)
 	}
 
 	if err := rAPI.robotCtl.Update(ctx, r); err != nil {
@@ -190,7 +208,7 @@ func (rAPI *robotAPI) requireAccess(ctx context.Context, level string, projectID
 			return err
 		}
 	}
-	return nil
+	return errors.ForbiddenError(nil)
 }
 
 // more validation
