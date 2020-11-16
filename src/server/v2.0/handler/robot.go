@@ -94,22 +94,22 @@ func (rAPI *robotAPI) ListRobot(ctx context.Context, params operation.ListRobotP
 	var level string
 	// GET /api/v2.0/robots or GET /api/v2.0/robots?level=system to get all of system level robots.
 	// GET /api/v2.0/robots?level=project&project_id=1
-	if _, ok := query.Keywords["level"]; ok {
-		if !isValidLevel(query.Keywords["level"].(string)) {
+	if _, ok := query.Keywords["Level"]; ok {
+		if !isValidLevel(query.Keywords["Level"].(string)) {
 			return rAPI.SendError(ctx, errors.New(nil).WithMessage("bad request error level input").WithCode(errors.BadRequestCode))
 		}
-		level = query.Keywords["level"].(string)
+		level = query.Keywords["Level"].(string)
 		if level == robot.LEVELPROJECT {
-			if _, ok := query.Keywords["project_id"]; !ok {
+			if _, ok := query.Keywords["ProjectID"]; !ok {
 				return rAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("must with project ID when to query project robots"))
 			}
+			projectID = query.Keywords["ProjectID"].(int64)
 		}
-		projectID = query.Keywords["project_id"].(int64)
 
 	} else {
 		level = robot.LEVELSYSTEM
 		projectID = 0
-		query.Keywords["project_id"] = 0
+		query.Keywords["ProjectID"] = 0
 	}
 
 	if err := rAPI.requireAccess(ctx, level, projectID, rbac.ActionList); err != nil {
