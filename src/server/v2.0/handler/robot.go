@@ -105,7 +105,7 @@ func (rAPI *robotAPI) ListRobot(ctx context.Context, params operation.ListRobotP
 				return rAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("must with project ID when to query project robots"))
 			}
 			pid, err := strconv.ParseInt(query.Keywords["ProjectID"].(string), 10, 64)
-			if err == nil {
+			if err != nil {
 				return rAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("Project ID must be int type."))
 			}
 			projectID = pid
