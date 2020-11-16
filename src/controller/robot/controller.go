@@ -327,11 +327,14 @@ func (d *controller) convertScope(ctx context.Context, scope string) (kind, name
 func (d *controller) toScope(ctx context.Context, p *Permission) (string, error) {
 	switch p.Kind {
 	case LEVELSYSTEM:
+		if p.Namespace != "/" {
+			return "", errors.New(nil).WithMessage("unknown namespace").WithCode(errors.BadRequestCode)
+		}
 		return SCOPESYSTEM, nil
+	case LEVELPROJECT:
 		if p.Namespace == "*" {
 			return SCOPEALLPROJECT, nil
 		}
-	case LEVELPROJECT:
 		pro, err := d.proMgr.Get(ctx, p.Namespace)
 		if err != nil {
 			return "", err
