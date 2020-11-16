@@ -13,6 +13,7 @@ import (
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
 	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/robot"
+	"strconv"
 	"strings"
 )
 
@@ -103,7 +104,11 @@ func (rAPI *robotAPI) ListRobot(ctx context.Context, params operation.ListRobotP
 			if _, ok := query.Keywords["ProjectID"]; !ok {
 				return rAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("must with project ID when to query project robots"))
 			}
-			projectID = query.Keywords["ProjectID"].(int64)
+			pid, err := strconv.ParseInt(query.Keywords["ProjectID"].(string), 10, 64)
+			if err == nil {
+				return rAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("Project ID must be int type."))
+			}
+			projectID = pid
 		}
 
 	} else {
