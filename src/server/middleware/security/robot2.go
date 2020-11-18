@@ -67,12 +67,16 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 				Action: a.Action,
 				Effect: a.Effect,
 			}
-			if p.Kind == robot_ctl.LEVELPROJECT {
-				project, err := project.Ctl.Get(req.Context(), p.Namespace)
-				if err != nil {
-					return nil
+			if p.Kind == "project" {
+				if p.Namespace == "*" {
+					access.Resource = types.Resource(fmt.Sprintf("/project/*/%s", a.Resource))
+				} else {
+					project, err := project.Ctl.Get(req.Context(), p.Namespace)
+					if err != nil {
+						return nil
+					}
+					access.Resource = types.Resource(fmt.Sprintf("/project/%d/%s", project.ProjectID, a.Resource))
 				}
-				access.Resource = types.Resource(fmt.Sprintf("/project/%d/%s", project.ProjectID, a.Resource))
 			}
 			accesses = append(accesses, access)
 		}

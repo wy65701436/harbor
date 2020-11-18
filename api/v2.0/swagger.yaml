@@ -2567,6 +2567,7 @@ definitions:
         description: The level of the robot, project or system
       disable:
         type: boolean
+        x-omitempty: false
         description: The disable status of the robot
       expires_at:
         type: integer
