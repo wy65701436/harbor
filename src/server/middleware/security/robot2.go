@@ -5,6 +5,7 @@ import (
 	"github.com/goharbor/harbor/src/common/security"
 	robotCtx "github.com/goharbor/harbor/src/common/security/robot"
 	"github.com/goharbor/harbor/src/common/utils"
+	"github.com/goharbor/harbor/src/controller/project"
 	robot_ctl "github.com/goharbor/harbor/src/controller/robot"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/lib/log"
@@ -67,7 +68,11 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 				Effect: a.Effect,
 			}
 			if p.Kind == robot_ctl.LEVELPROJECT {
-				access.Resource = types.Resource(fmt.Sprintf("/project/%d/%s", 4, a.Resource))
+				project, err := project.Ctl.Get(req.Context(), p.Namespace)
+				if err != nil {
+					return nil
+				}
+				access.Resource = types.Resource(fmt.Sprintf("/project/%d/%s", project.ProjectID, a.Resource))
 			}
 			accesses = append(accesses, access)
 		}
