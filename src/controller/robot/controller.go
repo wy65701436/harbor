@@ -215,6 +215,7 @@ func (d *controller) populate(ctx context.Context, r *model.Robot, option *Optio
 	robot := &Robot{
 		Robot: *r,
 	}
+	r.Name = fmt.Sprintf("%s%s", config.RobotPrefix(), r.Name)
 	robot.setLevel()
 	if option == nil {
 		return robot, nil

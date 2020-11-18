@@ -31,13 +31,10 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 		log.Error("failed to get secret key")
 		return nil
 	}
-	s, err := utils.ReversibleDecrypt(secret, key)
+	_, err = utils.ReversibleDecrypt(secret, key)
 	if err != nil {
 		return nil
 	}
-	log.Info("------------------")
-	log.Info(s)
-	log.Info("------------------")
 
 	// TODO get the project name from the name patten
 	robots, err := robot_ctl.Ctl.List(req.Context(), q.New(q.KeyWords{
@@ -74,9 +71,13 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 	}
 
 	modelRobot := &model.Robot{
-		Name: robot.Name,
+		Name: strings.TrimPrefix(name, config.RobotPrefix()),
 	}
 
-	log.Debugf("a robot security context generated for request %s %s", req.Method, req.URL.Path)
+	log.Info(" ----------------------------- ")
+	log.Info(accesses)
+	log.Info(" ----------------------------- ")
+
+	log.Infof("a robot2 security context generated for request %s %s", req.Method, req.URL.Path)
 	return robotCtx.NewSecurityContext(modelRobot, accesses)
 }
