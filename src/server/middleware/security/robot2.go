@@ -1,6 +1,7 @@
 package security
 
 import (
+	"fmt"
 	"github.com/goharbor/harbor/src/common/security"
 	robotCtx "github.com/goharbor/harbor/src/common/security/robot"
 	"github.com/goharbor/harbor/src/common/utils"
@@ -62,9 +63,11 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 	for _, p := range robot.Permissions {
 		for _, a := range p.Access {
 			access := &types.Policy{
-				Resource: a.Resource,
-				Action:   a.Action,
-				Effect:   a.Effect,
+				Action: a.Action,
+				Effect: a.Effect,
+			}
+			if p.Kind == robot_ctl.LEVELPROJECT {
+				access.Resource = types.Resource(fmt.Sprintf("/project/%s/%s", p.Namespace, a.Resource))
 			}
 			accesses = append(accesses, access)
 		}
