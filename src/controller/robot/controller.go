@@ -106,6 +106,14 @@ func (d *controller) Create(ctx context.Context, r *Robot) (*Robot, error) {
 		return nil, err
 	}
 	r.ID = robotID
+	// name patten
+	// system level: robot$system+test
+	// name level: robot$library+test
+	//if r.ProjectID == 0 {
+	//	r.Name = fmt.Sprintf("%s%s+%s", config.RobotPrefix(), "system", r.Name)
+	//} else {
+	//	r.Name = fmt.Sprintf("%s%s+%s", config.RobotPrefix(), r.Permissions[0].Namespace, r.Name)
+	//}
 	r.Name = fmt.Sprintf("%s%s", config.RobotPrefix(), r.Name)
 	r.Secret = secret
 
