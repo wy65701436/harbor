@@ -69,7 +69,7 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 			}
 			if p.Kind == "project" {
 				if p.Namespace == "*" {
-					access.Resource = types.Resource(fmt.Sprintf("/project/*/%s", a.Resource))
+					access.Resource = types.Resource(fmt.Sprintf("/project/**/%s", a.Resource))
 				} else {
 					project, err := project.Ctl.Get(req.Context(), p.Namespace)
 					if err != nil {
