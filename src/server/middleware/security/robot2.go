@@ -67,7 +67,7 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 				Effect: a.Effect,
 			}
 			if p.Kind == robot_ctl.LEVELPROJECT {
-				access.Resource = types.Resource(fmt.Sprintf("/project/%s/%s", p.Namespace, a.Resource))
+				access.Resource = types.Resource(fmt.Sprintf("/project/%d/%s", 4, a.Resource))
 			}
 			accesses = append(accesses, access)
 		}
