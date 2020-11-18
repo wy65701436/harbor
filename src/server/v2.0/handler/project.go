@@ -206,9 +206,9 @@ func (a *projectAPI) DeleteProject(ctx context.Context, params operation.DeleteP
 	}
 
 	// remove the robot associated with the project
-	if err := a.robotMgr.DeleteByProjectID(ctx, params.ProjectID); err != nil {
-		return a.SendError(ctx, err)
-	}
+	//if err := a.robotMgr.DeleteByProjectID(ctx, params.ProjectID); err != nil {
+	//	return a.SendError(ctx, err)
+	//}
 
 	referenceID := quota.ReferenceID(params.ProjectID)
 	q, err := a.quotaCtl.GetByRef(ctx, quota.ProjectReference, referenceID)

@@ -69,7 +69,7 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 			}
 			if p.Kind == "project" {
 				if p.Namespace == "*" {
-					access.Resource = types.Resource(fmt.Sprintf("/project/**/%s", a.Resource))
+					access.Resource = types.Resource(fmt.Sprintf("/project/*/%s", a.Resource))
 				} else {
 					project, err := project.Ctl.Get(req.Context(), p.Namespace)
 					if err != nil {
@@ -91,5 +91,5 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 	log.Info(" ----------------------------- ")
 
 	log.Infof("a robot2 security context generated for request %s %s", req.Method, req.URL.Path)
-	return robotCtx.NewSecurityContext(modelRobot, accesses)
+	return robotCtx.NewSecurityContext(modelRobot, robot.Level == robot_ctl.LEVELSYSTEM, accesses)
 }
