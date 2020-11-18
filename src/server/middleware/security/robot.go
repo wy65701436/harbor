@@ -65,5 +65,5 @@ func (r *robot) Generate(req *http.Request) security.Context {
 		return nil
 	}
 	log.Debugf("a robot security context generated for request %s %s", req.Method, req.URL.Path)
-	return robotCtx.NewSecurityContext(robot, rtk.Claims.(*robot_claim.Claim).Access)
+	return robotCtx.NewSecurityContext(robot, false, rtk.Claims.(*robot_claim.Claim).Access)
 }
