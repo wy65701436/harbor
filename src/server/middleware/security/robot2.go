@@ -41,7 +41,7 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 
 	// TODO get the project name from the name patten
 	robots, err := robot_ctl.Ctl.List(req.Context(), q.New(q.KeyWords{
-		"name": name,
+		"name": strings.TrimPrefix(name, config.RobotPrefix()),
 	}), &robot_ctl.Option{
 		WithPermission: true,
 	})
@@ -73,7 +73,9 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 		}
 	}
 
-	modelRobot := &model.Robot{}
+	modelRobot := &model.Robot{
+		Name: robot.Name,
+	}
 
 	log.Debugf("a robot security context generated for request %s %s", req.Method, req.URL.Path)
 	return robotCtx.NewSecurityContext(modelRobot, accesses)

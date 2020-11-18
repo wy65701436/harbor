@@ -6,7 +6,9 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/harbor/src/common/rbac"
+	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/controller/robot"
+	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/lib/errors"
 	pkg "github.com/goharbor/harbor/src/pkg/robot2/model"
@@ -185,7 +187,15 @@ func (rAPI *robotAPI) UpdateRobot(ctx context.Context, params operation.UpdateRo
 
 	// refresh secret only
 	if params.Robot.Secret != r.Secret && params.Robot.Secret != "" {
-		r.Secret = params.Robot.Secret
+		key, err := config.SecretKey()
+		if err != nil {
+			return rAPI.SendError(ctx, err)
+		}
+		secret, err := utils.ReversibleEncrypt(params.Robot.Secret, key)
+		if err != nil {
+			return rAPI.SendError(ctx, err)
+		}
+		r.Secret = secret
 		if err := rAPI.robotCtl.Update(ctx, r); err != nil {
 			return rAPI.SendError(ctx, err)
 		}
