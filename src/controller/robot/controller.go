@@ -90,15 +90,9 @@ func (d *controller) Create(ctx context.Context, r *Robot) (int64, error) {
 		expiresAt = time.Now().UTC().Add(time.Duration(r.Duration) * 60 * 24 * time.Minute).Unix()
 	}
 
-	key, err := config.SecretKey()
-	if err != nil {
-		return 0, err
-	}
-	str := utils.GenerateRandomString()
-	secret, err := utils.ReversibleEncrypt(str, key)
-	if err != nil {
-		return 0, err
-	}
+	pwd := utils.GenerateRandomString()
+	salt := utils.GenerateRandomString()
+	secret := utils.Encrypt(pwd, salt, utils.SHA256)
 
 	robotID, err := d.robotMgr.Create(ctx, &model.Robot{
 		Name:        r.Name,
@@ -107,6 +101,7 @@ func (d *controller) Create(ctx context.Context, r *Robot) (int64, error) {
 		ExpiresAt:   expiresAt,
 		Secret:      secret,
 		Duration:    r.Duration,
+		Salt:        salt,
 	})
 	if err != nil {
 		return 0, err
