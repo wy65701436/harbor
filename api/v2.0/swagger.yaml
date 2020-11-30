@@ -46,6 +46,12 @@ paths:
           description: The name of project owner.
           required: false
           type: string
+        - name: detail
+          in: query
+          description: Bool value indicating whether return detailed information of the project
+          required: false
+          type: boolean
+          dafault: true
       responses:
         '200':
           description: Return all matched projects.
