@@ -15,6 +15,7 @@ import (
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
 	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/robot"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -235,19 +236,27 @@ func (rAPI *robotAPI) RefreshSec(ctx context.Context, params operation.RefreshSe
 		return rAPI.SendError(ctx, err)
 	}
 
-	if params.Robot.Secret != r.Secret {
-		return rAPI.SendError(ctx, errors.New(nil).WithMessage("the secret must be same with current").WithCode(errors.BadRequestCode))
-	}
-
 	key, err := config.SecretKey()
 	if err != nil {
 		return rAPI.SendError(ctx, err)
 	}
-	str := utils.GenerateRandomString()
-	secret, err := utils.ReversibleEncrypt(str, key)
-	if err != nil {
-		return rAPI.SendError(ctx, err)
+
+	var secret string
+	if params.Robot.Secret != r.Secret {
+		if isValidSec(params.Robot.Secret) {
+			return rAPI.SendError(ctx, errors.New("the password or secret must longer than 8 chars with at least 1 uppercase letter, 1 lowercase letter and 1 number").WithCode(errors.BadRequestCode))
+		}
+		secret, err = utils.ReversibleEncrypt(params.Robot.Secret, key)
+		if err != nil {
+			return rAPI.SendError(ctx, err)
+		}
+	} else {
+		secret, err = utils.ReversibleEncrypt(utils.GenerateRandomString(), key)
+		if err != nil {
+			return rAPI.SendError(ctx, err)
+		}
 	}
+
 	r.Secret = secret
 	if err := rAPI.robotCtl.Update(ctx, r); err != nil {
 		return rAPI.SendError(ctx, err)
@@ -294,4 +303,14 @@ func isValidLevel(l string) bool {
 
 func isValidDuration(d int64) bool {
 	return d >= int64(-1)
+}
+
+func isValidSec(sec string) bool {
+	hasLower := regexp.MustCompile(`[a-z]`)
+	hasUpper := regexp.MustCompile(`[A-Z]`)
+	hasNumber := regexp.MustCompile(`[0-9]`)
+	if len(sec) >= 8 && hasLower.MatchString(sec) && hasUpper.MatchString(sec) && hasNumber.MatchString(sec) {
+		return true
+	}
+	return false
 }
