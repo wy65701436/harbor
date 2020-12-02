@@ -206,8 +206,16 @@ func (d *controller) populate(ctx context.Context, r *model.Robot, option *Optio
 	robot := &Robot{
 		Robot: *r,
 	}
-	robot.Name = fmt.Sprintf("%s%s", config.RobotPrefix(), r.Name)
 	robot.setLevel()
+	if robot.Level == LEVELSYSTEM {
+		robot.Name = fmt.Sprintf("%s%s", config.RobotPrefix(), r.Name)
+	} else {
+		pro, err := d.proMgr.Get(ctx, robot.Permissions[0].Namespace)
+		if err != nil {
+			return nil, err
+		}
+		robot.Name = fmt.Sprintf("%s%s+%s", config.RobotPrefix(), pro.Name, r.Name)
+	}
 	robot.setEditable()
 	if option == nil {
 		return robot, nil

@@ -32,6 +32,10 @@ type robotAPI struct {
 }
 
 func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRobotParams) middleware.Responder {
+	if err := validateName(params.Robot.Name); err != nil {
+		return rAPI.SendError(ctx, err)
+	}
+
 	if err := rAPI.validate(params.Robot.Duration, params.Robot.Level, params.Robot.Permissions); err != nil {
 		return rAPI.SendError(ctx, err)
 	}
@@ -301,4 +305,15 @@ func isValidSec(sec string) bool {
 		return true
 	}
 	return false
+}
+
+func validateName(name string) error {
+	if utils.IsIllegalLength(name, 1, 255) {
+		return errors.New(nil).WithMessage("username with illegal length").WithCode(errors.BadRequestCode)
+	}
+	const restrictedNameChars = `[a-z0-9]+(?:[._-][a-z0-9]+)*`
+	if utils.IsContainIllegalChar(name, []string{",", "~", "#", "$", "%", "+"}) {
+		return errors.New(nil).WithMessage("username contains illegal characters").WithCode(errors.BadRequestCode)
+	}
+	return nil
 }

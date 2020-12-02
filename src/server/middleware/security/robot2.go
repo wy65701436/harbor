@@ -7,9 +7,11 @@ import (
 	"github.com/goharbor/harbor/src/common/utils"
 	robot_ctl "github.com/goharbor/harbor/src/controller/robot"
 	"github.com/goharbor/harbor/src/core/config"
+	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/q"
 	"github.com/goharbor/harbor/src/pkg/permission/types"
+	"regexp"
 
 	"github.com/goharbor/harbor/src/pkg/robot2/model"
 	"net/http"
@@ -69,4 +71,15 @@ func (r *robot2) Generate(req *http.Request) security.Context {
 	}
 	log.Infof("a robot2 security context generated for request %s %s", req.Method, req.URL.Path)
 	return robotCtx.NewSecurityContext(modelRobot, robot.Level == robot_ctl.LEVELSYSTEM, accesses)
+}
+
+func matchRobotName(name string) (bool, string, string, error) {
+	patternSys := fmt.Sprintf("%s", config.RobotPrefix())
+	patternPro := config.RobotPrefix()
+	resourceReg := regexp.MustCompile("^/project/[0-9]+/(?P<repository>[a-z-]+)$")
+	matches := resourceReg.FindStringSubmatch(resource)
+	if len(matches) <= 1 {
+		return "", errors.New(nil).WithMessage("bad resource %s", resource).WithCode(errors.BadRequestCode)
+	}
+	return matches[1], nil
 }
