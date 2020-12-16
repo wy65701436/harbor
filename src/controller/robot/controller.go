@@ -139,14 +139,17 @@ func (d *controller) Update(ctx context.Context, r *Robot, option *Option) error
 		return err
 	}
 	// update the permission
+	log.Info(" =====================================")
 	if option != nil && option.WithPermission {
 		if err := d.rbacMgr.DeletePermissionsByRole(ctx, ROBOTTYPE, r.ID); err != nil {
 			return err
 		}
+		log.Info(" =====================================")
 		if err := d.createPermission(ctx, r); err != nil {
 			return err
 		}
 	}
+	log.Info(" =====================================")
 	return nil
 }
 
@@ -171,6 +174,7 @@ func (d *controller) createPermission(ctx context.Context, r *Robot) error {
 	if r == nil {
 		return nil
 	}
+	log.Info(" 2=====================================")
 
 	for _, per := range r.Permissions {
 		policy := &rbac_model.PermissionPolicy{}
@@ -179,6 +183,8 @@ func (d *controller) createPermission(ctx context.Context, r *Robot) error {
 			return err
 		}
 		policy.Scope = scope
+		log.Info(" 3=====================================")
+		log.Info(policy.Scope)
 
 		for _, access := range per.Access {
 			policy.Resource = access.Resource.String()
@@ -189,6 +195,7 @@ func (d *controller) createPermission(ctx context.Context, r *Robot) error {
 			if err != nil {
 				return err
 			}
+			log.Info(" 4=====================================")
 
 			_, err = d.rbacMgr.CreatePermission(ctx, &rbac_model.RolePermission{
 				RoleType:           ROBOTTYPE,
