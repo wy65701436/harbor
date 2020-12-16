@@ -198,7 +198,7 @@ func (rAPI *robotAPI) UpdateRobot(ctx context.Context, params operation.UpdateRo
 		err = rAPI.updateV2Robot(ctx, params, r)
 	}
 	if err != nil {
-		rAPI.SendError(ctx, err)
+		return rAPI.SendError(ctx, err)
 	}
 
 	return operation.NewUpdateRobotOK()
