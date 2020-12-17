@@ -197,7 +197,19 @@ func (g *gcAPI) GetGC(ctx context.Context, params operation.GetGCParams) middlew
 }
 
 func (g *gcAPI) GetGCLog(ctx context.Context, params operation.GetGCLogParams) middleware.Responder {
-	log, err := g.gcCtr.GetTaskLog(ctx, params.GcID)
+	query, err := g.BuildQuery(ctx, nil, nil, nil)
+	if err != nil {
+		return g.SendError(ctx, err)
+	}
+	query.Keywords["ExecutionID"] = params.GcID
+	tasks, err := g.gcCtr.ListTasks(ctx, query)
+	if err != nil {
+		return g.SendError(ctx, err)
+	}
+	if len(tasks) == 0 {
+		return g.SendError(ctx, errors.New(nil).WithCode(errors.NotFoundCode).WithMessage("garbage collection %d log is not found", params.GcID)
+	}
+	log, err := g.gcCtr.GetTaskLog(ctx, tasks[0].ID)
 	if err != nil {
 		return g.SendError(ctx, err)
 	}
