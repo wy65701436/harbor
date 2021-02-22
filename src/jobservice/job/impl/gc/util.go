@@ -50,9 +50,9 @@ func v2DeleteManifest(repository, digest string) error {
 	if !exist {
 		return nil
 	}
-	if err := registry.Cli.DeleteManifest(repository, digest); err != nil {
-		return err
-	}
+	//if err := registry.Cli.DeleteManifest(repository, digest); err != nil {
+	//	return err
+	//}
 	return nil
 }
 
