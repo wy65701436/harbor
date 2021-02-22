@@ -41,18 +41,18 @@ func delKeys(con redis.Conn, pattern string) error {
 
 // v2DeleteManifest calls the registry API to remove manifest
 func v2DeleteManifest(repository, digest string) error {
-	exist, _, err := registry.Cli.ManifestExist(repository, digest)
-	if err != nil {
-		return err
-	}
-	// it could be happened at remove manifest success but fail to delete harbor DB.
-	// when the GC job executes again, the manifest should not exist.
-	if !exist {
-		return nil
-	}
-	//if err := registry.Cli.DeleteManifest(repository, digest); err != nil {
+	//exist, _, err := registry.Cli.ManifestExist(repository, digest)
+	//if err != nil {
 	//	return err
 	//}
+	//// it could be happened at remove manifest success but fail to delete harbor DB.
+	//// when the GC job executes again, the manifest should not exist.
+	//if !exist {
+	//	return nil
+	//}
+	if err := registry.Cli.DeleteManifest(repository, digest); err != nil {
+		return err
+	}
 	return nil
 }
 
