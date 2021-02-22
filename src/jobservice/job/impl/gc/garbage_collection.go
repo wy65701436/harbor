@@ -256,17 +256,17 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 		if _, exist := gc.trashedArts[blob.Digest]; exist && blob.IsManifest() {
 			for _, art := range gc.trashedArts[blob.Digest] {
 				// Harbor cannot know the existing tags in the backend from its database, so let the v2 DELETE manifest to remove all of them.
-				gc.logger.Infof("delete the manifest with registry v2 API: %s, %s, %s",
-					art.RepositoryName, blob.ContentType, blob.Digest)
-				if err := v2DeleteManifest(art.RepositoryName, blob.Digest); err != nil {
-					gc.logger.Errorf("failed to delete manifest with v2 API, %s, %s, %v", art.RepositoryName, blob.Digest, err)
-					if err := ignoreNotFound(func() error {
-						return gc.markDeleteFailed(ctx, blob)
-					}); err != nil {
-						return err
-					}
-					return errors.Wrapf(err, "failed to delete manifest with v2 API: %s, %s", art.RepositoryName, blob.Digest)
-				}
+				//gc.logger.Infof("delete the manifest with registry v2 API: %s, %s, %s",
+				//	art.RepositoryName, blob.ContentType, blob.Digest)
+				//if err := v2DeleteManifest(art.RepositoryName, blob.Digest); err != nil {
+				//	gc.logger.Errorf("failed to delete manifest with v2 API, %s, %s, %v", art.RepositoryName, blob.Digest, err)
+				//	if err := ignoreNotFound(func() error {
+				//		return gc.markDeleteFailed(ctx, blob)
+				//	}); err != nil {
+				//		return err
+				//	}
+				//	return errors.Wrapf(err, "failed to delete manifest with v2 API: %s, %s", art.RepositoryName, blob.Digest)
+				//}
 				// for manifest, it has to delete the revisions folder of each repository
 				gc.logger.Infof("delete manifest from storage: %s", blob.Digest)
 				if err := ignoreNotFound(func() error {
