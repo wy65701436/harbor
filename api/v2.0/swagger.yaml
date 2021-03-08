@@ -1716,15 +1716,15 @@ paths:
         - $ref: '#/parameters/projectNameOrId'
       responses:
         '200':
-          description: List project webhook policies successfully.
+          description: Success
+          headers:
+            X-Total-Count:
+              description: The total count of robot accounts
+              type: integer
+            Link:
+              description: Link refers to the previous page and next page
+              type: string
           schema:
-            headers:
-              X-Total-Count:
-                description: The total count of webhook policies
-                type: integer
-              Link:
-                description: Link refers to the previous page and next page
-                type: string
             type: array
             items:
               $ref: '#/definitions/WebhookPolicy'
@@ -5288,86 +5288,86 @@ definitions:
       skip_cert_verify:
         type: boolean
         description: Whether or not to skip cert verify.
-    WebhookPolicy:
-      type: object
-      description: The webhook policy object
-      properties:
-        id:
-          type: integer
-          format: int64
-          description: The webhook policy ID.
-        name:
+  WebhookPolicy:
+    type: object
+    description: The webhook policy object
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: The webhook policy ID.
+      name:
+        type: string
+        description: The name of webhook policy.
+      description:
+        type: string
+        description: The description of webhook policy.
+      project_id:
+        type: integer
+        description: The project ID of webhook policy.
+      targets:
+        type: array
+        items:
+          $ref: '#/definitions/WebhookTargetObject'
+      event_types:
+        type: array
+        items:
           type: string
-          description: The name of webhook policy.
-        description:
-          type: string
-          description: The description of webhook policy.
-        project_id:
-          type: integer
-          description: The project ID of webhook policy.
-        targets:
-          type: array
-          items:
-            $ref: '#/definitions/WebhookTargetObject'
-        event_types:
-          type: array
-          items:
-            type: string
-        creator:
-          type: string
-          description: The creator of the webhook policy.
-        creation_time:
-          type: string
-          description: The create time of the webhook policy.
-        update_time:
-          type: string
-          description: The update time of the webhook policy.
-        enabled:
-          type: boolean
-          description: Whether the webhook policy is enabled or not.
-    WebhookLastTrigger:
-      type: object
-      description: The webhook policy and last trigger time group by event type.
-      properties:
-        event_type:
-          type: string
-          description: The webhook event type.
-        enabled:
-          type: boolean
-          description: Whether or not the webhook policy enabled.
-        creation_time:
-          type: string
-          description: The creation time of webhook policy.
-        last_trigger_time:
-          type: string
-          description: The last trigger time of webhook policy.
-    WebhookJob:
-      type: object
-      description: The webhook job.
-      properties:
-        id:
-          type: integer
-          format: int64
-          description: The webhook job ID.
-        policy_id:
-          type: integer
-          format: int64
-          description: The webhook policy ID.
-        event_type:
-          type: string
-          description: The webhook job event type.
-        notify_type:
-          type: string
-          description: The webhook job notify type.
-        status:
-          type: string
-          description: The webhook job status.
-        job_detail:
-          type: string
-          description: The webhook job notify detailed data.
-        creation_time:
-          type: string
-          description: The webhook job creation time.
-        update_time:
-          type: string
-          description: The webhook job update time.
+      creator:
+        type: string
+        description: The creator of the webhook policy.
+      creation_time:
+        type: string
+        description: The create time of the webhook policy.
+      update_time:
+        type: string
+        description: The update time of the webhook policy.
+      enabled:
+        type: boolean
+        description: Whether the webhook policy is enabled or not.
+  WebhookLastTrigger:
+    type: object
+    description: The webhook policy and last trigger time group by event type.
+    properties:
+      event_type:
+        type: string
+        description: The webhook event type.
+      enabled:
+        type: boolean
+        description: Whether or not the webhook policy enabled.
+      creation_time:
+        type: string
+        description: The creation time of webhook policy.
+      last_trigger_time:
+        type: string
+        description: The last trigger time of webhook policy.
+  WebhookJob:
+    type: object
+    description: The webhook job.
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: The webhook job ID.
+      policy_id:
+        type: integer
+        format: int64
+        description: The webhook policy ID.
+      event_type:
+        type: string
+        description: The webhook job event type.
+      notify_type:
+        type: string
+        description: The webhook job notify type.
+      status:
+        type: string
+        description: The webhook job status.
+      job_detail:
+        type: string
+        description: The webhook job notify detailed data.
+      creation_time:
+        type: string
+        description: The webhook job creation time.
+      update_time:
+        type: string
+        description: The webhook job update time.
