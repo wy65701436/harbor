@@ -1,4 +1,4 @@
-package manager
+package policy
 
 import (
 	"reflect"
@@ -14,8 +14,8 @@ func TestNewDefaultManger(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewDefaultManager(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewDefaultManager() = %v, want %v", got, tt.want)
+			if got := NewDefaultManger(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewDefaultManger() = %v, want %v", got, tt.want)
 			}
 		})
 	}

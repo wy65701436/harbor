@@ -7,9 +7,7 @@ import (
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/pkg/notification/hook"
 	"github.com/goharbor/harbor/src/pkg/notification/job"
-	jobMgr "github.com/goharbor/harbor/src/pkg/notification/job/manager"
 	"github.com/goharbor/harbor/src/pkg/notification/policy"
-	"github.com/goharbor/harbor/src/pkg/notification/policy/manager"
 	n_event "github.com/goharbor/harbor/src/pkg/notifier/event"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
 )
@@ -34,11 +32,11 @@ var (
 // Init ...
 func Init() {
 	// init notification policy manager
-	PolicyMgr = manager.NewDefaultManger()
+	PolicyMgr = policy.NewDefaultManger()
 	// init hook manager
 	HookManager = hook.NewHookManager()
 	// init notification job manager
-	JobMgr = jobMgr.NewDefaultManager()
+	JobMgr = job.NewDefaultManager()
 
 	SupportedNotifyTypes = make(map[string]struct{})
 

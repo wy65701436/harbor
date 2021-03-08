@@ -3,6 +3,7 @@ package notification
 import (
 	"errors"
 	"fmt"
+	"github.com/goharbor/harbor/src/lib/orm"
 
 	"bytes"
 	"encoding/json"
@@ -108,7 +109,7 @@ func (s *SlackHandler) process(event *model.HookEvent) error {
 		"address":          event.Target.Address,
 		"skip_cert_verify": event.Target.SkipCertVerify,
 	}
-	return notification.HookManager.StartHook(event, j)
+	return notification.HookManager.StartHook(orm.Context(), event, j)
 }
 
 func (s *SlackHandler) convert(payLoad *model.Payload) (string, error) {

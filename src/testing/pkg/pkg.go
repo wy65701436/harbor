@@ -34,3 +34,5 @@ package pkg
 //go:generate mockery --case snake --dir ../../pkg/robot --name Manager --output ./robot --outpkg robot
 //go:generate mockery --case snake --dir ../../pkg/robot/dao --name DAO --output ./robot/dao --outpkg dao
 //go:generate mockery --case snake --dir ../../pkg/repository/dao --name DAO --output ./repository/dao --outpkg dao
+//go:generate mockery --case snake --dir ../../pkg/notification/job/dao --name DAO --output ./notification/job/dao --outpkg dao
+//go:generate mockery --case snake --dir ../../pkg/notification/policy/dao --name DAO --output ./notification/policy/dao --outpkg dao

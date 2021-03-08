@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/goharbor/harbor/src/lib/orm"
 
 	"github.com/goharbor/harbor/src/common/job/models"
 	"github.com/goharbor/harbor/src/jobservice/job"
@@ -60,5 +61,5 @@ func (h *HTTPHandler) process(event *model.HookEvent) error {
 		"auth_header":      event.Target.AuthHeader,
 		"skip_cert_verify": event.Target.SkipCertVerify,
 	}
-	return notification.HookManager.StartHook(event, j)
+	return notification.HookManager.StartHook(orm.Context(), event, j)
 }
