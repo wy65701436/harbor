@@ -3,28 +3,28 @@ package dao
 import (
 	"context"
 	"fmt"
-	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/orm"
 	"github.com/goharbor/harbor/src/lib/q"
+	"github.com/goharbor/harbor/src/pkg/notification/policy/model"
 )
 
 // DAO defines the interface to access the robot data model
 type DAO interface {
 	// Create ...
-	Create(ctx context.Context, n *models.NotificationPolicy) (int64, error)
+	Create(ctx context.Context, n *model.Policy) (int64, error)
 
 	// Update ...
-	Update(ctx context.Context, n *models.NotificationPolicy) error
+	Update(ctx context.Context, n *model.Policy) error
 
 	// Get ...
-	Get(ctx context.Context, id int64) (*models.NotificationPolicy, error)
+	Get(ctx context.Context, id int64) (*model.Policy, error)
 
 	// Count returns the total count of robots according to the query
 	Count(ctx context.Context, query *q.Query) (total int64, err error)
 
 	// List ...
-	List(ctx context.Context, query *q.Query) ([]*models.NotificationPolicy, error)
+	List(ctx context.Context, query *q.Query) ([]*model.Policy, error)
 
 	// Delete ...
 	Delete(ctx context.Context, id int64) error
@@ -38,12 +38,12 @@ func New() DAO {
 type dao struct{}
 
 // Get ...
-func (d *dao) Get(ctx context.Context, id int64) (*models.NotificationPolicy, error) {
+func (d *dao) Get(ctx context.Context, id int64) (*model.Policy, error) {
 	ormer, err := orm.FromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	j := &models.NotificationPolicy{
+	j := &model.Policy{
 		ID: id,
 	}
 	if err := ormer.Read(j); err != nil {
@@ -56,7 +56,7 @@ func (d *dao) Get(ctx context.Context, id int64) (*models.NotificationPolicy, er
 }
 
 // Create ...
-func (d *dao) Create(ctx context.Context, policy *models.NotificationPolicy) (int64, error) {
+func (d *dao) Create(ctx context.Context, policy *model.Policy) (int64, error) {
 	if policy == nil {
 		return 0, errors.New("nil policy")
 	}
@@ -77,7 +77,7 @@ func (d *dao) Create(ctx context.Context, policy *models.NotificationPolicy) (in
 }
 
 // Update ...
-func (d *dao) Update(ctx context.Context, policy *models.NotificationPolicy) error {
+func (d *dao) Update(ctx context.Context, policy *model.Policy) error {
 	if policy == nil {
 		return errors.New("nil policy")
 	}
@@ -106,7 +106,7 @@ func (d *dao) Count(ctx context.Context, query *q.Query) (int64, error) {
 	query.PageNumber = 0
 	query.PageSize = 0
 
-	qs, err := orm.QuerySetter(ctx, &models.NotificationPolicy{}, query)
+	qs, err := orm.QuerySetter(ctx, &model.Policy{}, query)
 	if err != nil {
 		return 0, err
 	}
@@ -114,10 +114,10 @@ func (d *dao) Count(ctx context.Context, query *q.Query) (int64, error) {
 }
 
 // List ...
-func (d *dao) List(ctx context.Context, query *q.Query) ([]*models.NotificationPolicy, error) {
-	policies := []*models.NotificationPolicy{}
+func (d *dao) List(ctx context.Context, query *q.Query) ([]*model.Policy, error) {
+	policies := []*model.Policy{}
 
-	qs, err := orm.QuerySetter(ctx, &models.NotificationPolicy{}, query)
+	qs, err := orm.QuerySetter(ctx, &model.Policy{}, query)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (d *dao) Delete(ctx context.Context, id int64) error {
 	if err != nil {
 		return err
 	}
-	n, err := ormer.Delete(&models.NotificationPolicy{
+	n, err := ormer.Delete(&model.Policy{
 		ID: id,
 	})
 	if err != nil {

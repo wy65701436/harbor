@@ -32,7 +32,7 @@ var (
 // Init ...
 func Init() {
 	// init notification policy manager
-	PolicyMgr = policy.NewDefaultManger()
+	PolicyMgr = policy.Mgr
 	// init hook manager
 	HookManager = hook.NewHookManager()
 	// init notification job manager

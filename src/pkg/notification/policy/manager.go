@@ -4,50 +4,56 @@ import (
 	"context"
 	"fmt"
 	commonhttp "github.com/goharbor/harbor/src/common/http"
-	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/q"
 	"github.com/goharbor/harbor/src/pkg/notification/policy/dao"
-	"github.com/goharbor/harbor/src/pkg/notifier/model"
+	"github.com/goharbor/harbor/src/pkg/notification/policy/model"
+	notifier_model "github.com/goharbor/harbor/src/pkg/notifier/model"
 	"net/http"
 	"time"
+)
+
+var (
+	// Mgr is a global variable for the default robot account manager implementation
+	Mgr = NewManager()
 )
 
 // Manager manages the notification policies
 type Manager interface {
 	// Create new policy
-	Create(ctx context.Context, policy *models.NotificationPolicy) (int64, error)
+	Create(ctx context.Context, policy *model.Policy) (int64, error)
 	// List the policies, returns the policy list and error
-	List(ctx context.Context, query *q.Query) ([]*models.NotificationPolicy, error)
+	List(ctx context.Context, query *q.Query) ([]*model.Policy, error)
 	// Get policy with specified ID
-	Get(ctx context.Context, id int64) (*models.NotificationPolicy, error)
+	Get(ctx context.Context, id int64) (*model.Policy, error)
 	// GetByNameAndProjectID get policy by the name and projectID
-	GetByNameAndProjectID(ctx context.Context, name string, projectID int64) (*models.NotificationPolicy, error)
+	GetByNameAndProjectID(ctx context.Context, name string, projectID int64) (*model.Policy, error)
 	// Update the specified policy
-	Update(ctx context.Context, policy *models.NotificationPolicy) error
+	Update(ctx context.Context, policy *model.Policy) error
 	// Delete the specified policy
 	Delete(ctx context.Context, policyID int64) error
 	// Test the specified policy
-	Test(ctx context.Context, policy *models.NotificationPolicy) error
+	Test(policy *model.Policy) error
 	// GetRelatedPolices get event type related policies in project
-	GetRelatedPolices(ctx context.Context, projectID int64, eventType string) ([]*models.NotificationPolicy, error)
+	GetRelatedPolices(ctx context.Context, projectID int64, eventType string) ([]*model.Policy, error)
 }
 
-// DefaultManager ...
-type DefaultManager struct {
+var _ Manager = &manager{}
+
+type manager struct {
 	dao dao.DAO
 }
 
-// NewDefaultManger ...
-func NewDefaultManger() *DefaultManager {
-	return &DefaultManager{
+// NewManager ...
+func NewManager() *manager {
+	return &manager{
 		dao: dao.New(),
 	}
 }
 
 // Create notification policy
-func (m *DefaultManager) Create(ctx context.Context, policy *models.NotificationPolicy) (int64, error) {
+func (m *manager) Create(ctx context.Context, policy *model.Policy) (int64, error) {
 	t := time.Now()
 	policy.CreationTime = t
 	policy.UpdateTime = t
@@ -60,8 +66,8 @@ func (m *DefaultManager) Create(ctx context.Context, policy *models.Notification
 }
 
 // List the notification policies, returns the policy list and error
-func (m *DefaultManager) List(ctx context.Context, query *q.Query) ([]*models.NotificationPolicy, error) {
-	policies := []*models.NotificationPolicy{}
+func (m *manager) List(ctx context.Context, query *q.Query) ([]*model.Policy, error) {
+	policies := []*model.Policy{}
 	persisPolicies, err := m.dao.List(ctx, query)
 	if err != nil {
 		return nil, err
@@ -79,7 +85,7 @@ func (m *DefaultManager) List(ctx context.Context, query *q.Query) ([]*models.No
 }
 
 // Get notification policy with specified ID
-func (m *DefaultManager) Get(ctx context.Context, id int64) (*models.NotificationPolicy, error) {
+func (m *manager) Get(ctx context.Context, id int64) (*model.Policy, error) {
 	policy, err := m.dao.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -94,7 +100,7 @@ func (m *DefaultManager) Get(ctx context.Context, id int64) (*models.Notificatio
 }
 
 // GetByNameAndProjectID notification policy by the name and projectID
-func (m *DefaultManager) GetByNameAndProjectID(ctx context.Context, name string, projectID int64) (*models.NotificationPolicy, error) {
+func (m *manager) GetByNameAndProjectID(ctx context.Context, name string, projectID int64) (*model.Policy, error) {
 	query := q.New(q.KeyWords{"name": name, "project_id": projectID})
 	policies, err := m.dao.List(ctx, query)
 	if err != nil {
@@ -111,7 +117,7 @@ func (m *DefaultManager) GetByNameAndProjectID(ctx context.Context, name string,
 }
 
 // Update the specified notification policy
-func (m *DefaultManager) Update(ctx context.Context, policy *models.NotificationPolicy) error {
+func (m *manager) Update(ctx context.Context, policy *model.Policy) error {
 	policy.UpdateTime = time.Now()
 	err := policy.ConvertToDBModel()
 	if err != nil {
@@ -121,15 +127,15 @@ func (m *DefaultManager) Update(ctx context.Context, policy *models.Notification
 }
 
 // Delete the specified notification policy
-func (m *DefaultManager) Delete(ctx context.Context, policyID int64) error {
+func (m *manager) Delete(ctx context.Context, policyID int64) error {
 	return m.dao.Delete(ctx, policyID)
 }
 
 // Test the specified notification policy, just test for network connection without request body
-func (m *DefaultManager) Test(policy *models.NotificationPolicy) error {
+func (m *manager) Test(policy *model.Policy) error {
 	for _, target := range policy.Targets {
 		switch target.Type {
-		case model.NotifyTypeHTTP, model.NotifyTypeSlack:
+		case notifier_model.NotifyTypeHTTP, notifier_model.NotifyTypeSlack:
 			return m.policyHTTPTest(target.Address, target.SkipCertVerify)
 		default:
 			return fmt.Errorf("invalid policy target type: %s", target.Type)
@@ -138,7 +144,7 @@ func (m *DefaultManager) Test(policy *models.NotificationPolicy) error {
 	return nil
 }
 
-func (m *DefaultManager) policyHTTPTest(address string, skipCertVerify bool) error {
+func (m *manager) policyHTTPTest(address string, skipCertVerify bool) error {
 	req, err := http.NewRequest(http.MethodPost, address, nil)
 	if err != nil {
 		return err
@@ -160,13 +166,13 @@ func (m *DefaultManager) policyHTTPTest(address string, skipCertVerify bool) err
 }
 
 // GetRelatedPolices get policies including event type in project
-func (m *DefaultManager) GetRelatedPolices(ctx context.Context, projectID int64, eventType string) ([]*models.NotificationPolicy, error) {
+func (m *manager) GetRelatedPolices(ctx context.Context, projectID int64, eventType string) ([]*model.Policy, error) {
 	policies, err := m.dao.List(ctx, q.New(q.KeyWords{"project_id": projectID}))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get notification policies with projectID %d: %v", projectID, err)
 	}
 
-	var result []*models.NotificationPolicy
+	var result []*model.Policy
 
 	for _, ply := range policies {
 		if !ply.Enabled {

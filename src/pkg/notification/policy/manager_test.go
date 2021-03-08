@@ -1,22 +1,76 @@
 package policy
 
 import (
-	"reflect"
+	"context"
+	"github.com/goharbor/harbor/src/pkg/notification/policy/model"
+	"github.com/goharbor/harbor/src/testing/mock"
+	"github.com/goharbor/harbor/src/testing/pkg/notification/policy/dao"
+	"github.com/stretchr/testify/suite"
 	"testing"
 )
 
-func TestNewDefaultManger(t *testing.T) {
-	tests := []struct {
-		name string
-		want *DefaultManager
-	}{
-		{want: &DefaultManager{}},
+type managerTestSuite struct {
+	suite.Suite
+	mgr *manager
+	dao *dao.DAO
+}
+
+func (m *managerTestSuite) SetupTest() {
+	m.dao = &dao.DAO{}
+	m.mgr = &manager{
+		dao: m.dao,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewDefaultManger(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewDefaultManger() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+}
+
+func (m *managerTestSuite) TestCreate() {
+	m.dao.On("Create", mock.Anything, mock.Anything).Return(int64(1), nil)
+	_, err := m.mgr.Create(context.Background(), &model.Policy{})
+	m.Nil(err)
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestCount() {
+	m.dao.On("Count", mock.Anything, mock.Anything).Return(int64(1), nil)
+	n, err := m.mgr.Count(context.Background(), nil)
+	m.Nil(err)
+	m.Equal(int64(1), n)
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestDelete() {
+	m.dao.On("Delete", mock.Anything, mock.Anything).Return(nil)
+	err := m.mgr.Delete(context.Background(), 1)
+	m.Nil(err)
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestDeleteByProjectID() {
+	m.dao.On("DeleteByProjectID", mock.Anything, mock.Anything).Return(nil)
+	err := m.mgr.DeleteByProjectID(context.Background(), 1)
+	m.Nil(err)
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestUpdate() {
+	m.dao.On("Update", mock.Anything, mock.Anything).Return(nil)
+	err := m.mgr.Update(context.Background(), &model.Policy{})
+	m.Nil(err)
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestList() {
+	m.dao.On("List", mock.Anything, mock.Anything).Return([]*model.Policy{
+		{
+			ID:   1,
+			Name: "robot",
+		},
+	}, nil)
+	rpers, err := m.mgr.List(context.Background(), nil)
+	m.Nil(err)
+	m.Equal(1, len(rpers))
+	m.dao.AssertExpectations(m.T())
+}
+
+func TestManager(t *testing.T) {
+	suite.Run(t, &managerTestSuite{})
 }
