@@ -5272,6 +5272,27 @@ definitions:
         package: "github.com/goharbor/harbor/src/pkg/scan/rest/v1"
         alias: v1
 
+  SupportedWebhookEventTypes:
+    type: object
+    description: Supportted webhook event types and notify types.
+    properties:
+      event_type:
+        type: array
+        items:
+          $ref: '#/definitions/EventType'
+      notify_type:
+        type: array
+        items:
+          $ref: '#/definitions/NotifyType'
+  EventType:
+    type: string
+    description: Webhook supportted event type.
+    example: 'pullImage'
+  NotifyType:
+    type: string
+    description: Webhook supportted notify type.
+    example: 'http'
+
   WebhookTargetObject:
     type: object
     description: The webhook policy target object.
