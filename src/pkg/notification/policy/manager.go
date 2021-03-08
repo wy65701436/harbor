@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	// Mgr is a global variable for the default robot account manager implementation
+	// Mgr is a global variable for the default notification policies
 	Mgr = NewManager()
 )
 

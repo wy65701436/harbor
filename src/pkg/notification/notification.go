@@ -36,7 +36,7 @@ func Init() {
 	// init hook manager
 	HookManager = hook.NewHookManager()
 	// init notification job manager
-	JobMgr = job.NewDefaultManager()
+	JobMgr = job.Mgr
 
 	SupportedNotifyTypes = make(map[string]struct{})
 

@@ -1702,6 +1702,285 @@ paths:
           $ref: '#/responses/404'
         '500':
           $ref: '#/responses/500'
+  '/projects/{project_name_or_id}/webhook/policies':
+    get:
+      summary: List project webhook policies.
+      description: |
+        This endpoint returns webhook policies of a project.
+      tags:
+        - webhook
+      operationId: ListWebhookPolicy
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - $ref: '#/parameters/isResourceName'
+        - $ref: '#/parameters/projectNameOrId'
+      responses:
+        '200':
+          description: List project webhook policies successfully.
+          schema:
+            headers:
+              X-Total-Count:
+                description: The total count of webhook policies
+                type: integer
+              Link:
+                description: Link refers to the previous page and next page
+                type: string
+            type: array
+            items:
+              $ref: '#/definitions/WebhookPolicy'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '500':
+          $ref: '#/responses/500'
+    post:
+      summary: Create project webhook policy.
+      description: |
+        This endpoint create a webhook policy if the project does not have one.
+      tags:
+        - webhook
+      operationId: CreateWebhookPolicy
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - $ref: '#/parameters/isResourceName'
+        - $ref: '#/parameters/projectNameOrId'
+        - name: policy
+          in: body
+          description: Properties "targets" and "event_types" needed.
+          required: true
+          schema:
+            $ref: '#/definitions/WebhookPolicy'
+      responses:
+        '201':
+          description: Project webhook policy create successfully.
+          headers:
+            X-Request-Id:
+              description: The ID of the corresponding request for the response
+              type: string
+            Location:
+              description: The location of the resource
+              type: string
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '500':
+          $ref: '#/responses/500'
+  '/projects/{project_name_or_id}/webhook/policies/{webhook_policy_id}':
+    get:
+      summary: Get project webhook policy
+      description: |
+        This endpoint returns specified webhook policy of a project.
+      tags:
+        - webhook
+      operationId: GetWebhookPolicy
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - $ref: '#/parameters/isResourceName'
+        - $ref: '#/parameters/projectNameOrId'
+        - $ref: '#/parameters/webhookPolicyId'
+      responses:
+        '200':
+          description: Get webhook policy successfully.
+          schema:
+            $ref: '#/definitions/WebhookPolicy'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '404':
+          $ref: '#/responses/404'
+        '500':
+          $ref: '#/responses/500'
+    put:
+      summary: Update webhook policy of a project.
+      description: |
+        This endpoint is aimed to update the webhook policy of a project.
+      tags:
+        - webhook
+      operationId: UpdateWebhookPolicy
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - $ref: '#/parameters/isResourceName'
+        - $ref: '#/parameters/projectNameOrId'
+        - $ref: '#/parameters/webhookPolicyId'
+        - name: policy
+          in: body
+          description: All properties needed except "id", "project_id", "creation_time", "update_time".
+          required: true
+          schema:
+            $ref: '#/definitions/WebhookPolicy'
+      responses:
+        '200':
+          $ref: '#/responses/200'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '404':
+          $ref: '#/responses/404'
+        '500':
+          $ref: '#/responses/500'
+    delete:
+      summary: Delete webhook policy of a project
+      description: |
+        This endpoint is aimed to delete webhookpolicy of a project.
+      tags:
+        - webhook
+      operationId: DeleteWebhookPolicy
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - $ref: '#/parameters/isResourceName'
+        - $ref: '#/parameters/projectNameOrId'
+        - $ref: '#/parameters/webhookPolicyId'
+      responses:
+        '200':
+          $ref: '#/responses/200'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '404':
+          $ref: '#/responses/404'
+        '500':
+          $ref: '#/responses/500'
+  '/projects/{project_name_or_id}/webhook/policies/test':
+    post:
+      summary: Test project webhook connection
+      description: |
+        This endpoint tests webhook connection of a project.
+      tags:
+        - webhook
+      operationId: TestWebhookPolicy
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - $ref: '#/parameters/isResourceName'
+        - $ref: '#/parameters/projectNameOrId'
+        - $ref: '#/parameters/webhookPolicyId'
+        - name: policy
+          in: body
+          description: Only property "targets" needed.
+          required: true
+          schema:
+            $ref: '#/definitions/WebhookPolicy'
+      responses:
+        '200':
+          $ref: '#/responses/200'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '500':
+          $ref: '#/responses/500'
+  '/projects/{project_name_or_id}/webhook/lasttrigger':
+    get:
+      summary: Get project webhook policy last trigger info
+      description: |
+        This endpoint returns last trigger information of project webhook policy.
+      tags:
+        - webhook
+      operationId: LastTrigger
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - $ref: '#/parameters/isResourceName'
+        - $ref: '#/parameters/projectNameOrId'
+      responses:
+        '200':
+          description: Test webhook connection successfully.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/WebhookLastTrigger'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '500':
+          $ref: '#/responses/500'
+  '/projects/{project_name_or_id}/webhook/jobs':
+    get:
+      summary: List project webhook jobs
+      description: |
+        This endpoint returns webhook jobs of a project.
+      tags:
+        - webhookjob
+      operationId: ListWebhookJobs
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - $ref: '#/parameters/isResourceName'
+        - $ref: '#/parameters/projectNameOrId'
+        - name: policy_id
+          in: query
+          type: integer
+          format: int64
+          required: true
+          description: The policy ID.
+        - name: status
+          in: query
+          description: The status of webhook job.
+          required: false
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: List project webhook jobs successfully.
+          headers:
+            X-Total-Count:
+              description: The total count of available items
+              type: integer
+            Link:
+              description: Link to previous page and next page
+              type: string
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/WebhookJob'
+        '400':
+          $ref: '#/responses/400'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '500':
+          $ref: '#/responses/500'
+  '/projects/{project_name_or_id}/webhook/events':
+    get:
+      summary: Get supported event types and notify types.
+      description: Get supportted event types and notify types.
+      tags:
+        - webhook
+      operationId: GetSupportedEventTypes
+      parameters:
+        - $ref: '#/parameters/requestId'
+        - $ref: '#/parameters/isResourceName'
+        - $ref: '#/parameters/projectNameOrId'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/SupportedWebhookEventTypes'
+        '401':
+          $ref: '#/responses/401'
+        '403':
+          $ref: '#/responses/403'
+        '500':
+          $ref: '#/responses/500'
   /icons/{digest}:
     get:
       summary: Get artifact icon

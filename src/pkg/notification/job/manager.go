@@ -7,6 +7,11 @@ import (
 	"github.com/goharbor/harbor/src/pkg/notification/job/model"
 )
 
+var (
+	// Mgr is a global variable for the default notification job
+	Mgr = NewManager()
+)
+
 // Manager manages notification jobs recorded in database
 type Manager interface {
 	// Create create a notification job
@@ -25,39 +30,40 @@ type Manager interface {
 	Count(ctx context.Context, query *q.Query) (total int64, err error)
 }
 
-// DefaultManager ..
-type DefaultManager struct {
+var _ Manager = &manager{}
+
+type manager struct {
 	dao dao.DAO
 }
 
-// NewDefaultManager ...
-func NewDefaultManager() Manager {
-	return &DefaultManager{
+// NewManager ...
+func NewManager() *manager {
+	return &manager{
 		dao: dao.New(),
 	}
 }
 
 // Create ...
-func (d *DefaultManager) Create(ctx context.Context, job *model.Job) (int64, error) {
+func (d *manager) Create(ctx context.Context, job *model.Job) (int64, error) {
 	return d.dao.Create(ctx, job)
 }
 
 // Count ...
-func (d *DefaultManager) Count(ctx context.Context, query *q.Query) (int64, error) {
+func (d *manager) Count(ctx context.Context, query *q.Query) (int64, error) {
 	return d.dao.Count(ctx, query)
 }
 
 // List ...
-func (d *DefaultManager) List(ctx context.Context, query *q.Query) ([]*model.Job, error) {
+func (d *manager) List(ctx context.Context, query *q.Query) ([]*model.Job, error) {
 	return d.dao.List(ctx, query)
 }
 
 // Update ...
-func (d *DefaultManager) Update(ctx context.Context, job *model.Job, props ...string) error {
+func (d *manager) Update(ctx context.Context, job *model.Job, props ...string) error {
 	return d.dao.Update(ctx, job, props...)
 }
 
 // ListJobsGroupByEventType lists last triggered jobs group by event type
-func (d *DefaultManager) ListJobsGroupByEventType(ctx context.Context, policyID int64) ([]*model.Job, error) {
+func (d *manager) ListJobsGroupByEventType(ctx context.Context, policyID int64) ([]*model.Job, error) {
 	return d.dao.GetLastTriggerJobsGroupByEventType(ctx, policyID)
 }
