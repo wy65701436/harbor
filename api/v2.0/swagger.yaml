@@ -1894,6 +1894,8 @@ paths:
         - $ref: '#/parameters/requestId'
         - $ref: '#/parameters/isResourceName'
         - $ref: '#/parameters/projectNameOrId'
+        - $ref: '#/parameters/page'
+        - $ref: '#/parameters/pageSize'
         - name: policy_id
           in: query
           type: integer
@@ -5340,9 +5342,11 @@ definitions:
       creation_time:
         type: string
         description: The create time of the webhook policy.
+        format: date-time
       update_time:
         type: string
         description: The update time of the webhook policy.
+        format: date-time
       enabled:
         type: boolean
         description: Whether the webhook policy is enabled or not.
@@ -5359,9 +5363,11 @@ definitions:
       creation_time:
         type: string
         description: The creation time of webhook policy.
+        format: date-time
       last_trigger_time:
         type: string
         description: The last trigger time of webhook policy.
+        format: date-time
   WebhookJob:
     type: object
     description: The webhook job.
@@ -5389,6 +5395,8 @@ definitions:
       creation_time:
         type: string
         description: The webhook job creation time.
+        format: date-time
       update_time:
         type: string
         description: The webhook job update time.
+        format: date-time
