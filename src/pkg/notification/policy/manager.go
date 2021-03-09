@@ -25,6 +25,8 @@ type Manager interface {
 	Create(ctx context.Context, policy *model.Policy) (int64, error)
 	// List the policies, returns the policy list and error
 	List(ctx context.Context, query *q.Query) ([]*model.Policy, error)
+	// Count the policies, returns the policy count and error
+	Count(ctx context.Context, query *q.Query) (int64, error)
 	// Get policy with specified ID
 	Get(ctx context.Context, id int64) (*model.Policy, error)
 	// GetByNameAndProjectID get policy by the name and projectID
@@ -82,6 +84,11 @@ func (m *manager) List(ctx context.Context, query *q.Query) ([]*model.Policy, er
 	}
 
 	return policies, nil
+}
+
+// Count the notification policies, returns the count and error
+func (m *manager) Count(ctx context.Context, query *q.Query) (int64, error) {
+	return m.dao.Count(ctx, query)
 }
 
 // Get notification policy with specified ID
