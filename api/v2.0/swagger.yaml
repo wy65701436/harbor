@@ -5356,6 +5356,9 @@ definitions:
     type: object
     description: The webhook policy and last trigger time group by event type.
     properties:
+      policy_name:
+        type: string
+        description: The webhook policy name.
       event_type:
         type: string
         description: The webhook event type.

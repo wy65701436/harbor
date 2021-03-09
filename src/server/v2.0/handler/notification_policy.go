@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/strfmt"
 	"github.com/goharbor/harbor/src/common/rbac"
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/controller/event"
@@ -22,11 +23,12 @@ import (
 	"time"
 )
 
+var supportedEvents map[string]struct{}
+
 func newNotificationPolicyAPI() *notificationPolicyAPI {
 	return &notificationPolicyAPI{
 		webhookjobMgr:    job.Mgr,
 		webhookPolicyMgr: policy.Mgr,
-		supportedEvents:  initSupportedEvents(),
 	}
 }
 
@@ -34,7 +36,11 @@ type notificationPolicyAPI struct {
 	BaseAPI
 	webhookjobMgr    job.Manager
 	webhookPolicyMgr policy.Manager
-	supportedEvents  map[string]struct{}
+}
+
+func (n *notificationPolicyAPI) Prepare(ctx context.Context, operation string, params interface{}) middleware.Responder {
+	supportedEvents = initSupportedEvents()
+	return nil
 }
 
 func (n *notificationPolicyAPI) ListWebhookPolicy(ctx context.Context, params webhook.ListWebhookPolicyParams) middleware.Responder {
@@ -155,7 +161,27 @@ func (n *notificationPolicyAPI) LastTrigger(ctx context.Context, params webhook.
 	if err := n.RequireProjectAccess(ctx, projectNameOrID, rbac.ActionRead, rbac.ResourceNotificationPolicy); err != nil {
 		return n.SendError(ctx, err)
 	}
-	return nil
+
+	projectID, err := getProjectID(ctx, projectNameOrID)
+	if err != nil {
+		return n.SendError(ctx, err)
+	}
+
+	query := &q.Query{
+		Keywords: q.KeyWords{
+			"ProjectID": projectID,
+		},
+	}
+	policies, err := n.webhookPolicyMgr.List(ctx, query)
+	if err != nil {
+		return n.SendError(ctx, err)
+	}
+	triggers, err := n.constructPolicyWithTriggerTime(ctx, policies)
+	if err != nil {
+		return n.SendError(ctx, err)
+	}
+
+	return operation.NewLastTriggerOK().WithPayload(triggers)
 }
 
 func (n *notificationPolicyAPI) GetSupportedEventTypes(ctx context.Context, params webhook.GetSupportedEventTypesParams) middleware.Responder {
@@ -163,6 +189,16 @@ func (n *notificationPolicyAPI) GetSupportedEventTypes(ctx context.Context, para
 	if err := n.RequireProjectAccess(ctx, projectNameOrID, rbac.ActionRead, rbac.ResourceNotificationPolicy); err != nil {
 		return n.SendError(ctx, err)
 	}
+
+	var notificationTypes = models.SupportedWebhookEventTypes{}
+	for key := range notification.SupportedNotifyTypes {
+		notificationTypes.NotifyType = append(notificationTypes.NotifyType, models.NotifyType(key))
+	}
+
+	for key := range supportedEvents {
+		notificationTypes.EventType = append(notificationTypes.EventType, models.EventType(key))
+	}
+
 	return nil
 }
 
@@ -205,7 +241,7 @@ func (n *notificationPolicyAPI) validateEventTypes(policy *policy_model.Policy) 
 		return false, errors.New(nil).WithMessage("empty event type").WithCode(errors.BadRequestCode)
 	}
 	for _, eventType := range policy.EventTypes {
-		_, ok := n.supportedEvents[eventType]
+		_, ok := supportedEvents[eventType]
 		if !ok {
 			return false, errors.New(nil).WithMessage("unsupported event type %s", eventType).WithCode(errors.BadRequestCode)
 		}
@@ -239,27 +275,27 @@ func initSupportedEvents() map[string]struct{} {
 
 // constructPolicyWithTriggerTime construct notification policy information displayed in UI
 // including event type, enabled, creation time, last trigger time
-func constructPolicyWithTriggerTime(policies []*models.NotificationPolicy) ([]*notificationPolicyForUI, error) {
-	res := []*notificationPolicyForUI{}
+func (n *notificationPolicyAPI) constructPolicyWithTriggerTime(ctx context.Context, policies []*policy_model.Policy) ([]*models.WebhookLastTrigger, error) {
+	res := []*models.WebhookLastTrigger{}
 	if policies != nil {
 		for _, policy := range policies {
 			for _, t := range policy.EventTypes {
-				ply := &notificationPolicyForUI{
+				ply := &models.WebhookLastTrigger{
 					PolicyName:   policy.Name,
 					EventType:    t,
 					Enabled:      policy.Enabled,
-					CreationTime: &policy.CreationTime,
+					CreationTime: strfmt.DateTime(policy.CreationTime),
 				}
 				if !policy.CreationTime.IsZero() {
-					ply.CreationTime = &policy.CreationTime
+					ply.CreationTime = strfmt.DateTime(policy.CreationTime)
 				}
 
-				ltTime, err := getLastTriggerTimeGroupByEventType(t, policy.ID)
+				ltTime, err := n.getLastTriggerTimeGroupByEventType(ctx, t, policy.ID)
 				if err != nil {
 					return nil, err
 				}
 				if !ltTime.IsZero() {
-					ply.LastTriggerTime = &ltTime
+					ply.LastTriggerTime = strfmt.DateTime(ltTime)
 				}
 				res = append(res, ply)
 			}
