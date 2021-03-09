@@ -1714,12 +1714,14 @@ paths:
         - $ref: '#/parameters/requestId'
         - $ref: '#/parameters/isResourceName'
         - $ref: '#/parameters/projectNameOrId'
+        - $ref: '#/parameters/page'
+        - $ref: '#/parameters/pageSize'
       responses:
         '200':
           description: Success
           headers:
             X-Total-Count:
-              description: The total count of robot accounts
+              description: The total count of webhook policies.
               type: integer
             Link:
               description: Link refers to the previous page and next page
