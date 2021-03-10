@@ -176,13 +176,15 @@ func (d *dao) Delete(ctx context.Context, id int64) error {
 
 // DeleteByPolicyID ...
 func (d *dao) DeleteByPolicyID(ctx context.Context, policyID int64) error {
-	ormer, err := orm.FromContext(ctx)
+	qs, err := orm.QuerySetter(ctx, &model.Job{}, &q.Query{
+		Keywords: map[string]interface{}{
+			"policy_id": policyID,
+		},
+	})
 	if err != nil {
 		return err
 	}
-	n, err := ormer.Delete(&model.Job{
-		PolicyID: policyID,
-	})
+	n, err := qs.Delete()
 	if err != nil {
 		return err
 	}

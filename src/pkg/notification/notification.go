@@ -9,7 +9,6 @@ import (
 	"github.com/goharbor/harbor/src/pkg/notification/job"
 	"github.com/goharbor/harbor/src/pkg/notification/policy"
 	n_event "github.com/goharbor/harbor/src/pkg/notifier/event"
-	"github.com/goharbor/harbor/src/pkg/notifier/model"
 )
 
 var (
@@ -21,12 +20,6 @@ var (
 
 	// HookManager is a hook manager
 	HookManager hook.Manager
-
-	// SupportedEventTypes is a map to store supported event type, eg. pushImage, pullImage etc
-	SupportedEventTypes map[string]struct{}
-
-	// SupportedNotifyTypes is a map to store notification type, eg. HTTP, Email etc
-	SupportedNotifyTypes map[string]struct{}
 )
 
 // Init ...
@@ -38,17 +31,7 @@ func Init() {
 	// init notification job manager
 	JobMgr = job.Mgr
 
-	SupportedNotifyTypes = make(map[string]struct{})
-
-	initSupportedNotifyType(model.NotifyTypeHTTP, model.NotifyTypeSlack)
-
 	log.Info("notification initialization completed")
-}
-
-func initSupportedNotifyType(notifyTypes ...string) {
-	for _, notifyType := range notifyTypes {
-		SupportedNotifyTypes[notifyType] = struct{}{}
-	}
 }
 
 type eventKey struct{}

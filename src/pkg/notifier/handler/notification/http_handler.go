@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/goharbor/harbor/src/common/job/models"
 	"github.com/goharbor/harbor/src/jobservice/job"
-	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/pkg/notification"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
 )
@@ -23,7 +22,6 @@ func (h *HTTPHandler) Name() string {
 
 // Handle handles http event
 func (h *HTTPHandler) Handle(ctx context.Context, value interface{}) error {
-	log.Info("==============1")
 	if value == nil {
 		return errors.New("HTTPHandler cannot handle nil value")
 	}
@@ -32,7 +30,6 @@ func (h *HTTPHandler) Handle(ctx context.Context, value interface{}) error {
 	if !ok || event == nil {
 		return errors.New("invalid notification http event")
 	}
-	log.Info("==============2")
 	return h.process(ctx, event)
 }
 
@@ -62,6 +59,5 @@ func (h *HTTPHandler) process(ctx context.Context, event *model.HookEvent) error
 		"auth_header":      event.Target.AuthHeader,
 		"skip_cert_verify": event.Target.SkipCertVerify,
 	}
-	log.Info("==============3")
 	return notification.HookManager.StartHook(ctx, event, j)
 }
