@@ -9,7 +9,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/notification/policy/model"
 )
 
-// DAO defines the interface to access the robot data model
+// DAO defines the interface to access the notification policy data model
 type DAO interface {
 	// Create ...
 	Create(ctx context.Context, n *model.Policy) (int64, error)
