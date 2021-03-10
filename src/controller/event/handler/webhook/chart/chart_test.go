@@ -25,7 +25,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/notification"
 	projecttesting "github.com/goharbor/harbor/src/testing/controller/project"
 	"github.com/goharbor/harbor/src/testing/mock"
-	testingnotification "github.com/goharbor/harbor/src/testing/pkg/notification"
+	testingnotification "github.com/goharbor/harbor/src/testing/pkg/notification/policy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +35,7 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 	defer func() {
 		notification.PolicyMgr = PolicyMgr
 	}()
-	notification.PolicyMgr = &testingnotification.FakedPolicyMgr{}
+	notification.PolicyMgr = &testingnotification.Manager{}
 
 	ProjectCtl := project.Ctl
 	defer func() {
@@ -59,7 +59,7 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 	}, nil)
 	projectCtl.On("Get")
 
-	handler := &Handler{Context: context.TODO}
+	handler := &Handler{}
 	config.Init()
 
 	type args struct {
@@ -127,7 +127,7 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := handler.Handle(tt.args.data)
+			err := handler.Handle(context.TODO(), tt.args.data)
 			if tt.wantErr {
 				require.NotNil(t, err, "Error: %s", err)
 				return
