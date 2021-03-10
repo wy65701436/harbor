@@ -43,15 +43,11 @@ func registerLegacyRoutes() {
 	beego.Router("/api/"+version+"/projects/:id([0-9]+)/metadatas/", &api.MetadataAPI{}, "post:Post")
 
 	beego.Router("/api/"+version+"/system/CVEAllowlist", &api.SysCVEAllowlistAPI{}, "get:Get;put:Put")
-	beego.Router("/api/"+version+"/system/oidc/ping", &api.OIDCAPI{}, "post:Ping")
 
 	beego.Router("/api/"+version+"/replication/adapters", &api.ReplicationAdapterAPI{}, "get:List")
 	beego.Router("/api/"+version+"/replication/adapterinfos", &api.ReplicationAdapterAPI{}, "get:ListAdapterInfos")
 	beego.Router("/api/"+version+"/replication/policies", &api.ReplicationPolicyAPI{}, "get:List;post:Create")
 	beego.Router("/api/"+version+"/replication/policies/:id([0-9]+)", &api.ReplicationPolicyAPI{}, "get:Get;put:Update;delete:Delete")
-
-	beego.Router("/api/"+version+"/projects/:pid([0-9]+)/immutabletagrules", &api.ImmutableTagRuleAPI{}, "get:List;post:Post")
-	beego.Router("/api/"+version+"/projects/:pid([0-9]+)/immutabletagrules/:id([0-9]+)", &api.ImmutableTagRuleAPI{})
 
 	beego.Router("/api/"+version+"/configurations", &api.ConfigAPI{}, "get:Get;put:Put")
 	beego.Router("/api/"+version+"/statistics", &api.StatisticAPI{})
@@ -64,9 +60,6 @@ func registerLegacyRoutes() {
 	// we use "0" as the ID of the local Harbor registry, so don't add "([0-9]+)" in the path
 	beego.Router("/api/"+version+"/registries/:id/info", &api.RegistryAPI{}, "get:GetInfo")
 	beego.Router("/api/"+version+"/registries/:id/namespace", &api.RegistryAPI{}, "get:GetNamespace")
-
-	beego.Router("/api/"+version+"/projects/:pid([0-9]+)/immutabletagrules", &api.ImmutableTagRuleAPI{}, "get:List;post:Post")
-	beego.Router("/api/"+version+"/projects/:pid([0-9]+)/immutabletagrules/:id([0-9]+)", &api.ImmutableTagRuleAPI{})
 
 	// APIs for chart repository
 	if config.WithChartMuseum() {

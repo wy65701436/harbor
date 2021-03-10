@@ -121,15 +121,12 @@ func init() {
 	beego.Router("/api/labels", &LabelAPI{}, "post:Post;get:List")
 	beego.Router("/api/labels/:id([0-9]+", &LabelAPI{}, "get:Get;put:Put;delete:Delete")
 	beego.Router("/api/system/CVEAllowlist", &SysCVEAllowlistAPI{}, "get:Get;put:Put")
-	beego.Router("/api/system/oidc/ping", &OIDCAPI{}, "post:Ping")
 
 	beego.Router("/api/replication/adapters", &ReplicationAdapterAPI{}, "get:List")
 
 	beego.Router("/api/replication/policies", &ReplicationPolicyAPI{}, "get:List;post:Create")
 	beego.Router("/api/replication/policies/:id([0-9]+)", &ReplicationPolicyAPI{}, "get:Get;put:Update;delete:Delete")
 
-	beego.Router("/api/projects/:pid([0-9]+)/immutabletagrules", &ImmutableTagRuleAPI{}, "get:List;post:Post")
-	beego.Router("/api/projects/:pid([0-9]+)/immutabletagrules/:id([0-9]+)", &ImmutableTagRuleAPI{})
 	// Charts are controlled under projects
 	chartRepositoryAPIType := &ChartRepositoryAPI{}
 	beego.Router("/api/chartrepo/health", chartRepositoryAPIType, "get:GetHealthStatus")

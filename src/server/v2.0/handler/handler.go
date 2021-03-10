@@ -50,6 +50,8 @@ func New() http.Handler {
 		RetentionAPI:   newRetentionAPI(),
 		WebhookAPI:     newNotificationPolicyAPI(),
 		WebhookjobAPI:  newNotificationJobAPI(),
+		ImmutableAPI:   newImmutableAPI(),
+		OidcAPI:        newOIDCAPI(),
 	})
 	if err != nil {
 		log.Fatal(err)
