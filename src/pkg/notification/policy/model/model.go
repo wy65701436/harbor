@@ -2,8 +2,13 @@ package model
 
 import (
 	"encoding/json"
+	"github.com/astaxie/beego/orm"
 	"time"
 )
+
+func init() {
+	orm.RegisterModel(&Policy{})
+}
 
 type Policy struct {
 	ID           int64         `orm:"pk;auto;column(id)" json:"id"`

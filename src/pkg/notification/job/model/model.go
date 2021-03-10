@@ -1,6 +1,13 @@
 package model
 
-import "time"
+import (
+	"github.com/astaxie/beego/orm"
+	"time"
+)
+
+func init() {
+	orm.RegisterModel(&Job{})
+}
 
 // Job is the model for a notification job
 type Job struct {
