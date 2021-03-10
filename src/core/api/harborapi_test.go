@@ -129,11 +129,6 @@ func init() {
 	beego.Router("/api/replication/policies", &ReplicationPolicyAPI{}, "get:List;post:Create")
 	beego.Router("/api/replication/policies/:id([0-9]+)", &ReplicationPolicyAPI{}, "get:Get;put:Update;delete:Delete")
 
-	beego.Router("/api/projects/:pid([0-9]+)/webhook/policies", &NotificationPolicyAPI{}, "get:List;post:Post")
-	beego.Router("/api/projects/:pid([0-9]+)/webhook/policies/:id([0-9]+)", &NotificationPolicyAPI{})
-	beego.Router("/api/projects/:pid([0-9]+)/webhook/policies/test", &NotificationPolicyAPI{}, "post:Test")
-	beego.Router("/api/projects/:pid([0-9]+)/webhook/lasttrigger", &NotificationPolicyAPI{}, "get:ListGroupByEventType")
-	beego.Router("/api/projects/:pid([0-9]+)/webhook/jobs/", &NotificationJobAPI{}, "get:List")
 	beego.Router("/api/projects/:pid([0-9]+)/immutabletagrules", &ImmutableTagRuleAPI{}, "get:List;post:Post")
 	beego.Router("/api/projects/:pid([0-9]+)/immutabletagrules/:id([0-9]+)", &ImmutableTagRuleAPI{})
 	// Charts are controlled under projects
