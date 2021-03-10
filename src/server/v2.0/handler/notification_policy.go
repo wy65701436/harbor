@@ -252,6 +252,9 @@ func (n *notificationPolicyAPI) validateEventTypes(policy *policy_model.Policy) 
 }
 
 func initEvents() {
+	supportedEventTypes = make(map[string]struct{}, 0)
+	supportedNotifyTypes = make(map[string]struct{}, 0)
+
 	eventTypes := []string{
 		event.TopicPushArtifact,
 		event.TopicPullArtifact,
@@ -266,12 +269,12 @@ func initEvents() {
 		event.TopicReplication,
 		event.TopicTagRetention,
 	}
-
 	for _, eventType := range eventTypes {
 		supportedEventTypes[eventType] = struct{}{}
 	}
 
-	for _, notifyType := range []string{notifier_model.NotifyTypeHTTP, notifier_model.NotifyTypeSlack} {
+	notifyTypes := []string{notifier_model.NotifyTypeHTTP, notifier_model.NotifyTypeSlack}
+	for _, notifyType := range notifyTypes {
 		supportedNotifyTypes[notifyType] = struct{}{}
 	}
 }
