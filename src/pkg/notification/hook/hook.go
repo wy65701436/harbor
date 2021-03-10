@@ -13,6 +13,7 @@ import (
 	"github.com/goharbor/harbor/src/core/utils"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/pkg/notification/job"
+	job_model "github.com/goharbor/harbor/src/pkg/notification/job/model"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
 )
 
@@ -30,7 +31,7 @@ type DefaultManager struct {
 // NewHookManager ...
 func NewHookManager() *DefaultManager {
 	return &DefaultManager{
-		jobMgr: job.NewDefaultManager(),
+		jobMgr: job.NewManager(),
 		client: utils.GetJobServiceClient(),
 	}
 }
@@ -43,7 +44,7 @@ func (hm *DefaultManager) StartHook(ctx context.Context, event *model.HookEvent,
 	}
 
 	t := time.Now()
-	id, err := hm.jobMgr.Create(ctx, &cModels.NotificationJob{
+	id, err := hm.jobMgr.Create(ctx, &job_model.Job{
 		PolicyID:     event.PolicyID,
 		EventType:    event.EventType,
 		NotifyType:   event.Target.Type,
@@ -64,7 +65,7 @@ func (hm *DefaultManager) StartHook(ctx context.Context, event *model.HookEvent,
 	jobUUID, err := hm.client.SubmitJob(data)
 	if err != nil {
 		log.Errorf("failed to submit job with notification event: %v", err)
-		e := hm.jobMgr.Update(ctx, &cModels.NotificationJob{
+		e := hm.jobMgr.Update(ctx, &job_model.Job{
 			ID:     id,
 			Status: cModels.JobError,
 		}, "Status")
@@ -74,7 +75,7 @@ func (hm *DefaultManager) StartHook(ctx context.Context, event *model.HookEvent,
 		return err
 	}
 
-	if err = hm.jobMgr.Update(ctx, &cModels.NotificationJob{
+	if err = hm.jobMgr.Update(ctx, &job_model.Job{
 		ID:   id,
 		UUID: jobUUID,
 	}, "UUID"); err != nil {
