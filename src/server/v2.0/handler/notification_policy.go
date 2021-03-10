@@ -190,8 +190,8 @@ func (n *notificationPolicyAPI) GetSupportedEventTypes(ctx context.Context, para
 		return n.SendError(ctx, err)
 	}
 
-	var notificationTypes = models.SupportedWebhookEventTypes{}
-	for key := range notification.SupportedNotifyTypes {
+	var notificationTypes = &models.SupportedWebhookEventTypes{}
+	for key := range supportedEvents {
 		notificationTypes.NotifyType = append(notificationTypes.NotifyType, models.NotifyType(key))
 	}
 
@@ -199,7 +199,7 @@ func (n *notificationPolicyAPI) GetSupportedEventTypes(ctx context.Context, para
 		notificationTypes.EventType = append(notificationTypes.EventType, models.EventType(key))
 	}
 
-	return nil
+	return operation.NewGetSupportedEventTypesOK().WithPayload(notificationTypes)
 }
 
 func (n *notificationPolicyAPI) getLastTriggerTimeGroupByEventType(ctx context.Context, eventType string, policyID int64) (time.Time, error) {
