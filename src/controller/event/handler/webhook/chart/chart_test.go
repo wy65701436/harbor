@@ -23,6 +23,7 @@ import (
 	"github.com/goharbor/harbor/src/controller/project"
 	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/pkg/notification"
+	"github.com/goharbor/harbor/src/pkg/notification/policy/model"
 	projecttesting "github.com/goharbor/harbor/src/testing/controller/project"
 	"github.com/goharbor/harbor/src/testing/mock"
 	testingnotification "github.com/goharbor/harbor/src/testing/pkg/notification/policy"
@@ -35,7 +36,8 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 	defer func() {
 		notification.PolicyMgr = PolicyMgr
 	}()
-	notification.PolicyMgr = &testingnotification.Manager{}
+	policyMgrMock := &testingnotification.Manager{}
+	notification.PolicyMgr = policyMgrMock
 
 	ProjectCtl := project.Ctl
 	defer func() {
@@ -58,6 +60,28 @@ func TestChartPreprocessHandler_Handle(t *testing.T) {
 		}
 	}, nil)
 	projectCtl.On("Get")
+	policyMgrMock.On("GetRelatedPolices", mock.Anything, mock.Anything, mock.Anything).Return([]*model.Policy{
+		{
+			ID: 1,
+			EventTypes: []string{
+				event.TopicUploadChart,
+				event.TopicDownloadChart,
+				event.TopicDeleteChart,
+				event.TopicPushArtifact,
+				event.TopicPullArtifact,
+				event.TopicDeleteArtifact,
+				event.TopicScanningFailed,
+				event.TopicScanningCompleted,
+				event.TopicQuotaExceed,
+			},
+			Targets: []model.EventTarget{
+				{
+					Type:    "http",
+					Address: "http://127.0.0.1:8080",
+				},
+			},
+		},
+	}, nil)
 
 	handler := &Handler{}
 	config.Init()
