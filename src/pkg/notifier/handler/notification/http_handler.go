@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,7 +23,7 @@ func (h *HTTPHandler) Name() string {
 }
 
 // Handle handles http event
-func (h *HTTPHandler) Handle(value interface{}) error {
+func (h *HTTPHandler) Handle(ctx context.Context, value interface{}) error {
 	if value == nil {
 		return errors.New("HTTPHandler cannot handle nil value")
 	}

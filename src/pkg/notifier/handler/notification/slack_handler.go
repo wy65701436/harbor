@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/goharbor/harbor/src/lib/orm"
@@ -71,7 +72,7 @@ func (s *SlackHandler) Name() string {
 }
 
 // Handle handles event to slack
-func (s *SlackHandler) Handle(value interface{}) error {
+func (s *SlackHandler) Handle(ctx context.Context, value interface{}) error {
 	if value == nil {
 		return errors.New("SlackHandler cannot handle nil value")
 	}
