@@ -195,7 +195,7 @@ func (n *notificationPolicyAPI) GetSupportedEventTypes(ctx context.Context, para
 		notificationTypes.NotifyType = append(notificationTypes.NotifyType, models.NotifyType(key))
 	}
 
-	for key := range supportedEvents {
+	for key := range notification.SupportedEventTypes {
 		notificationTypes.EventType = append(notificationTypes.EventType, models.EventType(key))
 	}
 
