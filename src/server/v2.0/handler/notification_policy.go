@@ -243,7 +243,7 @@ func (n *notificationPolicyAPI) validateEventTypes(policy *policy_model.Policy) 
 		return false, errors.New(nil).WithMessage("empty event type").WithCode(errors.BadRequestCode)
 	}
 	for _, eventType := range policy.EventTypes {
-		_, ok := supportedEvents[eventType]
+		_, ok := supportedEventTypes[eventType]
 		if !ok {
 			return false, errors.New(nil).WithMessage("unsupported event type %s", eventType).WithCode(errors.BadRequestCode)
 		}
