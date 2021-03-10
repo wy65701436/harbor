@@ -100,6 +100,11 @@ func (n *notificationPolicyAPI) CreateWebhookPolicy(ctx context.Context, params 
 		return n.SendError(ctx, err)
 	}
 
+	projectID, err := getProjectID(ctx, projectNameOrID)
+	if err != nil {
+		return n.SendError(ctx, err)
+	}
+	policy.ProjectID = projectID
 	id, err := n.webhookPolicyMgr.Create(ctx, policy)
 	if err != nil {
 		return n.SendError(ctx, err)
@@ -125,6 +130,11 @@ func (n *notificationPolicyAPI) UpdateWebhookPolicy(ctx context.Context, params 
 		return n.SendError(ctx, err)
 	}
 
+	projectID, err := getProjectID(ctx, projectNameOrID)
+	if err != nil {
+		return n.SendError(ctx, err)
+	}
+	policy.ProjectID = projectID
 	if err := n.webhookPolicyMgr.Update(ctx, policy); err != nil {
 		return n.SendError(ctx, err)
 	}
