@@ -15,6 +15,7 @@
 package quota
 
 import (
+	"context"
 	common_dao "github.com/goharbor/harbor/src/common/dao"
 	"github.com/goharbor/harbor/src/controller/event"
 	"testing"
@@ -86,7 +87,7 @@ func (suite *QuotaPreprocessHandlerSuite) TearDownSuite() {
 // TestHandle ...
 func (suite *QuotaPreprocessHandlerSuite) TestHandle() {
 	handler := &Handler{}
-	err := handler.Handle(suite.evt)
+	err := handler.Handle(context.TODO(), suite.evt)
 	suite.NoError(err)
 }
 
