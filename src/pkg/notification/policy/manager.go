@@ -174,7 +174,7 @@ func (m *manager) policyHTTPTest(address string, skipCertVerify bool) error {
 
 // GetRelatedPolices get policies including event type in project
 func (m *manager) GetRelatedPolices(ctx context.Context, projectID int64, eventType string) ([]*model.Policy, error) {
-	policies, err := m.dao.List(ctx, q.New(q.KeyWords{"project_id": projectID}))
+	policies, err := m.List(ctx, q.New(q.KeyWords{"project_id": projectID}))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get notification policies with projectID %d: %v", projectID, err)
 	}
