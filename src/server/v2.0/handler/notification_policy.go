@@ -15,6 +15,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/notification/job"
 	"github.com/goharbor/harbor/src/pkg/notification/policy"
 	policy_model "github.com/goharbor/harbor/src/pkg/notification/policy/model"
+	notifier_model "github.com/goharbor/harbor/src/pkg/notifier/model"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
 	"github.com/goharbor/harbor/src/server/v2.0/restapi/operations/webhook"
@@ -23,7 +24,8 @@ import (
 	"time"
 )
 
-var supportedEvents map[string]struct{}
+var supportedEventTypes map[string]struct{}
+var supportedNotifyTypes map[string]struct{}
 
 func newNotificationPolicyAPI() *notificationPolicyAPI {
 	return &notificationPolicyAPI{
@@ -39,7 +41,7 @@ type notificationPolicyAPI struct {
 }
 
 func (n *notificationPolicyAPI) Prepare(ctx context.Context, operation string, params interface{}) middleware.Responder {
-	supportedEvents = initSupportedEvents()
+	initEvents()
 	return nil
 }
 
@@ -191,11 +193,11 @@ func (n *notificationPolicyAPI) GetSupportedEventTypes(ctx context.Context, para
 	}
 
 	var notificationTypes = &models.SupportedWebhookEventTypes{}
-	for key := range supportedEvents {
+	for key := range supportedNotifyTypes {
 		notificationTypes.NotifyType = append(notificationTypes.NotifyType, models.NotifyType(key))
 	}
 
-	for key := range notification.SupportedEventTypes {
+	for key := range supportedEventTypes {
 		notificationTypes.EventType = append(notificationTypes.EventType, models.EventType(key))
 	}
 
@@ -249,7 +251,7 @@ func (n *notificationPolicyAPI) validateEventTypes(policy *policy_model.Policy) 
 	return true, nil
 }
 
-func initSupportedEvents() map[string]struct{} {
+func initEvents() {
 	eventTypes := []string{
 		event.TopicPushArtifact,
 		event.TopicPullArtifact,
@@ -265,12 +267,13 @@ func initSupportedEvents() map[string]struct{} {
 		event.TopicTagRetention,
 	}
 
-	var supportedEventTypes = make(map[string]struct{})
 	for _, eventType := range eventTypes {
 		supportedEventTypes[eventType] = struct{}{}
 	}
 
-	return supportedEventTypes
+	for _, notifyType := range []string{notifier_model.NotifyTypeHTTP, notifier_model.NotifyTypeSlack} {
+		supportedNotifyTypes[notifyType] = struct{}{}
+	}
 }
 
 // constructPolicyWithTriggerTime construct notification policy information displayed in UI
