@@ -16,6 +16,7 @@ func init() {
 
 	for t, handlers := range handlersMap {
 		for _, handler := range handlers {
+			log.Info("================4")
 			if err := notifier.Subscribe(t, handler); err != nil {
 				log.Errorf("failed to subscribe topic %s: %v", t, err)
 				continue
