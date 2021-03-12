@@ -35,6 +35,8 @@ github.com/MakeNowJust/heredoc
 github.com/Masterminds/semver
 # github.com/Masterminds/semver/v3 v3.0.3
 github.com/Masterminds/semver/v3
+# github.com/Microsoft/go-winio v0.4.16-0.20201130162521-d1ffc52c7331
+## explicit
 # github.com/PuerkitoBio/purell v1.1.1
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
@@ -156,6 +158,8 @@ github.com/casbin/casbin/util
 github.com/cespare/xxhash/v2
 # github.com/cloudflare/cfssl v0.0.0-20190510060611-9c027c93ba9e
 ## explicit
+# github.com/containerd/containerd v1.4.3
+## explicit
 # github.com/coreos/go-oidc v2.1.0+incompatible
 ## explicit
 github.com/coreos/go-oidc
@@ -211,9 +215,9 @@ github.com/docker/distribution/registry/storage/driver/swift
 github.com/docker/distribution/testutil
 github.com/docker/distribution/uuid
 github.com/docker/distribution/version
-# github.com/docker/docker v1.4.2-0.20200213202729-31a86c4ab209
+# github.com/docker/docker v20.10.0-beta1.0.20201110211921-af34b94a78a1+incompatible
+## explicit
 github.com/docker/docker/pkg/term
-github.com/docker/docker/pkg/term/windows
 # github.com/docker/go v0.0.0-20160303222718-d30aec9fd63c
 ## explicit
 github.com/docker/go/canonical/json
@@ -323,7 +327,8 @@ github.com/gomodule/redigo/redis
 github.com/google/btree
 # github.com/google/certificate-transparency-go v1.0.21
 ## explicit
-# github.com/google/go-cmp v0.4.0
+# github.com/google/go-cmp v0.4.1
+## explicit
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
@@ -385,8 +390,8 @@ github.com/inconshreveable/mousetrap
 github.com/jmespath/go-jmespath
 # github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
-# github.com/konsorten/go-windows-terminal-sequences v1.0.2
-github.com/konsorten/go-windows-terminal-sequences
+# github.com/kr/text v0.2.0
+## explicit
 # github.com/lib/pq v1.3.0
 ## explicit
 github.com/lib/pq
@@ -416,6 +421,10 @@ github.com/mitchellh/go-wordwrap
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.0
 github.com/mitchellh/reflectwalk
+# github.com/moby/term v0.0.0-20201216013528-df9cb8a40635
+## explicit
+github.com/moby/term
+github.com/moby/term/windows
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
@@ -426,6 +435,8 @@ github.com/ncw/swift
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 ## explicit
 github.com/nfnt/resize
+# github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e
+## explicit
 # github.com/olekukonko/tablewriter v0.0.1
 ## explicit
 github.com/olekukonko/tablewriter
@@ -478,7 +489,8 @@ github.com/satori/go.uuid
 # github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644
 ## explicit
 github.com/shiena/ansicolor
-# github.com/sirupsen/logrus v1.4.2
+# github.com/sirupsen/logrus v1.7.0
+## explicit
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
@@ -527,6 +539,8 @@ github.com/theupdateframework/notary/tuf/data
 github.com/theupdateframework/notary/tuf/signed
 github.com/theupdateframework/notary/tuf/utils
 github.com/theupdateframework/notary/tuf/validation
+# github.com/tidwall/pretty v1.0.2
+## explicit
 # github.com/vmihailenco/msgpack/v5 v5.0.0-rc.2
 ## explicit
 github.com/vmihailenco/msgpack/v5
@@ -565,7 +579,7 @@ golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20200625001655-4c5254603344
+# golang.org/x/net v0.0.0-20200822124328-c89045814202
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -583,11 +597,13 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
+# golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3
+## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.2
+# golang.org/x/text v0.3.3
+## explicit
 golang.org/x/text/encoding
 golang.org/x/text/encoding/internal
 golang.org/x/text/encoding/internal/identifier
@@ -599,8 +615,11 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
-# golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
+# golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
+## explicit
 golang.org/x/time/rate
+# golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
+## explicit
 # google.golang.org/api v0.17.0 => google.golang.org/api v0.0.0-20160322025152-9bf6e6e569ff
 google.golang.org/api/gensupport
 google.golang.org/api/googleapi
@@ -622,9 +641,11 @@ google.golang.org/cloud
 google.golang.org/cloud/internal
 google.golang.org/cloud/internal/opts
 google.golang.org/cloud/storage
-# google.golang.org/genproto v0.0.0-20200212174721-66ed5ce911ce
+# google.golang.org/genproto v0.0.0-20200527145253-8367513e4ece
+## explicit
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.27.1
+# google.golang.org/grpc v1.29.1
+## explicit
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
@@ -646,10 +667,13 @@ google.golang.org/grpc/internal/binarylog
 google.golang.org/grpc/internal/buffer
 google.golang.org/grpc/internal/channelz
 google.golang.org/grpc/internal/envconfig
+google.golang.org/grpc/internal/grpclog
 google.golang.org/grpc/internal/grpcrand
 google.golang.org/grpc/internal/grpcsync
+google.golang.org/grpc/internal/grpcutil
 google.golang.org/grpc/internal/resolver/dns
 google.golang.org/grpc/internal/resolver/passthrough
+google.golang.org/grpc/internal/status
 google.golang.org/grpc/internal/syscall
 google.golang.org/grpc/internal/transport
 google.golang.org/grpc/keepalive
@@ -661,7 +685,7 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.23.0
+# google.golang.org/protobuf v1.24.0
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
@@ -692,6 +716,8 @@ google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f
+## explicit
 # gopkg.in/dancannon/gorethink.v3 v3.0.5
 ## explicit
 # gopkg.in/fatih/pool.v2 v2.0.0
