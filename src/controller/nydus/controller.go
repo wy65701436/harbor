@@ -17,12 +17,12 @@ import (
 )
 
 func init() {
-	// keep only the latest created 50 gc execution records
+	// keep only the latest created 50 nydus execution records
 	task.SetExecutionSweeperCount(NydusVendorType, 50)
 }
 
 const (
-	// GCVendorType ...
+	// NydusVendorType ...
 	NydusVendorType = "NYDUS"
 )
 
@@ -48,7 +48,9 @@ type controller struct {
 // NewController ...
 func NewController() Controller {
 	return &controller{
-		rc: robot.Ctl,
+		rc:      robot.Ctl,
+		exeMgr:  task.ExecMgr,
+		taskMgr: task.Mgr,
 	}
 }
 
