@@ -67,7 +67,7 @@ func (n *NydusifyConverter) Run(ctx job.Context, params job.Parameters) error {
 
 	source := fmt.Sprintf("%s/%s:%s", n.coreUrl, n.repository, n.tag)
 	target := fmt.Sprintf("%s/%s:%s-nydus", n.coreUrl, n.repository, n.tag)
-	auth := basicAuth(n.username, n.password)
+	auth := basicAuth("admin", "Harbor12345")
 	insecure := true
 
 	logger, err := provider.DefaultLogger()
