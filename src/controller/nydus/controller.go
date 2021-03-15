@@ -58,7 +58,7 @@ func (bc *controller) Convert(ctx context.Context, artifact *artifact.Artifact, 
 		return err
 	}
 
-	if len(artifact.Artifact) <= 0 {
+	if len(artifact.Tags) <= 0 {
 		return errors.New("the tag of artifact is empty")
 	}
 
