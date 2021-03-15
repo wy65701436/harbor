@@ -8,6 +8,7 @@ import (
 	"github.com/dragonflyoss/image-service/contrib/nydusify/pkg/converter/provider"
 	"github.com/goharbor/harbor/src/jobservice/job"
 	"github.com/goharbor/harbor/src/jobservice/logger"
+	"strings"
 )
 
 type NydusifyConverter struct {
@@ -42,7 +43,7 @@ func (n *NydusifyConverter) Validate(params job.Parameters) error {
 // init ...
 func (n *NydusifyConverter) init(ctx job.Context, params job.Parameters) error {
 	n.logger = ctx.GetLogger()
-	n.coreUrl = params["core_url"].(string)
+	n.coreUrl = strings.TrimPrefix(params["core_url"].(string), "http://")
 	n.username = params["username"].(string)
 	n.password = params["password"].(string)
 	n.repository = params["repository"].(string)
@@ -58,6 +59,7 @@ func basicAuth(username, password string) string {
 // Run implements the interface in job/Interface
 func (n *NydusifyConverter) Run(ctx job.Context, params job.Parameters) error {
 	n.init(ctx, params)
+	jLog := ctx.GetLogger()
 
 	// TODO needs to define these two parameters.
 	wordDir := "./tmp"
@@ -73,20 +75,28 @@ func (n *NydusifyConverter) Run(ctx job.Context, params job.Parameters) error {
 		return err
 	}
 
+	jLog.Info("-----------------")
+	jLog.Info(source)
+	jLog.Info(target)
+	jLog.Info("-----------------")
+
 	// Create remote with auth string for registry communication
 	sourceRemote, err := provider.DefaultRemoteWithAuth(source, insecure, auth)
 	if err != nil {
+		jLog.Info(err)
 		return err
 	}
 
 	targetRemote, err := provider.DefaultRemoteWithAuth(target, insecure, auth)
 	if err != nil {
+		jLog.Info(err)
 		return err
 	}
 
 	// Source provider gets source image manifest, config, and layer
 	sourceProvider, err := provider.DefaultSource(context.Background(), sourceRemote, wordDir)
 	if err != nil {
+		jLog.Info(err)
 		return err
 	}
 
@@ -105,10 +115,12 @@ func (n *NydusifyConverter) Run(ctx job.Context, params job.Parameters) error {
 
 	cvt, err := converter.New(opt)
 	if err != nil {
+		jLog.Info(err)
 		return err
 	}
 
 	if err := cvt.Convert(context.Background()); err != nil {
+		jLog.Info(err)
 		return err
 	}
 
