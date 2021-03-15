@@ -97,6 +97,10 @@ func (a *Handler) onPush(ctx context.Context, event *event.ArtifactEvent) error 
 		}
 	}()
 
+	log.Info("----------------------------------------")
+	log.Info(event.Tags)
+	log.Info(event)
+	log.Info("----------------------------------------")
 	go func() {
 		if err := autoConvert(ctx, &artifact.Artifact{Artifact: *event.Artifact}); err != nil {
 			log.Errorf("convert artifact %s@%s failed, error: %v", event.Artifact.RepositoryName, event.Artifact.Digest, err)
