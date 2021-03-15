@@ -70,7 +70,7 @@ func (bc *controller) Convert(ctx context.Context, artifact *artifact.Artifact, 
 	para["username"] = r.Name
 	para["password"] = r.Secret
 	para["repository"] = artifact.RepositoryName
-	para["tag"] = artifact.Tags[0]
+	para["tag"] = artifact.Tags[0].Name
 
 	execID, err := bc.exeMgr.Create(ctx, NydusVendorType, -1, trigger, para)
 	if err != nil {
