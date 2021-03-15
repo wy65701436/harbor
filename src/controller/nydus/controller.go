@@ -13,6 +13,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/robot/model"
 	"github.com/goharbor/harbor/src/pkg/task"
 	"github.com/google/uuid"
+	"os"
 	"strings"
 )
 
@@ -65,6 +66,7 @@ func (bc *controller) Convert(ctx context.Context, artifact *artifact.Artifact, 
 	}
 
 	para := make(map[string]interface{})
+	para["core_url"] = os.Getenv("CORE_URL")
 	para["username"] = r.Name
 	para["password"] = r.Secret
 	para["repository"] = artifact.RepositoryName
