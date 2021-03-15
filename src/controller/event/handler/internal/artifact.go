@@ -16,7 +16,6 @@ package internal
 
 import (
 	"context"
-	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"time"
 
 	"github.com/goharbor/harbor/src/controller/artifact"
