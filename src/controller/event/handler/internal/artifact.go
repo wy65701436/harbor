@@ -16,6 +16,7 @@ package internal
 
 import (
 	"context"
+	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"time"
 
 	"github.com/goharbor/harbor/src/controller/artifact"
@@ -24,6 +25,7 @@ import (
 	"github.com/goharbor/harbor/src/controller/tag"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/q"
+	model_tag "github.com/goharbor/harbor/src/pkg/tag/model/tag"
 )
 
 // Handler preprocess artifact event data
@@ -97,12 +99,14 @@ func (a *Handler) onPush(ctx context.Context, event *event.ArtifactEvent) error 
 		}
 	}()
 
-	log.Info("----------------------------------------")
-	log.Info(event.Tags)
-	log.Info(event)
-	log.Info("----------------------------------------")
 	go func() {
-		if err := autoConvert(ctx, &artifact.Artifact{Artifact: *event.Artifact}); err != nil {
+		tags := []*tag.Tag{}
+		for _, t := range event.Tags {
+			tags = append(tags, &tag.Tag{
+				Tag: model_tag.Tag{Name: t},
+			})
+		}
+		if err := autoConvert(ctx, &artifact.Artifact{Artifact: *event.Artifact, Tags: tags}); err != nil {
 			log.Errorf("convert artifact %s@%s failed, error: %v", event.Artifact.RepositoryName, event.Artifact.Digest, err)
 		}
 	}()
