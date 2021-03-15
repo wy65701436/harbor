@@ -62,8 +62,8 @@ func (n *NydusifyConverter) Run(ctx job.Context, params job.Parameters) error {
 	jLog := ctx.GetLogger()
 
 	// TODO needs to define these two parameters.
-	wordDir := "/var/log/jobs/tmp"
-	nydusImagePath := "/var/log/jobs"
+	wordDir := "/harbor/tmp"
+	nydusImagePath := "/harbor"
 
 	source := fmt.Sprintf("%s/%s:%s", n.coreUrl, n.repository, n.tag)
 	target := fmt.Sprintf("%s/%s:%s-nydus", n.coreUrl, n.repository, n.tag)
