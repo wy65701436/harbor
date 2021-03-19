@@ -43,6 +43,14 @@ func autoScan(ctx context.Context, a *artifact.Artifact) error {
 
 // autoConvert convert to nydus image when the project of the artifact enable auto convert
 func autoConvert(ctx context.Context, a *artifact.Artifact) error {
+	proj, err := project.Ctl.Get(ctx, a.ProjectID)
+	if err != nil {
+		return err
+	}
+	if !proj.AutoConvert() {
+		return nil
+	}
+
 	return orm.WithTransaction(func(ctx context.Context) error {
 		return nydus.DefaultController.Convert(ctx, a, task.ExecutionTriggerManual)
 	})(ctx)
