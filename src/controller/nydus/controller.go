@@ -61,8 +61,11 @@ func (bc *controller) Convert(ctx context.Context, artifact *artifact.Artifact, 
 		return err
 	}
 
+	var tag string
 	if len(artifact.Tags) <= 0 {
-		return errors.New("the tag of artifact is empty")
+		tag = artifact.Digest
+	} else {
+		tag = artifact.Tags[0].Name
 	}
 
 	para := make(map[string]interface{})
@@ -70,7 +73,7 @@ func (bc *controller) Convert(ctx context.Context, artifact *artifact.Artifact, 
 	para["username"] = r.Name
 	para["password"] = r.Secret
 	para["repository"] = artifact.RepositoryName
-	para["tag"] = artifact.Tags[0].Name
+	para["tag"] = tag
 
 	execID, err := bc.exeMgr.Create(ctx, NydusVendorType, -1, trigger, para)
 	if err != nil {
