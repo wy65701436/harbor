@@ -8,7 +8,7 @@ import (
 	"github.com/goharbor/harbor/src/controller/artifact"
 	"github.com/goharbor/harbor/src/controller/nydus"
 	"github.com/goharbor/harbor/src/pkg/task"
-	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/scan"
+	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/nydus"
 )
 
 func newNydusAPI() *nydusAPI {
