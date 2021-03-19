@@ -1046,7 +1046,7 @@ export class ArtifactListTabComponent implements OnInit, OnDestroy {
   nydusify() {
     const arr = [];
     this.selectedRow.forEach(item => {
-      arr.push(this.http.post(`api/v2.0/projects//library/repositories/busybox/artifacts/${item.digest}/nydusify`, null));
+      arr.push(this.http.post(`api/v2.0/projects/${this.projectName}/repositories/${this.repoName}/artifacts/${item.digest}/nydusify`, null));
     });
     forkJoin(arr).subscribe(res => {
       this.errorHandlerService.info('Nydusify Successfully');
