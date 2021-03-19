@@ -8,6 +8,7 @@ import (
 	"github.com/dragonflyoss/image-service/contrib/nydusify/pkg/converter/provider"
 	"github.com/goharbor/harbor/src/jobservice/job"
 	"github.com/goharbor/harbor/src/jobservice/logger"
+	"github.com/opencontainers/go-digest"
 	"strings"
 )
 
@@ -65,8 +66,14 @@ func (n *NydusifyConverter) Run(ctx job.Context, params job.Parameters) error {
 	wordDir := "/var/log/jobs/nydus-tmp"
 	nydusImagePath := "/harbor/nydus-image"
 
+	// Default is append -nydus to the pushed tag. But, if the tag is a digest, just give a nydus as a tag.
+	targetTag := fmt.Sprintf("%s-nydus", n.tag)
+	if _, err := digest.Parse(n.tag); err == nil {
+		targetTag = "nydus"
+	}
+
 	source := fmt.Sprintf("%s/%s:%s", n.coreUrl, n.repository, n.tag)
-	target := fmt.Sprintf("%s/%s:%s-nydus", n.coreUrl, n.repository, n.tag)
+	target := fmt.Sprintf("%s/%s:%s-nydus", n.coreUrl, n.repository, targetTag)
 	auth := basicAuth(n.username, n.password)
 	insecure := true
 
