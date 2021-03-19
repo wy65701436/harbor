@@ -62,23 +62,18 @@ func (n *NydusifyConverter) Run(ctx job.Context, params job.Parameters) error {
 	jLog := ctx.GetLogger()
 
 	// TODO needs to define these two parameters.
-	wordDir := "/harbor/tmp"
-	nydusImagePath := "/harbor"
+	wordDir := "/var/log/jobs/nydus-tmp"
+	nydusImagePath := "/harbor/nydus-image"
 
 	source := fmt.Sprintf("%s/%s:%s", n.coreUrl, n.repository, n.tag)
 	target := fmt.Sprintf("%s/%s:%s-nydus", n.coreUrl, n.repository, n.tag)
-	auth := basicAuth("admin", "Harbor12345")
+	auth := basicAuth(n.username, n.password)
 	insecure := true
 
 	logger, err := provider.DefaultLogger()
 	if err != nil {
 		return err
 	}
-
-	jLog.Info("-----------------")
-	jLog.Info(source)
-	jLog.Info(target)
-	jLog.Info("-----------------")
 
 	// Create remote with auth string for registry communication
 	sourceRemote, err := provider.DefaultRemoteWithAuth(source, insecure, auth)

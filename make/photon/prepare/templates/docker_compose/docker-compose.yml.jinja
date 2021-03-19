@@ -250,6 +250,7 @@ services:
     env_file:
       - ./common/config/jobservice/env
     restart: always
+    user: "0:0"
     cap_drop:
       - ALL
     cap_add:
