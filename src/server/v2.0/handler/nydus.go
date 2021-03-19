@@ -38,7 +38,7 @@ func (s *nydusAPI) ConvertArtifact(ctx context.Context, params operation.Convert
 	}
 
 	repository := fmt.Sprintf("%s/%s", params.ProjectName, params.RepositoryName)
-	artifact, err := s.artCtl.GetByReference(ctx, repository, params.Reference, nil)
+	artifact, err := s.artCtl.GetByReference(ctx, repository, params.Reference, &artifact.Option{WithTag: true})
 	if err != nil {
 		return s.SendError(ctx, err)
 	}
