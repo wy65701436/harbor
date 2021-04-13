@@ -3842,7 +3842,7 @@ paths:
         This endpoint let user list labels by name, scope and project_id
       tags:
         - labels
-      operationId: GetLabels
+      operationId: ListLabels
       parameters:
         - $ref: '#/parameters/projectId'
         - $ref: '#/parameters/requestId'
@@ -3886,7 +3886,7 @@ paths:
         This endpoint let user creates a label.
       tags:
         - labels
-      operationId: createLabel
+      operationId: CreateLabel
       parameters:
         - name: label
           in: body
@@ -3908,7 +3908,7 @@ paths:
         '409':
           $ref: '#/responses/409'
         '415':
-          $ref: '#/responses/UnsupportedMediaType'
+          $ref: '#/responses/415'
         '500':
           $ref: '#/responses/500'
   '/labels/{id}':
@@ -3916,82 +3916,70 @@ paths:
       summary: Get the label specified by ID.
       description: |
         This endpoint let user get the label by specific ID.
-      parameters:
-        - name: id
-          in: path
-          type: integer
-          format: int64
-          required: true
-          description: Label ID
       tags:
-        - Products
+        - labels
+      operationId: GetLabelByID
+      parameters:
+        - $ref: '#/parameters/labelId'
       responses:
         '200':
           description: Get successfully.
           schema:
             $ref: '#/definitions/Label'
         '401':
-          description: User need to log in first.
+          $ref: '#/responses/401'
         '404':
-          description: The resource does not exist.
+          $ref: '#/responses/404'
         '500':
-          description: Unexpected internal errors.
+          $ref: '#/responses/500'
     put:
       summary: Update the label properties.
       description: |
         This endpoint let user update label properties.
+      tags:
+        - labels
+      operationId: UpdateLabel
       parameters:
-        - name: id
-          in: path
-          type: integer
-          format: int64
-          required: true
-          description: Label ID
+        - $ref: '#/parameters/labelId'
         - name: label
           in: body
           description: The updated label json object.
           required: true
           schema:
             $ref: '#/definitions/Label'
-      tags:
-        - Products
       responses:
         '200':
-          description: Update successfully.
+          $ref: '#/responses/200'
         '400':
-          description: Invalid parameters.
+          $ref: '#/responses/400'
         '401':
-          description: User need to log in first.
+          $ref: '#/responses/401'
         '404':
-          description: The resource does not exist.
+          $ref: '#/responses/404'
         '409':
-          description: The label with the same name already exists.
+          $ref: '#/responses/409'
         '500':
-          description: Unexpected internal errors.
+          $ref: '#/responses/500'
     delete:
       summary: Delete the label specified by ID.
       description: |
         Delete the label specified by ID.
-      parameters:
-        - name: id
-          in: path
-          type: integer
-          format: int64
-          required: true
-          description: Label ID
       tags:
-        - Products
+        - labels
+      operationId: DeleteLabel
+      parameters:
+        - $ref: '#/parameters/labelId'
       responses:
         '200':
-          description: Delete successfully.
+          $ref: '#/responses/200'
         '400':
-          description: Invalid parameters.
+          $ref: '#/responses/400'
         '401':
-          description: User need to log in first.
+          $ref: '#/responses/401'
         '404':
-          description: The resource does not exist.
+          $ref: '#/responses/404'
         '500':
-          description: Unexpected internal errors.
+          $ref: '#/responses/500'
 
 parameters:
   query:
@@ -4122,6 +4110,13 @@ parameters:
     name: gc_id
     in: path
     description: The ID of the gc log
+    required: true
+    type: integer
+    format: int64
+  labelId:
+    name: label_id
+    in: path
+    description: Label ID
     required: true
     type: integer
     format: int64

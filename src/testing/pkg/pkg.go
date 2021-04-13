@@ -44,3 +44,5 @@ package pkg
 //go:generate mockery --case snake --dir ../../pkg/reg --name Manager --output ./reg --outpkg manager
 //go:generate mockery --case snake --dir ../../pkg/replication/dao --name DAO --output ./replication/dao --outpkg dao
 //go:generate mockery --case snake --dir ../../pkg/replication --name Manager --output ./replication --outpkg manager
+//go:generate mockery --case snake --dir ../../pkg/label --name Manager --output ./label --outpkg label
+//go:generate mockery --case snake --dir ../../pkg/label/dao --name DAO --output ./label/dao --outpkg dao

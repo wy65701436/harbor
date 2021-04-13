@@ -113,8 +113,6 @@ func init() {
 	beego.Router("/api/configurations", &ConfigAPI{})
 	beego.Router("/api/configs", &ConfigAPI{}, "get:GetInternalConfig")
 	beego.Router("/api/email/ping", &EmailAPI{}, "post:Ping")
-	beego.Router("/api/labels", &LabelAPI{}, "post:Post;get:List")
-	beego.Router("/api/labels/:id([0-9]+", &LabelAPI{}, "get:Get;put:Put;delete:Delete")
 
 	beego.Router("/api/replication/adapters", &ReplicationAdapterAPI{}, "get:List")
 

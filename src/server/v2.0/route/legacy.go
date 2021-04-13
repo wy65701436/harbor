@@ -42,8 +42,6 @@ func registerLegacyRoutes() {
 
 	beego.Router("/api/"+version+"/configurations", &api.ConfigAPI{}, "get:Get;put:Put")
 	beego.Router("/api/"+version+"/statistics", &api.StatisticAPI{})
-	beego.Router("/api/"+version+"/labels", &api.LabelAPI{}, "post:Post;get:List")
-	beego.Router("/api/"+version+"/labels/:id([0-9]+)", &api.LabelAPI{}, "get:Get;put:Put;delete:Delete")
 
 	beego.Router("/api/"+version+"/registries", &api.RegistryAPI{}, "get:List;post:Post")
 	beego.Router("/api/"+version+"/registries/:id([0-9]+)", &api.RegistryAPI{}, "get:Get;put:Put;delete:Delete")
