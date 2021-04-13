@@ -59,9 +59,13 @@ func (m *managerTestSuite) TestDelete() {
 }
 
 func (m *managerTestSuite) TestGet() {
-	m.dao.On("Get", mock.Anything, mock.Anything).Return(nil)
-	err := m.mgr.Get(context.Background(), 1)
+	m.dao.On("Get", mock.Anything, mock.Anything).Return(&model.Label{
+		ID:   1,
+		Name: "label",
+	}, nil)
+	label, err := m.mgr.Get(context.Background(), 1)
 	m.Nil(err)
+	m.Equal("label", label.Name)
 	m.dao.AssertExpectations(m.T())
 }
 
@@ -69,6 +73,19 @@ func (m *managerTestSuite) TestUpdate() {
 	m.dao.On("Update", mock.Anything, mock.Anything).Return(nil)
 	err := m.mgr.Update(context.Background(), &model.Label{})
 	m.Nil(err)
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestListByArtifact() {
+	m.dao.On("ListByArtifact", mock.Anything, mock.Anything).Return([]*model.Label{
+		{
+			ID:   1,
+			Name: "label",
+		},
+	}, nil)
+	rpers, err := m.mgr.ListByArtifact(context.Background(), 1)
+	m.Nil(err)
+	m.Equal(1, len(rpers))
 	m.dao.AssertExpectations(m.T())
 }
 
@@ -82,6 +99,34 @@ func (m *managerTestSuite) TestList() {
 	rpers, err := m.mgr.List(context.Background(), nil)
 	m.Nil(err)
 	m.Equal(1, len(rpers))
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestAddTo() {
+	m.dao.On("CreateReference", mock.Anything, mock.Anything).Return(int64(1), nil)
+	err := m.mgr.AddTo(context.Background(), 1, 1)
+	m.Nil(err)
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestRemoveFrom() {
+	m.dao.On("DeleteReferences", mock.Anything, mock.Anything, mock.Anything).Return(int64(1), nil)
+	err := m.mgr.RemoveFrom(context.Background(), 1, 1)
+	m.Nil(err)
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestRemoveAllFrom() {
+	m.dao.On("DeleteReferences", mock.Anything, mock.Anything).Return(int64(1), nil)
+	err := m.mgr.RemoveAllFrom(context.Background(), 1)
+	m.Nil(err)
+	m.dao.AssertExpectations(m.T())
+}
+
+func (m *managerTestSuite) TestRemoveFromAllArtifacts() {
+	m.dao.On("DeleteReferences", mock.Anything, mock.Anything).Return(int64(1), nil)
+	err := m.mgr.RemoveFromAllArtifacts(context.Background(), 1)
+	m.Nil(err)
 	m.dao.AssertExpectations(m.T())
 }
 

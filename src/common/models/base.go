@@ -26,7 +26,6 @@ func init() {
 		new(RepoRecord),
 		new(ProjectMetadata),
 		new(ConfigEntry),
-		new(Label),
 		new(ResourceLabel),
 		new(UserGroup),
 		new(JobLog),

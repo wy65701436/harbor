@@ -103,15 +103,18 @@ func (lAPI *labelAPI) ListLabels(ctx context.Context, params operation.ListLabel
 	query.Keywords["Level"] = common.LabelLevelUser
 	values := params.HTTPRequest.URL.Query()
 	if v := values.Get("name"); v != "" {
-		query.Keywords[k] = &q.FuzzyMatchValue{Value: v}
+		query.Keywords["Name"] = &q.FuzzyMatchValue{Value: v}
 	}
 	if scope == common.LabelScopeProject {
 		if _, ok := query.Keywords["ProjectID"]; !ok {
 			return lAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("must with project ID when to query project robots"))
 		}
-		_, err := strconv.ParseInt(query.Keywords["ProjectID"].(string), 10, 64)
+		pid, err := strconv.ParseInt(query.Keywords["ProjectID"].(string), 10, 64)
 		if err != nil {
 			return lAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("Project ID must be int type."))
+		}
+		if err := lAPI.RequireProjectAccess(ctx, pid, rbac.ActionList, rbac.ResourceLabel); err != nil {
+			return lAPI.SendError(ctx, err)
 		}
 	}
 
