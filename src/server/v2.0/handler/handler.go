@@ -44,6 +44,7 @@ func New() http.Handler {
 		RobotAPI:              newRobotAPI(),
 		Robotv1API:            newRobotV1API(),
 		ReplicationAPI:        newReplicationAPI(),
+		RegistryAPI:           newRegistryAPI(),
 		SysteminfoAPI:         newSystemInfoAPI(),
 		PingAPI:               newPingAPI(),
 		LdapAPI:               newLdapAPI(),
@@ -56,6 +57,9 @@ func New() http.Handler {
 		ImmutableAPI:          newImmutableAPI(),
 		OidcAPI:               newOIDCAPI(),
 		SystemCVEAllowlistAPI: newSystemCVEAllowListAPI(),
+		ConfigureAPI:          newConfigAPI(),
+		UsergroupAPI:          newUserGroupAPI(),
+		UsersAPI:              newUsersAPI(),
 	})
 	if err != nil {
 		log.Fatal(err)

@@ -6,20 +6,21 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/goharbor/harbor/src/controller/config"
+
 	commonModels "github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/controller/event"
 	"github.com/goharbor/harbor/src/controller/event/handler/util"
 	ctlModel "github.com/goharbor/harbor/src/controller/event/model"
 	"github.com/goharbor/harbor/src/controller/project"
 	"github.com/goharbor/harbor/src/controller/replication"
-	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/jobservice/job"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/orm"
 	"github.com/goharbor/harbor/src/pkg/notification"
 	"github.com/goharbor/harbor/src/pkg/notifier/model"
-	rep "github.com/goharbor/harbor/src/replication"
-	rpModel "github.com/goharbor/harbor/src/replication/model"
+	"github.com/goharbor/harbor/src/pkg/reg"
+	rpModel "github.com/goharbor/harbor/src/pkg/reg/model"
 )
 
 // ReplicationHandler preprocess replication event data
@@ -33,7 +34,7 @@ func (r *ReplicationHandler) Name() string {
 
 // Handle ...
 func (r *ReplicationHandler) Handle(ctx context.Context, value interface{}) error {
-	if !config.NotificationEnable() {
+	if !config.NotificationEnable(ctx) {
 		log.Debug("notification feature is not enabled")
 		return nil
 	}
@@ -104,13 +105,10 @@ func constructReplicationPayload(event *event.ReplicationEvent) (*model.Payload,
 		remoteRegID = rpPolicy.DestRegistry.ID
 	}
 
-	remoteRegistry, err := rep.RegistryMgr.Get(remoteRegID)
+	remoteRegistry, err := reg.Mgr.Get(ctx, remoteRegID)
 	if err != nil {
 		log.Errorf("failed to get replication remoteRegistry registry %d: error: %v", remoteRegID, err)
 		return nil, nil, err
-	}
-	if remoteRegistry == nil {
-		return nil, nil, fmt.Errorf("registry %d not found with replication event", remoteRegID)
 	}
 
 	srcNamespace, srcNameAndTag := getMetadataFromResource(task.SourceResource)

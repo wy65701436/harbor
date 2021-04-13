@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"github.com/goharbor/harbor/src/controller/config"
 	"net/url"
 	"os"
 	"os/signal"
@@ -34,13 +35,13 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/utils"
 	_ "github.com/goharbor/harbor/src/controller/event/handler"
+	"github.com/goharbor/harbor/src/controller/registry"
 	"github.com/goharbor/harbor/src/core/api"
 	_ "github.com/goharbor/harbor/src/core/auth/authproxy"
 	_ "github.com/goharbor/harbor/src/core/auth/db"
 	_ "github.com/goharbor/harbor/src/core/auth/ldap"
 	_ "github.com/goharbor/harbor/src/core/auth/oidc"
 	_ "github.com/goharbor/harbor/src/core/auth/uaa"
-	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/core/middlewares"
 	"github.com/goharbor/harbor/src/core/service/token"
 	"github.com/goharbor/harbor/src/lib/cache"
@@ -55,7 +56,6 @@ import (
 	"github.com/goharbor/harbor/src/pkg/scan"
 	"github.com/goharbor/harbor/src/pkg/scan/dao/scanner"
 	"github.com/goharbor/harbor/src/pkg/version"
-	"github.com/goharbor/harbor/src/replication"
 	"github.com/goharbor/harbor/src/server"
 )
 
@@ -189,7 +189,7 @@ func main() {
 	if err = migration.Migrate(database); err != nil {
 		log.Fatalf("failed to migrate: %v", err)
 	}
-	if err := config.Load(); err != nil {
+	if err := config.Load(orm.Context()); err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
@@ -211,9 +211,8 @@ func main() {
 	closing := make(chan struct{})
 	done := make(chan struct{})
 	go gracefulShutdown(closing, done)
-	if err := replication.Init(closing, done); err != nil {
-		log.Fatalf("failed to init for replication: %v", err)
-	}
+	// Start health checker for registries
+	go registry.Ctl.StartRegularHealthCheck(orm.Context(), closing, done)
 
 	log.Info("initializing notification...")
 	notification.Init()

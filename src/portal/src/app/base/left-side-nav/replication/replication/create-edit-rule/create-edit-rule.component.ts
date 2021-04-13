@@ -20,28 +20,30 @@ import {
   EventEmitter,
   Output
 } from "@angular/core";
-import { Filter, ReplicationRule, Endpoint } from "../../../../../shared/services/interface";
-import { Subject, Subscription, Observable, zip } from "rxjs";
+import { Filter, ReplicationRule } from "../../../../../shared/services/interface";
+import { forkJoin, Observable, Subject, Subscription } from "rxjs";
 import { debounceTime, distinctUntilChanged, finalize } from "rxjs/operators";
 import { FormArray, FormBuilder, FormGroup, Validators, FormControl } from "@angular/forms";
-import { clone, compareValue, isEmptyObject } from "../../../../../shared/units/utils";
+import { clone, isEmptyObject, isSameObject } from "../../../../../shared/units/utils";
 import { InlineAlertComponent } from "../../../../../shared/components/inline-alert/inline-alert.component";
 import { ReplicationService } from "../../../../../shared/services";
 import { ErrorHandler } from "../../../../../shared/units/error-handler";
 import { TranslateService } from "@ngx-translate/core";
 import { cronRegex } from "../../../../../shared/units/utils";
 import { FilterType } from "../../../../../shared/entities/shared.const";
-import { EndpointService } from "../../../../../shared/services/endpoint.service";
+import { RegistryService } from "../../../../../../../ng-swagger-gen/services/registry.service";
+import { Registry } from "../../../../../../../ng-swagger-gen/models/registry";
 
 const PREFIX: string = '0 ';
+const PAGE_SIZE: number = 100;
 @Component({
   selector: "hbr-create-edit-rule",
   templateUrl: "./create-edit-rule.component.html",
   styleUrls: ["./create-edit-rule.component.scss"]
 })
 export class CreateEditRuleComponent implements OnInit, OnDestroy {
-  sourceList: Endpoint[] = [];
-  targetList: Endpoint[] = [];
+  sourceList: Registry[] = [];
+  targetList: Registry[] = [];
   noEndpointInfo = "";
   isPushMode = true;
   noSelectedEndpoint = true;
@@ -78,7 +80,7 @@ export class CreateEditRuleComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private repService: ReplicationService,
-    private endpointService: EndpointService,
+    private endpointService: RegistryService,
     private errorHandler: ErrorHandler,
     private translateService: TranslateService,
   ) {
@@ -102,14 +104,45 @@ export class CreateEditRuleComponent implements OnInit, OnDestroy {
       this.inlineAlert.showInlineError(error);
     });
   }
-
-  ngOnInit(): void {
-    this.endpointService.getEndpoints().subscribe(endPoints => {
-      this.targetList = endPoints || [];
-      this.sourceList = endPoints || [];
+  getAllRegistries() {
+    this.endpointService.listRegistriesResponse({
+      page: 1,
+      pageSize: PAGE_SIZE
+    }).subscribe(result => {
+      // Get total count
+      if (result.headers) {
+        const xHeader: string = result.headers.get("X-Total-Count");
+        const totalCount = parseInt(xHeader, 0);
+        let arr = result.body || [];
+        if (totalCount <= PAGE_SIZE) { // already gotten all Registries
+          this.targetList = result.body || [];
+          this.sourceList = result.body || [];
+        } else { // get all the registries in specified times
+          const times: number = Math.ceil(totalCount / PAGE_SIZE);
+          const observableList: Observable<Registry[]>[] = [];
+          for (let i = 2; i <= times; i++) {
+            observableList.push( this.endpointService.listRegistries({
+              page: i,
+              pageSize: PAGE_SIZE
+            }));
+          }
+          forkJoin(observableList).subscribe(res => {
+            if (res && res.length) {
+              res.forEach(item => {
+                arr = arr.concat(item);
+              });
+              this.sourceList = arr;
+              this.targetList = arr;
+            }
+          });
+        }
+      }
     }, error => {
       this.errorHandler.error(error);
     });
+  }
+  ngOnInit(): void {
+    this.getAllRegistries();
     this.nameChecker
       .pipe(debounceTime(300))
       .pipe(distinctUntilChanged())
@@ -235,11 +268,7 @@ export class CreateEditRuleComponent implements OnInit, OnDestroy {
 
 
   updateRuleFormAndCopyUpdateForm(rule: ReplicationRule): void {
-    if (rule.dest_registry.id === 0) {
-      this.isPushMode = false;
-    } else {
-      this.isPushMode = true;
-    }
+    this.isPushMode = rule.dest_registry.id !== 0;
     setTimeout(() => {
       // There is no trigger_setting type when the harbor is upgraded from the old version.
       rule.trigger.trigger_settings = rule.trigger.trigger_settings ? rule.trigger.trigger_settings : {cron: ''};
@@ -507,17 +536,9 @@ export class CreateEditRuleComponent implements OnInit, OnDestroy {
   }
 
   hasChanges(): boolean {
-    let formValue = clone(this.ruleForm.value);
-    let initValue = clone(this.copyUpdateForm);
-    let initValueCopy: any = {};
-    for (let key of Object.keys(formValue)) {
-      initValueCopy[key] = initValue[key];
-    }
-
-    if (!compareValue(formValue, initValueCopy)) {
-      return true;
-    }
-    return false;
+    const formValue = clone(this.ruleForm.value);
+    const initValue = clone(this.copyUpdateForm);
+    return !isSameObject(formValue, initValue);
   }
 
 

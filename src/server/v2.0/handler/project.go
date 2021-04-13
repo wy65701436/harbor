@@ -17,6 +17,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/goharbor/harbor/src/controller/config"
 	"strconv"
 	"strings"
 	"sync"
@@ -31,11 +32,11 @@ import (
 	"github.com/goharbor/harbor/src/controller/p2p/preheat"
 	"github.com/goharbor/harbor/src/controller/project"
 	"github.com/goharbor/harbor/src/controller/quota"
+	"github.com/goharbor/harbor/src/controller/registry"
 	"github.com/goharbor/harbor/src/controller/repository"
 	"github.com/goharbor/harbor/src/controller/retention"
 	"github.com/goharbor/harbor/src/controller/scanner"
 	"github.com/goharbor/harbor/src/core/api"
-	"github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
@@ -47,7 +48,6 @@ import (
 	"github.com/goharbor/harbor/src/pkg/retention/policy"
 	"github.com/goharbor/harbor/src/pkg/robot"
 	"github.com/goharbor/harbor/src/pkg/user"
-	"github.com/goharbor/harbor/src/replication"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
 	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/project"
@@ -90,7 +90,7 @@ func (a *projectAPI) CreateProject(ctx context.Context, params operation.CreateP
 		return a.SendError(ctx, err)
 	}
 
-	onlyAdmin, err := config.OnlyAdminCreateProject()
+	onlyAdmin, err := config.OnlyAdminCreateProject(ctx)
 	if err != nil {
 		return a.SendError(ctx, fmt.Errorf("failed to determine whether only admin can create projects: %v", err))
 	}
@@ -108,10 +108,10 @@ func (a *projectAPI) CreateProject(ctx context.Context, params operation.CreateP
 	}
 
 	// populate storage limit
-	if config.QuotaPerProjectEnable() {
+	if config.QuotaPerProjectEnable(ctx) {
 		// the security context is not sys admin, set the StorageLimit the global StoragePerProject
 		if req.StorageLimit == nil || *req.StorageLimit == 0 || !a.isSysAdmin(ctx, rbac.ActionCreate) {
-			setting, err := config.QuotaSetting()
+			setting, err := config.QuotaSetting(ctx)
 			if err != nil {
 				log.Errorf("failed to get quota setting: %v", err)
 				return a.SendError(ctx, fmt.Errorf("failed to get quota setting: %v", err))
@@ -611,12 +611,9 @@ func (a *projectAPI) validateProjectReq(ctx context.Context, req *models.Project
 			return errors.BadRequestError(fmt.Errorf("%d is invalid value of registry_id, it should be geater than 0", *req.RegistryID))
 		}
 
-		registry, err := replication.RegistryMgr.Get(*req.RegistryID)
+		registry, err := registry.Ctl.Get(ctx, *req.RegistryID)
 		if err != nil {
 			return fmt.Errorf("failed to get the registry %d: %v", *req.RegistryID, err)
-		}
-		if registry == nil {
-			return errors.NotFoundError(fmt.Errorf("registry %d not found", *req.RegistryID))
 		}
 		permitted := false
 		for _, t := range config.GetPermittedRegistryTypesForProxyCache() {
@@ -679,7 +676,7 @@ func (a *projectAPI) isSysAdmin(ctx context.Context, action rbac.Action) bool {
 }
 
 func getProjectQuotaSummary(ctx context.Context, p *project.Project, summary *models.ProjectSummary) {
-	if !config.QuotaPerProjectEnable() {
+	if !config.QuotaPerProjectEnable(ctx) {
 		log.Debug("Quota per project disabled")
 		return
 	}
@@ -734,7 +731,7 @@ func getProjectRegistrySummary(ctx context.Context, p *project.Project, summary 
 		return
 	}
 
-	registry, err := replication.RegistryMgr.Get(p.RegistryID)
+	registry, err := registry.Ctl.Get(ctx, p.RegistryID)
 	if err != nil {
 		log.Warningf("failed to get registry %d: %v", p.RegistryID, err)
 	} else if registry != nil {

@@ -19,7 +19,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/goharbor/harbor/src/common/dao/group"
+	"github.com/goharbor/harbor/src/controller/config"
+	"github.com/goharbor/harbor/src/lib/orm"
+	"github.com/goharbor/harbor/src/pkg/usergroup"
+	"github.com/goharbor/harbor/src/pkg/usergroup/model"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -28,7 +32,6 @@ import (
 	"github.com/goharbor/harbor/src/common/models"
 	_ "github.com/goharbor/harbor/src/core/auth/db"
 	_ "github.com/goharbor/harbor/src/core/auth/ldap"
-	cfg "github.com/goharbor/harbor/src/core/config"
 	"github.com/goharbor/harbor/src/lib/log"
 )
 
@@ -71,7 +74,7 @@ func TestMain(m *testing.M) {
 			"delete from project_member where id > 1",
 		}
 		dao.PrepareTestData(clearSqls, initSqls)
-		cfg.Init()
+		config.Init()
 		result = m.Run()
 
 		if result != 0 {
@@ -351,15 +354,15 @@ func TestListRoles(t *testing.T) {
 	require.Nil(t, err)
 	require.Len(t, roles, 1)
 	assert.Equal(t, common.RoleProjectAdmin, roles[0])
-
+	ctx := orm.Context()
 	// user with a valid group
-	groupID, err := group.AddUserGroup(models.UserGroup{
+	groupID, err := usergroup.Mgr.Create(ctx, model.UserGroup{
 		GroupName:   "group_for_list_role",
 		GroupType:   1,
 		LdapGroupDN: "CN=list_role_users,OU=sample,OU=vmware,DC=harbor,DC=com",
 	})
 	require.Nil(t, err)
-	defer group.DeleteUserGroup(groupID)
+	defer usergroup.Mgr.Delete(orm.Context(), groupID)
 
 	memberID, err := AddProjectMember(models.Member{
 		ProjectID:  project.ProjectID,

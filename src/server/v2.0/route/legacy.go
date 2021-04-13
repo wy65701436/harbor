@@ -16,39 +16,19 @@ package route
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/goharbor/harbor/src/controller/config"
 	"github.com/goharbor/harbor/src/core/api"
-	"github.com/goharbor/harbor/src/core/config"
 )
 
 // RegisterRoutes for Harbor legacy APIs
 func registerLegacyRoutes() {
 	version := APIVersion
 	beego.Router("/api/"+version+"/projects/:pid([0-9]+)/members/?:pmid([0-9]+)", &api.ProjectMemberAPI{})
-	beego.Router("/api/"+version+"/users/:id", &api.UserAPI{}, "get:Get;delete:Delete;put:Put")
-	beego.Router("/api/"+version+"/users", &api.UserAPI{}, "get:List;post:Post")
-	beego.Router("/api/"+version+"/users/search", &api.UserAPI{}, "get:Search")
-	beego.Router("/api/"+version+"/users/:id([0-9]+)/password", &api.UserAPI{}, "put:ChangePassword")
-	beego.Router("/api/"+version+"/users/:id/permissions", &api.UserAPI{}, "get:ListUserPermissions")
-	beego.Router("/api/"+version+"/users/:id/sysadmin", &api.UserAPI{}, "put:ToggleUserAdminRole")
-	beego.Router("/api/"+version+"/users/:id/cli_secret", &api.UserAPI{}, "put:SetCLISecret")
-	beego.Router("/api/"+version+"/usergroups/?:ugid([0-9]+)", &api.UserGroupAPI{})
 	beego.Router("/api/"+version+"/email/ping", &api.EmailAPI{}, "post:Ping")
 	beego.Router("/api/"+version+"/health", &api.HealthAPI{}, "get:CheckHealth")
 	beego.Router("/api/"+version+"/projects/:id([0-9]+)/metadatas/?:name", &api.MetadataAPI{}, "get:Get")
 	beego.Router("/api/"+version+"/projects/:id([0-9]+)/metadatas/", &api.MetadataAPI{}, "post:Post")
-
-	beego.Router("/api/"+version+"/replication/adapters", &api.ReplicationAdapterAPI{}, "get:List")
-	beego.Router("/api/"+version+"/replication/adapterinfos", &api.ReplicationAdapterAPI{}, "get:ListAdapterInfos")
-
-	beego.Router("/api/"+version+"/configurations", &api.ConfigAPI{}, "get:Get;put:Put")
 	beego.Router("/api/"+version+"/statistics", &api.StatisticAPI{})
-
-	beego.Router("/api/"+version+"/registries", &api.RegistryAPI{}, "get:List;post:Post")
-	beego.Router("/api/"+version+"/registries/:id([0-9]+)", &api.RegistryAPI{}, "get:Get;put:Put;delete:Delete")
-	beego.Router("/api/"+version+"/registries/ping", &api.RegistryAPI{}, "post:Ping")
-	// we use "0" as the ID of the local Harbor registry, so don't add "([0-9]+)" in the path
-	beego.Router("/api/"+version+"/registries/:id/info", &api.RegistryAPI{}, "get:GetInfo")
-	beego.Router("/api/"+version+"/registries/:id/namespace", &api.RegistryAPI{}, "get:GetNamespace")
 
 	// APIs for chart repository
 	if config.WithChartMuseum() {
