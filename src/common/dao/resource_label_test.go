@@ -19,12 +19,13 @@ import (
 
 	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/common/models"
+	"github.com/goharbor/harbor/src/pkg/label/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMethodsOfResourceLabel(t *testing.T) {
-	labelID, err := AddLabel(&models.Label{
+	labelID, err := AddLabel(&model.Label{
 		Name:  "test_label",
 		Level: common.LabelLevelUser,
 		Scope: common.LabelScopeGlobal,
