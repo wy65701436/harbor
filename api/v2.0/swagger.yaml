@@ -4644,7 +4644,7 @@ paths:
       description: |
         This endpoint let user list labels by name, scope and project_id
       tags:
-        - labels
+        - label
       operationId: ListLabels
       parameters:
         - $ref: '#/parameters/requestId'
@@ -4693,7 +4693,7 @@ paths:
       description: |
         This endpoint let user creates a label.
       tags:
-        - labels
+        - label
       operationId: CreateLabel
       parameters:
         - name: label
@@ -4725,7 +4725,7 @@ paths:
       description: |
         This endpoint let user get the label by specific ID.
       tags:
-        - labels
+        - label
       operationId: GetLabelByID
       parameters:
         - $ref: '#/parameters/labelId'
@@ -4745,7 +4745,7 @@ paths:
       description: |
         This endpoint let user update label properties.
       tags:
-        - labels
+        - label
       operationId: UpdateLabel
       parameters:
         - $ref: '#/parameters/labelId'
@@ -4773,7 +4773,7 @@ paths:
       description: |
         Delete the label specified by ID.
       tags:
-        - labels
+        - label
       operationId: DeleteLabel
       parameters:
         - $ref: '#/parameters/labelId'

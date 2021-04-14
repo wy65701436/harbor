@@ -16,8 +16,7 @@ import (
 	pkg_model "github.com/goharbor/harbor/src/pkg/label/model"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
-	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/robot"
-	"strconv"
+	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/label"
 	"strings"
 )
 
