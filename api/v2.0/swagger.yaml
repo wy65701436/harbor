@@ -4714,7 +4714,7 @@ paths:
           $ref: '#/responses/415'
         '500':
           $ref: '#/responses/500'
-  '/labels/{id}':
+  '/labels/{label_id}':
     get:
       summary: Get the label specified by ID.
       description: |
