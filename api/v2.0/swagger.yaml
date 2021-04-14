@@ -5015,6 +5015,14 @@ responses:
         type: string
     schema:
       $ref: '#/definitions/Errors'
+  '415':
+    description: Unsupported MediaType
+    headers:
+      X-Request-Id:
+        description: The ID of the corresponding request for the response
+        type: string
+    schema:
+      $ref: '#/definitions/Errors'
   '500':
     description: Internal server error
     headers:
