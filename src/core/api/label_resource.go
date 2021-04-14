@@ -1,6 +1,7 @@
 package api
 
 import (
+	pkg_label "github.com/goharbor/harbor/src/pkg/label"
 	"net/http"
 	"strconv"
 
@@ -20,7 +21,9 @@ func (lra *LabelResourceAPI) Prepare() {
 	lra.BaseController.Prepare()
 
 	// Create label manager
-	lra.labelManager = &label.BaseManager{}
+	lra.labelManager = &label.BaseManager{
+		LabelMgr: pkg_label.Mgr,
+	}
 }
 
 func (lra *LabelResourceAPI) getLabelsOfResource(rType string, rIDOrName interface{}) {

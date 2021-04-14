@@ -96,26 +96,26 @@ func (lAPI *labelAPI) ListLabels(ctx context.Context, params operation.ListLabel
 	if err != nil {
 		return lAPI.SendError(ctx, err)
 	}
-	scope := query.Keywords["scope"]
+
+	scope := lib.StringValue(params.Scope)
 	if scope != common.LabelScopeGlobal && scope != common.LabelScopeProject {
 		return lAPI.SendError(ctx, errors.New(nil).WithMessage("invalid scope: %s", scope).WithCode(errors.BadRequestCode))
 	}
 	query.Keywords["Level"] = common.LabelLevelUser
-	values := params.HTTPRequest.URL.Query()
-	if v := values.Get("name"); v != "" {
-		query.Keywords["Name"] = &q.FuzzyMatchValue{Value: v}
+	query.Keywords["Scope"] = scope
+	name := lib.StringValue(params.Name)
+	if name != "" {
+		query.Keywords["name"] = &q.FuzzyMatchValue{Value: name}
 	}
 	if scope == common.LabelScopeProject {
-		if _, ok := query.Keywords["ProjectID"]; !ok {
-			return lAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("must with project ID when to query project robots"))
-		}
-		pid, err := strconv.ParseInt(query.Keywords["ProjectID"].(string), 10, 64)
-		if err != nil {
-			return lAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("Project ID must be int type."))
+		pid := lib.Int64Value(params.ProjectID)
+		if pid == 0 {
+			return lAPI.SendError(ctx, errors.BadRequestError(nil).WithMessage("must with project ID when to query project labels"))
 		}
 		if err := lAPI.RequireProjectAccess(ctx, pid, rbac.ActionList, rbac.ResourceLabel); err != nil {
 			return lAPI.SendError(ctx, err)
 		}
+		query.Keywords["ProjectID"] = pid
 	}
 
 	total, err := lAPI.labelMgr.Count(ctx, query)
