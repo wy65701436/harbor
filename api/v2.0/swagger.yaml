@@ -4660,7 +4660,7 @@ paths:
         - name: scope
           in: query
           type: string
-          required: true
+          required: false
           description: The label scope. Valid values are g and p. g for global labels and p for project labels.
         - name: project_id
           in: query

@@ -15,6 +15,8 @@
 package dao
 
 import (
+	"github.com/goharbor/harbor/src/lib/orm"
+	"github.com/goharbor/harbor/src/pkg/label/dao"
 	"testing"
 
 	"github.com/goharbor/harbor/src/common"
@@ -25,13 +27,14 @@ import (
 )
 
 func TestMethodsOfResourceLabel(t *testing.T) {
-	labelID, err := AddLabel(&model.Label{
+	labelDao := dao.New()
+	labelID, err := labelDao.Create(orm.Context(), &model.Label{
 		Name:  "test_label",
 		Level: common.LabelLevelUser,
 		Scope: common.LabelScopeGlobal,
 	})
 	require.Nil(t, err)
-	defer DeleteLabel(labelID)
+	defer labelDao.Delete(orm.Context(), labelID)
 
 	var resourceID int64 = 1
 	resourceType := common.ResourceTypeRepository
