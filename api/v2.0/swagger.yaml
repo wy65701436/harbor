@@ -4647,7 +4647,7 @@ paths:
         - labels
       operationId: ListLabels
       parameters:
-        - $ref: '#/parameters/projectId'
+        - $ref: '#/parameters/projectNameOrId'
         - $ref: '#/parameters/requestId'
         - $ref: '#/parameters/query'
         - $ref: '#/parameters/sort'
