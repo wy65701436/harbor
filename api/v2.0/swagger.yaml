@@ -4637,7 +4637,6 @@ paths:
           description: The auth mode of the system is not "oidc_auth", or the user is not onboarded via OIDC AuthN.
         '500':
           $ref: '#/responses/500'
-<<<<<<< HEAD
 
   /labels:
     get:
