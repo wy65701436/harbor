@@ -4647,7 +4647,6 @@ paths:
         - labels
       operationId: ListLabels
       parameters:
-        - $ref: '#/parameters/projectNameOrId'
         - $ref: '#/parameters/requestId'
         - $ref: '#/parameters/query'
         - $ref: '#/parameters/sort'
@@ -4663,6 +4662,12 @@ paths:
           type: string
           required: true
           description: The label scope. Valid values are g and p. g for global labels and p for project labels.
+        - name: project_id
+          in: query
+          type: integer
+          format: int64
+          required: false
+          description: Relevant project ID, required when scope is p.
       responses:
         '200':
           description: Get successfully.
