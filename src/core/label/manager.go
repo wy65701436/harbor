@@ -1,8 +1,8 @@
 package label
 
 import (
-	"errors"
 	"fmt"
+	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/orm"
 	"github.com/goharbor/harbor/src/pkg/label"
 
@@ -129,11 +129,10 @@ func (bm *BaseManager) Exists(labelID int64) (*model.Label, error) {
 func (bm *BaseManager) Validate(labelID int64, projectID int64) (*model.Label, error) {
 	label, err := bm.LabelMgr.Get(orm.Context(), labelID)
 	if err != nil {
+		if errors.IsErr(err, errors.NotFoundCode) {
+			return nil, NewErrLabelNotFound(labelID, "", nil)
+		}
 		return nil, fmt.Errorf("failed to get label %d: %v", labelID, err)
-	}
-
-	if label == nil {
-		return nil, NewErrLabelNotFound(labelID, "", nil)
 	}
 
 	if label.Level != common.LabelLevelUser {
