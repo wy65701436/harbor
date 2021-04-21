@@ -110,7 +110,7 @@ EOSQL
 
 # look specifically for PG_VERSION, as it is expected in the DB dir
 if [ -s $PGDATA/PG_VERSION ]; then
-        /usr/bin/pg_upgrade -o '-c config_file=$PGDATAOLD/postgresql.conf' -O '-c config_file=$PGDATANEW/postgresql.conf' --check
+        cd /tmp && /usr/bin/pg_upgrade -o '-c config_file=$PGDATAOLD/postgresql.conf' -O '-c config_file=$PGDATANEW/postgresql.conf' --check
         if [ $? -eq 0 ]; then
                 echo 'PostgreSQL was already migrated success.'
         else
