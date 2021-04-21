@@ -23,13 +23,13 @@ file_env() {
         unset "$fileVar"
 }
 
-# look specifically for PG_VERSION, as it is expected in the DB dir
-if [ ! -s "$PGDATA/PG_VERSION" ]; then
+# usage: initPG $Dir
+initPG() {
         file_env 'POSTGRES_INITDB_ARGS'
         if [ "$POSTGRES_INITDB_XLOGDIR" ]; then
                 export POSTGRES_INITDB_ARGS="$POSTGRES_INITDB_ARGS --xlogdir $POSTGRES_INITDB_XLOGDIR"
         fi
-        initdb -D $PGDATA  -U postgres -E UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8 $POSTGRES_INITDB_ARGS
+        initdb -D $1  -U postgres -E UTF-8 --lc-collate=en_US.UTF-8 --lc-ctype=en_US.UTF-8 $POSTGRES_INITDB_ARGS
         # check password first so we can output the warning before postgres
         # messes it up
         file_env 'POSTGRES_PASSWORD'
@@ -58,11 +58,11 @@ EOF
         {
                 echo
                 echo "host all all all $authMethod"
-        } >> "$PGDATA/pg_hba.conf"
+        } >> "$1/pg_hba.conf"
         echo `whoami`
         # internal start of server in order to allow set-up using psql-client
         # does not listen on external TCP/IP and waits until start finishes
-        pg_ctl -D "$PGDATA" -o "-c listen_addresses=''" -w start
+        pg_ctl -D "$1" -o "-c listen_addresses=''" -w start
 
         file_env 'POSTGRES_USER' 'postgres'
         file_env 'POSTGRES_DB' "$POSTGRES_USER"
@@ -100,15 +100,45 @@ EOSQL
         done
 
         PGUSER="${PGUSER:-postgres}" \
-        pg_ctl -D "$PGDATA" -m fast -w stop
+        pg_ctl -D "$1" -m fast -w stop
 
         echo
         echo 'PostgreSQL init process complete; ready for start up.'
         echo
+
+}
+
+# look specifically for PG_VERSION, as it is expected in the DB dir
+if [ -s $PGDATA/PG_VERSION ]; then
+        /usr/bin/pg_upgrade -o '-c config_file=$PGDATAOLD/postgresql.conf' -O '-c config_file=$PGDATANEW/postgresql.conf' --check
+        if [ $? -eq 0 ]; then
+                echo 'PostgreSQL was already migrated success.'
+        else
+                initPG $PGDATANEW
+                echo 'PostgreSQL start to move $PGDATA to $PGDATAOLD.'
+                find $PGDATA/* -prune -exec mv {} "$PGDATAOLD/." +;
+
+                echo 'exe the pg_upgrade.'
+                /usr/bin/pg_upgrade \
+                  --old-datadir=$PGDATAOLD \
+                  --new-datadir=$PGDATANEW \
+                  --old-bindir=$PGBINOLD \
+                  --new-bindir=$PGBINNEW \
+                  --old-options '-c config_file=$PGDATAOLD/postgresql.conf' \
+                  --new-options '-c config_file=$PGDATANEW/postgresql.conf'
+
+                mv $PGDATAOLD/pg_hba.conf $PGBINNEW/pg_hba.conf
+
+                echo 'PostgreSQL start to move $PGDATANEW to $PGDATA.'
+                find $PGDATANEW/* -prune -exec mv {} $PGDATA +;
+			          rmdir $PGDATAOLD;
+			          rmdir $PGDATANEW;
+        fi
+else
+        initPG $PGDATA
 fi
 
 POSTGRES_PARAMETER=''
-
 file_env 'POSTGRES_MAX_CONNECTIONS' '1024'
 # The max value of 'max_connections' is 262143
 if [ $POSTGRES_MAX_CONNECTIONS -le 0 ] || [ $POSTGRES_MAX_CONNECTIONS -gt 262143 ]; then

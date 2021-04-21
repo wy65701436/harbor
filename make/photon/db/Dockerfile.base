@@ -2,6 +2,19 @@ FROM photon:4.0
 
 ENV PGDATA /var/lib/postgresql/data
 
+#install PG 9.6
+RUN tdnf -y install wget gzip tar \
+    && wget https://get.enterprisedb.com/postgresql/postgresql-9.6.2-4-linux-x64-binaries.tar.gz \
+    && mkdir -p /usr/bin/pg96/ && tar -xvzf postgresql-9.6.2-4-linux-x64-binaries.tar.gz -C /usr/bin/pg96/ \
+    && rm -rf ./postgresql-9.6.2-4-linux-x64-binaries.tar.gz \
+    && tdnf clean all
+
+ENV PGBINOLD /usr/bin/pg96/pgsql/bin
+ENV PGBINNEW /usr/bin
+
+ENV PGDATAOLD /var/lib/postgresql/data/9.6
+ENV PGDATANEW /var/lib/postgresql/data/13
+
 RUN tdnf install -y shadow gzip postgresql >> /dev/null\
     && groupadd -r postgres --gid=999 \
     && useradd -m -r -g postgres --uid=999 postgres \
@@ -10,6 +23,8 @@ RUN tdnf install -y shadow gzip postgresql >> /dev/null\
     && chown -R postgres:postgres /run/postgresql \
     && chmod 2777 /run/postgresql \
     && mkdir -p "$PGDATA" && chown -R postgres:postgres "$PGDATA" && chmod 777 "$PGDATA" \
+    && mkdir -p "$PGDATAOLD" && chown -R postgres:postgres "$PGDATAOLD" && chmod 777 "$PGDATAOLD" \
+    && mkdir -p "$PGDATANEW" && chown -R postgres:postgres "$PGDATANEW" && chmod 777 "$PGDATANEW" \
     && sed -i "s|#listen_addresses = 'localhost'.*|listen_addresses = '*'|g" /usr/share/postgresql/postgresql.conf.sample \
     && sed -i "s|#unix_socket_directories = '/tmp'.*|unix_socket_directories = '/run/postgresql'|g" /usr/share/postgresql/postgresql.conf.sample \
     && tdnf clean all
