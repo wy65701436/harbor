@@ -110,16 +110,19 @@ EOSQL
 
 # look specifically for PG_VERSION, as it is expected in the DB dir
 if [ -s $PGDATA/PG_VERSION ]; then
-        cd /tmp && /usr/bin/pg_upgrade -o '-c config_file=$PGDATAOLD/postgresql.conf' -O '-c config_file=$PGDATANEW/postgresql.conf' --check
-        if [ $? -eq 0 ]; then
-                echo 'PostgreSQL was already migrated success.'
-        else
-                initPG $PGDATANEW
+        PG_MAJOR_OLD=$(cat $PGDATA/PG_VERSION);
+        if [ $PG_MAJOR_OLD -lt $1 ]; then
                 echo 'PostgreSQL start to move $PGDATA to $PGDATAOLD.'
-                find $PGDATA/* -prune -exec mv {} "$PGDATAOLD/." +;
+                mkdir -p $PGDATAOLD
+                chown -R postgres "$PGDATAOLD"
+                find $PGDATA/* -prune ! -name $PG_MAJOR_OLD -exec mv {} $PGDATAOLD/ \;
+                chmod 700 $PGDATAOLD
+
+                echo 'init new DB'
+                initPG $PGDATANEW
 
                 echo 'exe the pg_upgrade.'
-                /usr/bin/pg_upgrade \
+                cd /tmp && /usr/bin/pg_upgrade \
                   --old-datadir=$PGDATAOLD \
                   --new-datadir=$PGDATANEW \
                   --old-bindir=$PGBINOLD \
@@ -127,12 +130,12 @@ if [ -s $PGDATA/PG_VERSION ]; then
                   --old-options '-c config_file=$PGDATAOLD/postgresql.conf' \
                   --new-options '-c config_file=$PGDATANEW/postgresql.conf'
 
-                mv $PGDATAOLD/pg_hba.conf $PGBINNEW/pg_hba.conf
+                mv $PGDATAOLD/pg_hba.conf $PGDATANEW/pg_hba.conf
 
                 echo 'PostgreSQL start to move $PGDATANEW to $PGDATA.'
-                find $PGDATANEW/* -prune -exec mv {} $PGDATA +;
-			          rmdir $PGDATAOLD;
-			          rmdir $PGDATANEW;
+                find $PGDATANEW/* -prune -exec mv {} $PGDATA/ \;
+                rm -rf $PGDATAOLD;
+                rm -rf $PGDATANEW;
         fi
 else
         initPG $PGDATA
