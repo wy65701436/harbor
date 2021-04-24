@@ -215,8 +215,11 @@ func (r *robotAuthReqCtxModifier) Modify(ctx *beegoctx.Context) bool {
 		log.Errorf("the robot account %s is disabled", robot.Name)
 		return false
 	}
-	log.Debug("creating robot account security context...")
+	log.Info("creating robot account security context...")
 	pm := config.GlobalProjectMgr
+	log.Info("1111111111111")
+	log.Info(rtk.Claims.(*robot_claim.Claim).Access)
+	log.Info("1111111111111")
 	securCtx := robotCtx.NewSecurityContext(robot, pm, rtk.Claims.(*robot_claim.Claim).Access)
 	setSecurCtxAndPM(ctx.Request, securCtx, pm)
 	return true

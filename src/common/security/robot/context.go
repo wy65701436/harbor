@@ -95,5 +95,12 @@ func (s *SecurityContext) Can(action rbac.Action, resource rbac.Resource) bool {
 		})
 	})
 
-	return s.evaluator != nil && s.evaluator.HasPermission(resource, action)
+	can := s.evaluator.HasPermission(resource, action)
+	log.Info("2222222222222")
+	log.Info(resource)
+	log.Info(action)
+	log.Info(can)
+	log.Info("2222222222222")
+
+	return s.evaluator != nil && can
 }
