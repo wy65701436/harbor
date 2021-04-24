@@ -190,6 +190,11 @@ func (rep repositoryFilter) filter(ctx security.Context, pm promgr.ProjectManage
 func resourceScopes(sCtx security.Context, rc rbac.Resource) map[string]struct{} {
 	res := map[string]struct{}{}
 	for a, s := range actionScopeMap {
+		log.Info("----------")
+		log.Info(a)
+		log.Info(rc)
+		log.Info(sCtx.Can(a, rc))
+		log.Info("----------")
 		if sCtx.Can(a, rc) {
 			res[s] = struct{}{}
 		}
