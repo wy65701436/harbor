@@ -39,7 +39,7 @@ func (h *Handler) Prepare() {
 // checks the permission against local DB and generates jwt token.
 func (h *Handler) Get() {
 	request := h.Ctx.Request
-	log.Debugf("URL for token request: %s", request.URL.String())
+	log.Infof("URL for token request: %s", request.URL.String())
 	service := h.GetString("service")
 	tokenCreator, ok := creatorMap[service]
 	if !ok {
@@ -55,6 +55,9 @@ func (h *Handler) Get() {
 		log.Errorf("Unexpected error when creating the token, error: %v", err)
 		h.CustomAbort(http.StatusInternalServerError, "")
 	}
+	log.Info("===================================")
+	log.Info(token)
+	log.Info("===================================")
 	h.Data["json"] = token
 	h.ServeJSON()
 

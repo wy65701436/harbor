@@ -45,17 +45,13 @@ func (r *regTokenHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	rawToken := parts[1]
-	log.Info("33333333333")
-	log.Info(rawToken)
 	opt := pkg_token.DefaultTokenOptions()
 	regTK, err := pkg_token.Parse(opt, rawToken, &registry.Claim{})
-	log.Info(regTK)
 	if err != nil {
 		log.Errorf("failed to decode reg token: %v, the error is skipped and round the request to native registry.", err)
 		r.next.ServeHTTP(rw, req)
 		return
 	}
-	log.Info("33333333333")
 
 	accessItems := []auth.Access{}
 	accessItems = append(accessItems, auth.Access{
