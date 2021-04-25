@@ -200,8 +200,8 @@ func resourceScopes(sCtx security.Context, rc rbac.Resource) map[string]struct{}
 	// and https://github.com/theupdateframework/notary/blob/84287fd8df4f172c9a8289641cdfa355fc86989d/server/server.go#L200
 	_, ok1 := res["push"]
 	_, ok2 := res["pull"]
-	_, ok3 := res["delete"]
-	if ok1 && ok2 && ok3 {
+	//_, ok3 := res["delete"]
+	if ok1 && ok2 {
 		res["*"] = struct{}{}
 	}
 	return res
