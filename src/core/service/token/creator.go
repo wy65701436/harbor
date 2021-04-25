@@ -35,9 +35,9 @@ var registryFilterMap map[string]accessFilter
 var notaryFilterMap map[string]accessFilter
 var actionScopeMap = map[rbac.Action]string{
 	// Scopes checked by distribution, see: https://github.com/docker/distribution/blob/master/registry/handlers/app.go
-	rbac.ActionPull: "pull",
-	rbac.ActionPush: "push",
-	//rbac.ActionDelete: "delete",
+	rbac.ActionPull:   "pull",
+	rbac.ActionPush:   "push",
+	rbac.ActionDelete: "delete",
 	// For skipping policy check when scanner pulls artifacts
 	rbac.ActionScannerPull: "scanner-pull",
 }
