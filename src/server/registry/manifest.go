@@ -51,9 +51,8 @@ func getManifest(w http.ResponseWriter, req *http.Request) {
 
 	recorder := lib.NewResponseRecorder(w)
 	proxy.ServeHTTP(recorder, req)
-	// fire event, ignore the HEAD request and pulling request from replication service
-	if !recorder.Success() || req.Method == http.MethodHead ||
-		req.UserAgent() == registry.UserAgent {
+	// fire event, ignore the pulling request from replication service
+	if !recorder.Success() || req.UserAgent() == registry.UserAgent {
 		return
 	}
 
