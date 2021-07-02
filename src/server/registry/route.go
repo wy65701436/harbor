@@ -58,7 +58,7 @@ func RegisterRoutes() {
 		Method(http.MethodHead).
 		Path("/*/manifests/:reference").
 		Middleware(metric.InjectOpIDMiddleware(metric.ManifestOperationID)).
-		Middleware(repoproxy.ManifestMiddleware()).
+		//Middleware(repoproxy.ManifestMiddleware()).
 		Middleware(contenttrust.Middleware()).
 		Middleware(vulnerable.Middleware()).
 		HandlerFunc(getManifest)
