@@ -53,6 +53,9 @@ func (rc *reqChecker) check(req *http.Request) (string, error) {
 	if len(al) == 0 {
 		return "", fmt.Errorf("un-recognized request: %s %s", req.Method, req.URL.Path)
 	}
+	log.Info("==============")
+	log.Info(al)
+	log.Info("==============")
 	for _, a := range al {
 		if a.target == login && !securityCtx.IsAuthenticated() {
 			return getChallenge(req, al), errors.New("unauthorized")
