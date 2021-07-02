@@ -64,6 +64,9 @@ func getAction(req *http.Request) rbac.Action {
 }
 
 func accessList(req *http.Request) []access {
+	log.Info("==============")
+	log.Info(req.URL)
+	log.Info("==============")
 	l := make([]access, 0, 4)
 	if req.URL.Path == "/v2/" {
 		l = append(l, access{
@@ -96,5 +99,8 @@ func accessList(req *http.Request) []access {
 			})
 		}
 	}
+	log.Info("==============")
+	log.Info(l)
+	log.Info("==============")
 	return l
 }
