@@ -34,6 +34,7 @@ import (
 
 // make sure the artifact exist before proxying the request to the backend registry
 func getManifest(w http.ResponseWriter, req *http.Request) {
+	log.Info("========================")
 	repository := router.Param(req.Context(), ":splat")
 	reference := router.Param(req.Context(), ":reference")
 	art, err := artifact.Ctl.GetByReference(req.Context(), repository, reference, nil)
