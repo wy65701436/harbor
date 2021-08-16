@@ -17,7 +17,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/goharbor/harbor/src/lib"
 	pkgModels "github.com/goharbor/harbor/src/pkg/project/models"
 
 	"github.com/go-openapi/runtime/middleware"
