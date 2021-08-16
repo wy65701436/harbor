@@ -17,11 +17,14 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/goharbor/harbor/src/lib"
+	pkgModels "github.com/goharbor/harbor/src/pkg/project/models"
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/goharbor/harbor/src/common/rbac"
 	"github.com/goharbor/harbor/src/common/security"
 	"github.com/goharbor/harbor/src/common/security/local"
+	"github.com/goharbor/harbor/src/common/security/robot"
 	"github.com/goharbor/harbor/src/controller/artifact"
 	"github.com/goharbor/harbor/src/controller/event/metadata"
 	"github.com/goharbor/harbor/src/controller/project"
@@ -123,6 +126,17 @@ func (r *repositoryAPI) listAuthorizedProjectIDs(ctx context.Context) ([]int64, 
 				GroupIDs:   currentUser.GroupIDs,
 				WithPublic: true,
 			}
+		case *robot.SecurityContext:
+			r := secCtx.(*robot.SecurityContext).User()
+			var names []string
+			for _, p := range r.Permissions {
+				names = append(names, p.Namespace)
+			}
+			namesQuery := &pkgModels.NamesQuery{
+				Names:      names,
+				WithPublic: true,
+			}
+			query.Keywords["names"] = namesQuery
 		default:
 			query.Keywords["public"] = true
 		}
