@@ -17,8 +17,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/lib/errors"
@@ -178,22 +176,6 @@ func (m *manager) GetByName(ctx context.Context, username string) (*models.User,
 
 // List users according to the query
 func (m *manager) List(ctx context.Context, query *q.Query) (models.Users, error) {
-	query = q.MustClone(query)
-	excludeAdmin := true
-	for key := range query.Keywords {
-		str := strings.ToLower(key)
-		if str == "user_id__in" {
-			excludeAdmin = false
-			break
-		} else if str == "user_id" {
-			excludeAdmin = false
-			break
-		}
-	}
-	if excludeAdmin {
-		// Exclude admin account when not filter by UserIDs, see https://github.com/goharbor/harbor/issues/2527
-		query.Keywords["user_id__gt"] = 1
-	}
 	return m.dao.List(ctx, query)
 }
 

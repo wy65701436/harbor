@@ -20,6 +20,7 @@ import (
 	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/pkg/member"
+	"strings"
 
 	commonmodels "github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/security"
@@ -45,7 +46,7 @@ type Controller interface {
 	// UpdatePassword ...
 	UpdatePassword(ctx context.Context, id int, password string) error
 	// List ...
-	List(ctx context.Context, query *q.Query) ([]*models.User, error)
+	List(ctx context.Context, query *q.Query, options ...UserOption) ([]*models.User, error)
 	// Create ...
 	Create(ctx context.Context, u *models.User) (int, error)
 	// Count ...
@@ -185,7 +186,22 @@ func (c *controller) Delete(ctx context.Context, id int) error {
 	return c.mgr.Delete(ctx, id)
 }
 
-func (c *controller) List(ctx context.Context, query *q.Query) ([]*models.User, error) {
+func (c *controller) List(ctx context.Context, query *q.Query, options ...UserOption) ([]*models.User, error) {
+	query = q.MustClone(query)
+	for key := range query.Keywords {
+		str := strings.ToLower(key)
+		if str == "user_id__in" {
+			options = append(options, WithAdmin())
+			break
+		} else if str == "user_id" {
+			options = append(options, WithAdmin())
+			break
+		}
+	}
+	opts := newOptions(options...)
+	if !opts.IncludeAdmin {
+		query.Keywords["user_id__gt"] = 1
+	}
 	return c.mgr.List(ctx, query)
 }
 

@@ -143,13 +143,20 @@ func (_m *Controller) GetBySubIss(ctx context.Context, sub string, iss string) (
 	return r0, r1
 }
 
-// List provides a mock function with given fields: ctx, query
-func (_m *Controller) List(ctx context.Context, query *q.Query) ([]*models.User, error) {
-	ret := _m.Called(ctx, query)
+// List provides a mock function with given fields: ctx, query, options
+func (_m *Controller) List(ctx context.Context, query *q.Query, options ...user.UserOption) ([]*models.User, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, query)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 []*models.User
-	if rf, ok := ret.Get(0).(func(context.Context, *q.Query) []*models.User); ok {
-		r0 = rf(ctx, query)
+	if rf, ok := ret.Get(0).(func(context.Context, *q.Query, ...user.UserOption) []*models.User); ok {
+		r0 = rf(ctx, query, options...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*models.User)
@@ -157,8 +164,8 @@ func (_m *Controller) List(ctx context.Context, query *q.Query) ([]*models.User,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *q.Query) error); ok {
-		r1 = rf(ctx, query)
+	if rf, ok := ret.Get(1).(func(context.Context, *q.Query, ...user.UserOption) error); ok {
+		r1 = rf(ctx, query, options...)
 	} else {
 		r1 = ret.Error(1)
 	}

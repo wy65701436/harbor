@@ -34,8 +34,8 @@ import (
 	"github.com/goharbor/harbor/src/controller/registry"
 	"github.com/goharbor/harbor/src/controller/repository"
 	"github.com/goharbor/harbor/src/controller/retention"
-	robotCtr "github.com/goharbor/harbor/src/controller/robot"
 	"github.com/goharbor/harbor/src/controller/scanner"
+	"github.com/goharbor/harbor/src/controller/user"
 	"github.com/goharbor/harbor/src/core/api"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/lib/config"
@@ -45,12 +45,12 @@ import (
 	"github.com/goharbor/harbor/src/lib/q"
 	"github.com/goharbor/harbor/src/pkg/audit"
 	"github.com/goharbor/harbor/src/pkg/member"
+	memModels "github.com/goharbor/harbor/src/pkg/member/models"
 	"github.com/goharbor/harbor/src/pkg/project/metadata"
 	pkgModels "github.com/goharbor/harbor/src/pkg/project/models"
 	"github.com/goharbor/harbor/src/pkg/quota/types"
 	"github.com/goharbor/harbor/src/pkg/retention/policy"
 	"github.com/goharbor/harbor/src/pkg/robot"
-	"github.com/goharbor/harbor/src/pkg/user"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
 	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/project"
@@ -63,7 +63,7 @@ func newProjectAPI() *projectAPI {
 	return &projectAPI{
 		auditMgr:      audit.Mgr,
 		metadataMgr:   metadata.Mgr,
-		userMgr:       user.Mgr,
+		userCtl:       user.Ctl,
 		repositoryCtl: repository.Ctl,
 		projectCtl:    project.Ctl,
 		memberMgr:     member.Mgr,
@@ -79,7 +79,7 @@ type projectAPI struct {
 	BaseAPI
 	auditMgr      audit.Manager
 	metadataMgr   metadata.Manager
-	userMgr       user.Manager
+	userCtl       user.Controller
 	repositoryCtl repository.Controller
 	projectCtl    project.Controller
 	memberMgr     member.Manager
@@ -101,6 +101,10 @@ func (a *projectAPI) CreateProject(ctx context.Context, params operation.CreateP
 	}
 
 	secCtx, _ := security.FromContext(ctx)
+	if r, ok := secCtx.(*robotSec.SecurityContext); ok && !r.User().IsSysLevel() {
+		log.Errorf("Only system level robot can create project")
+		return a.SendError(ctx, errors.ForbiddenError(nil).WithMessage("Only system level robot can create project"))
+	}
 	if onlyAdmin && !(a.isSysAdmin(ctx, rbac.ActionCreate) || secCtx.IsSolutionUser()) {
 		log.Errorf("Only sys admin can create project")
 		return a.SendError(ctx, errors.ForbiddenError(nil).WithMessage("Only system admin can create project"))
@@ -158,11 +162,14 @@ func (a *projectAPI) CreateProject(ctx context.Context, params operation.CreateP
 	// set the owner as the system admin when the API being called by replication
 	// it's a solution to workaround the restriction of project creation API:
 	// only normal users can create projects
+	// TODO: revise the ownerID for system level robots, ownerID 2 is the anonymous user.
 	if secCtx.IsSolutionUser() {
 		ownerID = 1
+	} else if _, ok := secCtx.(*robotSec.SecurityContext); ok {
+		ownerID = 2
 	} else {
 		ownerName := secCtx.GetUsername()
-		user, err := a.userMgr.GetByName(ctx, ownerName)
+		user, err := a.userCtl.GetByName(ctx, ownerName)
 		if err != nil {
 			return a.SendError(ctx, err)
 		}
@@ -201,6 +208,33 @@ func (a *projectAPI) CreateProject(ctx context.Context, params operation.CreateP
 		}
 		md := map[string]string{"retention_id": strconv.FormatInt(retentionID, 10)}
 		if err := a.metadataMgr.Add(ctx, projectID, md); err != nil {
+			return a.SendError(ctx, err)
+		}
+	}
+
+	// If the project is created by system level robot, set the first system admin as the project admin.
+	if r, ok := secCtx.(*robotSec.SecurityContext); ok && r.User().IsSysLevel() {
+		q := &q.Query{
+			Keywords: map[string]interface{}{
+				"sysadmin_flag": true,
+			},
+			Sorts: []*q.Sort{
+				q.NewSort("user_id", false),
+			},
+		}
+		admins, err := a.userCtl.List(ctx, q, user.WithAdmin())
+		if err != nil {
+			return a.SendError(ctx, err)
+		}
+		if len(admins) == 0 {
+			return a.SendError(ctx, errors.New(nil).WithMessage("cannot create project with robot account as no system admin found"))
+		}
+		if _, err := a.memberMgr.AddProjectMember(ctx, memModels.Member{
+			ProjectID:  projectID,
+			Role:       common.RoleProjectAdmin,
+			EntityID:   admins[0].UserID,
+			EntityType: common.UserMember,
+		}); err != nil {
 			return a.SendError(ctx, err)
 		}
 	}
@@ -422,7 +456,7 @@ func (a *projectAPI) ListProjects(ctx context.Context, params operation.ListProj
 				var coverAll bool
 				var names []string
 				for _, p := range r.User().Permissions {
-					if p.Scope == robotCtr.SCOPEALLPROJECT {
+					if p.IsCoverAll() {
 						coverAll = true
 						break
 					}
