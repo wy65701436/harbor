@@ -2,6 +2,7 @@ package gc
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor/src/jobservice/logger"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/pkg/registry"
@@ -42,7 +43,7 @@ func delKeys(con redis.Conn, pattern string) error {
 }
 
 // v2DeleteManifest calls the registry API to remove manifest
-func v2DeleteManifest(repository, digest string) error {
+func v2DeleteManifest(logger logger.Interface, repository, digest string) error {
 	exist, _, err := registry.Cli.ManifestExist(repository, digest)
 	if err != nil {
 		return err
@@ -55,7 +56,7 @@ func v2DeleteManifest(repository, digest string) error {
 	return lib.RetryUntil(func() error {
 		return registry.Cli.DeleteManifest(repository, digest)
 	}, lib.RetryCallback(func(err error, sleep time.Duration) {
-		fmt.Printf("failed to exec DeleteManifest retry after %s : %v\n", sleep, err)
+		logger.Infof("failed to exec v2DeleteManifest, error: %v, will retry again after: %s", err, sleep)
 	}))
 }
 
