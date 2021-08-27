@@ -239,7 +239,7 @@ func (gc *GarbageCollector) mark(ctx job.Context) error {
 }
 
 func (gc *GarbageCollector) sweep(ctx job.Context) error {
-	gc.logger = ctx.GetLogger()
+	//gc.logger = ctx.GetLogger()
 	sweepSize := int64(0)
 	for _, blob := range gc.deleteSet {
 		// set the status firstly, if the blob is updated by any HEAD/PUT request, it should be fail and skip.
