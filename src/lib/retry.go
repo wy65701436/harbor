@@ -16,6 +16,7 @@ package lib
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -117,6 +118,11 @@ func getBackoff(attempt int, initialInterval, maxInterval time.Duration, equalJi
 	base := float64(initialInterval)
 
 	dur := base * math.Pow(2, float64(attempt))
+	fmt.Println("=========")
+	fmt.Println(dur)
+	fmt.Println(base)
+	fmt.Println(attempt)
+	fmt.Println("=========")
 	if equalJitter {
 		dur = dur/2 + float64(rand.Int63n(int64(dur))/2)
 	}

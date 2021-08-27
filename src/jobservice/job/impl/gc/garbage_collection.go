@@ -15,6 +15,7 @@
 package gc
 
 import (
+	"fmt"
 	"github.com/goharbor/harbor/src/lib"
 	"os"
 	"time"
@@ -261,6 +262,7 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 				gc.logger.Infof("delete the manifest with registry v2 API: %s, %s, %s",
 					art.RepositoryName, blob.ContentType, blob.Digest)
 				if err := v2DeleteManifest(gc.logger, art.RepositoryName, blob.Digest); err != nil {
+					fmt.Printf("failed to delete manifest with v2 API, %s, %s, %v", art.RepositoryName, blob.Digest, err)
 					gc.logger.Errorf("failed to delete manifest with v2 API, %s, %s, %v", art.RepositoryName, blob.Digest, err)
 					if err := ignoreNotFound(func() error {
 						return gc.markDeleteFailed(ctx, blob)
