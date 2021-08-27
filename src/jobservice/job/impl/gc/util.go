@@ -3,11 +3,12 @@ package gc
 import (
 	"fmt"
 	"github.com/goharbor/harbor/src/jobservice/logger"
-	"github.com/goharbor/harbor/src/lib"
+	"time"
+
 	"github.com/goharbor/harbor/src/lib/errors"
+	"github.com/goharbor/harbor/src/lib/retry"
 	"github.com/goharbor/harbor/src/pkg/registry"
 	"github.com/gomodule/redigo/redis"
-	"time"
 )
 
 // delKeys ...
@@ -53,9 +54,9 @@ func v2DeleteManifest(logger logger.Interface, repository, digest string) error 
 	if !exist {
 		return nil
 	}
-	return lib.RetryUntil(func() error {
+	return retry.Retry(func() error {
 		return errors.New(nil).WithMessage("v2DeleteManifest test error in retry....")
-	}, lib.RetryCallback(func(err error, sleep time.Duration) {
+	}, retry.Callback(func(err error, sleep time.Duration) {
 		logger.Infof("failed to exec v2DeleteManifest, error: %v, will retry again after: %s", err, sleep)
 	}))
 }
