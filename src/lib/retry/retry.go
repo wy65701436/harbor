@@ -15,12 +15,6 @@
 package retry
 
 import (
-<<<<<<< HEAD:src/lib/retry.go
-	"errors"
-	"fmt"
-	"math"
-=======
->>>>>>> d482a0c323781260a2f3a39145edc08de024ee9e:src/lib/retry/retry.go
 	"math/rand"
 	"time"
 
@@ -119,30 +113,10 @@ func Retry(f func() error, options ...Option) error {
 				return nil
 			}
 
-<<<<<<< HEAD:src/lib/retry.go
-func getBackoff(attempt int, initialInterval, maxInterval time.Duration, equalJitter bool) time.Duration {
-	max := float64(maxInterval)
-	base := float64(initialInterval)
-
-	dur := base * math.Pow(2, float64(attempt))
-	fmt.Println("=========")
-	fmt.Println(dur)
-	fmt.Println(base)
-	fmt.Println(attempt)
-	fmt.Println("=========")
-	if equalJitter {
-		dur = dur/2 + float64(rand.Int63n(int64(dur))/2)
-	}
-
-	if dur < base {
-		dur = base
-	}
-=======
 			sleep := b.Duration()
 			if opts.Callback != nil {
 				opts.Callback(err, sleep)
 			}
->>>>>>> d482a0c323781260a2f3a39145edc08de024ee9e:src/lib/retry/retry.go
 
 			time.Sleep(sleep)
 		}
