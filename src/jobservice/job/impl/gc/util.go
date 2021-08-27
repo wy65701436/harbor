@@ -54,7 +54,7 @@ func v2DeleteManifest(logger logger.Interface, repository, digest string) error 
 		return nil
 	}
 	return lib.RetryUntil(func() error {
-		return registry.Cli.DeleteManifest(repository, digest)
+		return errors.New(nil).WithMessage("v2DeleteManifest test error in retry....")
 	}, lib.RetryCallback(func(err error, sleep time.Duration) {
 		logger.Infof("failed to exec v2DeleteManifest, error: %v, will retry again after: %s", err, sleep)
 	}))
