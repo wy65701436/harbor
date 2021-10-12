@@ -65,9 +65,6 @@ func (rc *reqChecker) check(req *http.Request) (string, error) {
 		}
 		if a.target == repository && req.Header.Get(authHeader) == "" &&
 			(req.Method == http.MethodHead || req.Method == http.MethodGet) { // make sure 401 is returned for CLI HEAD, see #11271
-			log.Info("=====================")
-			log.Info("=====================")
-			log.Info("=====================")
 			return getChallenge(req, al), fmt.Errorf("authorize header needed to send HEAD to repository")
 		} else if a.target == repository {
 			pn := strings.Split(a.name, "/")[0]
@@ -76,6 +73,11 @@ func (rc *reqChecker) check(req *http.Request) (string, error) {
 				return "", err
 			}
 			resource := rbac_project.NewNamespace(pid).Resource(rbac.ResourceRepository)
+			log.Info("=========================")
+			log.Info(resource)
+			log.Info(a.action)
+			log.Info(securityCtx.Can(req.Context(), a.action, resource))
+			log.Info("=========================")
 			if !securityCtx.Can(req.Context(), a.action, resource) {
 				return getChallenge(req, al), fmt.Errorf("unauthorized to access repository: %s, action: %s", a.name, a.action)
 			}
