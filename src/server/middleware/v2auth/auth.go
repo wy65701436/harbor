@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"strings"
 	"sync"
@@ -74,6 +75,7 @@ func (rc *reqChecker) check(req *http.Request) (string, error) {
 			}
 			resource := rbac_project.NewNamespace(pid).Resource(rbac.ResourceRepository)
 			log.Info("=========================")
+			log.Info(httputil.DumpRequest(req, false))
 			log.Info(resource)
 			log.Info(a.action)
 			log.Info(securityCtx.Can(req.Context(), a.action, resource))
