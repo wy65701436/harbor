@@ -75,7 +75,8 @@ func (rc *reqChecker) check(req *http.Request) (string, error) {
 			}
 			resource := rbac_project.NewNamespace(pid).Resource(rbac.ResourceRepository)
 			log.Info("=========================")
-			log.Info(httputil.DumpRequest(req, false))
+			bytes, _ := httputil.DumpRequest(req, false)
+			log.Info(string(bytes))
 			log.Info(resource)
 			log.Info(a.action)
 			log.Info(securityCtx.Can(req.Context(), a.action, resource))
