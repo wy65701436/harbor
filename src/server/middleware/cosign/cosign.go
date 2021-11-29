@@ -55,6 +55,7 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 
 		ctx := r.Context()
 		logger := log.G(ctx).WithFields(log.Fields{"middleware": "cosign"})
+		logger.Info("0000000000000000")
 
 		none := lib.ArtifactInfo{}
 		info := lib.GetArtifactInfo(ctx)
@@ -68,7 +69,7 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 		// Needs tag to match the cosign tag pattern.
 		_, subjectArtDigest, ok := matchCosignSignaturePattern(r.URL.Path)
 		if !ok {
-			log.Info("11111111111")
+			logger.Info("11111111111")
 			return nil
 		}
 
@@ -114,7 +115,7 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 				return err
 			}
 		} else {
-			log.Info("22222222")
+			logger.Info("22222222")
 		}
 
 		return nil
