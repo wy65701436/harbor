@@ -75,10 +75,10 @@ func RegisterRoutes() {
 		Middleware(metric.InjectOpIDMiddleware(metric.ManifestOperationID)).
 		Middleware(repoproxy.DisableBlobAndManifestUploadMiddleware()).
 		Middleware(immutable.Middleware()).
-		//Middleware(quota.PutManifestMiddleware()).
-		//Middleware(cosign.CosignSignatureMiddleware()).
-		//Middleware(blob.PutManifestMiddleware()).
+		Middleware(quota.PutManifestMiddleware()).
 		Middleware(cosign.CosignSignatureMiddleware()).
+		Middleware(blob.PutManifestMiddleware()).
+		//Middleware(cosign.CosignSignatureMiddleware()).
 		HandlerFunc(putManifest)
 	// blob head
 	root.NewRoute().

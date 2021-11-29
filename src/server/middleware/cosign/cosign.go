@@ -49,8 +49,7 @@ var (
 */
 func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 	return middleware.AfterResponse(func(w http.ResponseWriter, r *http.Request, statusCode int) error {
-		fmt.Sprintln("1123233333333333")
-		if statusCode != http.StatusAccepted {
+		if statusCode != http.StatusCreated {
 			return nil
 		}
 
