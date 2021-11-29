@@ -77,7 +77,7 @@ func RegisterRoutes() {
 		Middleware(immutable.Middleware()).
 		Middleware(quota.PutManifestMiddleware()).
 		//Middleware(cosign.CosignSignatureMiddleware()).
-		Middleware(blob.PutManifestMiddleware()).
+		//Middleware(blob.PutManifestMiddleware()).
 		Middleware(cosign.CosignSignatureMiddleware()).
 		HandlerFunc(putManifest)
 	// blob head
