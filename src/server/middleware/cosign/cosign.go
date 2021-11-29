@@ -68,6 +68,7 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 		// Needs tag to match the cosign tag pattern.
 		_, subjectArtDigest, ok := matchCosignSignaturePattern(r.URL.Path)
 		if !ok {
+			log.Info("11111111111")
 			return nil
 		}
 
@@ -112,6 +113,8 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 			if err != nil {
 				return err
 			}
+		} else {
+			log.Info("22222222")
 		}
 
 		return nil
