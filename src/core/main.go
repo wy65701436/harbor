@@ -253,7 +253,7 @@ func main() {
 		beego.BeeApp.Server.TLSConfig = common_http.NewServerTLSConfig()
 	}
 
-	log.Infof("============================================== Version: %s, Git commit: %s", version.ReleaseVersion, version.GitCommit)
+	log.Infof("Version: %s, Git commit: %s", version.ReleaseVersion, version.GitCommit)
 
 	log.Info("Fix empty subiss for meta info data.")
 	oidc.FixEmptySubIss(orm.Context())

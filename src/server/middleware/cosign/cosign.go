@@ -19,10 +19,10 @@ import (
 )
 
 var (
-	cosignDigest = "digest"
+	cosignDigestSubexp = "digest"
 	// repositorySubexp is the name for sub regex that maps to repository name in the url
 	repositorySubexp     = "repository"
-	cosignRe             = regexp.MustCompile(fmt.Sprintf(`^/v2/(?P<%s>%s)/manifests/sha256-(?P<%s>%s).sig$`, repositorySubexp, reference.NameRegexp.String(), cosignDigest, reference.IdentifierRegexp))
+	cosignRe             = regexp.MustCompile(fmt.Sprintf(`^/v2/(?P<%s>%s)/manifests/sha256-(?P<%s>%s).sig$`, repositorySubexp, reference.NameRegexp.String(), cosignDigestSubexp, reference.IdentifierRegexp))
 	mediaTypeCosignLayer = "application/vnd.dev.cosign.simplesigning.v1+json"
 )
 
@@ -55,7 +55,6 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 
 		ctx := r.Context()
 		logger := log.G(ctx).WithFields(log.Fields{"middleware": "cosign"})
-		logger.Info("0000000000000000")
 
 		none := lib.ArtifactInfo{}
 		info := lib.GetArtifactInfo(ctx)
@@ -69,7 +68,6 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 		// Needs tag to match the cosign tag pattern.
 		_, subjectArtDigest, ok := matchCosignSignaturePattern(r.URL.Path)
 		if !ok {
-			logger.Info("11111111111")
 			return nil
 		}
 
@@ -114,8 +112,6 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 			if err != nil {
 				return err
 			}
-		} else {
-			logger.Info("22222222")
 		}
 
 		return nil

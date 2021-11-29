@@ -15,7 +15,6 @@
 package blob
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -51,7 +50,6 @@ func PutManifestMiddleware() func(http.Handler) http.Handler {
 	})
 
 	after := middleware.AfterResponse(func(w http.ResponseWriter, r *http.Request, statusCode int) error {
-		fmt.Sprintln("1123233333333333")
 		if statusCode != http.StatusCreated {
 			return nil
 		}

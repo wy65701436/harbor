@@ -15,7 +15,6 @@
 package quota
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -37,7 +36,6 @@ func PutManifestMiddleware() func(http.Handler) http.Handler {
 }
 
 func putManifestResources(r *http.Request, reference, referenceID string) (types.ResourceList, error) {
-	fmt.Sprintln("0000000001123233333333333")
 	logger := log.G(r.Context()).WithFields(log.Fields{"middleware": "quota", "action": "request", "url": r.URL.Path})
 
 	projectID, _ := strconv.ParseInt(referenceID, 10, 64)

@@ -78,7 +78,6 @@ func RegisterRoutes() {
 		Middleware(quota.PutManifestMiddleware()).
 		Middleware(cosign.CosignSignatureMiddleware()).
 		Middleware(blob.PutManifestMiddleware()).
-		//Middleware(cosign.CosignSignatureMiddleware()).
 		HandlerFunc(putManifest)
 	// blob head
 	root.NewRoute().

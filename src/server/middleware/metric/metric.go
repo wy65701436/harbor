@@ -3,7 +3,6 @@ package metric
 import (
 	"context"
 	"github.com/goharbor/harbor/src/lib/config"
-	"github.com/goharbor/harbor/src/lib/log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -81,7 +80,6 @@ func Middleware() func(http.Handler) http.Handler {
 func InjectOpIDMiddleware(opID string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Info("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 			SetMetricOpID(r.Context(), opID)
 			next.ServeHTTP(w, r)
 		})

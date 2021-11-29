@@ -17,7 +17,6 @@ import (
 func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-			log.Info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
 			if err := handlePush(req); err != nil {
 				var e *ErrImmutable
 				if errors.As(err, &e) {
