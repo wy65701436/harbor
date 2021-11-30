@@ -19,10 +19,12 @@ import (
 )
 
 var (
-	cosignDigestSubexp = "digest"
+	// repositorySubexp is the name for sub regex that maps to subject artifact digest in the url
+	subArtDigestSubexp = "digest"
 	// repositorySubexp is the name for sub regex that maps to repository name in the url
-	repositorySubexp     = "repository"
-	cosignRe             = regexp.MustCompile(fmt.Sprintf(`^/v2/(?P<%s>%s)/manifests/sha256-(?P<%s>%s).sig$`, repositorySubexp, reference.NameRegexp.String(), cosignDigestSubexp, reference.IdentifierRegexp))
+	repositorySubexp = "repository"
+	cosignRe         = regexp.MustCompile(fmt.Sprintf(`^/v2/(?P<%s>%s)/manifests/sha256-(?P<%s>%s).sig$`, repositorySubexp, reference.NameRegexp.String(), subArtDigestSubexp, reference.IdentifierRegexp))
+	// the media type of consign signature layer
 	mediaTypeCosignLayer = "application/vnd.dev.cosign.simplesigning.v1+json"
 )
 
@@ -71,6 +73,7 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 			return nil
 		}
 
+		log.Info("1111")
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return err
@@ -94,10 +97,12 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 		if hasSignature {
 			subjectArt, err := artifact.Ctl.GetByReference(ctx, info.Repository, fmt.Sprintf("sha256:%s", subjectArtDigest), nil)
 			if err != nil {
+				logger.Errorf("failed to get subject artifact: %s, error: %v", subjectArtDigest, err)
 				return err
 			}
 			art, err := artifact.Ctl.GetByReference(ctx, info.Repository, desc.Digest.String(), nil)
 			if err != nil {
+				logger.Errorf("failed to get cosign signature artifact: %s, error: %v", desc.Digest.String(), err)
 				return err
 			}
 
@@ -110,6 +115,7 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 				},
 			}})
 			if err != nil {
+				logger.Errorf("failed to get cosign signature artifact: %s, error: %v", desc.Digest.String(), err)
 				return err
 			}
 		}
