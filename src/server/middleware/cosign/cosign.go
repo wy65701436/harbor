@@ -73,7 +73,6 @@ func CosignSignatureMiddleware() func(http.Handler) http.Handler {
 			return nil
 		}
 
-		log.Info("1111")
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return err
