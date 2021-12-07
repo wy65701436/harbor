@@ -122,6 +122,7 @@ func NewController() Controller {
 		immutableMtr: rule.NewRuleMatcher(),
 		regCli:       registry.Cli,
 		abstractor:   NewAbstractor(),
+		accessoryMgr: accessory.Mgr,
 	}
 }
 
