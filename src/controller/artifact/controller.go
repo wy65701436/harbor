@@ -19,6 +19,7 @@ import (
 	"context"
 	stderrors "errors"
 	"fmt"
+	"github.com/goharbor/harbor/src/pkg/accessory"
 	"strings"
 	"time"
 
@@ -135,6 +136,7 @@ type controller struct {
 	immutableMtr match.ImmutableTagMatcher
 	regCli       registry.Client
 	abstractor   Abstractor
+	accessoryMgr accessory.Manager
 }
 
 func (c *controller) Ensure(ctx context.Context, repository, digest string, tags ...string) (bool, int64, error) {
@@ -319,6 +321,20 @@ func (c *controller) deleteDeeply(ctx context.Context, id int64, isRoot bool) er
 		// the child artifact is referenced by other artifacts, skip
 		return nil
 	}
+	// delete accessory
+	accs, err := c.accessoryMgr.List(ctx, q.New(q.KeyWords{"SubjectArtifactID": id}))
+	if err != nil && !errors.IsErr(err, errors.NotFoundCode) {
+		return err
+	}
+	for _, acc := range accs {
+		// only hard ref accessory should be removed
+		if acc.IsHard() {
+			if err := c.accessoryMgr.Delete(ctx, acc.GetData().ID); err != nil && !errors.IsErr(err, errors.NotFoundCode) {
+				return err
+			}
+		}
+	}
+
 	// delete child artifacts if contains any
 	for _, reference := range art.References {
 		// delete reference
@@ -582,6 +598,9 @@ func (c *controller) assembleArtifact(ctx context.Context, art *artifact.Artifac
 	if option.WithLabel {
 		c.populateLabels(ctx, artifact)
 	}
+	if option.WithAccessory {
+		c.populateAccessories(ctx, artifact)
+	}
 	return artifact
 }
 
@@ -625,4 +644,13 @@ func (c *controller) populateAdditionLinks(ctx context.Context, artifact *Artifa
 			artifact.SetAdditionLink(strings.ToLower(t), version)
 		}
 	}
+}
+
+func (c *controller) populateAccessories(ctx context.Context, art *Artifact) {
+	accs, err := c.accessoryMgr.List(ctx, q.New(q.KeyWords{"SubjectArtifactID": art.ID}))
+	if err != nil {
+		log.Errorf("failed to list accessories of artifact %d: %v", art.ID, err)
+		return
+	}
+	art.Accessories = accs
 }
