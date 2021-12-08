@@ -8678,6 +8678,10 @@ definitions:
     type: object
     description: 'The accessory of the artifact'
     properties:
+      id:
+        type: integer
+        format: int64
+        description: The ID of the accessory
       artifact_id:
         type: integer
         format: int64
@@ -8692,6 +8696,10 @@ definitions:
         type: integer
         format: int64
         description: The artifact size of the accessory
+        x-omitempty: false
+      Digest:
+        type: string
+        description: The artifact digest of the accessory
         x-omitempty: false
       type:
         type: string
