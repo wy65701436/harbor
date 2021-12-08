@@ -8701,3 +8701,7 @@ definitions:
         type: string
         description: The icon of the accessory
         x-omitempty: false
+      creation_time:
+        type: string
+        format: date-time
+        description: The creation time of the accessory
