@@ -5839,6 +5839,11 @@ definitions:
       scan_overview:
         $ref: '#/definitions/ScanOverview'
         description: The overview of the scan result.
+      accessories:
+        type: array
+        items:
+          $ref: '#/definitions/Accessory'
+          description: The accessory of the artifact.
   Tag:
     type: object
     properties:
@@ -8668,4 +8673,31 @@ definitions:
         type: integer
         format: int64
         description: The total storage consumption of blobs, only be seen by the system admin
+        x-omitempty: false
+  Accessory:
+    type: object
+    description: 'The accessory of the artifact'
+    properties:
+      artifact_id:
+        type: integer
+        format: int64
+        description: The artifact id of the accessory
+        x-omitempty: false
+      subject_artifact_id:
+        type: integer
+        format: int64
+        description: The subject artifact id of the accessory
+        x-omitempty: false
+      size:
+        type: integer
+        format: int64
+        description: The artifact size of the accessory
+        x-omitempty: false
+      type:
+        type: string
+        description: The artifact size of the accessory
+        x-omitempty: false
+      icon:
+        type: string
+        description: The icon of the accessory
         x-omitempty: false
