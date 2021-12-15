@@ -60,6 +60,10 @@ func (suite *BaseTestSuite) TestIsHard() {
 	suite.False(suite.accessory.IsHard())
 }
 
+func (suite *BaseTestSuite) TestDisplay() {
+	suite.False(suite.accessory.Display())
+}
+
 func TestCacheTestSuite(t *testing.T) {
 	suite.Run(t, new(BaseTestSuite))
 }

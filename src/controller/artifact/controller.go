@@ -232,11 +232,22 @@ func (c *controller) List(ctx context.Context, query *q.Query, option *Option) (
 		return nil, err
 	}
 
-	var artifacts []*Artifact
+	var artifacts []*artifact.Artifact
 	for _, art := range arts {
-		artifacts = append(artifacts, c.assembleArtifact(ctx, art, option))
+		accs, err := c.accessoryMgr.List(ctx, q.New(q.KeyWords{"ArtifactID": art.ID, "digest": art.Digest}))
+		if err != nil {
+			return nil, err
+		}
+		if len(accs) == 0 || len(accs) > 0 && accs[0].Display() {
+			artifacts = append(artifacts, art)
+		}
 	}
-	return artifacts, nil
+
+	var res []*Artifact
+	for _, art := range artifacts {
+		res = append(res, c.assembleArtifact(ctx, art, option))
+	}
+	return res, nil
 }
 
 func (c *controller) Get(ctx context.Context, id int64, option *Option) (*Artifact, error) {
