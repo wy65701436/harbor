@@ -52,6 +52,13 @@ func (m *managerTestSuite) TestList() {
 	m.dao.AssertExpectations(m.T())
 }
 
+func (m *managerTestSuite) TestEnsure() {
+	mock.OnAnything(m.dao, "List").Return([]*dao.Accessory{}, nil)
+	mock.OnAnything(m.dao, "Create").Return(int64(1), nil)
+	err := m.mgr.Ensure(nil, int64(1), int64(1), int64(1), "sha256:1234", model.TypeCosignSignature)
+	m.Require().Nil(err)
+}
+
 func (m *managerTestSuite) TestGet() {
 	acc := &dao.Accessory{
 		ID:   1,
