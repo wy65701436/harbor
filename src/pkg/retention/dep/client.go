@@ -102,6 +102,7 @@ func (bc *basicClient) GetCandidates(repository *selector.Repository) ([]*select
 			if art.Digest == "" {
 				return nil, fmt.Errorf("lack digest of candidate for %s/%s", repository.Namespace, repository.Name)
 			}
+
 			labels := make([]string, 0)
 			for _, label := range art.Labels {
 				labels = append(labels, label.Name)
