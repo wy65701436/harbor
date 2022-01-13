@@ -415,6 +415,10 @@ func (gc *GarbageCollector) deletedArt(ctx job.Context) (map[string][]model.Arti
 		if err != nil {
 			return artMap, err
 		}
+		gc.logger.Info("=================")
+		gc.logger.Info(len(untaggedArts))
+		gc.logger.Info(untaggedArts)
+		gc.logger.Info("=================")
 		gc.logger.Info("start to delete untagged artifact (no actually deletion for dry-run mode)")
 		for _, untagged := range untaggedArts {
 			// for dryRun, just simulate the artifact deletion, move the artifact to artifact trash
