@@ -34,6 +34,11 @@ func (c *Signature) IsHard() bool {
 	return true
 }
 
+// Display ...
+func (c *Signature) Display() bool {
+	return true
+}
+
 // New returns cosign signature
 func New(data model.AccessoryData) model.Accessory {
 	return &Signature{base.Default{

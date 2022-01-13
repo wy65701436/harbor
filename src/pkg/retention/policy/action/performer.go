@@ -17,11 +17,8 @@ package action
 import (
 	"context"
 	"github.com/goharbor/harbor/src/common/utils"
-	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
-	"github.com/goharbor/harbor/src/lib/q"
 	"github.com/goharbor/harbor/src/lib/selector"
-	"github.com/goharbor/harbor/src/pkg/accessory"
 	"github.com/goharbor/harbor/src/pkg/immutable/match/rule"
 	"github.com/goharbor/harbor/src/pkg/retention/dep"
 )
@@ -58,7 +55,6 @@ type retainAction struct {
 func (ra *retainAction) Perform(ctx context.Context, candidates []*selector.Candidate) (results []*selector.Result, err error) {
 	retainedShare := make(map[string]bool)
 	immutableShare := make(map[string]bool)
-	accessoryShare := make(map[string]bool)
 	for _, c := range candidates {
 		retainedShare[c.Hash()] = true
 	}
@@ -69,9 +65,6 @@ func (ra *retainAction) Perform(ctx context.Context, candidates []*selector.Cand
 		}
 		if isImmutable(ctx, c) {
 			immutableShare[c.Hash()] = true
-		}
-		if isAccessory(ctx, c) {
-			accessoryShare[c.Hash()] = true
 		}
 	}
 
@@ -84,8 +77,6 @@ func (ra *retainAction) Perform(ctx context.Context, candidates []*selector.Cand
 				}
 				if _, ok = immutableShare[c.Hash()]; ok {
 					result.Error = &selector.ImmutableError{}
-				} else if _, ok = accessoryShare[c.Hash()]; ok {
-					result.Error = errors.New(nil).WithMessage("the artifact cannot be removed individually due to it's an accessory associated with an artifact")
 				} else {
 					if !ra.isDryRun {
 						if err := dep.DefaultClient.Delete(c); err != nil {
@@ -99,15 +90,6 @@ func (ra *retainAction) Perform(ctx context.Context, candidates []*selector.Cand
 	}
 
 	return
-}
-
-func isAccessory(ctx context.Context, c *selector.Candidate) bool {
-	accs, err := accessory.Mgr.List(ctx, q.New(q.KeyWords{"digest": c.Digest}))
-	if err != nil {
-		log.Error(err)
-		return false
-	}
-	return len(accs) > 0
 }
 
 func isImmutable(ctx context.Context, c *selector.Candidate) bool {
