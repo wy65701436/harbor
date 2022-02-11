@@ -32,12 +32,12 @@ func (a *Default) Kind() string {
 
 // IsSoft ...
 func (a *Default) IsSoft() bool {
-	return false
+	return a.Kind() == model.RefSoft
 }
 
 // IsHard ...
 func (a *Default) IsHard() bool {
-	return false
+	return a.Kind() == model.RefHard
 }
 
 // Display ...

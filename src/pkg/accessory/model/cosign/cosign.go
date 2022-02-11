@@ -29,11 +29,6 @@ func (c *Signature) Kind() string {
 	return model.RefHard
 }
 
-// IsHard ...
-func (c *Signature) IsHard() bool {
-	return true
-}
-
 // New returns cosign signature
 func New(data model.AccessoryData) model.Accessory {
 	return &Signature{base.Default{
