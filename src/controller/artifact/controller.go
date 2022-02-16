@@ -481,6 +481,14 @@ func (c *controller) copyDeeply(ctx context.Context, srcRepo, reference, dstRepo
 		return 0, err
 	}
 
+	// the artifact doesn't exist under the destination repository, continue to copy
+	// copy child artifacts if contains any
+	for _, reference := range srcArt.References {
+		if _, err = c.copyDeeply(ctx, srcRepo, reference.ChildDigest, dstRepo, false, false, dstAccs); err != nil {
+			return 0, err
+		}
+	}
+
 	// copy accessory if contains any
 	for _, acc := range srcArt.Accessories {
 		id, err := c.copyDeeply(ctx, srcRepo, acc.GetData().Digest, dstRepo, false, true, dstAccs)
@@ -494,14 +502,6 @@ func (c *controller) copyDeeply(ctx context.Context, srcRepo, reference, dstRepo
 			Size:       acc.GetData().Size,
 		}
 		*dstAccs = append(*dstAccs, dstAcc)
-	}
-
-	// the artifact doesn't exist under the destination repository, continue to copy
-	// copy child artifacts if contains any
-	for _, reference := range srcArt.References {
-		if _, err = c.copyDeeply(ctx, srcRepo, reference.ChildDigest, dstRepo, false, false, dstAccs); err != nil {
-			return 0, err
-		}
 	}
 
 	// copy the parent artifact into the backend docker registry
