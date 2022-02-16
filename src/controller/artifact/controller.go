@@ -453,10 +453,8 @@ func (c *controller) Copy(ctx context.Context, srcRepo, reference, dstRepo strin
 // "copyDeeply" iterates the child artifacts and copy them first
 func (c *controller) copyDeeply(ctx context.Context, srcRepo, reference, dstRepo string, isRoot, isAcc bool, dstAccs *[]accessorymodel.AccessoryData) (int64, error) {
 	var option *Option
-	// only get the tags of the root parent
-	if isRoot {
-		option = &Option{WithTag: true, WithAccessory: true}
-	} else if isAcc {
+	option = &Option{WithTag: true, WithAccessory: true}
+	if !isAcc {
 		option = &Option{WithTag: true}
 	}
 
