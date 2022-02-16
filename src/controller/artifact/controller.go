@@ -454,7 +454,7 @@ func (c *controller) Copy(ctx context.Context, srcRepo, reference, dstRepo strin
 func (c *controller) copyDeeply(ctx context.Context, srcRepo, reference, dstRepo string, isRoot, isAcc bool, dstAccs *[]accessorymodel.AccessoryData) (int64, error) {
 	var option *Option
 	option = &Option{WithTag: true, WithAccessory: true}
-	if !isAcc {
+	if isAcc {
 		option = &Option{WithTag: true}
 	}
 
