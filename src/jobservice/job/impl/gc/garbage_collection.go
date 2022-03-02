@@ -188,9 +188,11 @@ func (gc *GarbageCollector) mark(ctx job.Context) error {
 	}
 	gc.trashedArts = arts
 
+	gc.logger.Errorf("22222222222222222222")
 	// get gc candidates, and set the repositories.
 	// AS the reference count is calculated by joining table project_blob and blob, here needs to call removeUntaggedBlobs to remove these non-used blobs from table project_blob firstly.
 	orphanBlobs := gc.markOrSweepUntaggedBlobs(ctx)
+	gc.logger.Errorf("22222222222222222222")
 	blobs, err := gc.uselessBlobs(ctx)
 	if err != nil {
 		gc.logger.Errorf("failed to get gc candidate: %v", err)
@@ -427,11 +429,13 @@ func (gc *GarbageCollector) deletedArt(ctx job.Context) (map[string][]model.Arti
 				}
 				allTrashedArts = append(allTrashedArts, simulateDeletion)
 			} else {
+				gc.logger.Errorf("111111111111111111111")
 				if err := gc.artCtl.Delete(ctx.SystemContext(), untagged.ID); err != nil {
 					// the failure ones can be GCed by the next execution
 					gc.logger.Errorf("failed to delete untagged:%d artifact in DB, error, %v", untagged.ID, err)
 					continue
 				}
+				gc.logger.Errorf("111111111111111111111")
 			}
 			gc.logger.Infof("delete the untagged artifact: ProjectID:(%d)-RepositoryName(%s)-MediaType:(%s)-Digest:(%s)",
 				untagged.ProjectID, untagged.RepositoryName, untagged.ManifestMediaType, untagged.Digest)
