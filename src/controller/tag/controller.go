@@ -16,6 +16,7 @@ package tag
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/goharbor/harbor/src/common/utils"
@@ -210,9 +211,9 @@ func (c *controller) assembleTag(ctx context.Context, tag *model_tag.Tag, option
 	if option.WithImmutableStatus {
 		c.populateImmutableStatus(ctx, t)
 	}
-	log.Infof(" ====================")
-	log.Infof("%v", option)
-	log.Infof(" ====================")
+	fmt.Println(" ====================")
+	fmt.Println("%v", option)
+	fmt.Println(" ====================")
 	if option.WithSignature {
 		c.populateTagSignature(ctx, t, option)
 	}

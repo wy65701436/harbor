@@ -265,7 +265,7 @@ func (c *controller) Get(ctx context.Context, id int64, option *Option) (*Artifa
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("22111111111111111111111111111")
+	fmt.Println("22111111111111111111111111111")
 	return c.assembleArtifact(ctx, art, option), nil
 }
 
@@ -319,9 +319,9 @@ func (c *controller) Delete(ctx context.Context, id int64) error {
 // the error handling logic for the root parent artifact and others is different
 // "isAccessory" is used to specify whether the artifact is an accessory.
 func (c *controller) deleteDeeply(ctx context.Context, id int64, isRoot, isAccessory bool) error {
-	log.Infof("21111111111111111111111111111")
+	fmt.Println("21111111111111111111111111111")
 	art, err := c.Get(ctx, id, &Option{WithTag: true, WithAccessory: true})
-	log.Infof("21111111111111111111111111111")
+	fmt.Println("21111111111111111111111111111")
 	if err != nil {
 		// return nil if the nonexistent artifact isn't the root parent
 		if !isRoot && errors.IsErr(err, errors.NotFoundCode) {
@@ -683,7 +683,7 @@ func (c *controller) populateIcon(art *Artifact) {
 }
 
 func (c *controller) populateTags(ctx context.Context, art *Artifact, option *tag.Option) {
-	log.Infof("23111111111111111111111111111")
+	fmt.Println("23111111111111111111111111111")
 	tags, err := c.tagCtl.List(ctx, &q.Query{
 		Keywords: map[string]interface{}{
 			"artifact_id": art.ID,
