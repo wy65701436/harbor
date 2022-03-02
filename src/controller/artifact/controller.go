@@ -319,9 +319,9 @@ func (c *controller) Delete(ctx context.Context, id int64) error {
 // the error handling logic for the root parent artifact and others is different
 // "isAccessory" is used to specify whether the artifact is an accessory.
 func (c *controller) deleteDeeply(ctx context.Context, id int64, isRoot, isAccessory bool) error {
-	fmt.Println("21111111111111111111111111111")
+	fmt.Sprintf("21111111111111111111111111111 start %v", isAccessory)
 	art, err := c.Get(ctx, id, &Option{WithTag: true, WithAccessory: true})
-	fmt.Println("21111111111111111111111111111")
+	fmt.Sprintf("21111111111111111111111111111 done %v", isAccessory)
 	if err != nil {
 		// return nil if the nonexistent artifact isn't the root parent
 		if !isRoot && errors.IsErr(err, errors.NotFoundCode) {
@@ -386,6 +386,7 @@ func (c *controller) deleteDeeply(ctx context.Context, id int64, isRoot, isAcces
 		for _, tag := range art.Tags {
 			ids = append(ids, tag.ID)
 		}
+		fmt.Sprintf("33333333333333333333333333 %v", isAccessory)
 		if err = c.tagCtl.DeleteTags(ctx, ids); err != nil {
 			return err
 		}
@@ -693,6 +694,7 @@ func (c *controller) populateTags(ctx context.Context, art *Artifact, option *ta
 		log.Errorf("failed to list tag of artifact %d: %v", art.ID, err)
 		return
 	}
+	fmt.Println("23111111111111111111111111111 done")
 	art.Tags = tags
 }
 

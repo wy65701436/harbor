@@ -17,6 +17,7 @@ package config
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/goharbor/harbor/src/common"
@@ -77,7 +78,8 @@ func GetManager(name string) (Manager, error) {
 func defaultMgr() Manager {
 	manager, err := GetManager(DefaultCfgManager)
 	if err != nil {
-		log.Error("failed to get config manager")
+		fmt.Println("5555555555555555555")
+		log.Errorf("failed to get config manager, %v", err)
 	}
 	return manager
 }
