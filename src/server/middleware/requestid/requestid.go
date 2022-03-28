@@ -15,7 +15,9 @@
 package requestid
 
 import (
+	"github.com/goharbor/harbor/src/lib/log"
 	"net/http"
+	"net/http/httputil"
 
 	"github.com/goharbor/harbor/src/server/middleware"
 	"github.com/google/uuid"
@@ -32,6 +34,11 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 			rid = uuid.New().String()
 			r.Header.Set(HeaderXRequestID, rid)
 		}
+
+		log.Info("==========================")
+		out, _ := httputil.DumpRequest(r, true)
+		log.Info(string(out))
+		log.Info("==========================")
 
 		w.Header().Set(HeaderXRequestID, rid)
 		next.ServeHTTP(w, r)
