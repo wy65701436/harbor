@@ -40,6 +40,7 @@ var (
 		{Resource: rbac.ResourceScanner, Action: rbac.ActionRead},
 
 		{Resource: rbac.ResourceTag, Action: rbac.ActionList},
+		{Resource: rbac.ResourceAccessory, Action: rbac.ActionList},
 
 		{Resource: rbac.ResourceArtifact, Action: rbac.ActionRead},
 		{Resource: rbac.ResourceArtifact, Action: rbac.ActionList},
