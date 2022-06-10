@@ -10,7 +10,7 @@ import { ConfigureService } from 'ng-swagger-gen/services/configure.service';
 import { clone } from '../../../shared/units/utils';
 import { MessageHandlerService } from '../../../shared/services/message-handler.service';
 import { finalize } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 const fakePass = 'aWpLOSYkIzJTTU4wMDkx';
 
@@ -92,8 +92,6 @@ export class ConfigService {
                     // Handle read only
                     if (this._originalConfig?.read_only?.value) {
                         this.msgHandler.handleReadOnly();
-                    } else {
-                        this.msgHandler.clear();
                     }
                 },
                 error => {
@@ -117,5 +115,11 @@ export class ConfigService {
             ConfirmationTargets.CONFIG
         );
         this.confirmService.openComfirmDialog(msg);
+    }
+
+    saveConfiguration(changes: any): Observable<any> {
+        return this.configureService.updateConfigurations({
+            configurations: changes,
+        });
     }
 }

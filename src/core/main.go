@@ -1,16 +1,16 @@
-// Copyright 2018 Project Harbor Authors
+//  Copyright Project Harbor Authors
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
 //
-//    http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
 
 package main
 
@@ -24,6 +24,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/goharbor/harbor/src/controller/systemartifact"
 
 	"github.com/beego/beego"
 	"github.com/goharbor/harbor/src/core/session"
@@ -51,6 +53,7 @@ import (
 	"github.com/goharbor/harbor/src/lib/orm"
 	tracelib "github.com/goharbor/harbor/src/lib/trace"
 	"github.com/goharbor/harbor/src/migration"
+	"github.com/goharbor/harbor/src/pkg/audit"
 	dbCfg "github.com/goharbor/harbor/src/pkg/config/db"
 	_ "github.com/goharbor/harbor/src/pkg/config/inmemory"
 	"github.com/goharbor/harbor/src/pkg/notification"
@@ -200,6 +203,9 @@ func main() {
 	go gracefulShutdown(closing, done, shutdownTracerProvider)
 	// Start health checker for registries
 	go registry.Ctl.StartRegularHealthCheck(orm.Context(), closing, done)
+	// Init audit log
+	auditEP := config.AuditLogForwardEndpoint(ctx)
+	audit.LogMgr.Init(ctx, auditEP)
 
 	log.Info("initializing notification...")
 	notification.Init()
@@ -223,7 +229,11 @@ func main() {
 	log.Infof("Version: %s, Git commit: %s", version.ReleaseVersion, version.GitCommit)
 
 	log.Info("Fix empty subiss for meta info data.")
-	oidc.FixEmptySubIss(orm.Context())
+	_, err = oidc.FixEmptySubIss(orm.Context())
+	if err != nil {
+		log.Warningf("oidc.FixEmptySubIss() errors out, error: %v", err)
+	}
+	systemartifact.ScheduleCleanupTask(ctx)
 	beego.RunWithMiddleWares("", middlewares.MiddleWares()...)
 }
 

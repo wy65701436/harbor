@@ -48,12 +48,6 @@ func (cc *CommonController) Render() error {
 // Prepare overwrites the Prepare func in api.BaseController to ignore unnecessary steps
 func (cc *CommonController) Prepare() {}
 
-type messageDetail struct {
-	Hint string
-	URL  string
-	UUID string
-}
-
 func redirectForOIDC(ctx context.Context, username string) bool {
 	if lib.GetAuthMode(ctx) != common.OIDCAuth {
 		return false
@@ -89,9 +83,12 @@ func (cc *CommonController) Login() {
 		log.Debugf("Redirect user %s to login page of OIDC provider", principal)
 		// Return a json to UI with status code 403, as it cannot handle status 302
 		cc.Ctx.Output.Status = http.StatusForbidden
-		cc.Ctx.Output.JSON(struct {
+		err = cc.Ctx.Output.JSON(struct {
 			Location string `json:"redirect_location"`
 		}{url}, false, false)
+		if err != nil {
+			log.Errorf("Failed to write json to response body, error: %v", err)
+		}
 		return
 	}
 

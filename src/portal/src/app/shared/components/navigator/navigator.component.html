@@ -1,7 +1,6 @@
 <clr-header class="header-5 header" [attr.style]="getBgColor()">
     <div class="branding">
         <a href="javascript:void(0)" class="nav-link" (click)="homeAction()">
-            <!-- <clr-icon shape="vm-bug"  *ngIf="!customStyle?.headerLogo"></clr-icon> -->
             <img
                 [attr.src]="'images/' + customStyle?.product?.logo"
                 *ngIf="customStyle?.product?.logo; else elseBlock"
@@ -36,7 +35,7 @@
             *ngIf="!isIntegrationMode">
             <button class="nav-icon nav-icon-width" clrDropdownToggle>
                 <clr-icon shape="world" class="icon-left"></clr-icon>
-                <span class="currentLang">{{ currentLang }}</span>
+                <span class="currentLocale">{{ currentLang }}</span>
                 <clr-icon size="10" shape="caret down"></clr-icon>
             </button>
             <clr-dropdown-menu *clrIfOpen>
@@ -47,6 +46,29 @@
                     (click)="switchLanguage(lang[0])"
                     [class.lang-selected]="matchLang(lang[0])"
                     >{{ lang[1] }}</a
+                >
+            </clr-dropdown-menu>
+        </clr-dropdown>
+        <clr-dropdown
+            class="dropdown-locale dropdown bottom-left"
+            *ngIf="!isIntegrationMode">
+            <button class="nav-icon nav-icon-width" clrDropdownToggle>
+                <clr-icon shape="date" class="icon-left"></clr-icon>
+                <span class="currentLocale">{{
+                    currentDatetimeRendering | translate
+                }}</span>
+                <clr-icon size="10" shape="caret down"></clr-icon>
+            </button>
+            <clr-dropdown-menu *clrIfOpen>
+                <a
+                    *ngFor="let rendering of guiDatetimeRenderings"
+                    href="javascript:void(0)"
+                    clrDropdownItem
+                    (click)="switchDatetimeRendering(rendering[0])"
+                    [class.locale-selected]="
+                        matchDatetimeRendering(rendering[0])
+                    "
+                    >{{ rendering[1] | translate }}</a
                 >
             </clr-dropdown-menu>
         </clr-dropdown>

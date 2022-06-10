@@ -1,6 +1,6 @@
 module github.com/goharbor/harbor/src
 
-go 1.17
+go 1.18
 
 require (
 	github.com/FZambia/sentinel v1.1.0
@@ -49,7 +49,8 @@ require (
 	github.com/opencontainers/image-spec v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
-	github.com/robfig/cron v1.0.0
+	github.com/robfig/cron v1.0.0 // indirect
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tencentcloud/tencentcloud-sdk-go v1.0.62
@@ -75,7 +76,10 @@ require (
 	k8s.io/client-go v0.22.1
 )
 
-require github.com/beego/beego v1.12.7
+require (
+	github.com/beego/beego v1.12.9
+	golang.org/x/text v0.3.7
+)
 
 require (
 	cloud.google.com/go v0.88.0 // indirect
@@ -202,7 +206,6 @@ require (
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
 	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d // indirect
-	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/api v0.51.0 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/cloud v0.0.0-20151119220103-975617b05ea8 // indirect
