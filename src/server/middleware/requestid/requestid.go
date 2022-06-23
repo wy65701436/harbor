@@ -15,7 +15,9 @@
 package requestid
 
 import (
+	"github.com/goharbor/harbor/src/lib/log"
 	"net/http"
+	"net/http/httputil"
 
 	tracelib "github.com/goharbor/harbor/src/lib/trace"
 	"github.com/goharbor/harbor/src/server/middleware"
@@ -40,6 +42,10 @@ func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler 
 		if tracelib.Enabled() {
 			oteltrace.SpanFromContext(r.Context()).SetAttributes(attribute.Key(HeaderXRequestID).String(rid))
 		}
+		b, _ := httputil.DumpRequest(r, true)
+		log.Info(" ======================= ")
+		log.Info(string(b))
+		log.Info(" ======================= ")
 		next.ServeHTTP(w, r)
 	}, skippers...)
 }
