@@ -17,6 +17,7 @@ package robot
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 
@@ -98,6 +99,10 @@ func (s *SecurityContext) Can(ctx context.Context, action types.Action, resource
 			}
 		}
 
+		log.Println("=========================== ")
+		log.Println(accesses)
+		log.Println("=========================== ")
+
 		if s.robot.Level == robot.LEVELSYSTEM {
 			var proPolicies []*types.Policy
 			var sysPolicies []*types.Policy
@@ -114,6 +119,11 @@ func (s *SecurityContext) Can(ctx context.Context, action types.Action, resource
 			} else if len(proPolicies) != 0 {
 				evaluators = evaluators.Add(rbac_project.NewEvaluator(s.ctl, rbac_project.NewBuilderForPolicies(s.GetUsername(), proPolicies)))
 			}
+
+			log.Println("=========================== ")
+			log.Println(evaluators)
+			log.Println("=========================== ")
+
 			s.evaluator = evaluators
 		} else {
 			s.evaluator = rbac_project.NewEvaluator(s.ctl, rbac_project.NewBuilderForPolicies(s.GetUsername(), accesses, filterRobotPolicies))

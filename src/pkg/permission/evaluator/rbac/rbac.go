@@ -16,6 +16,7 @@ package rbac
 
 import (
 	"context"
+	"log"
 	"sync"
 
 	"github.com/casbin/casbin"
@@ -39,6 +40,10 @@ func (e *Evaluator) HasPermission(ctx context.Context, resource types.Resource, 
 		e.enforcer = makeEnforcer(e.rbacUser)
 	})
 
+	log.Println("======================= 1 ")
+	log.Println(resource.String())
+	log.Println(action.String())
+	log.Println("======================= 1 ")
 	return e.enforcer.Enforce(e.rbacUser.GetUserName(), resource.String(), action.String())
 }
 
