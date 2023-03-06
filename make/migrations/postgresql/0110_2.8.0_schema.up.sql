@@ -50,5 +50,3 @@ WHERE id IN (
     UNION
     SELECT id FROM replication_policy_ids
 );
-
-
