@@ -641,12 +641,14 @@ func (c *controller) Walk(ctx context.Context, root *Artifact, walkFn func(*Arti
 				}
 				if len(child.Accessories) != 0 {
 					for _, acc := range child.Accessories {
-						accArt, err := c.Get(ctx, acc.GetData().ArtifactID, option)
+						arts, err := c.walkAcc(ctx, acc, option)
 						if err != nil {
 							return err
 						}
-						if !walked[accArt.Digest] {
-							queue.PushBack(accArt)
+						for _, art := range arts {
+							if !walked[art.Digest] {
+								queue.PushBack(art)
+							}
 						}
 					}
 				}
@@ -655,17 +657,44 @@ func (c *controller) Walk(ctx context.Context, root *Artifact, walkFn func(*Arti
 
 		if len(artifact.Accessories) > 0 {
 			for _, acc := range artifact.Accessories {
-				accArt, err := c.Get(ctx, acc.GetData().ArtifactID, option)
+				arts, err := c.walkAcc(ctx, acc, option)
 				if err != nil {
 					return err
 				}
-				if !walked[accArt.Digest] {
-					queue.PushBack(accArt)
+				for _, art := range arts {
+					if !walked[art.Digest] {
+						queue.PushBack(art)
+					}
 				}
 			}
 		}
 	}
 
+	return nil
+}
+
+func (c *controller) walkAcc(ctx context.Context, acc accessorymodel.Accessory, option *Option) ([]*Artifact, error) {
+	all := make([]*Artifact, 0)
+	if err := c.walkAccDeeply(ctx, acc, option, &all); err != nil {
+		return nil, err
+	}
+	return all, nil
+}
+
+func (c *controller) walkAccDeeply(ctx context.Context, acc accessorymodel.Accessory, option *Option, arts *[]*Artifact) error {
+	accArt, err := c.Get(ctx, acc.GetData().ArtifactID, option)
+	if err != nil {
+		return err
+	}
+	*arts = append(*arts, accArt)
+	if len(accArt.Accessories) == 0 {
+		return nil
+	}
+	for _, acc := range accArt.Accessories {
+		if err := c.walkAccDeeply(ctx, acc, option, arts); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
