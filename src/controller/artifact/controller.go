@@ -661,6 +661,9 @@ func (c *controller) Walk(ctx context.Context, root *Artifact, walkFn func(*Arti
 				if err != nil {
 					return err
 				}
+				fmt.Println("====================================")
+				fmt.Println(arts)
+				fmt.Println("====================================")
 				for _, art := range arts {
 					if !walked[art.Digest] {
 						queue.PushBack(art)
