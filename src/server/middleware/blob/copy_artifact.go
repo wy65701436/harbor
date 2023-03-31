@@ -29,6 +29,7 @@
 package blob
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -90,6 +91,10 @@ func CopyArtifactMiddleware() func(http.Handler) http.Handler {
 			logger.Errorf("walk the artifact %s failed, error: %v", art.Digest, err)
 			return err
 		}
+
+		fmt.Println("***************************")
+		fmt.Println(artifactDigests)
+		fmt.Println("***************************")
 
 		allBlobs, err := blobController.List(ctx, q.New(q.KeyWords{"artifactDigests": artifactDigests}))
 		if err != nil {
