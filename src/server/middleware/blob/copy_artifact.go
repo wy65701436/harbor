@@ -89,7 +89,7 @@ func CopyArtifactMiddleware() func(http.Handler) http.Handler {
 			fmt.Println("walk ==============================")
 			artifactDigests = append(artifactDigests, a.Digest)
 			return nil
-		}, nil)
+		}, &artifact.Option{WithAccessory: true})
 		if err != nil {
 			logger.Errorf("walk the artifact %s failed, error: %v", art.Digest, err)
 			return err
