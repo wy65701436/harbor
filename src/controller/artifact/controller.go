@@ -613,6 +613,10 @@ func (c *controller) Walk(ctx context.Context, root *Artifact, walkFn func(*Arti
 		artifact := elem.Value.(*Artifact)
 		walked[artifact.Digest] = true
 
+		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^")
+		fmt.Println(artifact)
+		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^")
+
 		if err := walkFn(artifact); err != nil {
 			if err == ErrBreak {
 				return nil
