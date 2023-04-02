@@ -613,10 +613,6 @@ func (c *controller) Walk(ctx context.Context, root *Artifact, walkFn func(*Arti
 		artifact := elem.Value.(*Artifact)
 		walked[artifact.Digest] = true
 
-		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^")
-		fmt.Println(artifact)
-		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^")
-
 		if err := walkFn(artifact); err != nil {
 			if err == ErrBreak {
 				return nil
@@ -645,14 +641,12 @@ func (c *controller) Walk(ctx context.Context, root *Artifact, walkFn func(*Arti
 				}
 				if len(child.Accessories) != 0 {
 					for _, acc := range child.Accessories {
-						arts, err := c.walkAcc(ctx, acc, option)
+						accArt, err := c.Get(ctx, acc.GetData().ArtifactID, option)
 						if err != nil {
 							return err
 						}
-						for _, art := range arts {
-							if !walked[art.Digest] {
-								queue.PushBack(art)
-							}
+						if !walked[accArt.Digest] {
+							queue.PushBack(accArt)
 						}
 					}
 				}
@@ -661,17 +655,12 @@ func (c *controller) Walk(ctx context.Context, root *Artifact, walkFn func(*Arti
 
 		if len(artifact.Accessories) > 0 {
 			for _, acc := range artifact.Accessories {
-				arts, err := c.walkAcc(ctx, acc, option)
+				accArt, err := c.Get(ctx, acc.GetData().ArtifactID, option)
 				if err != nil {
 					return err
 				}
-				fmt.Println("====================================")
-				fmt.Println(arts)
-				fmt.Println("====================================")
-				for _, art := range arts {
-					if !walked[art.Digest] {
-						queue.PushBack(art)
-					}
+				if !walked[accArt.Digest] {
+					queue.PushBack(accArt)
 				}
 			}
 		}
@@ -679,6 +668,86 @@ func (c *controller) Walk(ctx context.Context, root *Artifact, walkFn func(*Arti
 
 	return nil
 }
+
+//func (c *controller) Walk(ctx context.Context, root *Artifact, walkFn func(*Artifact) error, option *Option) error {
+//	queue := list.New()
+//	queue.PushBack(root)
+//
+//	walked := map[string]bool{}
+//
+//	for queue.Len() > 0 {
+//		elem := queue.Front()
+//		queue.Remove(elem)
+//
+//		artifact := elem.Value.(*Artifact)
+//		walked[artifact.Digest] = true
+//
+//		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^")
+//		fmt.Println(artifact)
+//		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^")
+//
+//		if err := walkFn(artifact); err != nil {
+//			if err == ErrBreak {
+//				return nil
+//			} else if err == ErrSkip {
+//				continue
+//			}
+//
+//			return err
+//		}
+//
+//		if len(artifact.References) > 0 {
+//			var ids []int64
+//			for _, ref := range artifact.References {
+//				ids = append(ids, ref.ChildID)
+//			}
+//
+//			// HACK: base=* in KeyWords to filter all artifacts
+//			children, err := c.List(ctx, q.New(q.KeyWords{"id__in": ids, "base": "*"}), option)
+//			if err != nil {
+//				return err
+//			}
+//
+//			for _, child := range children {
+//				if !walked[child.Digest] {
+//					queue.PushBack(child)
+//				}
+//				if len(child.Accessories) != 0 {
+//					for _, acc := range child.Accessories {
+//						arts, err := c.walkAcc(ctx, acc, option)
+//						if err != nil {
+//							return err
+//						}
+//						for _, art := range arts {
+//							if !walked[art.Digest] {
+//								queue.PushBack(art)
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		if len(artifact.Accessories) > 0 {
+//			for _, acc := range artifact.Accessories {
+//				arts, err := c.walkAcc(ctx, acc, option)
+//				if err != nil {
+//					return err
+//				}
+//				fmt.Println("====================================")
+//				fmt.Println(arts)
+//				fmt.Println("====================================")
+//				for _, art := range arts {
+//					if !walked[art.Digest] {
+//						queue.PushBack(art)
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	return nil
+//}
 
 func (c *controller) walkAcc(ctx context.Context, acc accessorymodel.Accessory, option *Option) ([]*Artifact, error) {
 	all := make([]*Artifact, 0)
