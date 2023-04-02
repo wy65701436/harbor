@@ -84,6 +84,9 @@ func CopyArtifactMiddleware() func(http.Handler) http.Handler {
 
 		var artifactDigests []string
 		err = artifactController.Walk(ctx, art, func(a *artifact.Artifact) error {
+			fmt.Println("walk ==============================")
+			fmt.Println(a.Digest)
+			fmt.Println("walk ==============================")
 			artifactDigests = append(artifactDigests, a.Digest)
 			return nil
 		}, nil)
