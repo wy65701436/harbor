@@ -17,6 +17,8 @@ package gc
 import (
 	"encoding/json"
 	"os"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/goharbor/harbor/src/common/registryctl"
@@ -66,6 +68,7 @@ type GarbageCollector struct {
 	// hold all of GC candidates(non-referenced blobs), it's captured by mark and consumed by sweep.
 	deleteSet       []*blobModels.Blob
 	timeWindowHours int64
+	workers         int
 }
 
 // MaxFails implements the interface in job/Interface
@@ -141,8 +144,17 @@ func (gc *GarbageCollector) parseParams(params job.Parameters) {
 		}
 	}
 
-	gc.logger.Infof("Garbage Collection parameters: [delete_untagged: %t, dry_run: %t, time_window: %d]",
-		gc.deleteUntagged, gc.dryRun, gc.timeWindowHours)
+	// gc workers:
+	gc.workers = 1
+	ws, exist := params["workers"]
+	if exist {
+		if workers, ok := ws.(float64); ok {
+			gc.workers = int(workers)
+		}
+	}
+
+	gc.logger.Infof("Garbage Collection parameters: [delete_untagged: %t, dry_run: %t, time_window: %d, workers: %d]",
+		gc.deleteUntagged, gc.dryRun, gc.timeWindowHours, gc.workers)
 }
 
 // Run implements the interface in job/Interface
@@ -220,6 +232,7 @@ func (gc *GarbageCollector) mark(ctx job.Context) error {
 	blobCt := 0
 	mfCt := 0
 	makeSize := int64(0)
+
 	for _, blob := range blobs {
 		if !gc.dryRun {
 			if gc.shouldStop(ctx) {
@@ -259,159 +272,186 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 	blobCnt := int64(0)
 	mfCnt := int64(0)
 	total := len(gc.deleteSet)
-	for i, blob := range gc.deleteSet {
-		if gc.shouldStop(ctx) {
-			return errGcStop
-		}
-		idx := i + 1
-		// set the status firstly, if the blob is updated by any HEAD/PUT request, it should be fail and skip.
-		blob.Status = blobModels.StatusDeleting
-		count, err := gc.blobMgr.UpdateBlobStatus(ctx.SystemContext(), blob)
-		if err != nil {
-			gc.logger.Errorf("[%d/%d] failed to mark gc candidate deleting, skip: %s, %s", idx, total, blob.Digest, blob.Status)
-			continue
-		}
-		if count == 0 {
-			gc.logger.Warningf("[%d/%d] no blob found to mark gc candidate deleting, ID:%d, digest:%s", idx, total, blob.ID, blob.Digest)
-			continue
-		}
 
-		// remove tags and revisions of a manifest
-		skippedBlob := false
-		if _, exist := gc.trashedArts[blob.Digest]; exist && blob.IsManifest() {
-			for _, art := range gc.trashedArts[blob.Digest] {
-				// Harbor cannot know the existing tags in the backend from its database, so let the v2 DELETE manifest to remove all of them.
-				gc.logger.Infof("[%d/%d] delete the manifest with registry v2 API: %s, %s, %s",
-					idx, total, art.RepositoryName, blob.ContentType, blob.Digest)
-				if err := retry.Retry(func() error {
-					return ignoreNotFound(func() error {
-						err := v2DeleteManifest(art.RepositoryName, blob.Digest)
-						// if the system is in read-only mode, return an Abort error to skip retrying
-						if err == readonly.Err {
-							return retry.Abort(err)
-						}
-						return err
-					})
-				}, retry.Callback(func(err error, sleep time.Duration) {
-					gc.logger.Infof("[%d/%d] failed to exec v2DeleteManifest, error: %v, will retry again after: %s", idx, total, err, sleep)
-				})); err != nil {
-					gc.logger.Errorf("[%d/%d] failed to delete manifest with v2 API, %s, %s, %v", idx, total, art.RepositoryName, blob.Digest, err)
-					if err := ignoreNotFound(func() error {
-						return gc.markDeleteFailed(ctx, blob)
-					}); err != nil {
-						gc.logger.Errorf("[%d/%d] failed to call gc.markDeleteFailed() after v2DeleteManifest() error out: %s, %v", idx, total, blob.Digest, err)
-						return err
-					}
-					// if the system is set to read-only mode, return directly
-					if err == readonly.Err {
-						return err
-					}
-					skippedBlob = true
-					continue
-				}
-				// for manifest, it has to delete the revisions folder of each repository
-				gc.logger.Infof("[%d/%d] delete manifest from storage: %s", idx, total, blob.Digest)
-				if err := retry.Retry(func() error {
-					return ignoreNotFound(func() error {
-						err := gc.registryCtlClient.DeleteManifest(art.RepositoryName, blob.Digest)
-						// if the system is in read-only mode, return an Abort error to skip retrying
-						if err == readonly.Err {
-							return retry.Abort(err)
-						}
-						return err
-					})
-				}, retry.Callback(func(err error, sleep time.Duration) {
-					gc.logger.Infof("[%d/%d] failed to exec DeleteManifest, error: %v, will retry again after: %s", idx, total, err, sleep)
-				})); err != nil {
-					gc.logger.Errorf("[%d/%d] failed to remove manifest from storage: %s, %s, errMsg=%v", idx, total, art.RepositoryName, blob.Digest, err)
-					if err := ignoreNotFound(func() error {
-						return gc.markDeleteFailed(ctx, blob)
-					}); err != nil {
-						gc.logger.Errorf("[%d/%d] failed to call gc.markDeleteFailed() after gc.registryCtlClient.DeleteManifest() error out: %s, %s, %v", idx, total, art.RepositoryName, blob.Digest, err)
-						return err
-					}
-					// if the system is set to read-only mode, return directly
-					if err == readonly.Err {
-						return err
-					}
-					skippedBlob = true
-					continue
-				}
-
-				gc.logger.Infof("[%d/%d] delete artifact blob record from database: %d, %s, %s", idx, total, art.ID, art.RepositoryName, art.Digest)
-				if err := ignoreNotFound(func() error {
-					return gc.blobMgr.CleanupAssociationsForArtifact(ctx.SystemContext(), art.Digest)
-				}); err != nil {
-					gc.logger.Errorf("[%d/%d] failed to call gc.blobMgr.CleanupAssociationsForArtifact(): %v, errMsg=%v", idx, total, art.Digest, err)
-					return err
-				}
-
-				gc.logger.Infof("[%d/%d] delete artifact trash record from database: %d, %s, %s", idx, total, art.ID, art.RepositoryName, art.Digest)
-				if err := ignoreNotFound(func() error {
-					return gc.artrashMgr.Delete(ctx.SystemContext(), art.ID)
-				}); err != nil {
-					gc.logger.Errorf("[%d/%d] failed to call gc.artrashMgr.Delete(): %v, errMsg=%v", idx, total, art.ID, err)
-					return err
-				}
-			}
+	// split the full set into pieces (count workers)
+	blobChunkSize := len(gc.deleteSet) / int(gc.workers)
+	blobChunkCount := (len(gc.deleteSet) + blobChunkSize - 1) / blobChunkSize
+	blobChunks := make([][]*blobModels.Blob, blobChunkCount)
+	for i, start := 0, 0; i < blobChunkCount; i, start = i+1, start+blobChunkSize {
+		end := start + blobChunkSize
+		if end > len(gc.deleteSet) {
+			end = len(gc.deleteSet)
 		}
-
-		// skip deleting the blob if the manifest's tag/revision is not deleted
-		if skippedBlob {
-			continue
-		}
-
-		// delete all of blobs, which include config, layer and manifest
-		// for the foreign layer, as it's not stored in the storage, no need to call the delete api and count size, but still have to delete the DB record.
-		if !blob.IsForeignLayer() {
-			gc.logger.Infof("[%d/%d] delete blob from storage: %s", idx, total, blob.Digest)
-			if err := retry.Retry(func() error {
-				return ignoreNotFound(func() error {
-					err := gc.registryCtlClient.DeleteBlob(blob.Digest)
-					// if the system is in read-only mode, return an Abort error to skip retrying
-					if err == readonly.Err {
-						return retry.Abort(err)
-					}
-					return err
-				})
-			}, retry.Callback(func(err error, sleep time.Duration) {
-				gc.logger.Infof("[%d/%d] failed to exec DeleteBlob, error: %v, will retry again after: %s", idx, total, err, sleep)
-			})); err != nil {
-				gc.logger.Errorf("[%d/%d] failed to delete blob from storage: %s, %s, errMsg=%v", idx, total, blob.Digest, blob.Status, err)
-				if err := ignoreNotFound(func() error {
-					return gc.markDeleteFailed(ctx, blob)
-				}); err != nil {
-					gc.logger.Errorf("[%d/%d] failed to call gc.markDeleteFailed() after gc.registryCtlClient.DeleteBlob() error out: %s, %v", idx, total, blob.Digest, err)
-					return err
-				}
-				// if the system is set to read-only mode, return directly
-				if err == readonly.Err {
-					return err
-				}
-				continue
-			}
-			sweepSize = sweepSize + blob.Size
-		}
-
-		gc.logger.Infof("[%d/%d] delete blob record from database: %d, %s", idx, total, blob.ID, blob.Digest)
-		if err := ignoreNotFound(func() error {
-			return gc.blobMgr.Delete(ctx.SystemContext(), blob.ID)
-		}); err != nil {
-			gc.logger.Errorf("[%d/%d] failed to delete blob from database: %s, %s, errMsg=%v", idx, total, blob.Digest, blob.Status, err)
-			if err := ignoreNotFound(func() error {
-				return gc.markDeleteFailed(ctx, blob)
-			}); err != nil {
-				gc.logger.Errorf("[%d/%d] failed to call gc.markDeleteFailed() after gc.blobMgr.Delete() error out, %d, %s %v", idx, total, blob.ID, blob.Digest, err)
-				return err
-			}
-			return err
-		}
-		if blob.IsManifest() {
-			mfCnt++
-		} else {
-			blobCnt++
-		}
+		blobChunks[i] = gc.deleteSet[start:end]
 	}
+
+	var wg sync.WaitGroup
+	index := int64(1)
+	for _, blobChunk := range blobChunks {
+		wg.Add(1)
+		go func(ctx job.Context, blobs []*blobModels.Blob) {
+			defer wg.Done()
+			for _, blob := range blobs {
+				if gc.shouldStop(ctx) {
+					return errGcStop
+				}
+
+				atomic.AddInt64(&index, 1)
+
+				// set the status firstly, if the blob is updated by any HEAD/PUT request, it should be fail and skip.
+				blob.Status = blobModels.StatusDeleting
+				count, err := gc.blobMgr.UpdateBlobStatus(ctx.SystemContext(), blob)
+				if err != nil {
+					gc.logger.Errorf("[%d/%d] failed to mark gc candidate deleting, skip: %s, %s", idx, total, blob.Digest, blob.Status)
+					continue
+				}
+				if count == 0 {
+					gc.logger.Warningf("[%d/%d] no blob found to mark gc candidate deleting, ID:%d, digest:%s", idx, total, blob.ID, blob.Digest)
+					continue
+				}
+
+				// remove tags and revisions of a manifest
+				skippedBlob := false
+				if _, exist := gc.trashedArts[blob.Digest]; exist && blob.IsManifest() {
+					for _, art := range gc.trashedArts[blob.Digest] {
+						// Harbor cannot know the existing tags in the backend from its database, so let the v2 DELETE manifest to remove all of them.
+						gc.logger.Infof("[%d/%d] delete the manifest with registry v2 API: %s, %s, %s",
+							idx, total, art.RepositoryName, blob.ContentType, blob.Digest)
+						if err := retry.Retry(func() error {
+							return ignoreNotFound(func() error {
+								err := v2DeleteManifest(art.RepositoryName, blob.Digest)
+								// if the system is in read-only mode, return an Abort error to skip retrying
+								if err == readonly.Err {
+									return retry.Abort(err)
+								}
+								return err
+							})
+						}, retry.Callback(func(err error, sleep time.Duration) {
+							gc.logger.Infof("[%d/%d] failed to exec v2DeleteManifest, error: %v, will retry again after: %s", idx, total, err, sleep)
+						})); err != nil {
+							gc.logger.Errorf("[%d/%d] failed to delete manifest with v2 API, %s, %s, %v", idx, total, art.RepositoryName, blob.Digest, err)
+							if err := ignoreNotFound(func() error {
+								return gc.markDeleteFailed(ctx, blob)
+							}); err != nil {
+								gc.logger.Errorf("[%d/%d] failed to call gc.markDeleteFailed() after v2DeleteManifest() error out: %s, %v", idx, total, blob.Digest, err)
+								return err
+							}
+							// if the system is set to read-only mode, return directly
+							if err == readonly.Err {
+								return err
+							}
+							skippedBlob = true
+							continue
+						}
+						// for manifest, it has to delete the revisions folder of each repository
+						gc.logger.Infof("[%d/%d] delete manifest from storage: %s", idx, total, blob.Digest)
+						if err := retry.Retry(func() error {
+							return ignoreNotFound(func() error {
+								err := gc.registryCtlClient.DeleteManifest(art.RepositoryName, blob.Digest)
+								// if the system is in read-only mode, return an Abort error to skip retrying
+								if err == readonly.Err {
+									return retry.Abort(err)
+								}
+								return err
+							})
+						}, retry.Callback(func(err error, sleep time.Duration) {
+							gc.logger.Infof("[%d/%d] failed to exec DeleteManifest, error: %v, will retry again after: %s", idx, total, err, sleep)
+						})); err != nil {
+							gc.logger.Errorf("[%d/%d] failed to remove manifest from storage: %s, %s, errMsg=%v", idx, total, art.RepositoryName, blob.Digest, err)
+							if err := ignoreNotFound(func() error {
+								return gc.markDeleteFailed(ctx, blob)
+							}); err != nil {
+								gc.logger.Errorf("[%d/%d] failed to call gc.markDeleteFailed() after gc.registryCtlClient.DeleteManifest() error out: %s, %s, %v", idx, total, art.RepositoryName, blob.Digest, err)
+								return err
+							}
+							// if the system is set to read-only mode, return directly
+							if err == readonly.Err {
+								return err
+							}
+							skippedBlob = true
+							continue
+						}
+
+						gc.logger.Infof("[%d/%d] delete artifact blob record from database: %d, %s, %s", idx, total, art.ID, art.RepositoryName, art.Digest)
+						if err := ignoreNotFound(func() error {
+							return gc.blobMgr.CleanupAssociationsForArtifact(ctx.SystemContext(), art.Digest)
+						}); err != nil {
+							gc.logger.Errorf("[%d/%d] failed to call gc.blobMgr.CleanupAssociationsForArtifact(): %v, errMsg=%v", idx, total, art.Digest, err)
+							return err
+						}
+
+						gc.logger.Infof("[%d/%d] delete artifact trash record from database: %d, %s, %s", idx, total, art.ID, art.RepositoryName, art.Digest)
+						if err := ignoreNotFound(func() error {
+							return gc.artrashMgr.Delete(ctx.SystemContext(), art.ID)
+						}); err != nil {
+							gc.logger.Errorf("[%d/%d] failed to call gc.artrashMgr.Delete(): %v, errMsg=%v", idx, total, art.ID, err)
+							return err
+						}
+					}
+				}
+
+				// skip deleting the blob if the manifest's tag/revision is not deleted
+				if skippedBlob {
+					continue
+				}
+
+				// delete all of blobs, which include config, layer and manifest
+				// for the foreign layer, as it's not stored in the storage, no need to call the delete api and count size, but still have to delete the DB record.
+				if !blob.IsForeignLayer() {
+					gc.logger.Infof("[%d/%d] delete blob from storage: %s", idx, total, blob.Digest)
+					if err := retry.Retry(func() error {
+						return ignoreNotFound(func() error {
+							err := gc.registryCtlClient.DeleteBlob(blob.Digest)
+							// if the system is in read-only mode, return an Abort error to skip retrying
+							if err == readonly.Err {
+								return retry.Abort(err)
+							}
+							return err
+						})
+					}, retry.Callback(func(err error, sleep time.Duration) {
+						gc.logger.Infof("[%d/%d] failed to exec DeleteBlob, error: %v, will retry again after: %s", idx, total, err, sleep)
+					})); err != nil {
+						gc.logger.Errorf("[%d/%d] failed to delete blob from storage: %s, %s, errMsg=%v", idx, total, blob.Digest, blob.Status, err)
+						if err := ignoreNotFound(func() error {
+							return gc.markDeleteFailed(ctx, blob)
+						}); err != nil {
+							gc.logger.Errorf("[%d/%d] failed to call gc.markDeleteFailed() after gc.registryCtlClient.DeleteBlob() error out: %s, %v", idx, total, blob.Digest, err)
+							return err
+						}
+						// if the system is set to read-only mode, return directly
+						if err == readonly.Err {
+							return err
+						}
+						continue
+					}
+					sweepSize = sweepSize + blob.Size
+				}
+
+				gc.logger.Infof("[%d/%d] delete blob record from database: %d, %s", idx, total, blob.ID, blob.Digest)
+				if err := ignoreNotFound(func() error {
+					return gc.blobMgr.Delete(ctx.SystemContext(), blob.ID)
+				}); err != nil {
+					gc.logger.Errorf("[%d/%d] failed to delete blob from database: %s, %s, errMsg=%v", idx, total, blob.Digest, blob.Status, err)
+					if err := ignoreNotFound(func() error {
+						return gc.markDeleteFailed(ctx, blob)
+					}); err != nil {
+						gc.logger.Errorf("[%d/%d] failed to call gc.markDeleteFailed() after gc.blobMgr.Delete() error out, %d, %s %v", idx, total, blob.ID, blob.Digest, err)
+						return err
+					}
+					return err
+				}
+
+				if blob.IsManifest() {
+					atomic.AddInt64(&mfCnt, 1)
+				} else {
+					atomic.AddInt64(&blobCnt, 1)
+				}
+			}
+
+		}(ctx, blobChunk)
+	}
+	wg.Wait()
+
 	gc.logger.Infof("%d blobs and %d manifests are actually deleted", blobCnt, mfCnt)
 	gc.logger.Infof("The GC job actual frees up %d MB space.", sweepSize/1024/1024)
 
