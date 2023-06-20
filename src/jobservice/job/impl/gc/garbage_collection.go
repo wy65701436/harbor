@@ -154,8 +154,8 @@ func (gc *GarbageCollector) parseParams(params job.Parameters) {
 		}
 	}
 
-	gc.logger.Infof("Decrease the number of workers to 5 since it is the maximum count.")
 	if gc.workers > 5 {
+		gc.logger.Infof("Decrease the number of workers to 5 since it is the maximum count.")
 		gc.workers = 5
 	}
 
@@ -280,6 +280,9 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 	total := len(gc.deleteSet)
 
 	// split the full set into pieces (count workers)
+	if len(gc.deleteSet) <= 0 {
+		return nil
+	}
 	blobChunkSize := len(gc.deleteSet) / int(gc.workers)
 	blobChunkCount := (len(gc.deleteSet) + blobChunkSize - 1) / blobChunkSize
 	blobChunks := make([][]*blobModels.Blob, blobChunkCount)
@@ -400,7 +403,7 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 					continue
 				}
 
-				// delete all of blobs, which include config, layer and manifest
+				// delete all the blobs, which include config, layer and manifest
 				// for the foreign layer, as it's not stored in the storage, no need to call the delete api and count size, but still have to delete the DB record.
 				if !blob.IsForeignLayer() {
 					gc.logger.Infof("[%d/%d] delete blob from storage: %s", index, total, blob.Digest)
@@ -457,7 +460,7 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 	}
 
 	if err := g.Wait(); err != nil {
-		gc.logger.Errorf("failed to execute mark)(), error out, %v", err)
+		gc.logger.Errorf("failed to execute mark(), error out, %v", err)
 		return err
 	}
 
