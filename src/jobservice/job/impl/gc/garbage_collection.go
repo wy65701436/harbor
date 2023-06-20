@@ -21,6 +21,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/goharbor/harbor/src/common/registryctl"
 	"github.com/goharbor/harbor/src/controller/artifact"
 	"github.com/goharbor/harbor/src/controller/project"
@@ -286,9 +288,10 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 	}
 
 	var wg sync.WaitGroup
+	g := new(errgroup.Group)
 	index := int64(1)
+	wg.Add(gc.workers)
 	for _, blobChunk := range blobChunks {
-		wg.Add(1)
 		go func(ctx job.Context, blobs []*blobModels.Blob) {
 			defer wg.Done()
 			for _, blob := range blobs {
