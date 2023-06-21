@@ -16,6 +16,7 @@ package gc
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync/atomic"
 	"time"
@@ -283,7 +284,8 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 	if len(gc.deleteSet) <= 0 {
 		return nil
 	}
-	blobChunkSize := len(gc.deleteSet) / int(gc.workers)
+
+	blobChunkSize := len(gc.deleteSet) / gc.workers
 	blobChunkCount := (len(gc.deleteSet) + blobChunkSize - 1) / blobChunkSize
 	blobChunks := make([][]*blobModels.Blob, blobChunkCount)
 	for i, start := 0, 0; i < blobChunkCount; i, start = i+1, start+blobChunkSize {
@@ -291,14 +293,20 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 		if end > len(gc.deleteSet) {
 			end = len(gc.deleteSet)
 		}
+		fmt.Println("========================")
+		fmt.Println("start: %s end: %s", start, end)
+		fmt.Println("========================")
 		blobChunks[i] = gc.deleteSet[start:end]
 	}
 
 	g := new(errgroup.Group)
 	g.SetLimit(gc.workers)
-	index := int64(1)
+	index := int64(0)
 	for _, blobChunk := range blobChunks {
 		g.Go(func() error {
+			fmt.Println("========================")
+			fmt.Println(blobChunk)
+			fmt.Println("========================")
 			for _, blob := range blobChunk {
 				if gc.shouldStop(ctx) {
 					return errGcStop
