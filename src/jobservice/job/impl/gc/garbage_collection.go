@@ -16,7 +16,6 @@ package gc
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"sync/atomic"
 	"time"
@@ -293,9 +292,9 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 		if end > len(gc.deleteSet) {
 			end = len(gc.deleteSet)
 		}
-		fmt.Println("========================")
-		fmt.Println("start: %s end: %s", start, end)
-		fmt.Println("========================")
+		gc.logger.Infof("========================")
+		gc.logger.Infof("start: %s end: %s", start, end)
+		gc.logger.Infof("========================")
 		blobChunks[i] = gc.deleteSet[start:end]
 	}
 
@@ -304,9 +303,9 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 	index := int64(0)
 	for _, blobChunk := range blobChunks {
 		g.Go(func() error {
-			fmt.Println("========================")
-			fmt.Println(blobChunk)
-			fmt.Println("========================")
+			gc.logger.Infof("========================")
+			gc.logger.Info(blobChunk)
+			gc.logger.Infof("========================")
 			for _, blob := range blobChunk {
 				if gc.shouldStop(ctx) {
 					return errGcStop
