@@ -146,7 +146,7 @@ func (gc *GarbageCollector) parseParams(params job.Parameters) {
 	}
 
 	// gc workers:
-	gc.workers = 1
+	gc.workers = 3
 	ws, exist := params["workers"]
 	if exist {
 		if workers, ok := ws.(float64); ok {
