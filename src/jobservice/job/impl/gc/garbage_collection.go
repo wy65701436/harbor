@@ -296,6 +296,7 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 		gc.logger.Infof("start: %s end: %s", start, end)
 		gc.logger.Infof("========================")
 		blobChunks[i] = gc.deleteSet[start:end]
+		i++
 	}
 
 	g := new(errgroup.Group)
