@@ -105,7 +105,7 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 				return 0, errors.BadRequestError(fmt.Errorf("workers should be integer format"))
 			}
 			if !validateWorkers(int(wInt)) {
-				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
+				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("Error: Invalid number of workers:%s. Workers must be greater than 0 and less than or equal to 5.", workers)
 			}
 			policy.Workers = int(wInt)
 		}
@@ -129,7 +129,7 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 				return 0, errors.BadRequestError(fmt.Errorf("workers should be integer format"))
 			}
 			if !validateWorkers(int(wInt)) {
-				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
+				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("Error: Invalid number of workers:%s. Workers must be greater than 0 and less than or equal to 5.", workers)
 			}
 			policy.Workers = int(wInt)
 		}
@@ -283,7 +283,7 @@ func (g *gcAPI) StopGC(ctx context.Context, params operation.StopGCParams) middl
 }
 
 func validateWorkers(workers int) bool {
-	if workers <= 0 || workers >= 5 {
+	if workers <= 0 || workers > 5 {
 		return false
 	}
 	return true
