@@ -280,17 +280,16 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 	total := len(gc.deleteSet)
 
 	// split the full set into pieces (count workers)
-	if len(gc.deleteSet) <= 0 {
+	if total <= 0 {
 		return nil
 	}
-
-	blobChunkSize := len(gc.deleteSet) / gc.workers
-	blobChunkCount := (len(gc.deleteSet) + blobChunkSize - 1) / blobChunkSize
+	blobChunkSize := total / gc.workers
+	blobChunkCount := (total + blobChunkSize - 1) / blobChunkSize
 	blobChunks := make([][]*blobModels.Blob, blobChunkCount)
 	for i, start := 0, 0; i < blobChunkCount; i, start = i+1, start+blobChunkSize {
 		end := start + blobChunkSize
-		if end > len(gc.deleteSet) {
-			end = len(gc.deleteSet)
+		if end > total {
+			end = total
 		}
 		blobChunks[i] = gc.deleteSet[start:end]
 	}
@@ -308,7 +307,7 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 
 				atomic.AddInt64(&index, 1)
 				index := atomic.LoadInt64(&index)
-				
+
 				// set the status firstly, if the blob is updated by any HEAD/PUT request, it should be fail and skip.
 				blob.Status = blobModels.StatusDeleting
 				count, err := gc.blobMgr.UpdateBlobStatus(ctx.SystemContext(), blob)
