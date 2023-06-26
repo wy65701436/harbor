@@ -99,11 +99,32 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 		if deleteUntagged, ok := parameters["delete_untagged"].(bool); ok {
 			policy.DeleteUntagged = deleteUntagged
 		}
+		fmt.Println("=======================")
+		fmt.Println(parameters)
+		fmt.Println("=======================")
 		if workers, ok := parameters["workers"].(float64); ok {
 			if !validateWorkers(int(workers)) {
 				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
 			}
 			policy.Workers = int(workers)
+		} else {
+			fmt.Println("1=======================")
+		}
+		if workers, ok := parameters["workers"].(int32); ok {
+			if !validateWorkers(int(workers)) {
+				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
+			}
+			policy.Workers = int(workers)
+		} else {
+			fmt.Println("2=======================")
+		}
+		if workers, ok := parameters["workers"].(int64); ok {
+			if !validateWorkers(int(workers)) {
+				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
+			}
+			policy.Workers = int(workers)
+		} else {
+			fmt.Println("3=======================")
 		}
 		id, err = g.gcCtr.Start(ctx, policy, task.ExecutionTriggerManual)
 	case ScheduleNone:
