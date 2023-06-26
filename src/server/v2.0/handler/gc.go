@@ -99,8 +99,11 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 		if deleteUntagged, ok := parameters["delete_untagged"].(bool); ok {
 			policy.DeleteUntagged = deleteUntagged
 		}
-		if workers, ok := parameters["workers"].(int); ok {
-			policy.Workers = workers
+		if workers, ok := parameters["workers"].(float64); ok {
+			if !validateWorkers(int(workers)) {
+				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
+			}
+			policy.Workers = int(workers)
 		}
 		id, err = g.gcCtr.Start(ctx, policy, task.ExecutionTriggerManual)
 	case ScheduleNone:
@@ -115,8 +118,11 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 		if deleteUntagged, ok := parameters["delete_untagged"].(bool); ok {
 			policy.DeleteUntagged = deleteUntagged
 		}
-		if workers, ok := parameters["workers"].(int); ok {
-			policy.Workers = workers
+		if workers, ok := parameters["workers"].(float64); ok {
+			if !validateWorkers(int(workers)) {
+				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
+			}
+			policy.Workers = int(workers)
 		}
 		err = g.updateSchedule(ctx, scheType, cron, policy)
 	}
@@ -265,4 +271,11 @@ func (g *gcAPI) StopGC(ctx context.Context, params operation.StopGCParams) middl
 	}
 
 	return operation.NewStopGCOK()
+}
+
+func validateWorkers(workers int) bool {
+	if workers <= 0 || workers >= 5 {
+		return false
+	}
+	return true
 }
