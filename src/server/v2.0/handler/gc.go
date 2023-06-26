@@ -134,6 +134,11 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 		} else {
 			fmt.Println("4=======================")
 		}
+		if workers, ok := parameters["workers"].(string); ok {
+			fmt.Println(workers)
+		} else {
+			fmt.Println("5=======================")
+		}
 		id, err = g.gcCtr.Start(ctx, policy, task.ExecutionTriggerManual)
 	case ScheduleNone:
 		err = g.gcCtr.DeleteSchedule(ctx)
