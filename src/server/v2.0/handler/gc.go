@@ -99,6 +99,9 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 		if deleteUntagged, ok := parameters["delete_untagged"].(bool); ok {
 			policy.DeleteUntagged = deleteUntagged
 		}
+		if workers, ok := parameters["workers"].(int); ok {
+			policy.Workers = workers
+		}
 		id, err = g.gcCtr.Start(ctx, policy, task.ExecutionTriggerManual)
 	case ScheduleNone:
 		err = g.gcCtr.DeleteSchedule(ctx)
@@ -111,6 +114,9 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 		}
 		if deleteUntagged, ok := parameters["delete_untagged"].(bool); ok {
 			policy.DeleteUntagged = deleteUntagged
+		}
+		if workers, ok := parameters["workers"].(int); ok {
+			policy.Workers = workers
 		}
 		err = g.updateSchedule(ctx, scheType, cron, policy)
 	}
