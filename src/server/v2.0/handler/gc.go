@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/go-openapi/runtime/middleware"
@@ -101,6 +102,7 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 		}
 		fmt.Println("=======================")
 		fmt.Println(parameters)
+		fmt.Printf("t1: %s\n", reflect.TypeOf(parameters["workers"]))
 		fmt.Println("=======================")
 		if workers, ok := parameters["workers"].(float64); ok {
 			if !validateWorkers(int(workers)) {
