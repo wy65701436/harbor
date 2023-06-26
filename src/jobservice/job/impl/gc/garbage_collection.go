@@ -292,17 +292,14 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 		if end > len(gc.deleteSet) {
 			end = len(gc.deleteSet)
 		}
-		gc.logger.Infof("========================")
-		gc.logger.Infof("start: %s end: %s", start, end)
-		gc.logger.Infof("========================")
 		blobChunks[i] = gc.deleteSet[start:end]
-		i++
 	}
 
 	g := new(errgroup.Group)
 	g.SetLimit(gc.workers)
 	index := int64(0)
 	for _, blobChunk := range blobChunks {
+		blobChunk := blobChunk
 		g.Go(func() error {
 			gc.logger.Infof("========================")
 			gc.logger.Info(blobChunk)
