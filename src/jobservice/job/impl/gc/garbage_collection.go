@@ -307,7 +307,8 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 				}
 
 				atomic.AddInt64(&index, 1)
-
+				index := atomic.LoadInt64(&index)
+				
 				// set the status firstly, if the blob is updated by any HEAD/PUT request, it should be fail and skip.
 				blob.Status = blobModels.StatusDeleting
 				count, err := gc.blobMgr.UpdateBlobStatus(ctx.SystemContext(), blob)
