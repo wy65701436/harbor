@@ -301,9 +301,6 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 	for _, blobChunk := range blobChunks {
 		blobChunk := blobChunk
 		g.Go(func() error {
-			gc.logger.Infof("========================")
-			gc.logger.Info(blobChunk)
-			gc.logger.Infof("========================")
 			for _, blob := range blobChunk {
 				if gc.shouldStop(ctx) {
 					return errGcStop
@@ -437,7 +434,7 @@ func (gc *GarbageCollector) sweep(ctx job.Context) error {
 						}
 						continue
 					}
-					sweepSize = sweepSize + blob.Size
+					atomic.AddInt64(&sweepSize, blob.Size)
 				}
 
 				gc.logger.Infof("[%d/%d] delete blob record from database: %d, %s", index, total, blob.ID, blob.Digest)
