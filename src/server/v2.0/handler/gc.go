@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"reflect"
 	"strings"
 
 	"github.com/go-openapi/runtime/middleware"
@@ -100,47 +99,17 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 		if deleteUntagged, ok := parameters["delete_untagged"].(bool); ok {
 			policy.DeleteUntagged = deleteUntagged
 		}
-		fmt.Println("=======================")
-		fmt.Println(parameters)
-		fmt.Printf("t1: %s\n", reflect.TypeOf(parameters["workers"]))
-		fmt.Println("=======================")
-		if workers, ok := parameters["workers"].(float64); ok {
-			if !validateWorkers(int(workers)) {
+		if workers, ok := parameters["workers"].(json.Number); ok {
+			wInt, err := workers.Int64()
+			if err != nil {
+				return 0, errors.BadRequestError(fmt.Errorf("workers should be integer format"))
+			}
+			if !validateWorkers(int(wInt)) {
 				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
 			}
-			policy.Workers = int(workers)
-		} else {
-			fmt.Println("1=======================")
+			policy.Workers = int(wInt)
 		}
-		if workers, ok := parameters["workers"].(int32); ok {
-			if !validateWorkers(int(workers)) {
-				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
-			}
-			policy.Workers = int(workers)
-		} else {
-			fmt.Println("2=======================")
-		}
-		if workers, ok := parameters["workers"].(int64); ok {
-			if !validateWorkers(int(workers)) {
-				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
-			}
-			policy.Workers = int(workers)
-		} else {
-			fmt.Println("3=======================")
-		}
-		if workers, ok := parameters["workers"].(int); ok {
-			if !validateWorkers(int(workers)) {
-				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
-			}
-			policy.Workers = workers
-		} else {
-			fmt.Println("4=======================")
-		}
-		if workers, ok := parameters["workers"].(string); ok {
-			fmt.Println(workers)
-		} else {
-			fmt.Println("5=======================")
-		}
+
 		id, err = g.gcCtr.Start(ctx, policy, task.ExecutionTriggerManual)
 	case ScheduleNone:
 		err = g.gcCtr.DeleteSchedule(ctx)
@@ -154,11 +123,15 @@ func (g *gcAPI) kick(ctx context.Context, scheType string, cron string, paramete
 		if deleteUntagged, ok := parameters["delete_untagged"].(bool); ok {
 			policy.DeleteUntagged = deleteUntagged
 		}
-		if workers, ok := parameters["workers"].(float64); ok {
-			if !validateWorkers(int(workers)) {
+		if workers, ok := parameters["workers"].(json.Number); ok {
+			wInt, err := workers.Int64()
+			if err != nil {
+				return 0, errors.BadRequestError(fmt.Errorf("workers should be integer format"))
+			}
+			if !validateWorkers(int(wInt)) {
 				return 0, errors.New(nil).WithCode(errors.BadRequestCode).WithMessage("bad workers: %s", workers)
 			}
-			policy.Workers = int(workers)
+			policy.Workers = int(wInt)
 		}
 		err = g.updateSchedule(ctx, scheType, cron, policy)
 	}
