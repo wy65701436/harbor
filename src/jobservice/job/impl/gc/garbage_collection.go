@@ -154,11 +154,6 @@ func (gc *GarbageCollector) parseParams(params job.Parameters) {
 		}
 	}
 
-	if gc.workers > 5 {
-		gc.logger.Infof("Decrease the number of workers to 5 since it is the maximum count.")
-		gc.workers = 5
-	}
-
 	gc.logger.Infof("Garbage Collection parameters: [delete_untagged: %t, dry_run: %t, time_window: %d, workers: %d]",
 		gc.deleteUntagged, gc.dryRun, gc.timeWindowHours, gc.workers)
 }

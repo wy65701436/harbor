@@ -16,8 +16,6 @@ package gc
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/goharbor/harbor/src/jobservice/job"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/q"
@@ -82,10 +80,6 @@ func (c *controller) Start(ctx context.Context, policy Policy, trigger string) (
 	para["workers"] = policy.Workers
 	para["redis_url_reg"] = policy.ExtraAttrs["redis_url_reg"]
 	para["time_window"] = policy.ExtraAttrs["time_window"]
-
-	fmt.Println("1=======================")
-	fmt.Println(para)
-	fmt.Println("1=======================")
 
 	execID, err := c.exeMgr.Create(ctx, job.GarbageCollectionVendorType, -1, trigger, para)
 	if err != nil {

@@ -75,8 +75,6 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require golang.org/x/sync v0.1.0
-
 require (
 	cloud.google.com/go/compute v1.18.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
@@ -164,6 +162,7 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.0 // indirect
+	golang.org/x/sync v0.1.0
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/term v0.7.0 // indirect
 	google.golang.org/api v0.110.0 // indirect
