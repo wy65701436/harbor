@@ -98,6 +98,10 @@ func (s *SecurityContext) Can(ctx context.Context, action types.Action, resource
 			}
 		}
 
+		fmt.Println("=================================")
+		fmt.Println(accesses)
+		fmt.Println("=================================")
+
 		if s.robot.Level == robot.LEVELSYSTEM {
 			var proPolicies []*types.Policy
 			var sysPolicies []*types.Policy
@@ -109,6 +113,11 @@ func (s *SecurityContext) Can(ctx context.Context, action types.Action, resource
 					proPolicies = append(proPolicies, p)
 				}
 			}
+			fmt.Println("=================================")
+			fmt.Println(sysPolicies)
+			fmt.Println(proPolicies)
+			fmt.Println("=================================")
+
 			if len(sysPolicies) != 0 {
 				evaluators = evaluators.Add(system.NewEvaluator(s.GetUsername(), sysPolicies))
 			} else if len(proPolicies) != 0 {
@@ -118,8 +127,12 @@ func (s *SecurityContext) Can(ctx context.Context, action types.Action, resource
 		} else {
 			s.evaluator = rbac_project.NewEvaluator(s.ctl, rbac_project.NewBuilderForPolicies(s.GetUsername(), accesses, filterRobotPolicies))
 		}
+
 	})
 
+	fmt.Println("=================================")
+	fmt.Println(s.evaluator.HasPermission(ctx, resource, action))
+	fmt.Println("=================================")
 	return s.evaluator != nil && s.evaluator.HasPermission(ctx, resource, action)
 }
 
