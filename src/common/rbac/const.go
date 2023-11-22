@@ -102,9 +102,7 @@ var (
 
 			{Resource: ResourceReplication, Action: ActionRead},
 			{Resource: ResourceReplication, Action: ActionCreate},
-			{Resource: ResourceReplication, Action: ActionDelete},
 			{Resource: ResourceReplication, Action: ActionList},
-			{Resource: ResourceReplication, Action: ActionUpdate},
 
 			{Resource: ResourceReplicationAdapter, Action: ActionList},
 
