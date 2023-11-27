@@ -272,9 +272,15 @@ func (c *client) ManifestExist(repository, reference string) (bool, *distributio
 	}
 	resp, err := c.do(req)
 	if err != nil {
+		fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~")
+		fmt.Println(err)
+		fmt.Println(errors.IsErr(err, errors.NotFoundCode))
+		fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~")
 		if errors.IsErr(err, errors.NotFoundCode) {
+			fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~1111")
 			return false, nil, nil
 		}
+		fmt.Println("~~~~~~~~~~~~~~~~~~~~~~~~~222222")
 		return false, nil, err
 	}
 	defer resp.Body.Close()
