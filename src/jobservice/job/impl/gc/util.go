@@ -16,6 +16,7 @@ package gc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/goharbor/harbor/src/lib/cache"
 	"github.com/goharbor/harbor/src/lib/errors"
@@ -41,7 +42,13 @@ func delKeys(ctx context.Context, c cache.Cache, pattern string) error {
 // v2DeleteManifest calls the registry API to remove manifest
 func v2DeleteManifest(repository, digest string) error {
 	exist, _, err := registry.Cli.ManifestExist(repository, digest)
+	fmt.Println("===================")
+	fmt.Println(exist)
+	fmt.Println("===================")
 	if err != nil {
+		fmt.Println("===================")
+		fmt.Println(err)
+		fmt.Println("===================")
 		return err
 	}
 	// it could be happened at remove manifest success but fail to delete harbor DB.
