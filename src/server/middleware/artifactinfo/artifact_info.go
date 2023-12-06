@@ -17,7 +17,6 @@ package artifactinfo
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
 
@@ -53,7 +52,7 @@ func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			log.Debugf("In artifact info middleware, url: %s", req.URL.String())
-			m, ok, err := parse(req.URL)
+			m, ok, err := parse(req)
 			if err != nil {
 				lib_http.SendError(rw, err)
 				return
@@ -107,9 +106,9 @@ func projectNameFromRepo(repo string) (string, error) {
 	return components[0], nil
 }
 
-func parse(url *url.URL) (map[string]string, bool, error) {
-	path := url.Path
-	query := url.Query()
+func parse(r *http.Request) (map[string]string, bool, error) {
+	path := r.URL.Path
+	query := r.URL.Query()
 	m := make(map[string]string)
 	match := false
 	for key, re := range urlPatterns {
@@ -119,9 +118,14 @@ func parse(url *url.URL) (map[string]string, bool, error) {
 			for i := 1; i < len(l); i++ {
 				m[re.SubexpNames()[i]] = l[i]
 			}
-			if key == "blob_upload" && len(query.Get(blobFromQuery)) > 0 {
-				m[blobMountDigest] = query.Get(blobMountQuery)
-				m[blobMountRepo] = query.Get(blobFromQuery)
+			if key == "blob_upload" {
+				if len(query.Get(blobFromQuery)) > 0 {
+					m[blobMountDigest] = query.Get(blobMountQuery)
+					m[blobMountRepo] = query.Get(blobFromQuery)
+				} else if len(r.FormValue("from")) > 0 {
+					m[blobMountDigest] = r.FormValue("mount")
+					m[blobMountRepo] = r.FormValue("from")
+				}
 			}
 			break
 		}
