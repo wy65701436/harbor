@@ -65,6 +65,9 @@ func parseScopes(req *http.Request) []*scope {
 		repository = subs[1]
 		// blob mount
 		from := req.URL.Query().Get("from")
+		if len(from) <= 0 {
+			from = req.FormValue("from")
+		}
 		if len(from) > 0 {
 			scopes = append(scopes, &scope{
 				Type:    scopeTypeRepository,
