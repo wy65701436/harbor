@@ -68,6 +68,9 @@ func parseScopes(req *http.Request) []*scope {
 		if len(from) <= 0 {
 			from = req.FormValue("from")
 		}
+		fmt.Println("=====================================")
+		fmt.Println(from)
+		fmt.Println("=====================================")
 		if len(from) > 0 {
 			scopes = append(scopes, &scope{
 				Type:    scopeTypeRepository,
