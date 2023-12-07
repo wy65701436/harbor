@@ -18,6 +18,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -80,6 +81,10 @@ func (b *BaseAPI) HasProjectPermission(ctx context.Context, projectIDOrName inte
 	if err != nil {
 		return false
 	}
+	fmt.Println("=====================")
+	fmt.Println(projectID)
+	fmt.Println(projectName)
+	fmt.Println("=====================")
 
 	if projectName != "" {
 		p, err := baseProjectCtl.GetByName(ctx, projectName)
@@ -100,6 +105,10 @@ func (b *BaseAPI) HasProjectPermission(ctx context.Context, projectIDOrName inte
 	}
 
 	resource := rbac_project.NewNamespace(projectID).Resource(subresource...)
+	fmt.Println("=====================")
+	fmt.Println(resource)
+	fmt.Println(action)
+	fmt.Println("=====================")
 	return b.HasPermission(ctx, action, resource)
 }
 

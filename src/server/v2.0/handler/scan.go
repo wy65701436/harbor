@@ -91,6 +91,9 @@ func (s *scanAPI) ScanArtifact(ctx context.Context, params operation.ScanArtifac
 }
 
 func (s *scanAPI) GetReportLog(ctx context.Context, params operation.GetReportLogParams) middleware.Responder {
+	fmt.Println("=====================")
+	fmt.Println(params.ProjectName)
+	fmt.Println("=====================")
 	if err := s.RequireProjectAccess(ctx, params.ProjectName, rbac.ActionRead, rbac.ResourceScan); err != nil {
 		return s.SendError(ctx, err)
 	}
