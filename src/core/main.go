@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"os/signal"
@@ -125,6 +126,9 @@ func gracefulShutdown(closing, done chan struct{}, shutdowns ...func()) {
 }
 
 func main() {
+	go func() {
+		log.Info(http.ListenAndServe("0.0.0.0:6060", nil))
+	}()
 	runMode := flag.String("mode", "normal", "The harbor-core container run mode, it could be normal, migrate or skip-migrate, default is normal")
 	flag.Parse()
 
