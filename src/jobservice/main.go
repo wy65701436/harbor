@@ -19,6 +19,9 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/goharbor/harbor/src/lib/log"
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/goharbor/harbor/src/common"
 	"github.com/goharbor/harbor/src/jobservice/common/utils"
@@ -41,6 +44,10 @@ import (
 )
 
 func main() {
+	go func() {
+		log.Info(http.ListenAndServe("0.0.0.0:7070", nil))
+	}()
+
 	cfgLib.DefaultCfgManager = common.RestCfgManager
 	if err := cfgLib.DefaultMgr().Load(context.Background()); err != nil {
 		panic(fmt.Sprintf("failed to load configuration, error: %v", err))
