@@ -421,7 +421,7 @@ func (d *dao) GetBlobsByArtDigest(ctx context.Context, digest string) ([]*models
 	}
 
 	params := []interface{}{}
-	sql = fmt.Sprintf("SELECT b.id, b.digest, b.content_type, b.status, b.version, b.size FROM blob where digest IN (%s)", orm.ParamPlaceholderForIn(len(blobDgst)))
+	sql = fmt.Sprintf("SELECT b.id, b.digest, b.content_type, b.status, b.version, b.size FROM blob b where digest IN (%s)", orm.ParamPlaceholderForIn(len(blobDgst)))
 	params = append(params, blobDgst)
 	_, err = ormer.Raw(sql, params...).QueryRows(&blobs)
 	if err != nil {
