@@ -413,8 +413,17 @@ func (d *dao) GetBlobsByArtDigest(ctx context.Context, digest string) ([]*models
 		return blobs, err
 	}
 
-	sql := `SELECT b.id, b.digest, b.content_type, b.status, b.version, b.size FROM artifact_blob AS ab LEFT JOIN blob b ON ab.digest_blob = b.digest WHERE ab.digest_af = ?`
-	_, err = ormer.Raw(sql, digest).QueryRows(&blobs)
+	var blobDgst []string
+	sql := `select digest_blob from artifact_blob where digest_af = ?`
+	_, err = ormer.Raw(sql, digest).QueryRows(&blobDgst)
+	if err != nil {
+		return blobs, err
+	}
+
+	params := []interface{}{}
+	sql = fmt.Sprintf("SELECT b.id, b.digest, b.content_type, b.status, b.version, b.size FROM blob where digest IN (%s)", orm.ParamPlaceholderForIn(len(blobDgst)))
+	params = append(params, blobDgst)
+	_, err = ormer.Raw(sql, params...).QueryRows(&blobs)
 	if err != nil {
 		return blobs, err
 	}
