@@ -65,15 +65,15 @@ func (assembler *ScanReportAssembler) Assemble(ctx context.Context) error {
 	version := lib.GetAPIVersion(ctx)
 
 	for _, artifact := range assembler.artifacts {
-		isScannable, err := assembler.scanChecker.IsScannable(ctx, &artifact.Artifact)
-		if err != nil {
-			log.Errorf("check the scannable status of %s@%s failed, error: %v", artifact.RepositoryName, artifact.Digest, err)
-			continue
-		}
-
-		if !isScannable {
-			continue
-		}
+		//isScannable, err := assembler.scanChecker.IsScannable(ctx, &artifact.Artifact)
+		//if err != nil {
+		//	log.Errorf("check the scannable status of %s@%s failed, error: %v", artifact.RepositoryName, artifact.Digest, err)
+		//	continue
+		//}
+		//
+		//if !isScannable {
+		//	continue
+		//}
 
 		artifact.SetAdditionLink(vulnerabilitiesAddition, version)
 
