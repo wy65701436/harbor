@@ -90,13 +90,13 @@ func (c *checker) IsScannable(ctx context.Context, art *artifact.Artifact) (bool
 		// when scanning these type of sbom artifact, the scanner might assume it is image layer with tgz format, and if scanner read the layer with a stream of tgz,
 		// it fail and close the stream abruptly and cause the pannic in the harbor core log
 		// to avoid pannic, skip scan the in-toto sbom artifact sbom artifact
-		unscannable, err := c.artifactCtl.HasUnscannableLayer(ctx, a.Digest)
-		if err != nil {
-			return err
-		}
-		if unscannable {
-			return nil
-		}
+		//unscannable, err := c.artifactCtl.HasUnscannableLayer(ctx, a.Digest)
+		//if err != nil {
+		//	return err
+		//}
+		//if unscannable {
+		//	return nil
+		//}
 
 		return nil
 	}
