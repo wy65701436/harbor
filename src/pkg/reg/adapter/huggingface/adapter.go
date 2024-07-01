@@ -65,7 +65,7 @@ func (adapter) Info() (info *model.RegistryInfo, err error) {
 	return &model.RegistryInfo{
 		Type: model.RegistryTypeHuggingFace,
 		SupportedResourceTypes: []string{
-			model.ResourceTypeImage,
+			model.RegistryTypeHuggingFace,
 		},
 		SupportedResourceFilters: []*model.FilterStyle{
 			{
@@ -112,5 +112,9 @@ func (a adapter) HealthCheck() (string, error) {
 
 func (a *adapter) FetchArtifacts(filters []*model.Filter) ([]*model.Resource, error) {
 	var resources []*model.Resource
+	res := &model.Resource{
+		Type: "test",
+	}
+	resources = append(resources, res)
 	return resources, nil
 }
