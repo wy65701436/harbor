@@ -35,6 +35,7 @@ const (
 	RegistryTypeTencentTcr       = "tencent-tcr"
 	RegistryTypeGithubCR         = "github-ghcr"
 	RegistryTypeVolcCR           = "volcengine-cr"
+	RegistryTypeHuggingFace      = "hugging-face"
 
 	RegistryTypeHelmHub     = "helm-hub"
 	RegistryTypeArtifactHub = "artifact-hub"
