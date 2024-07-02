@@ -53,6 +53,7 @@ func (c *copyFlow) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	logger.Infof("========= initialize is succeeded")
 	srcResources := c.resources
 	if len(srcResources) == 0 {
 		srcResources, err = fetchResources(srcAdapter, c.policy)
@@ -60,6 +61,7 @@ func (c *copyFlow) Run(ctx context.Context) error {
 			return err
 		}
 	}
+	logger.Infof("========= srcResources is succeeded")
 
 	isStopped, err := c.isExecutionStopped(ctx)
 	if err != nil {
@@ -77,20 +79,24 @@ func (c *copyFlow) Run(ctx context.Context) error {
 		}
 		return nil
 	}
+	logger.Infof("=========11111")
 
 	srcResources = assembleSourceResources(srcResources, c.policy)
 	info, err := dstAdapter.Info()
 	if err != nil {
 		return err
 	}
+	logger.Infof("========= assembleSourceResources")
 	dstResources, err := assembleDestinationResources(srcResources, c.policy, info.SupportedRepositoryPathComponentType)
 	if err != nil {
 		return err
 	}
+	logger.Infof("========= assembleDestinationResources")
 
 	if err = prepareForPush(dstAdapter, dstResources); err != nil {
 		return err
 	}
+	logger.Infof("========= prepareForPush")
 
 	return c.createTasks(ctx, srcResources, dstResources, c.policy.Speed, c.policy.CopyByChunk)
 }
