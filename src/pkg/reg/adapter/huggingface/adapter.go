@@ -117,7 +117,7 @@ func (a adapter) HealthCheck() (string, error) {
 func (a *adapter) FetchArtifacts(filters []*model.Filter) ([]*model.Resource, error) {
 	var resources []*model.Resource
 	res := &model.Resource{
-		Type: "test",
+		Type: model.RegistryTypeHuggingFace,
 		Metadata: &model.ResourceMetadata{
 			Repository: &model.Repository{Name: "test/a1"},
 			Artifacts: []*model.Artifact{
