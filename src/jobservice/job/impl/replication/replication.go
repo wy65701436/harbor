@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/goharbor/harbor/src/controller/replication/transfer"
+	_ "github.com/goharbor/harbor/src/controller/replication/transfer/huggingface"
 	// import chart transfer
 	_ "github.com/goharbor/harbor/src/controller/replication/transfer/image"
 	"github.com/goharbor/harbor/src/jobservice/job"
