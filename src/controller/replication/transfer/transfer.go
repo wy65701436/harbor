@@ -81,7 +81,7 @@ func RegisterFactory(name string, factory Factory) error {
 // GetFactory gets the transfer factory by the specified name
 func GetFactory(name string) (Factory, error) {
 	log.Infof("============")
-	log.Infof(registry)
+	log.Info(registry)
 	log.Infof("============")
 	factory, exist := registry[name]
 	if !exist {
