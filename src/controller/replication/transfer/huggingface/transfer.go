@@ -58,9 +58,11 @@ func init() {
 		replicationChunkSize = int64(defaultChunkSize)
 	}
 
+	log.Info("================11111")
 	if err := trans.RegisterFactory(model.ResourceTypeHF, factory); err != nil {
 		log.Errorf("failed to register transfer factory: %v", err)
 	}
+	log.Info("================22222")
 }
 
 type repository struct {
