@@ -271,6 +271,7 @@ func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1
 		t.logger.Infof("%v ...", err)
 		return err
 	}
+	repo.PlainHTTP = true
 	_, err = oras.Copy(ctx, fs, tag, repo, tag, oras.DefaultCopyOptions)
 	if err != nil {
 		t.logger.Infof("%v ...", err)
