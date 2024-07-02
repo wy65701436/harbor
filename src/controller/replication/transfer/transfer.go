@@ -17,8 +17,6 @@ package transfer
 import (
 	"errors"
 	"fmt"
-	"github.com/goharbor/harbor/src/lib/log"
-
 	"github.com/goharbor/harbor/src/pkg/reg/model"
 )
 
@@ -80,9 +78,6 @@ func RegisterFactory(name string, factory Factory) error {
 
 // GetFactory gets the transfer factory by the specified name
 func GetFactory(name string) (Factory, error) {
-	log.Infof("============")
-	log.Info(registry)
-	log.Infof("============")
 	factory, exist := registry[name]
 	if !exist {
 		return nil, fmt.Errorf("transfer factory for %s not found", name)

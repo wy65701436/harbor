@@ -58,11 +58,9 @@ func init() {
 		replicationChunkSize = int64(defaultChunkSize)
 	}
 
-	log.Info("================11111")
 	if err := trans.RegisterFactory(model.ResourceTypeHF, factory); err != nil {
 		log.Errorf("failed to register transfer factory: %v", err)
 	}
-	log.Info("================22222")
 }
 
 type repository struct {
@@ -260,15 +258,22 @@ func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1
 	t.logger.Infof("pushing the manifest of artifact %s:%s ...", repository, tag)
 
 	if err := fs.Tag(ctx, manifest, tag); err != nil {
+		t.logger.Infof("%v ...", err)
 		return err
 	}
 	reg := config.GetCoreURL()
+	t.logger.Infof("%v ...", reg)
+	reg = strings.TrimPrefix(reg, "http://")
+	t.logger.Infof("%v ...", reg)
 	repo, err := remote.NewRepository(reg + "/library/demo")
+	t.logger.Infof("%v ...", repo)
 	if err != nil {
+		t.logger.Infof("%v ...", err)
 		return err
 	}
 	_, err = oras.Copy(ctx, fs, tag, repo, tag, oras.DefaultCopyOptions)
 	if err != nil {
+		t.logger.Infof("%v ...", err)
 		return err
 	}
 	t.logger.Infof("the manifest of artifact %s:%s pushed",
