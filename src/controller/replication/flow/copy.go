@@ -88,7 +88,7 @@ func (c *copyFlow) Run(ctx context.Context) error {
 		return err
 	}
 	logger.Infof("========= 1prepareForPush")
-	if err = prepareForPush(dstAdapter, []*model.Resource); err != nil {
+	if err = prepareForPush(dstAdapter, dstResources); err != nil {
 		return err
 	}
 	logger.Infof("========= 2repareForPush")

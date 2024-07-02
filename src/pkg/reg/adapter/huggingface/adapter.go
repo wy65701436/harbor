@@ -59,7 +59,7 @@ type adapter struct {
 	registry *model.Registry
 }
 
-var _ adp.Adapter = adapter{}
+var _ adp.Adapter = &adapter{}
 
 func (adapter) Info() (info *model.RegistryInfo, err error) {
 	return &model.RegistryInfo{
