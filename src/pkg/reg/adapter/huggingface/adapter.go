@@ -84,6 +84,10 @@ func (adapter) Info() (info *model.RegistryInfo, err error) {
 	}, nil
 }
 
+func (a *adapter) PrepareForPush(resources []*model.Resource) error {
+	return nil
+}
+
 func getAdapterInfo() *model.AdapterPattern {
 	info := &model.AdapterPattern{
 		EndpointPattern: &model.EndpointPattern{
@@ -114,6 +118,14 @@ func (a *adapter) FetchArtifacts(filters []*model.Filter) ([]*model.Resource, er
 	var resources []*model.Resource
 	res := &model.Resource{
 		Type: "test",
+		Metadata: &model.ResourceMetadata{
+			Repository: &model.Repository{Name: "test/a1"},
+			Artifacts: []*model.Artifact{
+				{
+					Tags: []string{"tag11"},
+				},
+			},
+		},
 	}
 	resources = append(resources, res)
 	return resources, nil
