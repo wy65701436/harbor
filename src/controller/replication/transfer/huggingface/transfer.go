@@ -18,6 +18,8 @@ import (
 	"context"
 	"errors"
 	"github.com/goharbor/harbor/src/lib/config"
+	"oras.land/oras-go/v2/registry/remote/auth"
+	"oras.land/oras-go/v2/registry/remote/retry"
 	"os"
 	"strconv"
 	"strings"
@@ -272,6 +274,14 @@ func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1
 		return err
 	}
 	repo.PlainHTTP = true
+	repo.Client = &auth.Client{
+		Client: retry.DefaultClient,
+		Cache:  auth.NewCache(),
+		Credential: auth.StaticCredential(reg, auth.Credential{
+			Username: "admin",
+			Password: "Harbor12345",
+		}),
+	}
 	_, err = oras.Copy(ctx, fs, tag, repo, tag, oras.DefaultCopyOptions)
 	if err != nil {
 		t.logger.Infof("%v ...", err)
