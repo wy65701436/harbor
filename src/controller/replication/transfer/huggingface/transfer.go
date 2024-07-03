@@ -17,6 +17,7 @@ package image
 import (
 	"context"
 	"errors"
+	"github.com/goharbor/harbor/src/controller/artifact/processor/hf"
 	"github.com/goharbor/harbor/src/lib/config"
 	"oras.land/oras-go/v2/registry/remote/auth"
 	"oras.land/oras-go/v2/registry/remote/retry"
@@ -244,9 +245,16 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 	artifactType := "application/vnd.goharbor.huggingface.artifact"
 	orasOpts := oras.PackManifestOptions{
 		Layers: fileDescriptors,
+		ConfigDescriptor: &v1.Descriptor{
+			MediaType: hf.ArtifactTypeHF,
+		},
 		ManifestAnnotations: map[string]string{
-			"author": "harbor",
-			"type":   "hugging-face",
+			"type":              "hugging-face-object",
+			"author":            "Stability AI",
+			"model":             "google/owlvit-base-patch32",
+			"model description": "This is a model that can be used to generate images based on text prompts. It is a Multimodal Diffusion Transformer (https://arxiv.org/abs/2403.03206) that uses three fixed, pretrained text encoders (OpenCLIP-ViT/G, CLIP-ViT/L and T5-xxl)",
+			"model type":        "MMDiT text-to-image generative model",
+			"license":           "stabilityai-nc-research-community",
 		},
 	}
 	manifestDescriptor, err := oras.PackManifest(ctx, fs, oras.PackManifestVersion1_1, artifactType, orasOpts)
