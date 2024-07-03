@@ -249,6 +249,7 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 			MediaType: hf.MediaType,
 			Digest:    "sha256:400b270bc8f5cb44fda65b1a4532ceca0fb452d0637425e861829560cf393ae2",
 		},
+		
 		ManifestAnnotations: map[string]string{
 			"type":              "hugging-face-object",
 			"author":            "Stability AI",
