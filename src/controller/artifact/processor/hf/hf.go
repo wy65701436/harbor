@@ -26,7 +26,7 @@ import (
 // const definitions
 const (
 	ArtifactTypeHF = "AIArtifact"
-	MediaType      = "application/vnd.goharbor.huggingface.v1"
+	MediaType      = "application/vnd.goharbor.aiartifact.v1+json"
 )
 
 func init() {

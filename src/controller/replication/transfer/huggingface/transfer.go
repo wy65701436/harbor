@@ -245,9 +245,9 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 	artifactType := hf.MediaType
 	orasOpts := oras.PackManifestOptions{
 		Layers: fileDescriptors,
-		//ConfigDescriptor: &v1.Descriptor{
-		//	MediaType: hf.MediaType,
-		//},
+		ConfigDescriptor: &v1.Descriptor{
+			MediaType: hf.MediaType,
+		},
 		ManifestAnnotations: map[string]string{
 			"type":              "hugging-face-object",
 			"author":            "Stability AI",
