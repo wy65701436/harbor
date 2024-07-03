@@ -26,14 +26,14 @@ import (
 // const definitions
 const (
 	ArtifactTypeHF = "AIArtifact"
-	mediaType      = "application/vnd.goharbor.huggingface.v1"
+	MediaType      = "application/vnd.goharbor.huggingface.v1"
 )
 
 func init() {
 	pc := &processor{}
 	pc.ManifestProcessor = base.NewManifestProcessor()
-	if err := ps.Register(pc, mediaType); err != nil {
-		log.Errorf("failed to register processor for media type %s: %v", mediaType, err)
+	if err := ps.Register(pc, MediaType); err != nil {
+		log.Errorf("failed to register processor for media type %s: %v", MediaType, err)
 		return
 	}
 }

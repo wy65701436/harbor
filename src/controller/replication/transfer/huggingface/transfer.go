@@ -242,11 +242,11 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 	}
 
 	// 2. Pack the files and tag the packed manifest
-	artifactType := "application/vnd.goharbor.huggingface.artifact"
+	artifactType := hf.MediaType
 	orasOpts := oras.PackManifestOptions{
 		Layers: fileDescriptors,
 		ConfigDescriptor: &v1.Descriptor{
-			MediaType: hf.ArtifactTypeHF,
+			MediaType: hf.MediaType,
 		},
 		ManifestAnnotations: map[string]string{
 			"type":              "hugging-face-object",
