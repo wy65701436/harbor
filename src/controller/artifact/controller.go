@@ -19,6 +19,7 @@ import (
 	"context"
 	stderrors "errors"
 	"fmt"
+	"github.com/goharbor/harbor/src/controller/artifact/processor/hf"
 	"os"
 	"strings"
 	"time"
@@ -78,6 +79,7 @@ var (
 		cnab.ArtifactTypeCNAB:   icon.DigestOfIconCNAB,
 		wasm.ArtifactTypeWASM:   icon.DigestOfIconWASM,
 		sbom.ArtifactTypeSBOM:   icon.DigestOfIconAccSBOM,
+		hf.ArtifactTypeHF:       icon.DigestOfIconHF,
 	}
 )
 

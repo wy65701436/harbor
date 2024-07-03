@@ -73,6 +73,10 @@ var (
 			path:   "./icons/sbom.png",
 			resize: true,
 		},
+		icon.DigestOfIconHF: {
+			path:   "./icons/hf.png",
+			resize: true,
+		},
 		icon.DigestOfIconDefault: {
 			path:   "./icons/default.png",
 			resize: true,

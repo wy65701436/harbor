@@ -191,7 +191,7 @@ func (t *transfer) copy(src *repository, dst *repository, override bool, opts *t
 	if err != nil {
 		return err
 	}
-	t.logger.Infof("manifest descriptor:", manifestDescriptor)
+	t.logger.Infof("manifest descriptor:", manifestDescriptor.Digest)
 
 	// push the manifest to the destination registry
 	if err := t.pushManifest(ctx, fs, manifestDescriptor, dstRepo, dst.tags[0]); err != nil {
@@ -229,7 +229,7 @@ func (t *transfer) download(modelID string) ([]string, error) {
 }
 
 func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []string) (v1.Descriptor, error) {
-	mediaType := "application/vnd.goharbor.huggingface"
+	mediaType := "application/vnd.goharbor.huggingface.v1"
 	fileDescriptors := make([]v1.Descriptor, 0, len(files))
 	for _, name := range files {
 		fileDescriptor, err := fs.Add(ctx, name, mediaType, "")
@@ -241,9 +241,13 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 	}
 
 	// 2. Pack the files and tag the packed manifest
-	artifactType := "application/vnd.test.artifact"
+	artifactType := "application/vnd.goharbor.huggingface.artifact"
 	orasOpts := oras.PackManifestOptions{
 		Layers: fileDescriptors,
+		ManifestAnnotations: map[string]string{
+			"author": "harbor",
+			"type":   "hugging-face",
+		},
 	}
 	manifestDescriptor, err := oras.PackManifest(ctx, fs, oras.PackManifestVersion1_1, artifactType, orasOpts)
 	if err != nil {
@@ -258,19 +262,13 @@ func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1
 	}
 
 	t.logger.Infof("pushing the manifest of artifact %s:%s ...", repository, tag)
-
 	if err := fs.Tag(ctx, manifest, tag); err != nil {
-		t.logger.Infof("%v ...", err)
 		return err
 	}
 	reg := config.GetCoreURL()
-	t.logger.Infof("%v ...", reg)
 	reg = strings.TrimPrefix(reg, "http://")
-	t.logger.Infof("%v ...", reg)
 	repo, err := remote.NewRepository(reg + "/library/demo")
-	t.logger.Infof("%v ...", repo)
 	if err != nil {
-		t.logger.Infof("%v ...", err)
 		return err
 	}
 	repo.PlainHTTP = true
@@ -284,7 +282,6 @@ func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1
 	}
 	_, err = oras.Copy(ctx, fs, tag, repo, tag, oras.DefaultCopyOptions)
 	if err != nil {
-		t.logger.Infof("%v ...", err)
 		return err
 	}
 	t.logger.Infof("the manifest of artifact %s:%s pushed",
