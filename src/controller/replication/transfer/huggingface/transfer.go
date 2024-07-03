@@ -222,7 +222,7 @@ func (t *transfer) download(modelID string) ([]string, error) {
 				return nil, err
 			}
 			filesInModels = append(filesInModels, modelPath)
-			t.logger.Infof(modelPath, " is copied successfully.")
+			t.logger.Infof("%s ", modelPath, "is copied successfully.")
 		}
 	}
 
@@ -288,8 +288,10 @@ func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1
 			Password: "Harbor12345",
 		}),
 	}
+	t.logger.Info("===========")
 	_, err = oras.Copy(ctx, fs, tag, repo, tag, oras.DefaultCopyOptions)
 	if err != nil {
+		t.logger.Infof("%v ", err)
 		return err
 	}
 	t.logger.Infof("the manifest of artifact %s:%s pushed",
