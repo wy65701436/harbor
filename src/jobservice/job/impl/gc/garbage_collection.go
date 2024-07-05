@@ -169,6 +169,8 @@ func (gc *GarbageCollector) Run(ctx job.Context, params job.Parameters) error {
 		return err
 	}
 
+	time.Sleep(3600 * time.Second)
+
 	gc.logger.Infof("start to run gc in job.")
 
 	// mark
