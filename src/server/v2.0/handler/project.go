@@ -17,7 +17,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/goharbor/harbor/src/server/v2.0/handler/assembler"
 	"strconv"
 	"strings"
 	"sync"
@@ -54,6 +53,7 @@ import (
 	"github.com/goharbor/harbor/src/pkg/retention/policy"
 	"github.com/goharbor/harbor/src/pkg/robot"
 	userModels "github.com/goharbor/harbor/src/pkg/user/models"
+	"github.com/goharbor/harbor/src/server/v2.0/handler/assembler"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
 	"github.com/goharbor/harbor/src/server/v2.0/models"
 	operation "github.com/goharbor/harbor/src/server/v2.0/restapi/operations/project"
