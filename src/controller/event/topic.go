@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/goharbor/harbor/src/common/rbac"
+	robotModel "github.com/goharbor/harbor/src/controller/robot"
 	"github.com/goharbor/harbor/src/lib/selector"
 	"github.com/goharbor/harbor/src/pkg/artifact"
 	"github.com/goharbor/harbor/src/pkg/audit/model"
@@ -47,6 +48,7 @@ const (
 	TopicReplication     = "REPLICATION"
 	TopicArtifactLabeled = "ARTIFACT_LABELED"
 	TopicTagRetention    = "TAG_RETENTION"
+	TopicCreateRobot     = "CREATE_ROBOT"
 )
 
 // CreateProjectEvent is the creating project event
@@ -368,4 +370,30 @@ func (r *RetentionEvent) String() string {
 
 	return fmt.Sprintf("TaskID-%d Status-%s Deleted-%s OccurAt-%s",
 		r.TaskID, r.Status, candidates, r.OccurAt.Format("2006-01-02 15:04:05"))
+}
+
+// CreateRobotEvent is the creating robot event
+type CreateRobotEvent struct {
+	EventType string
+	Robot     *robotModel.Robot
+	Operator  string
+	OccurAt   time.Time
+}
+
+// ResolveToAuditLog ...
+func (c *CreateRobotEvent) ResolveToAuditLog() (*model.AuditLog, error) {
+	auditLog := &model.AuditLog{
+		ProjectID:    c.Robot.ProjectID,
+		OpTime:       c.OccurAt,
+		Operation:    rbac.ActionCreate.String(),
+		Username:     c.Operator,
+		ResourceType: "robot",
+		Resource:     fmt.Sprintf("%s:%s", c.Robot.ProjectName, c.Robot.Name)}
+	return auditLog, nil
+}
+
+func (c *CreateRobotEvent) String() string {
+	return fmt.Sprintf("ProjectID-%d, Project-%s Name-%s Operator-%s OccurAt-%s",
+		c.Robot.ProjectID, c.Robot.ProjectName, c.Robot.Name, c.Operator,
+		c.OccurAt.Format("2006-01-02 15:04:05"))
 }

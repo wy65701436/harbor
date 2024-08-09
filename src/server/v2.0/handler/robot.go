@@ -17,6 +17,8 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/goharbor/harbor/src/controller/event/metadata"
+	"github.com/goharbor/harbor/src/pkg/notification"
 	"math"
 	"regexp"
 	"strconv"
@@ -84,6 +86,14 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 	created, err := rAPI.robotCtl.Get(ctx, rid, nil)
 	if err != nil {
 		return rAPI.SendError(ctx, err)
+	}
+
+	if created != nil {
+		// fire event
+		notification.AddEvent(ctx, &metadata.CreateRobotEventMetadata{
+			Ctx:   ctx,
+			Robot: created,
+		})
 	}
 
 	location := fmt.Sprintf("%s/%d", strings.TrimSuffix(params.HTTPRequest.URL.Path, "/"), created.ID)
