@@ -35,7 +35,7 @@ const HeaderXRequestID = "X-Request-ID"
 func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler {
 	return middleware.New(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
 		fmt.Println("=============================")
-		bytes, _ := httputil.DumpRequest(r, true)
+		bytes, _ := httputil.DumpRequest(r, false)
 		fmt.Println(string(bytes))
 		fmt.Println("=============================")
 
