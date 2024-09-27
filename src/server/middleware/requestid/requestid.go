@@ -15,7 +15,9 @@
 package requestid
 
 import (
+	"fmt"
 	"net/http"
+	"net/http/httputil"
 
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
@@ -32,6 +34,11 @@ const HeaderXRequestID = "X-Request-ID"
 // Middleware middleware which add X-Request-ID header in the http request when not exist
 func Middleware(skippers ...middleware.Skipper) func(http.Handler) http.Handler {
 	return middleware.New(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+		fmt.Println("=============================")
+		bytes, _ := httputil.DumpRequest(r, true)
+		fmt.Println(string(bytes))
+		fmt.Println("=============================")
+
 		rid := r.Header.Get(HeaderXRequestID)
 		if rid == "" {
 			rid = uuid.New().String()
