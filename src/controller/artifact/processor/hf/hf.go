@@ -16,18 +16,27 @@ package hf
 
 import (
 	"context"
+	"encoding/json"
+	"io"
+
+	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 
 	ps "github.com/goharbor/harbor/src/controller/artifact/processor"
 	"github.com/goharbor/harbor/src/controller/artifact/processor/base"
+	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/pkg/artifact"
 )
 
 // const definitions
 const (
-	ArtifactTypeHF = "AIArtifact"
-	MediaType      = "application/vnd.goharbor.aiartifact.v1+json"
+	AdditionTypeReadme = "README.MD"
+	ArtifactTypeModel  = "MODEL"
+	MediaType          = "application/vnd.goharbor.aiartifact.v1+json"
 )
+
+// const definitions
+const ()
 
 func init() {
 	pc := &processor{}
@@ -69,6 +78,59 @@ type processor struct {
 //	return p.manifestProcessor.AbstractMetadata(ctx, art, payload)
 //}
 
+func (p *processor) AbstractAddition(_ context.Context, artifact *artifact.Artifact, addition string) (*ps.Addition, error) {
+	if addition != AdditionTypeReadme {
+		return nil, errors.New(nil).WithCode(errors.BadRequestCode).
+			WithMessage("addition %s isn't supported for %s", addition, ArtifactTypeModel)
+	}
+
+	m, _, err := p.RegCli.PullManifest(artifact.RepositoryName, artifact.Digest)
+	if err != nil {
+		return nil, err
+	}
+	_, payload, err := m.Payload()
+	if err != nil {
+		return nil, err
+	}
+	manifest := &v1.Manifest{}
+	if err := json.Unmarshal(payload, manifest); err != nil {
+		return nil, err
+	}
+
+	for _, layer := range manifest.Layers {
+		layerDgst := layer.Digest.String()
+		// currently, we only handle readme addition for model artifact.
+		if layerDgst != manifest.Config.Digest.String() &&
+			(layer.Annotations != nil && layer.Annotations["org.cnai.model.readme"] == "true") {
+			_, blob, err := p.RegCli.PullBlob(artifact.RepositoryName, layerDgst)
+			if err != nil {
+				return nil, err
+			}
+
+			defer blob.Close()
+			content, err := io.ReadAll(blob)
+			if err != nil {
+				return nil, err
+			}
+
+			var additionContent []byte
+			var additionContentType string
+
+			switch addition {
+			case AdditionTypeReadme:
+				additionContent = []byte(content)
+				additionContentType = "text/markdown; charset=utf-8"
+			}
+
+			return &ps.Addition{
+				Content:     additionContent,
+				ContentType: additionContentType,
+			}, nil
+		}
+	}
+	return nil, nil
+}
+
 func (p *processor) GetArtifactType(_ context.Context, _ *artifact.Artifact) string {
-	return ArtifactTypeHF
+	return ArtifactTypeModel
 }

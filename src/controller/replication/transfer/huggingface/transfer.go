@@ -217,7 +217,7 @@ func (t *transfer) download(modelID string) ([]string, error) {
 	var filesInModels []string
 	if len(r.Siblings) != 0 {
 		for _, s := range r.Siblings {
-			modelPath, err := hapi.Model("google/owlvit-base-patch32").Get(s.Rfilename)
+			modelPath, err := hapi.Model("NousResearch/Llama-2-7b-chat-hf").Get(s.Rfilename)
 			if err != nil {
 				return nil, err
 			}
@@ -234,6 +234,11 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 	fileDescriptors := make([]v1.Descriptor, 0, len(files))
 	for _, name := range files {
 		fileDescriptor, err := fs.Add(ctx, name, mediaType, "")
+		if strings.Contains(name, "README.md") {
+			fileDescriptor.Annotations = map[string]string{
+				"org.cnai.model.readme": "true",
+			}
+		}
 		if err != nil {
 			return v1.Descriptor{}, err
 		}
@@ -249,14 +254,17 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 			MediaType: hf.MediaType,
 			Digest:    "sha256:400b270bc8f5cb44fda65b1a4532ceca0fb452d0637425e861829560cf393ae2",
 		},
-		
+
 		ManifestAnnotations: map[string]string{
-			"type":              "hugging-face-object",
-			"author":            "Stability AI",
-			"model":             "google/owlvit-base-patch32",
-			"model description": "This is a model that can be used to generate images based on text prompts. It is a Multimodal Diffusion Transformer (https://arxiv.org/abs/2403.03206) that uses three fixed, pretrained text encoders (OpenCLIP-ViT/G, CLIP-ViT/L and T5-xxl)",
-			"model type":        "MMDiT text-to-image generative model",
-			"license":           "stabilityai-nc-research-community",
+			"org.cnai.model.created":     "2023-07-18T19:45:53.000Z",
+			"org.cnai.model.authors":     "NousResearch",
+			"org.cnai.model.url":         "https://huggingface.co/NousResearch/Llama-2-7b-chat-hf",
+			"org.cnai.model.family":      "llama3",
+			"org.cnai.model.name":        "Llama-2-7b-chat-hf",
+			"org.cnai.model.revision":    "351844e75ed0bcbbe3f10671b3c808d2b83894ee",
+			"org.cnai.model.title":       "NousResearch/Llama-2-7b-chat-hf",
+			"org.cnai.model.description": "Meta developed and publicly released the Llama 2 family of large language models (LLMs), a collection of pretrained and fine-tuned generative text models ranging in scale from 7 billion to 70 billion parameters. Our fine-tuned LLMs, called Llama-2-Chat, are optimized for dialogue use cases. Llama-2-Chat models outperform open-source chat models on most benchmarks we tested, and in our human evaluations for helpfulness and safety, are on par with some popular closed-source models like ChatGPT and PaLM.",
+			"org.cnai.model.tags":        "transformers,pytorch,safetensors,llama,text-generation,facebook,meta,llama-2,en,autotrain_compatible,text-generation-inference,region:us",
 		},
 	}
 	manifestDescriptor, err := oras.PackManifest(ctx, fs, oras.PackManifestVersion1_1, artifactType, orasOpts)
