@@ -2,16 +2,12 @@ ARG harbor_base_image_version
 ARG harbor_base_namespace
 FROM ${harbor_base_namespace}/harbor-jobservice-base:${harbor_base_image_version}
 
-COPY ./make/photon/common/install_cert.sh /harbor/
-COPY ./make/photon/jobservice/entrypoint.sh /harbor/
-COPY ./make/photon/jobservice/harbor_jobservice /harbor/
+COPY ./make/photon/common/install_cert.sh \
+     ./make/photon/jobservice/entrypoint.sh \
+     ./make/photon/jobservice/harbor_jobservice /harbor/
 
-
-RUN chown -R harbor:harbor /etc/pki/tls/certs \
-    && chown -R harbor:harbor /harbor/ \
-    && chmod u+x /harbor/entrypoint.sh \
-    && chmod u+x /harbor/install_cert.sh \
-    && chmod u+x /harbor/harbor_jobservice
+RUN chown -R harbor:harbor /etc/pki/tls/certs /harbor/ \
+    && chmod u+x /harbor/entrypoint.sh /harbor/install_cert.sh /harbor/harbor_jobservice
 
 WORKDIR /harbor/
 
