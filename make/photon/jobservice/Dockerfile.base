@@ -1,4 +1,4 @@
-FROM photonos-docker-local.packages.vcfd.broadcom.net/photon5:20240716
+FROM goharbor/photon-lite-base:test
 
 RUN tdnf install -y tzdata shadow >> /dev/null \
     && tdnf clean all \
