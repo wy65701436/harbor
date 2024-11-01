@@ -35,7 +35,7 @@ const (
 	MediaType          = "application/vnd.goharbor.aiartifact.v1+json"
 )
 
-// const definitions
+// const definitions application/vnd.goharbor.aiartifact.v1+json
 const ()
 
 func init() {

@@ -119,7 +119,7 @@ func (a *adapter) FetchArtifacts(filters []*model.Filter) ([]*model.Resource, er
 	res := &model.Resource{
 		Type: model.RegistryTypeHuggingFace,
 		Metadata: &model.ResourceMetadata{
-			Repository: &model.Repository{Name: "google/owlvit-base-patch32"},
+			Repository: &model.Repository{Name: "NousResearch/Llama-2-7b-chat-hf"},
 			Artifacts: []*model.Artifact{
 				{
 					Tags: []string{"hugging-face-demo"},

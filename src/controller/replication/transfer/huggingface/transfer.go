@@ -218,15 +218,17 @@ func (t *transfer) download(modelID string) ([]string, error) {
 	var filesInModels []string
 	if len(r.Siblings) != 0 {
 		for _, s := range r.Siblings {
-			modelPath, err := hapi.Model(modelID).Get(s.Rfilename)
-			fmt.Println("======")
-			fmt.Println(modelPath)
-			fmt.Println("======")
-			if err != nil {
-				return nil, err
+			if strings.Contains(s.Rfilename, "README.md") || strings.Contains(s.Rfilename, "LICENSE.txt") {
+				modelPath, err := hapi.Model(modelID).Get(s.Rfilename)
+				fmt.Println("======")
+				fmt.Println(modelPath)
+				fmt.Println("======")
+				if err != nil {
+					return nil, err
+				}
+				filesInModels = append(filesInModels, modelPath)
+				t.logger.Infof("%s ", modelPath, "is copied successfully.")
 			}
-			filesInModels = append(filesInModels, modelPath)
-			t.logger.Infof("%s ", modelPath, "is copied successfully.")
 		}
 	}
 
