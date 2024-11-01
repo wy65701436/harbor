@@ -172,7 +172,7 @@ func (t *transfer) copy(src *repository, dst *repository, override bool, opts *t
 		srcRepo, strings.Join(src.tags, ","), dstRepo, strings.Join(dst.tags, ","))
 
 	// download model files from hugging face
-	modelId := "google/owlvit-base-patch32"
+	modelId := "NousResearch/Llama-2-7b-chat-hf"
 	filesInModels, err := t.download(modelId)
 	if err != nil {
 		return err
