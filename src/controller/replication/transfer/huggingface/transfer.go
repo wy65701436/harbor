@@ -17,6 +17,7 @@ package image
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/goharbor/harbor/src/controller/artifact/processor/hf"
 	"github.com/goharbor/harbor/src/lib/config"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -217,7 +218,10 @@ func (t *transfer) download(modelID string) ([]string, error) {
 	var filesInModels []string
 	if len(r.Siblings) != 0 {
 		for _, s := range r.Siblings {
-			modelPath, err := hapi.Model("NousResearch/Llama-2-7b-chat-hf").Get(s.Rfilename)
+			modelPath, err := hapi.Model(modelID).Get(s.Rfilename)
+			fmt.Println("======")
+			fmt.Println(modelPath)
+			fmt.Println("======")
 			if err != nil {
 				return nil, err
 			}
@@ -264,7 +268,8 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 			"org.cnai.model.revision":    "351844e75ed0bcbbe3f10671b3c808d2b83894ee",
 			"org.cnai.model.title":       "NousResearch/Llama-2-7b-chat-hf",
 			"org.cnai.model.description": "Meta developed and publicly released the Llama 2 family of large language models (LLMs), a collection of pretrained and fine-tuned generative text models ranging in scale from 7 billion to 70 billion parameters. Our fine-tuned LLMs, called Llama-2-Chat, are optimized for dialogue use cases. Llama-2-Chat models outperform open-source chat models on most benchmarks we tested, and in our human evaluations for helpfulness and safety, are on par with some popular closed-source models like ChatGPT and PaLM.",
-			"org.cnai.model.tags":        "transformers,pytorch,safetensors,llama,text-generation,facebook,meta,llama-2,en,autotrain_compatible,text-generation-inference,region:us",
+			"org.cnai.model.tags":        "[transformers,pytorch,safetensors,llama,text-generation,facebook,meta,llama-2,en,autotrain_compatible,text-generation-inference,region:us]",
+			"org.cnai.model.files":       "NousResearch/Llama-2-7b-chat-hf",
 		},
 	}
 	manifestDescriptor, err := oras.PackManifest(ctx, fs, oras.PackManifestVersion1_1, artifactType, orasOpts)
