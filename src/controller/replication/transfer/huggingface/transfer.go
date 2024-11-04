@@ -17,9 +17,9 @@ package image
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/goharbor/harbor/src/controller/artifact/processor/hf"
 	"github.com/goharbor/harbor/src/lib/config"
+	"oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/registry/remote/auth"
 	"oras.land/oras-go/v2/registry/remote/retry"
 	"os"
@@ -173,7 +173,7 @@ func (t *transfer) copy(src *repository, dst *repository, override bool, opts *t
 		srcRepo, strings.Join(src.tags, ","), dstRepo, strings.Join(dst.tags, ","))
 
 	// download model files from hugging face
-	modelId := "NousResearch/Llama-2-7b-chat-hf"
+	modelId := "nousResearch/llama-2-7b-chat-hf"
 	filesInModels, err := t.download(modelId)
 	if err != nil {
 		return err
@@ -220,9 +220,6 @@ func (t *transfer) download(modelID string) ([]string, error) {
 		for _, s := range r.Siblings {
 			if strings.Contains(s.Rfilename, "README.md") || strings.Contains(s.Rfilename, "LICENSE.txt") {
 				modelPath, err := hapi.Model(modelID).Get(s.Rfilename)
-				fmt.Println("======")
-				fmt.Println(modelPath)
-				fmt.Println("======")
 				if err != nil {
 					return nil, err
 				}
@@ -253,14 +250,12 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 	}
 
 	// 2. Pack the files and tag the packed manifest
+	configBytes := []byte("{}")
+	configDesc := content.NewDescriptorFromBytes(hf.MediaType, configBytes)
 	artifactType := hf.MediaType
 	orasOpts := oras.PackManifestOptions{
-		Layers: fileDescriptors,
-		ConfigDescriptor: &v1.Descriptor{
-			MediaType: hf.MediaType,
-			Digest:    "sha256:400b270bc8f5cb44fda65b1a4532ceca0fb452d0637425e861829560cf393ae2",
-		},
-
+		Layers:           fileDescriptors,
+		ConfigDescriptor: &configDesc,
 		ManifestAnnotations: map[string]string{
 			"org.cnai.model.created":     "2023-07-18T19:45:53.000Z",
 			"org.cnai.model.authors":     "NousResearch",
@@ -270,8 +265,8 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 			"org.cnai.model.revision":    "351844e75ed0bcbbe3f10671b3c808d2b83894ee",
 			"org.cnai.model.title":       "NousResearch/Llama-2-7b-chat-hf",
 			"org.cnai.model.description": "Meta developed and publicly released the Llama 2 family of large language models (LLMs), a collection of pretrained and fine-tuned generative text models ranging in scale from 7 billion to 70 billion parameters. Our fine-tuned LLMs, called Llama-2-Chat, are optimized for dialogue use cases. Llama-2-Chat models outperform open-source chat models on most benchmarks we tested, and in our human evaluations for helpfulness and safety, are on par with some popular closed-source models like ChatGPT and PaLM.",
-			"org.cnai.model.tags":        "[transformers,pytorch,safetensors,llama,text-generation,facebook,meta,llama-2,en,autotrain_compatible,text-generation-inference,region:us]",
-			"org.cnai.model.files":       "NousResearch/Llama-2-7b-chat-hf",
+			"org.cnai.model.tags":        "[transformers, pytorch, safetensors, llama, text-generation, facebook, meta, llama-2, en, autotrain_compatible, text-generation-inference, region:us]",
+			"org.cnai.model.files":       "[.gitattributes, LICENSE.txt, README.md, USE_POLICY.md, added_tokens.json, config.json, generation_config.json, model-00001-of-00002.safetensors, model-00002-of-00002.safetensors, model.safetensors.index.json, pytorch_model-00001-of-00003.bin, pytorch_model-00002-of-00003.bin, pytorch_model-00003-of-00003.bin, pytorch_model.bin.index.json, special_tokens_map.json, tokenizer.json, tokenizer.model, tokenizer_config.json]",
 		},
 	}
 	manifestDescriptor, err := oras.PackManifest(ctx, fs, oras.PackManifestVersion1_1, artifactType, orasOpts)
@@ -279,6 +274,7 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 		return v1.Descriptor{}, err
 	}
 	return manifestDescriptor, nil
+
 }
 
 func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1.Descriptor, repository, tag string) error {
@@ -305,7 +301,6 @@ func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1
 			Password: "Harbor12345",
 		}),
 	}
-	t.logger.Info("===========")
 	_, err = oras.Copy(ctx, fs, tag, repo, tag, oras.DefaultCopyOptions)
 	if err != nil {
 		t.logger.Infof("%v ", err)
