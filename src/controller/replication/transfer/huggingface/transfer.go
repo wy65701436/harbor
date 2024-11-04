@@ -16,9 +16,11 @@ package image
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"github.com/goharbor/harbor/src/controller/artifact/processor/hf"
 	"github.com/goharbor/harbor/src/lib/config"
+	"net/http"
 	"oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/registry/remote/auth"
 	"oras.land/oras-go/v2/registry/remote/retry"
@@ -246,7 +248,7 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 			return v1.Descriptor{}, err
 		}
 		fileDescriptors = append(fileDescriptors, fileDescriptor)
-		log.Infof("file descriptor for %s: %v\n", name, fileDescriptor)
+		t.logger.Infof("file descriptor for %s: %v\n", name, fileDescriptor)
 	}
 
 	// 2. Pack the files and tag the packed manifest
@@ -293,9 +295,18 @@ func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1
 		return err
 	}
 	repo.PlainHTTP = true
+	config := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	baseTransport := http.DefaultTransport.(*http.Transport).Clone()
+	baseTransport.TLSClientConfig = config
 	repo.Client = &auth.Client{
-		Client: retry.DefaultClient,
-		Cache:  auth.NewCache(),
+		Client: &http.Client{
+			// http.RoundTripper with a retry using the DefaultPolicy
+			// see: https://pkg.go.dev/oras.land/oras-go/v2/registry/remote/retry#Policy
+			Transport: retry.NewTransport(baseTransport),
+		},
+		Cache: auth.NewCache(),
 		Credential: auth.StaticCredential(reg, auth.Credential{
 			Username: "admin",
 			Password: "Harbor12345",
