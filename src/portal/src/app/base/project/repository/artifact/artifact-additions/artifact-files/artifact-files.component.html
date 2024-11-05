@@ -1,0 +1,23 @@
+<clr-datagrid [clrDgLoading]="loading">
+  <clr-dg-column class="file-name">{{
+      'FILES.NAME' | translate
+  }}</clr-dg-column>
+  <!-- <clr-dg-column>{{ 'FILES.HASH' | translate }}</clr-dg-column> -->
+  <clr-dg-row
+      *clrDgItems="let mfo of (selectedArtifactTreeItem?.children ?? [])"
+      [clrDgItem]="mfo"
+      class="file-item">
+      <clr-dg-cell>
+          <clr-icon *ngIf="mfo.file_type === 'folder'" shape="folder"></clr-icon>
+          <clr-icon *ngIf="mfo.file_type === 'file'" shape="file"></clr-icon>
+          <a *ngIf="mfo.file_type === 'folder'" (click)="openFolder(mfo)" class="mfo-name">
+              {{ mfo.name }}
+          </a>
+          <span *ngIf="mfo.file_type === 'file'" class="mfo-name">{{ mfo.name }}</span>
+      </clr-dg-cell>
+      <!-- <clr-dg-cell>
+          {{ mfo.file_type === 'file' ? mfo.file_hash : '--'}}
+      </clr-dg-cell> -->
+  </clr-dg-row>
+  <clr-dg-footer>{{ selectedArtifactTreeItem?.children?.length ?? 0 }} items</clr-dg-footer>
+</clr-datagrid>

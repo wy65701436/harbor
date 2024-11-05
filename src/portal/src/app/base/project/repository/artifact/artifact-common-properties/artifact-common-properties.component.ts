@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Artifact } from '../../../../../../../ng-swagger-gen/models/artifact';
+import { HG_M_COMMON_ANNOTATION_KEY_PREFIX } from 'src/app/shared/entities/shared.const';
 
 enum Types {
     CREATED = 'created',
@@ -50,6 +51,17 @@ export class ArtifactCommonPropertiesComponent implements OnChanges {
                         }
                     }
                 }
+            }
+        }
+        for (let name in this.commonProperties) {
+            if (name.startsWith(HG_M_COMMON_ANNOTATION_KEY_PREFIX) &&
+            [
+                'org.cnai.model.title',
+                'org.cnai.model.url',
+                'org.cnai.model.created',
+                'org.cnai.model.revision'
+            ].indexOf(name) < 0) {
+                delete this.commonProperties[name];
             }
         }
     }

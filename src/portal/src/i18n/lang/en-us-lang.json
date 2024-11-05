@@ -780,6 +780,8 @@
         "SIZE": "Size",
         "VULNERABILITY": "Vulnerabilities",
         "SBOM": "SBOM",
+        "FILES": "Files and versions",
+        "MODEL_CARD": "Model card",
         "BUILD_HISTORY": "Build History",
         "SIGNED": "Signed",
         "AUTHOR": "Author",
@@ -1030,6 +1032,10 @@
     "SEARCH": {
         "IN_PROGRESS": "Search...",
         "BACK": "Back"
+    },
+    "FILES": {
+        "NAME": "Files",
+        "HASH": "Hash"
     },
     "SBOM": {
         "CHART": {

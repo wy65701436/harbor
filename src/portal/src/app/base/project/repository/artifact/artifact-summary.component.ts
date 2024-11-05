@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Artifact } from '../../../../../../ng-swagger-gen/models/artifact';
 import { Label } from '../../../../../../ng-swagger-gen/models/label';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -10,6 +10,8 @@ import {
     EventService,
     HarborEvent,
 } from '../../../../services/event-service/event.service';
+import { HG_ICON_NAMES, HG_M_COMMON_ANNOTATION_KEY_PREFIX } from 'src/app/shared/entities/shared.const';
+import { ClarityIcons } from '@clr/icons';
 
 @Component({
     selector: 'artifact-summary',
@@ -29,6 +31,7 @@ export class ArtifactSummaryComponent implements OnInit {
 
     labels: Label;
     artifact: Artifact;
+    hgLabels: Label[] = [];
     @Output()
     backEvt: EventEmitter<any> = new EventEmitter<any>();
     projectName: string;
@@ -110,6 +113,43 @@ export class ArtifactSummaryComponent implements OnInit {
                 }
                 this.artifact = <Artifact>resolverData['artifactResolver'][0];
                 this.getIconFromBackEnd();
+                // this.artifact.annotations = {
+                //     ...this.artifact.annotations ?? {},
+                //     'org.cnai.model.created': '2024-11-03 18:23:10',
+                //     'org.cnai.model.authors': 'tom',
+                //     'org.cnai.model.url': 'https://huggingface.co/meta-llama/Llama-2-7b-chat-hf/tree/main',
+                //     'org.cnai.model.documentation': 'https://huggingface.co/meta-llama/Llama-2-7b-chat-hf/tree/main',
+                //     'org.cnai.model.source': 'https://huggingface.co/meta-llama/Llama-2-7b-chat-hf/tree/main',
+                //     'org.cnai.model.version': 'v0.0.1',
+                //     'org.cnai.model.revision': 'f77b82c1cbbef8423fbddbac20fbe2b7192f13b0',
+                //     'org.cnai.model.vendor': 'Alibaba',
+                //     'org.cnai.model.licenses': 'llama2',
+                //     'org.cnai.model.ref.name': 'meta-llama/Llama-2-7b-chat-hf ',
+                //     'org.cnai.model.title': 'Harbor AI Image',
+                //     'org.cnai.model.description': 'This is a placeholder for description',
+                //     'org.cnai.model.architecture': 'transformer',
+                //     'org.cnai.model.family': 'llama3',
+                //     'org.cnai.model.name': 'Llama-2-7b-chat-hf',
+                //     'org.cnai.model.format': 'pytorch',
+                //     'org.cnai.model.param.size': '101200000',
+                //     'org.cnai.model.precision': 'bf16',
+                //     'org.cnai.model.quantization': 'awq',
+                //     'org.cnai.model.files': '[\"src/package.json\",\"src/app.tsx\",\"src/app.scss\",\"src/app.html\",\"src/login/login.html\",\"src/login/login.tsx\",\"src/login/login.scss\",\"readme.td\",\".npmrc\"]'
+                // };
+                const tagStr = this.artifact.annotations['org.cnai.model.tags'].replace('[', '').replace(']', '');
+                const tags = tagStr.split(',').map(item => item.trim());
+                this.hgLabels = [
+                    'org.cnai.model.authors',
+                    'org.cnai.model.family',
+                    ...tags
+                ].map(key => {
+                    const parts = key.split('.');
+                    const value = this.artifact?.annotations?.[key] ?? '';
+
+                    return key.startsWith(HG_M_COMMON_ANNOTATION_KEY_PREFIX)
+                      ? { name: `${parts[parts.length - 1]}: ${value}` }
+                      : { name: key }
+                });
             }
         }
         // scroll to the top for harbor container HTML element
@@ -130,5 +170,44 @@ export class ArtifactSummaryComponent implements OnInit {
         if (this.artifact && this.artifact.icon) {
             this.frontEndArtifactService.getIconsFromBackEnd([this.artifact]);
         }
+    }
+
+    getHgKeysFromArtifact(): string[] {
+        const keys = Object.getOwnPropertyNames(this.artifact?.annotations ?? {});
+        return keys.filter(key => key.startsWith(HG_M_COMMON_ANNOTATION_KEY_PREFIX));
+    }
+
+    isHgArtifact(): boolean {
+        return this.getHgKeysFromArtifact().length > 0;
+    }
+
+    getHgKeyValueFromArtifact(key: string): string {
+        return (this.artifact?.annotations ?? {})?.[key] ?? '';
+    }
+
+    getShape(label?: Label): string {
+        const labelFormat = (label?.name ?? '').trim().replace(/ /gi, '-').toLowerCase();
+        const finalLabelName = `hg-${labelFormat}`;
+        const supportedIcons = HG_ICON_NAMES.filter(name => finalLabelName.includes(name)) ?? [];
+        if (label.name.toLocaleLowerCase().indexOf('authors') >= 0) {
+            return 'administrator';
+        }
+        if (label.name.toLocaleLowerCase().indexOf('region') >= 0) {
+            return 'cloud';
+        }
+        if (label.name.toLocaleLowerCase().indexOf('meta') >= 0) {
+            return 'bundle';
+        }
+        if (label.name.toLocaleLowerCase().indexOf('lama') >= 0) {
+            return 'blocks-group';
+        }
+        if (label.name.toLocaleLowerCase().startsWith('en')) {
+            return 'world';
+        }
+        return supportedIcons.length > 0
+          ? supportedIcons[0]
+          : ClarityIcons.has(labelFormat)
+          ? labelFormat
+          : 'tag'; 
     }
 }

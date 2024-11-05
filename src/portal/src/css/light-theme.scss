@@ -49,4 +49,7 @@ $normal-border-color: #6a7a81;
 $text-color-job-service-dashboard: #0072a3;
 $datagrid-numeric-filter-input-bg-color: unset;
 $alert-info-bg-color: #107eb0;
+$hg-label-bg-color: var(--clr-thead-bgcolor, hsl(198, 0%, 98%));
+$hg-label-text-color: #0f5e80;
+$hg-label-bd-color: #eee;
 @import "./common.scss";
