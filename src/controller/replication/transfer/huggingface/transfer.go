@@ -251,7 +251,7 @@ func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []strin
 
 	// 2. Pack the files and tag the packed manifest
 	configBytes := []byte("{}")
-	configDesc := content.NewDescriptorFromBytes("application/vnd.oci.image.manifest.v1+json", configBytes)
+	configDesc := content.NewDescriptorFromBytes("application/vnd.oci.image.config.v1+json", configBytes)
 	artifactType := hf.MediaType
 	orasOpts := oras.PackManifestOptions{
 		Layers:           fileDescriptors,
