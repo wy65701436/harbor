@@ -67,9 +67,10 @@ func attach(handler http.Handler) http.Handler {
 func Middleware() func(handler http.Handler) http.Handler {
 	once.Do(func() {
 		key := os.Getenv(csrfKeyEnv)
-		if len(key) != 32 {
-			log.Warningf("Invalid CSRF key from environment: %s, generating random key...", key)
+		if len(key) == 0 {
 			key = utils.GenerateRandomString()
+		} else if len(key) != 32 {
+			log.Fatalf("Invalid CSRF key length from the environment: %s. Please ensure the key length is 32 characters.", key)
 		}
 		secureFlag = secureCookie()
 		protect = csrf.Protect([]byte(key), csrf.RequestHeader(tokenHeader),
