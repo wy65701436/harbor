@@ -66,8 +66,12 @@ export class ArtifactAdditionsComponent implements AfterViewChecked, OnInit {
             parts[repositoryIndex - 1]
         }/artifacts/${this.artifact.digest}/additions/readme.md`
         this.ref.detectChanges();
+        ['hr', 'h2'].forEach(tag => {
+            if (document.getElementsByTagName('markdown')?.[0]?.getElementsByTagName(tag)?.[0]) {
+                document.getElementsByTagName('markdown')[0].getElementsByTagName(tag)[0]['style'].display = 'none';
+            }
+        })
     }
-    // https://localhost:4200/api/v2.0/projects/library/repositories/demo/artifacts/sha256:3b3b561ebcf4f01c45bb0d51bcd5498b7cedb1810bcac713f80363d3d351f00d/additions/readme.md
 
     hasScannerSupportSBOM(): boolean {
         if (this.additionLinks && this.additionLinks[ADDITIONS.SBOMS]) {

@@ -50,7 +50,8 @@
                 </button>
                 <ng-template [clrIfActive]="currentTabLinkId === 'model-card'">
                     <clr-tab-content id="model-card-content">
-                        <markdown *ngIf="currentTabLinkId === 'model-card' && !!markdownsrc"
+                        <markdown class="hg-markdow"
+                          *ngIf="currentTabLinkId === 'model-card' && !!markdownsrc"
                           [src]="markdownsrc">
                         </markdown>
                         <div *ngIf="!markdownsrc" class="clr-row mt-3 center">
