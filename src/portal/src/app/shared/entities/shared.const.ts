@@ -389,3 +389,54 @@ export enum ScanTypes {
     SBOM = 'sbom',
     VULNERABILITY = 'vulnerability',
 }
+
+export const HG_ICON_NAMES = [
+    'hg-text-generation-inference',
+    'hg-text-generation',
+    'hg-transformers',
+    'hg-pytorch',
+    'hg-safetensors',
+    'hg-english',
+    'hg-inference-endpoints',
+    'hg-license'
+]
+
+export const HG_M_COMMON_ANNOTATION_KEY_PREFIX = 'org.cnai.model.'
+
+export const HG_M_COMMON_ANNOTATION_KEYS = [
+    'org.cnai.model.created',
+    'org.cnai.model.authors',
+    'org.cnai.model.url',
+    'org.cnai.model.documentation',
+    'org.cnai.model.source',
+    'org.cnai.model.version',
+    'org.cnai.model.revision',
+    'org.cnai.model.vendor',
+    'org.cnai.model.licenses',
+    'org.cnai.model.ref.name',
+    'org.cnai.model.title',
+    'org.cnai.model.description'
+]
+
+export const HG_M_SPECIFIED_ANNOTATION_KEYS = [
+    'org.cnai.model.architecture',
+    'org.cnai.model.family',
+    'org.cnai.model.name',
+    'org.cnai.model.format',
+    'org.cnai.model.param.size',
+    'org.cnai.model.precision',
+    'org.cnai.model.quantization'
+]
+
+export const HG_M_LAYER_ANNOTATION_KEYS = [
+    'org.cnai.model.readme',
+    'org.cnai.model.license',
+    'org.cnai.model.config',
+    'org.cnai.model.model'
+]
+
+export const HG_ANNOTATION_KEYS = [
+    ...HG_M_COMMON_ANNOTATION_KEYS,
+    ...HG_M_SPECIFIED_ANNOTATION_KEYS,
+    ...HG_M_LAYER_ANNOTATION_KEYS
+]
