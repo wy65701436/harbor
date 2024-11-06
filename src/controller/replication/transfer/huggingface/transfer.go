@@ -15,11 +15,14 @@
 package image
 
 import (
+	"archive/tar"
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"github.com/goharbor/harbor/src/controller/artifact/processor/hf"
 	"github.com/goharbor/harbor/src/lib/config"
+	"io"
 	"net/http"
 	"oras.land/oras-go/v2/content"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -224,7 +227,8 @@ func (t *transfer) download(modelID string) ([]string, error) {
 			if err != nil {
 				return nil, err
 			}
-			filesInModels = append(filesInModels, modelPath)
+			TarFile(modelPath, modelPath+".tar")
+			filesInModels = append(filesInModels, modelPath+".tar")
 			t.logger.Infof("%s ", modelPath, "is copied successfully.")
 		}
 	}
@@ -233,7 +237,7 @@ func (t *transfer) download(modelID string) ([]string, error) {
 }
 
 func (t *transfer) composeOCI(ctx context.Context, fs *file.Store, files []string) (v1.Descriptor, error) {
-	mediaType := "application/vnd.goharbor.huggingface.v1"
+	mediaType := "application/vnd.oci.image.layer.v1.tar"
 	fileDescriptors := make([]v1.Descriptor, 0, len(files))
 	for _, name := range files {
 		fileDescriptor, err := fs.Add(ctx, name, mediaType, "")
@@ -317,5 +321,50 @@ func (t *transfer) pushManifest(ctx context.Context, fs *file.Store, manifest v1
 	}
 	t.logger.Infof("the manifest of artifact %s:%s pushed",
 		repository, tag)
+	return nil
+}
+
+// TarFile creates a local tar file from the specified input file path.
+func TarFile(inputPath string, tarPath string) error {
+	// Create the tar file
+	tarFile, err := os.Create(tarPath)
+	if err != nil {
+		return fmt.Errorf("failed to create tar file: %w", err)
+	}
+	defer tarFile.Close()
+
+	// Create a new tar writer
+	tw := tar.NewWriter(tarFile)
+	defer tw.Close()
+
+	// Open the input file for reading
+	file, err := os.Open(inputPath)
+	if err != nil {
+		return fmt.Errorf("failed to open input file: %w", err)
+	}
+	defer file.Close()
+
+	// Get the file information for the input file
+	info, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to stat input file: %w", err)
+	}
+
+	// Create a tar header from the file info
+	header, err := tar.FileInfoHeader(info, "")
+	if err != nil {
+		return fmt.Errorf("failed to create tar header: %w", err)
+	}
+
+	// Write the header to the tar writer
+	if err := tw.WriteHeader(header); err != nil {
+		return fmt.Errorf("failed to write header to tar: %w", err)
+	}
+
+	// Copy the file data to the tar writer
+	if _, err := io.Copy(tw, file); err != nil {
+		return fmt.Errorf("failed to copy file data to tar: %w", err)
+	}
+
 	return nil
 }
