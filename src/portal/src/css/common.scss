@@ -374,3 +374,32 @@ job-service-dashboard {
 .alerts.alert-info {
   background-color: $alert-info-bg-color;
 }
+
+.hg-rounded-lg {
+  border-radius: .5rem;
+  color: $hg-label-text-color;
+  background: $hg-label-bg-color;
+}
+
+.hg-tag {
+  display: inline-flex;
+  height: 1.25rem;
+  max-width: 100%;
+  flex: none;
+  align-items: center;
+  gap: .2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: .2rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: $hg-label-bd-color;
+  background: $hg-label-bg-color;
+  color: $hg-label-text-color;
+  box-shadow: 0 3.5px 3.5px #00000002, 0 2px 2px #00000002, 0 0 1px #00000002;
+  padding-left: .5rem;
+  padding-right: .5rem;
+  font-size: .6rem;
+  line-height: 1.25rem;
+}

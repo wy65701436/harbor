@@ -31,6 +31,11 @@
             <span class="margin-left-10px">{{
                 artifact?.digest | slice : 0 : 15
             }}</span>
+
+            <span *ngIf="isHgArtifact()">/{{
+                getHgKeyValueFromArtifact('org.cnai.model.name')
+            }}</span>
+
             <clr-icon
                 size="25"
                 *ngIf="artifact?.references && artifact?.references?.length"
@@ -38,6 +43,24 @@
                 shape="folder"></clr-icon>
         </h2>
     </div>
+</div>
+<div *ngIf="isHgArtifact()" class="flex flex-wrap md:mb-4">
+    <a
+        *ngFor="let label of hgLabels"
+        class="mr-1 md:mb-1.5 md:mr-1.5 hg-rounded-lg disabled">
+        <div class="hg-tag">
+            <div class="tag-ico -ml-2">
+                <clr-icon [attr.shape]="getShape(label)"></clr-icon>
+            </div>
+            <span class="hg-capitalize">{{ label.name }}</span>
+        </div>
+    </a>
+</div>
+<h4>Description</h4>
+<div class="hg-description">
+    <p>
+    {{getHgKeyValueFromArtifact('org.cnai.model.description')}}
+    </p>
 </div>
 <ng-container *ngIf="!loading">
     <!-- tags -->
@@ -60,6 +83,7 @@
         [repoName]="repositoryName"
         [digest]="artifactDigest"
         [sbomDigest]="sbomDigest"
+        [isHgArtifact]="isHgArtifact()"
         [tab]="activeTab"
         [additionLinks]="artifact?.addition_links"></artifact-additions>
 </ng-container>

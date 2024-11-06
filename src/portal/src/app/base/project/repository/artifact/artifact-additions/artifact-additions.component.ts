@@ -12,6 +12,7 @@ import { AdditionLink } from '../../../../../../../ng-swagger-gen/models/additio
 import { Artifact } from '../../../../../../../ng-swagger-gen/models/artifact';
 import { ClrLoadingState, ClrTabs } from '@clr/angular';
 import { ArtifactListPageService } from '../artifact-list-page/artifact-list-page.service';
+import { ModelFileOverview } from '../artifact-file-tree-item';
 
 @Component({
     selector: 'artifact-additions',
@@ -22,6 +23,7 @@ export class ArtifactAdditionsComponent implements AfterViewChecked, OnInit {
     @Input() artifact: Artifact;
     @Input() additionLinks: AdditionLinks;
     @Input() projectName: string;
+    @Input() isHgArtifact: boolean;
     @Input()
     projectId: number;
     @Input()
@@ -32,6 +34,7 @@ export class ArtifactAdditionsComponent implements AfterViewChecked, OnInit {
     sbomDigest: string;
     @Input()
     tab: string;
+    markdownsrc: string;
 
     @Input() currentTabLinkId: string = '';
     activeTab: string = null;
@@ -45,7 +48,7 @@ export class ArtifactAdditionsComponent implements AfterViewChecked, OnInit {
     ngOnInit(): void {
         this.activeTab = this.tab;
         if (!this.activeTab) {
-            this.currentTabLinkId = 'vulnerability';
+            this.currentTabLinkId = this.isHgArtifact ? 'model-card' : 'vulnerability';
         }
         this.artifactListPageService.init(this.projectId);
     }
@@ -55,8 +58,16 @@ export class ArtifactAdditionsComponent implements AfterViewChecked, OnInit {
             this.currentTabLinkId = this.activeTab;
             this.activeTab = null;
         }
+        const locationHref = window.location.href;
+        const parts = locationHref?.split('/');
+        const repositoryIndex = parts.indexOf('artifacts-tab');
+        
+        this.markdownsrc = `https://${window.location.hostname}:${window.location.port}/api/v2.0/projects/library/repositories/${
+            parts[repositoryIndex - 1]
+        }/artifacts/${this.artifact.digest}/additions/readme.md`
         this.ref.detectChanges();
     }
+    // https://localhost:4200/api/v2.0/projects/library/repositories/demo/artifacts/sha256:3b3b561ebcf4f01c45bb0d51bcd5498b7cedb1810bcac713f80363d3d351f00d/additions/readme.md
 
     hasScannerSupportSBOM(): boolean {
         if (this.additionLinks && this.additionLinks[ADDITIONS.SBOMS]) {
@@ -110,5 +121,18 @@ export class ArtifactAdditionsComponent implements AfterViewChecked, OnInit {
 
     hasEnabledScanner(): boolean {
         return this.artifactListPageService.hasEnabledScanner();
+    }
+
+    getModelFileOverview(): ModelFileOverview[] {
+        const fileKey = 'org.cnai.model.files';
+        if (this.artifact?.annotations?.[fileKey]) {
+            const fileStr = this.artifact.annotations[fileKey].replace('[', '').replace(']', '');
+            const fileNames = fileStr.split(',').map(item => item.trim());
+            return fileNames.map(name => (<ModelFileOverview>{
+                file: name,
+                file_hash: '--'
+            }));
+        }
+        return [];
     }
 }

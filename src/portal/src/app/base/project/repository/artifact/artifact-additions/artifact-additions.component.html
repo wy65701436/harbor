@@ -1,8 +1,8 @@
-<ng-container *ngIf="additionLinks">
+<ng-container *ngIf="additionLinks || isHgArtifact">
     <h4 class="margin-bottom-025">{{ 'ARTIFACT.ADDITIONS' | translate }}</h4>
     <div class="min-15">
         <clr-tabs #additionsTab>
-            <clr-tab *ngIf="getVulnerability()">
+            <clr-tab *ngIf="getVulnerability() && !isHgArtifact">
                 <button
                     clrTabLink
                     id="vulnerability"
@@ -27,7 +27,7 @@
                     </clr-tab-content>
                 </ng-template>
             </clr-tab>
-            <clr-tab *ngIf="hasScannerSupportSBOM()">
+            <clr-tab *ngIf="hasScannerSupportSBOM() && !isHgArtifact">
                 <button clrTabLink id="sbom" (click)="actionTab('sbom')">
                     {{ 'REPOSITORY.SBOM' | translate }}
                 </button>
@@ -44,7 +44,34 @@
                     </clr-tab-content>
                 </ng-template>
             </clr-tab>
-            <clr-tab *ngIf="getBuildHistory()">
+            <clr-tab *ngIf="isHgArtifact">
+                <button clrTabLink id="model-card" (click)="actionTab('model-card')">
+                    {{ 'REPOSITORY.MODEL_CARD' | translate }}
+                </button>
+                <ng-template [clrIfActive]="currentTabLinkId === 'model-card'">
+                    <clr-tab-content id="model-card-content">
+                        <markdown *ngIf="currentTabLinkId === 'model-card' && !!markdownsrc"
+                          [src]="markdownsrc">
+                        </markdown>
+                        <div *ngIf="!markdownsrc" class="clr-row mt-3 center">
+                            <span class="spinner spinner-md"></span>
+                        </div>
+                    </clr-tab-content>
+                </ng-template>
+            </clr-tab>
+            <clr-tab *ngIf="isHgArtifact">
+                <button clrTabLink id="files" (click)="actionTab('files')">
+                    {{ 'REPOSITORY.FILES' | translate }}
+                </button>
+                <ng-template [clrIfActive]="currentTabLinkId === 'files'">
+                    <clr-tab-content id="files-content">
+                        <hbr-artifact-files
+                            *ngIf="currentTabLinkId === 'files'"
+                            [modelFileOverviews]="getModelFileOverview()"></hbr-artifact-files>
+                    </clr-tab-content>
+                </ng-template>
+            </clr-tab>
+            <clr-tab *ngIf="getBuildHistory() && !isHgArtifact">
                 <button
                     clrTabLink
                     id="build-history"
@@ -62,7 +89,7 @@
                     </clr-tab-content>
                 </ng-template>
             </clr-tab>
-            <clr-tab *ngIf="getSummary()">
+            <clr-tab *ngIf="getSummary() && !isHgArtifact">
                 <button
                     clrTabLink
                     id="summary-link"
@@ -78,7 +105,7 @@
                     </clr-tab-content>
                 </ng-template>
             </clr-tab>
-            <clr-tab *ngIf="getDependencies()">
+            <clr-tab *ngIf="getDependencies() && !isHgArtifact">
                 <button
                     clrTabLink
                     id="depend-link"
@@ -95,7 +122,7 @@
                     </clr-tab-content>
                 </ng-template>
             </clr-tab>
-            <clr-tab *ngIf="getValues()">
+            <clr-tab *ngIf="getValues() && !isHgArtifact">
                 <button
                     clrTabLink
                     id="value-link"
