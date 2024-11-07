@@ -16,6 +16,7 @@ package local
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/goharbor/harbor/src/common/models"
@@ -59,6 +60,7 @@ func (s *SecurityContext) IsAuthenticated() bool {
 // It returns null if the user has not been authenticated
 func (s *SecurityContext) GetUsername() string {
 	if !s.IsAuthenticated() {
+		fmt.Println("=======================local empty")
 		return ""
 	}
 	return s.user.Username

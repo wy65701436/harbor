@@ -16,6 +16,7 @@ package secret
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/goharbor/harbor/src/common/secret"
 	"github.com/goharbor/harbor/src/lib/log"
@@ -59,6 +60,7 @@ func (s *SecurityContext) IsAuthenticated() bool {
 // or null if the secret is invalid
 func (s *SecurityContext) GetUsername() string {
 	if s.store == nil {
+		fmt.Println("=======================secret empty")
 		return ""
 	}
 	return s.store.GetUsername(s.secret)
