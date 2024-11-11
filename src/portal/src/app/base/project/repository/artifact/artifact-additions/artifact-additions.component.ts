@@ -62,7 +62,7 @@ export class ArtifactAdditionsComponent implements AfterViewChecked, OnInit {
         const parts = locationHref?.split('/');
         const repositoryIndex = parts.indexOf('artifacts-tab');
         
-        this.markdownsrc = `https://${window.location.hostname}:${window.location.port}/api/v2.0/projects/library/repositories/${
+        this.markdownsrc = `https://${window.location.hostname}:${window.location.port}/api/v2.0/projects/${this.projectName}/repositories/${
             parts[repositoryIndex - 1]
         }/artifacts/${this.artifact.digest}/additions/readme.md`
         this.ref.detectChanges();
