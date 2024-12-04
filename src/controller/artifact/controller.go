@@ -173,18 +173,17 @@ func (c *controller) Ensure(ctx context.Context, repository, digest string, opti
 			}
 		}
 	}
-	if created {
-		// fire event for create
-		e := &metadata.PushArtifactEventMetadata{
-			Ctx:      ctx,
-			Artifact: artifact,
-		}
 
-		if option != nil && len(option.Tags) > 0 {
-			e.Tag = option.Tags[0]
-		}
-		notification.AddEvent(ctx, e)
+	// fire event for create
+	e := &metadata.PushArtifactEventMetadata{
+		Ctx:      ctx,
+		Artifact: artifact,
 	}
+
+	if option != nil && len(option.Tags) > 0 {
+		e.Tag = option.Tags[0]
+	}
+	notification.AddEvent(ctx, e)
 	return created, artifact.ID, nil
 }
 
