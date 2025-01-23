@@ -111,6 +111,7 @@ func (cc *CommonController) Login() {
 // LogOut Habor UI
 func (cc *CommonController) LogOut() {
 	// logout session for the OIDC
+
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
 		cc.Controller.Redirect("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?redirect_uri=https://10.164.142.200", http.StatusFound)
 	}
