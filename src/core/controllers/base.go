@@ -114,6 +114,12 @@ func (cc *CommonController) LogOut() {
 		log.Errorf("Error occurred in LogOut: %v", err)
 		cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 	}
+
+	// logout session for the OIDC
+	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
+		cc.Controller.Redirect("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?redirect_uri=https://10.164.142.200/account/sign-in", http.StatusFound)
+	}
+
 }
 
 // UserExists checks if user exists when user input value in sign in form.
