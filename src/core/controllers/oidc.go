@@ -81,6 +81,9 @@ func (oc *OIDCController) RedirectLogin() {
 	}
 	log.Debugf("State dumped to session: %s", state)
 	// Force to use the func 'Redirect' of beego.Controller
+	log.Infof("===================")
+	log.Infof(url)
+	log.Infof("===================")
 	oc.Controller.Redirect(url, http.StatusFound)
 }
 
