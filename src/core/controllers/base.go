@@ -113,6 +113,10 @@ func (cc *CommonController) LogOut() {
 	// logout session for the OIDC
 
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
+		cc.Ctx.ResponseWriter.Header().Set("Access-Control-Allow-Origin", "https://10.164.142.200")
+		cc.Ctx.ResponseWriter.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		cc.Ctx.ResponseWriter.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		cc.Ctx.ResponseWriter.Header().Set("Access-Control-Allow-Credentials", "true")
 		cc.Controller.Redirect("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?redirect_uri=https://10.164.142.200", http.StatusFound)
 	}
 
