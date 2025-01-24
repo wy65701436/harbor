@@ -16,6 +16,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -113,7 +114,17 @@ func (cc *CommonController) LogOut() {
 	// logout session for the OIDC
 
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
-		cc.Controller.Redirect("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?redirect_uri=https://10.164.142.200", http.StatusSeeOther)
+		idToken := cc.GetSession(tokenKey).([]byte)
+		idTokenStr := string(idToken)
+		log.Info(" ============== ")
+		log.Info(idTokenStr)
+		log.Info(" ============== ")
+		url := fmt.Sprintf("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?post_logout_redirect_uri=https://10.164.142.200/harbor/projects&id_token_hint=%s", idTokenStr)
+		log.Info(" ============== ")
+		log.Info(url)
+		log.Info(" ============== ")
+		// https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?post_logout_redirect_uri=https://10.164.142.200/harbor/projects&id_token_hint=123
+		cc.Controller.Redirect(url, http.StatusFound)
 	}
 
 	if err := cc.DestroySession(); err != nil {
