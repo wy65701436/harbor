@@ -111,6 +111,11 @@ func (cc *CommonController) Login() {
 
 // LogOut Habor UI
 func (cc *CommonController) LogOut() {
+	if err := cc.DestroySession(); err != nil {
+		log.Errorf("Error occurred in LogOut: %v", err)
+		cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+	}
+
 	// logout session for the OIDC
 
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
@@ -127,10 +132,6 @@ func (cc *CommonController) LogOut() {
 		cc.Controller.Redirect(url, http.StatusFound)
 	}
 
-	if err := cc.DestroySession(); err != nil {
-		log.Errorf("Error occurred in LogOut: %v", err)
-		cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-	}
 }
 
 // UserExists checks if user exists when user input value in sign in form.
