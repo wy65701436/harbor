@@ -16,7 +16,9 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/goharbor/harbor/src/pkg/oidc"
 	"net/http"
 	"os"
 	"strings"
@@ -118,10 +120,37 @@ func (cc *CommonController) LogOut() {
 		log.Info(" ============== ")
 		log.Info(idTokenStr)
 		log.Info(" ============== ")
-		url := fmt.Sprintf("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?post_logout_redirect_uri=https://10.164.142.200/harbor/projects&id_token_hint=%s", idTokenStr)
-		log.Info(" ============== ")
-		log.Info(url)
-		log.Info(" ============== ")
+		token := oidc.Token{}
+		var url string
+		if err := json.Unmarshal(idToken, &token); err != nil {
+			log.Errorf("Error occurred in Unmarshal: %v", err)
+			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+		}
+		if !token.Valid() {
+			log.Info("Refreshing token")
+			token, err := oidc.RefreshToken(cc.Context(), &token)
+			if err != nil {
+				log.Errorf("Refreshing token: %v", err)
+				cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+			}
+			//tb, err := json.Marshal(token)
+			//if err != nil {
+			//	log.Errorf("failed to encode the refreshed token, error: %v", err)
+			//	cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+			//}
+			//key, err := oidc.KeyLoader.EncryptKey()
+			//encToken, _ := utils.ReversibleEncrypt(string(tb), key)
+			//oidcUser.Token = encToken
+			//// only updates the token column of the record
+			//err = dm.metaDao.Update(cc.Context(), oidcUser, "token")
+			//if err != nil {
+			//	log.Errorf("Failed to persist token, user id: %d, error: %v", oidcUser.UserID, err)
+			//}
+			url = fmt.Sprintf("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?post_logout_redirect_uri=https://10.164.142.200/harbor/projects&id_token_hint=%s", token.RawIDToken)
+			log.Info("Token refreshed and persisted")
+		} else {
+			url = fmt.Sprintf("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?post_logout_redirect_uri=https://10.164.142.200/harbor/projects&id_token_hint=%s", token.RawIDToken)
+		}
 		// https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?post_logout_redirect_uri=https://10.164.142.200/harbor/projects&id_token_hint=123
 		cc.Controller.Redirect(url, http.StatusFound)
 	}

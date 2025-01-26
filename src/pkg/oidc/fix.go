@@ -40,7 +40,7 @@ func FixEmptySubIss(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("failed to query for OIDC info with empty subiss: %v", err)
 	}
 	log.Infof("Found record with empty subiss, user ID: %d, trying to restore...", meta.UserID)
-	key, err := keyLoader.encryptKey()
+	key, err := KeyLoader.EncryptKey()
 	if err != nil {
 		return false, fmt.Errorf("failed to load the key for encryption/decryption： %v", err)
 	}

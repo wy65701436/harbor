@@ -52,7 +52,7 @@ type keyGetter struct {
 	key string
 }
 
-func (kg *keyGetter) encryptKey() (string, error) {
+func (kg *keyGetter) EncryptKey() (string, error) {
 	kg.RLock()
 	if kg.key == "" {
 		kg.RUnlock()
@@ -71,7 +71,7 @@ func (kg *keyGetter) encryptKey() (string, error) {
 	return kg.key, nil
 }
 
-var keyLoader = &keyGetter{}
+var KeyLoader = &keyGetter{}
 
 type defaultManager struct {
 	metaDao dao.MetaDAO
@@ -92,7 +92,7 @@ func (dm *defaultManager) VerifySecret(ctx context.Context, username string, sec
 	if oidcUser == nil {
 		return nil, fmt.Errorf("user is not onboarded as OIDC user, username: %s", username)
 	}
-	key, err := keyLoader.encryptKey()
+	key, err := KeyLoader.EncryptKey()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load the key for encryption/decryption： %v", err)
 	}
@@ -114,7 +114,7 @@ func (dm *defaultManager) VerifySecret(ctx context.Context, username string, sec
 	}
 	if !token.Valid() {
 		log.Debug("Refreshing token")
-		token, err = refreshToken(ctx, token)
+		token, err = RefreshToken(ctx, token)
 		if err != nil {
 			return nil, fmt.Errorf("failed to refresh token, username: %s, error: %v", username, err)
 		}
