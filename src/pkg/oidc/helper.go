@@ -160,6 +160,7 @@ func AuthCodeURL(ctx context.Context, state string) (string, error) {
 	for k, v := range setting.ExtraRedirectParms {
 		options = append(options, oauth2.SetAuthURLParam(k, v))
 	}
+	options = append(options, oauth2.AccessTypeOnline)
 	if strings.HasPrefix(conf.Endpoint.AuthURL, googleEndpoint) { // make sure the refresh token will be returned
 		options = append(options, oauth2.AccessTypeOffline)
 		options = append(options, oauth2.SetAuthURLParam("prompt", "consent"))
