@@ -142,15 +142,23 @@ func (cc *CommonController) LogOut() {
 			oidcLogoutURL := fmt.Sprintf(
 				"https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s",
 				url.QueryEscape(token.RawIDToken),
-				url.QueryEscape("/harbor/projects"),
+				url.QueryEscape("https://10.164.142.200/harbor/projects"),
 			)
 
 			log.Info(" ============== ")
 			log.Info(oidcLogoutURL)
 			log.Info(" ============== ")
 
+			cc.Ctx.Output.Status = http.StatusForbidden
+			err := cc.Ctx.Output.JSON(struct {
+				Location string `json:"redirect_location"`
+			}{oidcLogoutURL}, false, false)
+			if err != nil {
+				log.Errorf("Failed to write json to response body, error: %v", err)
+			}
+
 			// Redirect user to OIDC Logout
-			cc.Controller.Redirect(oidcLogoutURL, http.StatusFound)
+			//cc.Controller.Redirect(oidcLogoutURL, http.StatusFound)
 		}
 
 		//if !token.Valid() {
