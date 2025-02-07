@@ -114,7 +114,6 @@ func (cc *CommonController) Login() {
 
 // LogOut Harbor UI
 func (cc *CommonController) LogOut() {
-	// logout session for the OIDC
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
 		idToken := cc.GetSession(tokenKey).([]byte)
 		idTokenStr := string(idToken)
@@ -139,6 +138,23 @@ func (cc *CommonController) LogOut() {
 		log.Info(" ============== ")
 
 		if token.RawIDToken != "" {
+			// logout session for the OIDC
+			//ep, err := config.ExtEndpoint()
+			//if err != nil {
+			//	log.Errorf("Failed to get the external endpoint, error: %v", err)
+			//	cc.CustomAbort(http.StatusUnauthorized, "")
+			//}
+			//url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
+			//log.Debugf("Redirect to logout page of OIDC provider")
+			//// Return a json to UI with status code 403, as it cannot handle status 302
+			//cc.Ctx.Output.Status = http.StatusForbidden
+			//err = cc.Ctx.Output.JSON(struct {
+			//	Location string `json:"redirect_location"`
+			//}{url}, false, false)
+			//if err != nil {
+			//	log.Errorf("Failed to write json to response body, error: %v", err)
+			//}
+
 			oidcLogoutURL := fmt.Sprintf(
 				"https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s",
 				url.QueryEscape(token.RawIDToken),
@@ -149,16 +165,17 @@ func (cc *CommonController) LogOut() {
 			log.Info(oidcLogoutURL)
 			log.Info(" ============== ")
 
-			cc.Ctx.Output.Status = http.StatusOK
-			err := cc.Ctx.Output.JSON(struct {
-				Location string `json:"redirect_location"`
-			}{oidcLogoutURL}, false, false)
-			if err != nil {
-				log.Errorf("Failed to write json to response body, error: %v", err)
-			}
+			//url := strings.TrimSuffix(ep, "/") + common.OIDCLoginPath
+			//cc.Ctx.Output.Status = http.StatusOK
+			//err := cc.Ctx.Output.JSON(struct {
+			//	Location string `json:"redirect_location"`
+			//}{oidcLogoutURL}, false, false)
+			//if err != nil {
+			//	log.Errorf("Failed to write json to response body, error: %v", err)
+			//}
 
 			// Redirect user to OIDC Logout
-			//cc.Controller.Redirect(oidcLogoutURL, http.StatusFound)
+			cc.Controller.Redirect(oidcLogoutURL, http.StatusFound)
 		}
 
 		//if !token.Valid() {

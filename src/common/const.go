@@ -151,6 +151,7 @@ const (
 
 	OIDCCallbackPath = "/c/oidc/callback"
 	OIDCLoginPath    = "/c/oidc/login"
+	OIDCLoginoutPath = "/c/oidc/logout"
 
 	AuthProxyRedirectPath = "/c/authproxy/redirect"
 
