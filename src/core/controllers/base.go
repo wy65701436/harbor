@@ -149,7 +149,7 @@ func (cc *CommonController) LogOut() {
 			log.Info(oidcLogoutURL)
 			log.Info(" ============== ")
 
-			cc.Ctx.Output.Status = http.StatusForbidden
+			cc.Ctx.Output.Status = http.StatusOK
 			err := cc.Ctx.Output.JSON(struct {
 				Location string `json:"redirect_location"`
 			}{oidcLogoutURL}, false, false)
