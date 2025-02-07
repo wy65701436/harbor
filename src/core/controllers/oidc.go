@@ -210,6 +210,12 @@ func (oc *OIDCController) Callback() {
 	oc.Controller.Redirect(redirectURLStr, http.StatusFound)
 }
 
+func (oc *OIDCController) RedirectLogout() {
+	fmt.Println("=============")
+	fmt.Println(oc.Ctx.Request.URL)
+	fmt.Println("=============")
+}
+
 func userOnboard(ctx context.Context, oc *OIDCController, info *oidc.UserInfo, username string, tokenBytes []byte) (*models.User, bool) {
 	s, t, err := secretAndToken(tokenBytes)
 	if err != nil {
