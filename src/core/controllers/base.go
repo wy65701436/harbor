@@ -142,7 +142,7 @@ func (cc *CommonController) LogOut() {
 			oidcLogoutURL := fmt.Sprintf(
 				"https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s",
 				url.QueryEscape(token.RawIDToken),
-				url.QueryEscape("https://google.com"),
+				url.QueryEscape("/harbor/projects"),
 			)
 
 			log.Info(" ============== ")
