@@ -133,12 +133,21 @@ func (cc *CommonController) LogOut() {
 			log.Errorf("Error occurred in Unmarshal: %v", err)
 			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 		}
+
+		log.Info(" ============== ")
+		log.Info(token.RawIDToken)
+		log.Info(" ============== ")
+
 		if token.RawIDToken != "" {
 			oidcLogoutURL := fmt.Sprintf(
 				"https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s",
 				url.QueryEscape(token.RawIDToken),
 				url.QueryEscape("https://10.164.142.200/harbor/projects"),
 			)
+
+			log.Info(" ============== ")
+			log.Info(oidcLogoutURL)
+			log.Info(" ============== ")
 
 			// Redirect user to OIDC Logout
 			cc.Controller.Redirect(oidcLogoutURL, http.StatusFound)
