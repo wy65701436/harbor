@@ -180,7 +180,24 @@ func (cc *CommonController) LogOut() {
 					url.QueryEscape(token.RawIDToken),
 					url.QueryEscape("https://10.164.142.200/harbor/projects"),
 				)
-				_, _ = http.Get(logoutURL)
+				log.Info(" 222============== ")
+				log.Info(logoutURL)
+				log.Info(" 222============== ")
+				resp, err := http.Get(logoutURL)
+				if err != nil {
+					log.Error("Failed to call OIDC logout URL:", err)
+					cc.CustomAbort(http.StatusInternalServerError, "Internal error during logout.")
+					return
+				}
+				defer resp.Body.Close()
+
+				// Check if the response is successful
+				if resp.StatusCode != http.StatusOK {
+					log.Error("OIDC logout failed with status:", resp.StatusCode)
+					cc.CustomAbort(http.StatusInternalServerError, "OIDC logout failed.")
+					return
+				}
+
 				return
 			}
 
