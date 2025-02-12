@@ -166,6 +166,9 @@ func (cc *CommonController) LogOut() {
 			// for the session tpyes
 			// 1, for the offline type, it should call the end_session_endpoint with refresh_token.
 			// 2, for the refresh type, it should call the end_session_endpoint with id_token.
+			log.Info(" 111============== ")
+			log.Info(sessionType)
+			log.Info(" 1111============== ")
 			if sessionType == "Offline" {
 				if err := revokeOIDCRefreshToken(token.RefreshToken, "", ""); err != nil {
 					log.Error(err)
