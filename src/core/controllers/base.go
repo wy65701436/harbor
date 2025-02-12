@@ -153,7 +153,7 @@ func (cc *CommonController) LogOut() {
 			)
 
 			log.Info("Redirecting user to OIDC logout:", logoutURL)
-			cc.Controller.Redirect(logoutURL, http.StatusFound)
+			cc.Controller.Redirect("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/auth?access_type=online&client_id=harbor-nightly-https&redirect_uri=https%3A%2F%2F10.164.142.200%2Fc%2Foidc%2Fcallback&response_type=code&scope=openid+profile+email+offline_access+groups&state=bNtbrN4AH5MUO7jsNen0IIh6xvJX81Eq", http.StatusFound)
 			return
 		}
 
