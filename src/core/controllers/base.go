@@ -141,7 +141,23 @@ func (cc *CommonController) LogOut() {
 		log.Info(token.RefreshToken)
 		log.Info(" ============== ")
 
-		if token.RefreshToken != "" {
+		if token.RawIDToken != "" {
+			keycloakLogoutURL := "https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout"
+			postLogoutRedirectURI := "https://10.164.142.200/harbor/projects"
+
+			logoutURL := fmt.Sprintf(
+				"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
+				keycloakLogoutURL,
+				url.QueryEscape(token.RawIDToken),
+				url.QueryEscape(postLogoutRedirectURI),
+			)
+
+			log.Info("Redirecting user to OIDC logout:", logoutURL)
+			cc.Controller.Redirect(logoutURL, http.StatusFound)
+			return
+		}
+
+		if token.RefreshToken == "" {
 			// logout session for the OIDC
 			//ep, err := config.ExtEndpoint()
 			//if err != nil {
@@ -352,7 +368,7 @@ func revokeOIDCRefreshToken(refreshToken, clientID, clientSecret string) error {
 	defer resp.Body.Close()
 
 	// Check response status
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode >= 300 || resp.StatusCode <= 200 {
 		return fmt.Errorf("logout failed, status: %d", resp.StatusCode)
 	}
 
