@@ -340,7 +340,11 @@ func revokeOIDCRefreshToken(refreshToken, clientID, clientSecret string) error {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Send request
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
