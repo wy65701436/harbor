@@ -171,7 +171,7 @@ func (cc *CommonController) LogOut() {
 			log.Info(sessionType)
 			log.Info(" 1111============== ")
 			if sessionType == "Offline" {
-				if err := revokeOIDCRefreshToken(token.RefreshToken, "", ""); err != nil {
+				if err := revokeOIDCRefreshToken(token.RefreshToken, "harbor-nightly-https", "dbgYOXeZQF70geAixNsRfsFt3GHYlC0f"); err != nil {
 					log.Error(err)
 					cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 				}
