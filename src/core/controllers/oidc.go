@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/goharbor/harbor/src/common"
@@ -214,9 +215,43 @@ func (oc *OIDCController) Callback() {
 }
 
 func (oc *OIDCController) RedirectLogout() {
-	fmt.Println("=============")
-	fmt.Println(oc.Ctx.Request.URL)
-	fmt.Println("=============")
+	tk := oc.GetSession(tokenKey).([]byte)
+	tkStr := string(tk)
+	log.Info(" ============== ")
+	log.Info(tkStr)
+	log.Info(" ============== ")
+	token := oidc.Token{}
+	//var url string
+
+	if err := json.Unmarshal(tk, &token); err != nil {
+		log.Errorf("Error occurred in Unmarshal: %v", err)
+		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+	}
+
+	log.Info(" ============== ")
+	log.Info(token.RefreshToken)
+	log.Info(" ============== ")
+
+	if token.RawIDToken != "" {
+		keycloakLogoutURL := "https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout"
+		postLogoutRedirectURI := "https://10.164.142.200/harbor/projects"
+
+		logoutURL := fmt.Sprintf(
+			"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
+			keycloakLogoutURL,
+			url.QueryEscape(token.RawIDToken),
+			url.QueryEscape(postLogoutRedirectURI),
+		)
+
+		log.Info("Redirecting user to OIDC logout:", logoutURL)
+		oc.Controller.Redirect(logoutURL, http.StatusFound)
+		return
+	}
+
+	if err := oc.DestroySession(); err != nil {
+		log.Errorf("Error occurred in LogOut: %v", err)
+		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+	}
 }
 
 func userOnboard(ctx context.Context, oc *OIDCController, info *oidc.UserInfo, username string, tokenBytes []byte) (*models.User, bool) {

@@ -40,7 +40,6 @@ import (
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/q"
-	"github.com/goharbor/harbor/src/pkg/oidc"
 )
 
 // CommonController handles request from UI that doesn't expect a page, such as /SwitchLanguage /logout ...
@@ -119,161 +118,29 @@ func (cc *CommonController) Login() {
 // LogOut Harbor UI
 func (cc *CommonController) LogOut() {
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
-		tk := cc.GetSession(tokenKey).([]byte)
-		tkStr := string(tk)
-		log.Info(" ============== ")
-		log.Info(tkStr)
-		log.Info(" ============== ")
-		token := oidc.Token{}
-		//var url string
+		ep, err := config.ExtEndpoint()
+		if err != nil {
+			log.Errorf("Failed to get the external endpoint, error: %v", err)
+			cc.CustomAbort(http.StatusUnauthorized, "")
+		}
+		url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
+		log.Debugf("Redirect user %s to logout page of OIDC provider")
+		// Return a json to UI with status code 403, as it cannot handle status 302
+		cc.Ctx.Output.Status = http.StatusForbidden
+		err = cc.Ctx.Output.JSON(struct {
+			Location string `json:"redirect_location"`
+		}{url}, false, false)
+		if err != nil {
+			log.Errorf("Failed to write json to response body, error: %v", err)
+		}
+		return
+	}
 
+	if lib.GetAuthMode(cc.Context()) != common.OIDCAuth {
 		if err := cc.DestroySession(); err != nil {
 			log.Errorf("Error occurred in LogOut: %v", err)
 			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 		}
-
-		if err := json.Unmarshal(tk, &token); err != nil {
-			log.Errorf("Error occurred in Unmarshal: %v", err)
-			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-		}
-
-		log.Info(" ============== ")
-		log.Info(token.RefreshToken)
-		log.Info(" ============== ")
-
-		if token.RawIDToken != "" {
-			keycloakLogoutURL := "https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout"
-			postLogoutRedirectURI := "https://10.164.142.200/harbor/projects"
-
-			logoutURL := fmt.Sprintf(
-				"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
-				keycloakLogoutURL,
-				url.QueryEscape(token.RawIDToken),
-				url.QueryEscape(postLogoutRedirectURI),
-			)
-
-			log.Info("Redirecting user to OIDC logout:", logoutURL)
-			cc.Controller.Redirect("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/auth?access_type=online&client_id=harbor-nightly-https&redirect_uri=https%3A%2F%2F10.164.142.200%2Fc%2Foidc%2Fcallback&response_type=code&scope=openid+profile+email+offline_access+groups&state=bNtbrN4AH5MUO7jsNen0IIh6xvJX81Eq", http.StatusFound)
-			return
-		}
-
-		if token.RefreshToken == "" {
-			// logout session for the OIDC
-			//ep, err := config.ExtEndpoint()
-			//if err != nil {
-			//	log.Errorf("Failed to get the external endpoint, error: %v", err)
-			//	cc.CustomAbort(http.StatusUnauthorized, "")
-			//}
-			//url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
-			//log.Debugf("Redirect to logout page of OIDC provider")
-			//// Return a json to UI with status code 403, as it cannot handle status 302
-			//cc.Ctx.Output.Status = http.StatusForbidden
-			//err = cc.Ctx.Output.JSON(struct {
-			//	Location string `json:"redirect_location"`
-			//}{url}, false, false)
-			//if err != nil {
-			//	log.Errorf("Failed to write json to response body, error: %v", err)
-			//}
-
-			sessionType, err := getSessionType(token.RefreshToken)
-			if err != nil {
-				cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-			}
-
-			// for the session tpyes
-			// 1, for the offline type, it should call the end_session_endpoint with refresh_token.
-			// 2, for the refresh type, it should call the end_session_endpoint with id_token.
-			log.Info(" 111============== ")
-			log.Info(sessionType)
-			log.Info(" 1111============== ")
-			if sessionType == "Offline" {
-				if err := revokeOIDCRefreshToken(token.RefreshToken, "harbor-nightly-https", "dbgYOXeZQF70geAixNsRfsFt3GHYlC0f"); err != nil {
-					log.Error(err)
-					cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-				}
-			} else if sessionType == "Refresh" {
-				logoutURL := fmt.Sprintf(
-					"https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s",
-					url.QueryEscape(token.RawIDToken),
-					url.QueryEscape("https://10.164.142.200/harbor/projects"),
-				)
-				log.Info(" 222============== ")
-				log.Info(logoutURL)
-				log.Info(" 222============== ")
-				client := &http.Client{
-					Transport: &http.Transport{
-						TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-					},
-				}
-				resp, err := client.Get(logoutURL)
-				if err != nil {
-					log.Error("Failed to call OIDC logout URL:", err)
-					cc.CustomAbort(http.StatusInternalServerError, "Internal error during logout.")
-					return
-				}
-				defer resp.Body.Close()
-
-				// Check if the response is successful
-				if resp.StatusCode != http.StatusOK {
-					log.Error("OIDC logout failed with status:", resp.StatusCode)
-					cc.CustomAbort(http.StatusInternalServerError, "OIDC logout failed.")
-					return
-				}
-
-				return
-			}
-
-			//oidcLogoutURL := fmt.Sprintf(
-			//	"https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?id_token_hint=%s&post_logout_redirect_uri=%s",
-			//	url.QueryEscape(token.RawIDToken),
-			//	url.QueryEscape("https://10.164.142.200/harbor/projects"),
-			//)
-			//
-			//log.Info(" ============== ")
-			//log.Info(oidcLogoutURL)
-			//log.Info(" ============== ")
-
-			//url := strings.TrimSuffix(ep, "/") + common.OIDCLoginPath
-			//cc.Ctx.Output.Status = http.StatusOK
-			//err := cc.Ctx.Output.JSON(struct {
-			//	Location string `json:"redirect_location"`
-			//}{oidcLogoutURL}, false, false)
-			//if err != nil {
-			//	log.Errorf("Failed to write json to response body, error: %v", err)
-			//}
-
-			// Redirect user to OIDC Logout
-			//cc.Controller.Redirect(oidcLogoutURL, http.StatusFound)
-		}
-
-		//if !token.Valid() {
-		//	log.Info("Refreshing token")
-		//	token, err := oidc.RefreshToken(cc.Context(), &token)
-		//	if err != nil {
-		//		log.Errorf("Refreshing token: %v", err)
-		//		cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-		//	}
-		//	//tb, err := json.Marshal(token)
-		//	//if err != nil {
-		//	//	log.Errorf("failed to encode the refreshed token, error: %v", err)
-		//	//	cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-		//	//}
-		//	//key, err := oidc.KeyLoader.EncryptKey()
-		//	//encToken, _ := utils.ReversibleEncrypt(string(tb), key)
-		//	//oidcUser.Token = encToken
-		//	//// only updates the token column of the record
-		//	//err = dm.metaDao.Update(cc.Context(), oidcUser, "token")
-		//	//if err != nil {
-		//	//	log.Errorf("Failed to persist token, user id: %d, error: %v", oidcUser.UserID, err)
-		//	//}
-		//	url = fmt.Sprintf("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?post_logout_redirect_uri=https://10.164.142.200/harbor/projects&id_token_hint=%s", token.RawIDToken)
-		//	log.Info("Token refreshed and persisted")
-		//} else {
-		//	url = fmt.Sprintf("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?post_logout_redirect_uri=https://10.164.142.200/harbor/projects&id_token_hint=%s", token.RefreshToken)
-		//}
-
-		// https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout?post_logout_redirect_uri=https://10.164.142.200/harbor/projects&id_token_hint=123
-		//cc.Controller.Redirect(url, http.StatusFound)
 	}
 }
 
