@@ -17,6 +17,7 @@ package controllers
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -183,7 +184,12 @@ func (cc *CommonController) LogOut() {
 				log.Info(" 222============== ")
 				log.Info(logoutURL)
 				log.Info(" 222============== ")
-				resp, err := http.Get(logoutURL)
+				client := &http.Client{
+					Transport: &http.Transport{
+						TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+					},
+				}
+				resp, err := client.Get(logoutURL)
 				if err != nil {
 					log.Error("Failed to call OIDC logout URL:", err)
 					cc.CustomAbort(http.StatusInternalServerError, "Internal error during logout.")
