@@ -30,11 +30,9 @@ import (
 	"github.com/beego/i18n"
 
 	"github.com/goharbor/harbor/src/common"
-	"github.com/goharbor/harbor/src/common/models"
 	"github.com/goharbor/harbor/src/common/security"
 	"github.com/goharbor/harbor/src/controller/user"
 	"github.com/goharbor/harbor/src/core/api"
-	"github.com/goharbor/harbor/src/core/auth"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/lib/config"
 	"github.com/goharbor/harbor/src/lib/errors"
@@ -79,40 +77,43 @@ func redirectForOIDC(ctx context.Context, username string) bool {
 
 // Login handles login request from UI.
 func (cc *CommonController) Login() {
-	principal := cc.GetString("principal")
-	password := cc.GetString("password")
-	if redirectForOIDC(cc.Ctx.Request.Context(), principal) {
-		ep, err := config.ExtEndpoint()
-		if err != nil {
-			log.Errorf("Failed to get the external endpoint, error: %v", err)
-			cc.CustomAbort(http.StatusUnauthorized, "")
-		}
-		url := strings.TrimSuffix(ep, "/") + common.OIDCLoginPath
-		log.Debugf("Redirect user %s to login page of OIDC provider", principal)
-		// Return a json to UI with status code 403, as it cannot handle status 302
-		cc.Ctx.Output.Status = http.StatusForbidden
-		err = cc.Ctx.Output.JSON(struct {
-			Location string `json:"redirect_location"`
-		}{url}, false, false)
-		if err != nil {
-			log.Errorf("Failed to write json to response body, error: %v", err)
-		}
-		return
-	}
+	//principal := cc.GetString("principal")
+	//password := cc.GetString("password")
 
-	user, err := auth.Login(cc.Context(), models.AuthModel{
-		Principal: principal,
-		Password:  password,
-	})
-	if err != nil {
-		log.Errorf("Error occurred in UserLogin: %v", err)
-		cc.CustomAbort(http.StatusUnauthorized, "")
-	}
+	cc.Controller.Redirect("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout", http.StatusFound)
 
-	if user == nil {
-		cc.CustomAbort(http.StatusUnauthorized, "")
-	}
-	cc.PopulateUserSession(*user)
+	//if redirectForOIDC(cc.Ctx.Request.Context(), principal) {
+	//	ep, err := config.ExtEndpoint()
+	//	if err != nil {
+	//		log.Errorf("Failed to get the external endpoint, error: %v", err)
+	//		cc.CustomAbort(http.StatusUnauthorized, "")
+	//	}
+	//	url := strings.TrimSuffix(ep, "/") + common.OIDCLoginPath
+	//	log.Debugf("Redirect user %s to login page of OIDC provider", principal)
+	//	// Return a json to UI with status code 403, as it cannot handle status 302
+	//	cc.Ctx.Output.Status = http.StatusForbidden
+	//	err = cc.Ctx.Output.JSON(struct {
+	//		Location string `json:"redirect_location"`
+	//	}{url}, false, false)
+	//	if err != nil {
+	//		log.Errorf("Failed to write json to response body, error: %v", err)
+	//	}
+	//	return
+	//}
+	//
+	//user, err := auth.Login(cc.Context(), models.AuthModel{
+	//	Principal: principal,
+	//	Password:  password,
+	//})
+	//if err != nil {
+	//	log.Errorf("Error occurred in UserLogin: %v", err)
+	//	cc.CustomAbort(http.StatusUnauthorized, "")
+	//}
+	//
+	//if user == nil {
+	//	cc.CustomAbort(http.StatusUnauthorized, "")
+	//}
+	//cc.PopulateUserSession(*user)
 }
 
 // LogOut Harbor UI
