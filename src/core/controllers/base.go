@@ -81,7 +81,6 @@ func (cc *CommonController) Login() {
 	//password := cc.GetString("password")
 
 	cc.Controller.Redirect("https://10.164.142.200:8443/realms/myrealm/protocol/openid-connect/logout", http.StatusFound)
-
 	//if redirectForOIDC(cc.Ctx.Request.Context(), principal) {
 	//	ep, err := config.ExtEndpoint()
 	//	if err != nil {
