@@ -228,6 +228,11 @@ func (oc *OIDCController) RedirectLogout() {
 		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 	}
 
+	if err := oc.DestroySession(); err != nil {
+		log.Errorf("Error occurred in LogOut: %v", err)
+		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+	}
+
 	log.Info(" ============== ")
 	log.Info(token.RefreshToken)
 	log.Info(" ============== ")
@@ -246,11 +251,6 @@ func (oc *OIDCController) RedirectLogout() {
 		log.Info("Redirecting user to OIDC logout:", logoutURL)
 		oc.Controller.Redirect(logoutURL, http.StatusFound)
 		return
-	}
-
-	if err := oc.DestroySession(); err != nil {
-		log.Errorf("Error occurred in LogOut: %v", err)
-		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 	}
 }
 
