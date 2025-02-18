@@ -238,8 +238,8 @@ func (oc *OIDCController) RedirectLogout() {
 	log.Info(" ============== ")
 
 	if token.RawIDToken != "" {
-		keycloakLogoutURL := "https://10.164.139.17:8443/realms/myrealm/protocol/openid-connect/logout"
-		postLogoutRedirectURI := "https://10.164.139.17/harbor/projects"
+		keycloakLogoutURL := "https://10.164.136.23:8443/realms/myrealm/protocol/openid-connect/logout"
+		postLogoutRedirectURI := "https://10.164.136.23/harbor/projects"
 
 		logoutURL := fmt.Sprintf(
 			"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
