@@ -224,11 +224,7 @@ export class NavigatorComponent implements OnInit {
                                 : JSON.parse(error.error).redirect_location;
                         window.location.href = redirect_location;
                         return;
-                    } catch (error) {
-                        console.info("11111111111")
-                        console.info(error)
-                        console.info("11111111111")
-                    }
+                    } catch (error) {}
                 }
                 // core service is not available for error code 5xx
                 if (error && /5[0-9][0-9]/.test(error.status)) {
