@@ -230,6 +230,7 @@ export class NavigatorComponent implements OnInit {
                 if (error && /5[0-9][0-9]/.test(error.status)) {
                     this.isCoreServiceAvailable = false;
                 }
+                console.log(error)
                 this.handleError(error);
             }
         );
@@ -295,6 +296,6 @@ export class NavigatorComponent implements OnInit {
         let message = error.status
             ? error.status + ':' + error.statusText
             : error;
-        console.error('An error occurred when signing in:', message);
+        console.error('An error occurred when signing out:', message);
     }
 }
