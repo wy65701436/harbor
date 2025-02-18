@@ -31,7 +31,7 @@ import { JobServiceDashboardHealthCheckService } from '../../base/left-side-nav/
 
 const signInUrl = '/c/login';
 const currentUserEndpoint = CURRENT_BASE_HREF + '/users/current';
-const signOffEndpoint = '/c/log_out';
+const signOffEndpoint = '/c/oidc/logout';
 const accountEndpoint = CURRENT_BASE_HREF + '/users/:id';
 const langEndpoint = '/language';
 const userExistsEndpoint = '/c/userExists';
