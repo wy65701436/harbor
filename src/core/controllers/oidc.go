@@ -249,7 +249,15 @@ func (oc *OIDCController) RedirectLogout() {
 		)
 
 		log.Info("Redirecting user to OIDC logout:", logoutURL)
-		oc.Controller.Redirect(logoutURL, http.StatusFound)
+
+		oc.Ctx.Output.Status = http.StatusForbidden
+		err := oc.Ctx.Output.JSON(struct {
+			Location string `json:"redirect_location"`
+		}{logoutURL}, false, false)
+		if err != nil {
+			log.Errorf("Failed to write json to response body, error: %v", err)
+		}
+		//oc.Controller.Redirect(logoutURL, http.StatusFound)
 		return
 	}
 }
