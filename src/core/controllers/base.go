@@ -211,7 +211,7 @@ func getSessionType(refreshToken string) (string, error) {
 
 // revokeOIDCRefreshToken revokes an offline session using the refresh token
 func revokeOIDCRefreshToken(refreshToken, clientID, clientSecret string) error {
-	logoutURL := "https://10.164.136.23:8443/realms/myrealm/protocol/openid-connect/logout"
+	logoutURL := "https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/logout"
 
 	// Prepare form data
 	data := url.Values{}
