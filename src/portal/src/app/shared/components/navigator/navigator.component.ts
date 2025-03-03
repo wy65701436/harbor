@@ -217,12 +217,12 @@ export class NavigatorComponent implements OnInit {
                 // 403 oidc login no body;
                 if (this.isOidcLoginMode && error && error.status === 403) {
                     try {
+                        console.info("00000111111222222222222")
                         let redirect_location = '';
-                        console.info("111111222222222222")
                         console.info(error)
                         console.info(error.redirect_location)
-                        console.info("111111222222222222")
                         window.location.href = error.redirect_location;
+                        console.info("00000111111222222222222")
                         return;
                     } catch (error) {}
                 }
@@ -230,11 +230,11 @@ export class NavigatorComponent implements OnInit {
                 if (error && /5[0-9][0-9]/.test(error.status)) {
                     this.isCoreServiceAvailable = false;
                 }
-                console.info("111111222222222222")
+                console.info("90000111111222222222222")
                 console.info(this.isOidcLoginMode)
                 console.info(error)
                 console.info(error.redirect_location)
-                console.info("111111222222222222")
+                console.info("90000111111222222222222")
                 this.handleError(error);
             }
         );
