@@ -216,6 +216,10 @@ export class NavigatorComponent implements OnInit {
             error => {
                 // 403 oidc login no body;
                 console.info("33333333333333")
+                console.info(this.isOidcLoginMode)
+                console.info(error)
+                console.info(error.status)
+                console.info(error.redirect_location)
                 console.info(this.isOidcLoginMode && error && error.status === 403)
                 console.info("33333333333333")
                 if (this.isOidcLoginMode && error && error.status === 403) {
