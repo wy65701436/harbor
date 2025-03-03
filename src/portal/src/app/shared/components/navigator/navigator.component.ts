@@ -217,23 +217,21 @@ export class NavigatorComponent implements OnInit {
                 // 403 oidc login no body;
                 if (this.isOidcLoginMode && error && error.status === 403) {
                     try {
-                        let redirect_location = '';
-                        console.info("111111222222222222")
-                        console.info(error)
-                        console.info(JSON.parse(error).redirect_location)
-                        console.info("111111222222222222")
-                        window.location.href = error.redirect_location;
-                        return;
-                    } catch (error) {}
+                        let redirect_location = error.redirect_location;
+                        if (redirect_location && redirect_location.trim() !== '') {
+                            window.location.href = redirect_location;
+                            return;
+                        }
+                    } catch (redirectError) {
+                        console.error('Redirect error:', redirectError);
+                    }
                 }
                 // core service is not available for error code 5xx
                 if (error && /5[0-9][0-9]/.test(error.status)) {
                     this.isCoreServiceAvailable = false;
                 }
                 console.info("111111222222222222")
-                console.info(this.isOidcLoginMode)
                 console.info(error)
-                console.info(error.redirect_location)
                 console.info("111111222222222222")
                 this.handleError(error);
             }
