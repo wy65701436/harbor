@@ -222,7 +222,7 @@ export class NavigatorComponent implements OnInit {
                 console.info(error.redirect_location)
                 console.info(this.isOidcLoginMode && error && error.status === 403)
                 console.info("33333333333333")
-                if (this.isOidcLoginMode && error && error.status === 403) {
+                if (this.isOidcLoginMode && error) {
                     try {
                         console.info("00000111111222222222222")
                         console.info(error)
