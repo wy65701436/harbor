@@ -230,6 +230,9 @@ export class NavigatorComponent implements OnInit {
                 if (error && /5[0-9][0-9]/.test(error.status)) {
                     this.isCoreServiceAvailable = false;
                 }
+                console.info("111111222222222222")
+                console.info(this.isOidcLoginMode)
+                console.info("111111222222222222")
                 window.location.href = error.error.redirect_location;
                 console.info("222222222222")
                 console.info(error)
