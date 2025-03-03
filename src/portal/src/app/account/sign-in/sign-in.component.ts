@@ -281,6 +281,12 @@ export class SignInComponent implements AfterViewChecked, OnInit {
                 if (this.isOidcLoginMode && error && error.status === 403) {
                     try {
                         let redirect_location = '';
+                        console.info("login 33333333333333")
+                        console.info(error)
+                        console.info(error.status)
+                        console.info(error.redirect_location)
+                        console.info(this.isOidcLoginMode && error && error.status === 403)
+                        console.info("login 33333333333333")
                         redirect_location =
                             error.error && error.error.redirect_location
                                 ? error.error.redirect_location

@@ -81,6 +81,11 @@ func redirectForOIDC(ctx context.Context, username string) bool {
 func (cc *CommonController) Login() {
 	principal := cc.GetString("principal")
 	password := cc.GetString("password")
+
+	log.Info("login 0===============")
+	log.Info(redirectForOIDC(cc.Ctx.Request.Context(), principal))
+	log.Info("login 0===============")
+
 	if redirectForOIDC(cc.Ctx.Request.Context(), principal) {
 		ep, err := config.ExtEndpoint()
 		if err != nil {
@@ -121,31 +126,32 @@ func (cc *CommonController) Login() {
 
 // LogOut Harbor UI
 func (cc *CommonController) LogOut() {
-	//if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
-	//	ep, err := config.ExtEndpoint()
-	//	if err != nil {
-	//		log.Errorf("Failed to get the external endpoint, error: %v", err)
-	//		cc.CustomAbort(http.StatusUnauthorized, "")
-	//	}
-	//	url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
-	//	log.Debugf("Redirect user %s to logout page of OIDC provider")
-	//	// Return a json to UI with status code 403, as it cannot handle status 302
-	//	cc.Ctx.Output.Status = http.StatusForbidden
-	//	err = cc.Ctx.Output.JSON(struct {
-	//		Location string `json:"redirect_location"`
-	//	}{url}, false, false)
-	//	if err != nil {
-	//		log.Errorf("Failed to write json to response body, error: %v", err)
-	//	}
-	//	return
-	//}
-	//
-	//if lib.GetAuthMode(cc.Context()) != common.OIDCAuth {
-	//	if err := cc.DestroySession(); err != nil {
-	//		log.Errorf("Error occurred in LogOut: %v", err)
-	//		cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-	//	}
-	//}
+	log.Info("LLL 99999999999999999999999")
+	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
+		ep, err := config.ExtEndpoint()
+		if err != nil {
+			log.Errorf("Failed to get the external endpoint, error: %v", err)
+			cc.CustomAbort(http.StatusUnauthorized, "")
+		}
+		url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
+		log.Debugf("Redirect user %s to logout page of OIDC provider")
+		// Return a json to UI with status code 403, as it cannot handle status 302
+		cc.Ctx.Output.Status = http.StatusForbidden
+		err = cc.Ctx.Output.JSON(struct {
+			Location string `json:"redirect_location"`
+		}{url}, false, false)
+		if err != nil {
+			log.Errorf("Failed to write json to response body, error: %v", err)
+		}
+		return
+	}
+
+	if lib.GetAuthMode(cc.Context()) != common.OIDCAuth {
+		if err := cc.DestroySession(); err != nil {
+			log.Errorf("Error occurred in LogOut: %v", err)
+			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+		}
+	}
 
 	if err := cc.DestroySession(); err != nil {
 		log.Errorf("Error occurred in LogOut: %v", err)
