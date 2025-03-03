@@ -233,10 +233,16 @@ export class NavigatorComponent implements OnInit {
                 console.info("111111222222222222")
                 console.info(this.isOidcLoginMode)
                 console.info("111111222222222222")
-                window.location.href = error.error.redirect_location;
                 console.info("222222222222")
                 console.info(error)
                 console.info("222222222222")
+                console.info("222222222222")
+                console.info(error.error)
+                console.info("222222222222")
+                console.info("222222222222")
+                console.info(error.error.redirect_location)
+                console.info("222222222222")
+                window.location.href = error.error.redirect_location;
                 this.handleError(error);
             }
         );
