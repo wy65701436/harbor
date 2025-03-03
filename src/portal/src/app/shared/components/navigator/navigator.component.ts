@@ -218,11 +218,11 @@ export class NavigatorComponent implements OnInit {
                 if (this.isOidcLoginMode && error && error.status === 403) {
                     try {
                         let redirect_location = '';
-                        redirect_location =
-                            error.error && error.error.redirect_location
-                                ? error.error.redirect_location
-                                : JSON.parse(error.error).redirect_location;
-                        window.location.href = redirect_location;
+                        console.info("111111222222222222")
+                        console.info(error)
+                        console.info(JSON.parse(error.error).redirect_location)
+                        console.info("111111222222222222")
+                        window.location.href = error.redirect_location;
                         return;
                     } catch (error) {}
                 }
@@ -235,7 +235,6 @@ export class NavigatorComponent implements OnInit {
                 console.info(error)
                 console.info(error.redirect_location)
                 console.info("111111222222222222")
-                window.location.href = error.redirect_location;
                 this.handleError(error);
             }
         );
