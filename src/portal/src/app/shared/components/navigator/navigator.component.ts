@@ -220,7 +220,7 @@ export class NavigatorComponent implements OnInit {
                         let redirect_location = '';
                         console.info("111111222222222222")
                         console.info(error)
-                        console.info(JSON.parse(error.error).redirect_location)
+                        console.info(JSON.parse(error).redirect_location)
                         console.info("111111222222222222")
                         window.location.href = error.redirect_location;
                         return;
