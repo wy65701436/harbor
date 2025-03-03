@@ -218,6 +218,9 @@ export class NavigatorComponent implements OnInit {
                 if (this.isOidcLoginMode && error && error.status === 403) {
                     try {
                         let redirect_location = error.redirect_location;
+                        console.info("00000111111222222222222")
+                        console.info(redirect_location)
+                        console.info("00000111111222222222222")
                         if (redirect_location && redirect_location.trim() !== '') {
                             window.location.href = redirect_location;
                             return;
