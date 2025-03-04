@@ -216,12 +216,7 @@ func (oc *OIDCController) Callback() {
 
 func (oc *OIDCController) RedirectLogout() {
 	tk := oc.GetSession(tokenKey).([]byte)
-	tkStr := string(tk)
-	log.Info(" ============== ")
-	log.Info(tkStr)
-	log.Info(" ============== ")
 	token := oidc.Token{}
-	//var url string
 
 	if err := json.Unmarshal(tk, &token); err != nil {
 		log.Errorf("Error occurred in Unmarshal: %v", err)
@@ -233,12 +228,10 @@ func (oc *OIDCController) RedirectLogout() {
 		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 	}
 
-	log.Info(" ============== ")
-	log.Info(token.RefreshToken)
-	log.Info(" ============== ")
-
 	if token.RawIDToken != "" {
 		keycloakLogoutURL := "https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/logout"
+
+		log.Info(config.ExtEndpoint())
 		postLogoutRedirectURI := "https://10.164.143.185/harbor/projects"
 
 		logoutURL := fmt.Sprintf(
@@ -249,16 +242,14 @@ func (oc *OIDCController) RedirectLogout() {
 		)
 
 		log.Info("Redirecting user to OIDC logout:", logoutURL)
-
-		//oc.Ctx.Output.Status = http.StatusForbidden
-		//err := oc.Ctx.Output.JSON(struct {
-		//	Location string `json:"redirect_location"`
-		//}{logoutURL}, false, false)
-		//if err != nil {
-		//	log.Errorf("Failed to write json to response body, error: %v", err)
-		//}
-		// https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/auth?access_type=online&client_id=harbor-nightly-https&redirect_uri=https%3A%2F%2F10.164.143.185%2Fc%2Foidc%2Fcallback&response_type=code&scope=openid+profile+email+groups&state=uF4DzKjaE19l64FeZQSSsgNfeXOeWEbG
-		oc.Controller.Redirect(logoutURL, http.StatusFound)
+		oc.Ctx.Output.Status = http.StatusForbidden
+		err := oc.Ctx.Output.JSON(struct {
+			Location string `json:"redirect_location"`
+		}{logoutURL}, false, false)
+		if err != nil {
+			log.Errorf("Failed to write json to response body, error: %v", err)
+		}
+		// oc.Controller.Redirect(logoutURL, http.StatusFound)
 		return
 	}
 }
