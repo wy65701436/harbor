@@ -74,6 +74,9 @@ export class AuthCheckGuard {
                                 this.appConfigService.getConfig()
                                     .primary_auth_mode
                             ) {
+                                console.log("oidc login ==========================")
+                                console.log(encodeURI(state.url))
+                                console.log("oidc login ==========================")
                                 window.location.href =
                                     '/c/oidc/login?redirect_url=' +
                                     encodeURI(state.url);

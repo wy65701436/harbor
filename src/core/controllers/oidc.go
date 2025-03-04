@@ -82,9 +82,9 @@ func (oc *OIDCController) RedirectLogin() {
 	}
 	log.Debugf("State dumped to session: %s", state)
 	// Force to use the func 'Redirect' of beego.Controller
-	log.Info("======================================")
+	log.Info("RedirectLogin ======================================")
 	log.Info(url)
-	log.Info("======================================")
+	log.Info("RedirectLogin ======================================")
 	oc.Controller.Redirect(url, http.StatusFound)
 }
 
@@ -250,14 +250,15 @@ func (oc *OIDCController) RedirectLogout() {
 
 		log.Info("Redirecting user to OIDC logout:", logoutURL)
 
-		oc.Ctx.Output.Status = http.StatusForbidden
-		err := oc.Ctx.Output.JSON(struct {
-			Location string `json:"redirect_location"`
-		}{logoutURL}, false, false)
-		if err != nil {
-			log.Errorf("Failed to write json to response body, error: %v", err)
-		}
-		//oc.Controller.Redirect(logoutURL, http.StatusFound)
+		//oc.Ctx.Output.Status = http.StatusForbidden
+		//err := oc.Ctx.Output.JSON(struct {
+		//	Location string `json:"redirect_location"`
+		//}{logoutURL}, false, false)
+		//if err != nil {
+		//	log.Errorf("Failed to write json to response body, error: %v", err)
+		//}
+		// https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/auth?access_type=online&client_id=harbor-nightly-https&redirect_uri=https%3A%2F%2F10.164.143.185%2Fc%2Foidc%2Fcallback&response_type=code&scope=openid+profile+email+groups&state=uF4DzKjaE19l64FeZQSSsgNfeXOeWEbG
+		oc.Controller.Redirect(logoutURL, http.StatusFound)
 		return
 	}
 }
