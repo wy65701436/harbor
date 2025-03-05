@@ -227,31 +227,19 @@ func (oc *OIDCController) RedirectLogout() {
 
 	if token.RawIDToken != "" {
 		keycloakLogoutURL := "https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/logout"
-
-		log.Info(config.ExtEndpoint())
 		baseUrl, err := config.ExtEndpoint()
 		if err != nil {
 			oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 		}
 		postLogoutRedirectURI := fmt.Sprintf("%s/harbor/projects", baseUrl)
-
 		logoutURL := fmt.Sprintf(
 			"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
 			keycloakLogoutURL,
 			url.QueryEscape(token.RawIDToken),
 			url.QueryEscape(postLogoutRedirectURI),
 		)
-
-		log.Info("2 Redirecting user to OIDC logout:", logoutURL)
-		//oc.Ctx.Output.Status = http.StatusForbidden
-		//err = oc.Ctx.Output.JSON(struct {
-		//	Location string `json:"redirect_location"`
-		//}{logoutURL}, false, false)
-		//if err != nil {
-		//	log.Errorf("Failed to write json to response body, error: %v", err)
-		//}
+		log.Info("3 Redirecting user to OIDC logout:", logoutURL)
 		oc.Controller.Redirect(logoutURL, http.StatusFound)
-		//return
 	}
 }
 

@@ -217,13 +217,15 @@ export class NavigatorComponent implements OnInit {
                 // 403 oidc login no body;
                 console.info("33333333333333")
                 console.info(error)
-                console.info(error.status)
-                console.info(error.redirect_location)
-                console.info(this.isOidcLoginMode && error && error.status === 403)
                 console.info("33333333333333")
-                if (this.isOidcLoginMode && error) {
+                if (this.isOidcLoginMode && error && error.status === 403) {
                     try {
-                        window.location.href = error.redirect_location;
+                        let redirect_location = '';
+                        redirect_location =
+                            error.error && error.error.redirect_location
+                                ? error.error.redirect_location
+                                : JSON.parse(error.error).redirect_location;
+                        window.location.href = redirect_location;
                         return;
                     } catch (error) {}
                 }
