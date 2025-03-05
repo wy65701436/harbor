@@ -121,9 +121,7 @@ export class SessionService {
                 // Destroy current session cache
                 // this.currentUser = null;
             }), // Nothing returned
-            catchError(
-                catchError(error => observableThrowError(error))
-            )
+            catchError(error => observableThrowError(error))
         );
     }
 
