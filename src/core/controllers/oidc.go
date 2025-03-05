@@ -82,9 +82,6 @@ func (oc *OIDCController) RedirectLogin() {
 	}
 	log.Debugf("State dumped to session: %s", state)
 	// Force to use the func 'Redirect' of beego.Controller
-	log.Info("======================================")
-	log.Info(url)
-	log.Info("======================================")
 	oc.Controller.Redirect(url, http.StatusFound)
 }
 
@@ -216,12 +213,7 @@ func (oc *OIDCController) Callback() {
 
 func (oc *OIDCController) RedirectLogout() {
 	tk := oc.GetSession(tokenKey).([]byte)
-	tkStr := string(tk)
-	log.Info(" ============== ")
-	log.Info(tkStr)
-	log.Info(" ============== ")
 	token := oidc.Token{}
-	//var url string
 
 	if err := json.Unmarshal(tk, &token); err != nil {
 		log.Errorf("Error occurred in Unmarshal: %v", err)
@@ -233,13 +225,15 @@ func (oc *OIDCController) RedirectLogout() {
 		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 	}
 
-	log.Info(" ============== ")
-	log.Info(token.RefreshToken)
-	log.Info(" ============== ")
-
 	if token.RawIDToken != "" {
 		keycloakLogoutURL := "https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/logout"
-		postLogoutRedirectURI := "https://10.164.143.185/harbor/projects"
+
+		log.Info(config.ExtEndpoint())
+		baseUrl, err := config.ExtEndpoint()
+		if err != nil {
+			oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+		}
+		postLogoutRedirectURI := fmt.Sprintf("%s/harbor/projects", baseUrl)
 
 		logoutURL := fmt.Sprintf(
 			"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
@@ -248,17 +242,16 @@ func (oc *OIDCController) RedirectLogout() {
 			url.QueryEscape(postLogoutRedirectURI),
 		)
 
-		log.Info("Redirecting user to OIDC logout:", logoutURL)
-
-		oc.Ctx.Output.Status = http.StatusForbidden
-		err := oc.Ctx.Output.JSON(struct {
-			Location string `json:"redirect_location"`
-		}{logoutURL}, false, false)
-		if err != nil {
-			log.Errorf("Failed to write json to response body, error: %v", err)
-		}
-		//oc.Controller.Redirect(logoutURL, http.StatusFound)
-		return
+		log.Info("2 Redirecting user to OIDC logout:", logoutURL)
+		//oc.Ctx.Output.Status = http.StatusForbidden
+		//err = oc.Ctx.Output.JSON(struct {
+		//	Location string `json:"redirect_location"`
+		//}{logoutURL}, false, false)
+		//if err != nil {
+		//	log.Errorf("Failed to write json to response body, error: %v", err)
+		//}
+		oc.Controller.Redirect(logoutURL, http.StatusFound)
+		//return
 	}
 }
 

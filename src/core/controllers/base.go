@@ -82,10 +82,6 @@ func (cc *CommonController) Login() {
 	principal := cc.GetString("principal")
 	password := cc.GetString("password")
 
-	log.Info("login 0===============")
-	log.Info(redirectForOIDC(cc.Ctx.Request.Context(), principal))
-	log.Info("login 0===============")
-
 	if redirectForOIDC(cc.Ctx.Request.Context(), principal) {
 		ep, err := config.ExtEndpoint()
 		if err != nil {
@@ -95,9 +91,6 @@ func (cc *CommonController) Login() {
 		url := strings.TrimSuffix(ep, "/") + common.OIDCLoginPath
 		log.Debugf("Redirect user %s to login page of OIDC provider", principal)
 
-		log.Info("login ===============")
-		log.Info(url)
-		log.Info("login ===============")
 		// Return a json to UI with status code 403, as it cannot handle status 302
 		cc.Ctx.Output.Status = http.StatusForbidden
 		err = cc.Ctx.Output.JSON(struct {
@@ -126,7 +119,6 @@ func (cc *CommonController) Login() {
 
 // LogOut Harbor UI
 func (cc *CommonController) LogOut() {
-	log.Info("LLL 99999999999999999999999")
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
 		ep, err := config.ExtEndpoint()
 		if err != nil {
@@ -144,13 +136,6 @@ func (cc *CommonController) LogOut() {
 			log.Errorf("Failed to write json to response body, error: %v", err)
 		}
 		return
-	}
-
-	if lib.GetAuthMode(cc.Context()) != common.OIDCAuth {
-		if err := cc.DestroySession(); err != nil {
-			log.Errorf("Error occurred in LogOut: %v", err)
-			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-		}
 	}
 
 	if err := cc.DestroySession(); err != nil {
