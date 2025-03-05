@@ -114,7 +114,12 @@ func (cc *CommonController) Login() {
 func (cc *CommonController) LogOut() {
 	// redirect for OIDC logout, excludes the admin user.
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
-		u, err := user.Ctl.GetByName(cc.Context(), cc.SecurityCtx.GetUsername())
+		securityCtx, ok := security.FromContext(cc.Context())
+		if !ok {
+			log.Error("Failed to get security context")
+			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+		}
+		u, err := user.Ctl.GetByName(cc.Context(), securityCtx.GetUsername())
 		if err != nil {
 			log.Errorf("Failed to get user by name: %s, error: %v", cc.SecurityCtx.GetUsername(), err)
 			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
