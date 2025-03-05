@@ -215,20 +215,20 @@ export class NavigatorComponent implements OnInit {
             },
             error => {
                 // 403 oidc login no body;
-                if (this.isOidcLoginMode && error) {
-                    try {
-                        console.info("111111111111111111111")
-                        console.info(error)
-                        console.info(error.redirect_location)
-                        window.location.href = error.redirect_location;
-                        console.info("111111111111111111111")
-                        return;
-                    } catch (error) {}
-                }
-                // core service is not available for error code 5xx
-                if (error && /5[0-9][0-9]/.test(error.status)) {
-                    this.isCoreServiceAvailable = false;
-                }
+                // if (this.isOidcLoginMode && error) {
+                //     try {
+                //         console.info("111111111111111111111")
+                //         console.info(error)
+                //         console.info(error.redirect_location)
+                //         window.location.href = error.redirect_location;
+                //         console.info("111111111111111111111")
+                //         return;
+                //     } catch (error) {}
+                // }
+                // // core service is not available for error code 5xx
+                // if (error && /5[0-9][0-9]/.test(error.status)) {
+                //     this.isCoreServiceAvailable = false;
+                // }
                 this.handleError(error);
             }
         );
