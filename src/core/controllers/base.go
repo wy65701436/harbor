@@ -15,14 +15,8 @@
 package controllers
 
 import (
-	"bytes"
 	"context"
-	"crypto/tls"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 
@@ -37,7 +31,6 @@ import (
 	"github.com/goharbor/harbor/src/core/auth"
 	"github.com/goharbor/harbor/src/lib"
 	"github.com/goharbor/harbor/src/lib/config"
-	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/q"
 )
@@ -119,23 +112,34 @@ func (cc *CommonController) Login() {
 
 // LogOut Harbor UI
 func (cc *CommonController) LogOut() {
+	// redirect for OIDC logout, excludes the admin user.
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
-		ep, err := config.ExtEndpoint()
+		u, err := user.Ctl.GetByName(cc.Context(), cc.SecurityCtx.GetUsername())
 		if err != nil {
-			log.Errorf("Failed to get the external endpoint, error: %v", err)
-			cc.CustomAbort(http.StatusUnauthorized, "")
+			log.Errorf("Failed to get user by name: %s, error: %v", cc.SecurityCtx.GetUsername(), err)
+			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 		}
-		url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
-		log.Debugf("Redirect user %s to logout page of OIDC provider")
-		// Return a json to UI with status code 403, as it cannot handle status 302
-		cc.Ctx.Output.Status = http.StatusForbidden
-		err = cc.Ctx.Output.JSON(struct {
-			Location string `json:"redirect_location"`
-		}{url}, false, false)
-		if err != nil {
-			log.Errorf("Failed to write json to response body, error: %v", err)
+		if u == nil {
+			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 		}
-		return
+		if u.UserID != 1 {
+			ep, err := config.ExtEndpoint()
+			if err != nil {
+				log.Errorf("Failed to get the external endpoint, error: %v", err)
+				cc.CustomAbort(http.StatusUnauthorized, "")
+			}
+			url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
+			log.Debugf("Redirect user %s to logout page of OIDC provider")
+			// Return a json to UI with status code 403, as it cannot handle status 302
+			cc.Ctx.Output.Status = http.StatusForbidden
+			err = cc.Ctx.Output.JSON(struct {
+				Locatioon string `json:"redirect_location"`
+			}{url}, false, false)
+			if err != nil {
+				log.Errorf("Failed to write json to response body, error: %v", err)
+			}
+			return
+		}
 	}
 
 	if err := cc.DestroySession(); err != nil {
@@ -178,69 +182,6 @@ func (cc *CommonController) UserExists() {
 		log.Errorf("failed to serve json: %v", err)
 		cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 	}
-}
-
-// getSessionType determines if the session is offline by decoding the refresh token or not
-func getSessionType(refreshToken string) (string, error) {
-	parts := strings.Split(refreshToken, ".")
-	if len(parts) != 3 {
-		return "", fmt.Errorf("invalid refresh token")
-	}
-
-	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
-	if err != nil {
-		return "", fmt.Errorf("failed to decode refresh token: %w", err)
-	}
-
-	var claims map[string]interface{}
-	if err := json.Unmarshal(payload, &claims); err != nil {
-		return "", fmt.Errorf("failed to unmarshal refresh token: %w", err)
-	}
-
-	typ, ok := claims["typ"].(string)
-	if !ok {
-		return "", errors.New("missing 'typ' claim in refresh token")
-	}
-
-	return typ, nil
-}
-
-// revokeOIDCRefreshToken revokes an offline session using the refresh token
-func revokeOIDCRefreshToken(refreshToken, clientID, clientSecret string) error {
-	logoutURL := "https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/logout"
-
-	// Prepare form data
-	data := url.Values{}
-	data.Set("client_id", clientID)
-	data.Set("client_secret", clientSecret)
-	data.Set("refresh_token", refreshToken)
-
-	// Create request
-	req, err := http.NewRequest("POST", logoutURL, bytes.NewBufferString(data.Encode()))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// Send request
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// Check response status
-	if resp.StatusCode >= 300 || resp.StatusCode <= 200 {
-		return fmt.Errorf("logout failed, status: %d", resp.StatusCode)
-	}
-
-	fmt.Println("Logout successful")
-	return nil
 }
 
 func init() {

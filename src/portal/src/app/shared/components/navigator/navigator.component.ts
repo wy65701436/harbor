@@ -214,10 +214,7 @@ export class NavigatorComponent implements OnInit {
                 this.searchTrigger.closeSearch(true);
             },
             error => {
-                // 403 oidc login no body;
-                console.info("33333333333333")
-                console.info(error)
-                console.info("33333333333333")
+                // 403 oidc logout no body;
                 if (this.isOidcLoginMode && error && error.status === 403) {
                     try {
                         let redirect_location = '';

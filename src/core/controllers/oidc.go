@@ -15,7 +15,10 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
+	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -225,6 +228,15 @@ func (oc *OIDCController) RedirectLogout() {
 		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 	}
 
+	if token.RefreshToken != "" {
+		ty, err := getSessionType(token.RefreshToken)
+		if err != nil {
+			log.Errorf("Error occurred in getSessionType: %v", err)
+			oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+		}
+		log.Info(ty)
+	}
+
 	if token.RawIDToken != "" {
 		keycloakLogoutURL := "https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/logout"
 		baseUrl, err := config.ExtEndpoint()
@@ -336,4 +348,66 @@ func secretAndToken(tokenBytes []byte) (string, string, error) {
 		return "", "", err
 	}
 	return secret, token, nil
+}
+
+// getSessionType determines if the session is offline by decoding the refresh token or not
+func getSessionType(refreshToken string) (string, error) {
+	parts := strings.Split(refreshToken, ".")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("invalid refresh token")
+	}
+
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return "", fmt.Errorf("failed to decode refresh token: %w", err)
+	}
+
+	var claims map[string]interface{}
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return "", fmt.Errorf("failed to unmarshal refresh token: %w", err)
+	}
+
+	typ, ok := claims["typ"].(string)
+	if !ok {
+		return "", errors.New("missing 'typ' claim in refresh token")
+	}
+
+	return typ, nil
+}
+
+// revokeOIDCRefreshToken revokes an offline session using the refresh token
+func revokeOIDCRefreshToken(refreshToken, clientID, clientSecret string) error {
+	logoutURL := "https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/logout"
+
+	// Prepare form data
+	data := url.Values{}
+	data.Set("client_id", clientID)
+	data.Set("client_secret", clientSecret)
+	data.Set("refresh_token", refreshToken)
+
+	// Create request
+	req, err := http.NewRequest("POST", logoutURL, bytes.NewBufferString(data.Encode()))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Send request
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check response status
+	if resp.StatusCode >= 300 || resp.StatusCode <= 200 {
+		return fmt.Errorf("logout failed, status: %d", resp.StatusCode)
+	}
+
+	return nil
 }
