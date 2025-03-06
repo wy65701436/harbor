@@ -119,9 +119,12 @@ func (cc *CommonController) LogOut() {
 			log.Error("Failed to get security context")
 			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 		}
+		log.Info("===========")
+		log.Info(securityCtx.GetUsername())
+		log.Info("===========")
 		u, err := user.Ctl.GetByName(cc.Context(), securityCtx.GetUsername())
 		if err != nil {
-			log.Errorf("Failed to get user by name: %s, error: %v", cc.SecurityCtx.GetUsername(), err)
+			log.Errorf("Failed to get user by name: %s, error: %v", securityCtx.GetUsername(), err)
 			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 		}
 		if u == nil {
