@@ -87,7 +87,7 @@ func (p *providerHelper) create(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create OIDC provider, error: %v", err)
 	}
-	err = provider.Claims(&wellKnownClaims)
+	err = provider.Claims(&EndSessionClaims)
 	if err != nil {
 		return err
 	}
