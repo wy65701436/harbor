@@ -71,7 +71,7 @@ func (kg *keyGetter) encryptKey() (string, error) {
 	return kg.key, nil
 }
 
-var KeyLoader = &keyGetter{}
+var keyLoader = &keyGetter{}
 
 type defaultManager struct {
 	metaDao dao.MetaDAO
@@ -92,7 +92,7 @@ func (dm *defaultManager) VerifySecret(ctx context.Context, username string, sec
 	if oidcUser == nil {
 		return nil, fmt.Errorf("user is not onboarded as OIDC user, username: %s", username)
 	}
-	key, err := KeyLoader.encryptKey()
+	key, err := keyLoader.encryptKey()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load the key for encryption/decryption： %v", err)
 	}

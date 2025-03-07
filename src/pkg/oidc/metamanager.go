@@ -85,7 +85,7 @@ func (m *metaManager) GetByUserID(ctx context.Context, uid int) (*models.OIDCUse
 		logger.Warningf("%d records of oidc user Info found for user %d", len(l), uid)
 	}
 	res := l[0]
-	key, err := KeyLoader.encryptKey()
+	key, err := keyLoader.encryptKey()
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (m *metaManager) SetCliSecretByUserID(ctx context.Context, uid int, secret 
 	if err != nil {
 		return err
 	}
-	key, err := KeyLoader.encryptKey()
+	key, err := keyLoader.encryptKey()
 	if err != nil {
 		return err
 	}
