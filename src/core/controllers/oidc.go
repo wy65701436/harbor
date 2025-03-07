@@ -402,7 +402,7 @@ func revokeOIDCRefreshToken(revokeURL, refreshToken, clientID, clientSecret stri
 		return fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode >= 300 || resp.StatusCode <= 200 {
+	if resp.StatusCode >= 300 || resp.StatusCode < 200 {
 		return fmt.Errorf("logout failed, status: %d", resp.StatusCode)
 	}
 	return nil
