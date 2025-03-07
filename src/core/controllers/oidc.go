@@ -233,11 +233,21 @@ func (oc *OIDCController) RedirectLogout() {
 		if err != nil {
 			log.Errorf("Error occurred in getSessionType: %v", err)
 		}
-		log.Info(ty)
+		if strings.ToLower(ty) == "offline" {
+			oidcSettings, err := config.OIDCSetting(oc.Ctx.Request.Context())
+			if err != nil {
+				log.Errorf("Failed to get OIDC settings: %v", err)
+				oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+			}
+			if err := revokeOIDCRefreshToken(oidc.EndpointsClaims.RevokeURL, token.RefreshToken, oidcSettings.ClientID, oidcSettings.ClientSecret); err != nil {
+				log.Errorf("Failed to revoke the offline session: %v", err)
+				oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+			}
+		}
 	}
 
 	if token.RawIDToken != "" {
-		endSessionURL := oidc.EndSessionClaims.EndSessionURL
+		endSessionURL := oidc.EndpointsClaims.EndSessionURL
 		baseUrl, err := config.ExtEndpoint()
 		if err != nil {
 			oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
@@ -371,23 +381,16 @@ func getSessionType(refreshToken string) (string, error) {
 }
 
 // revokeOIDCRefreshToken revokes an offline session using the refresh token
-func revokeOIDCRefreshToken(refreshToken, clientID, clientSecret string) error {
-	logoutURL := "https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/logout"
-
-	// Prepare form data
+func revokeOIDCRefreshToken(revokeURL, refreshToken, clientID, clientSecret string) error {
 	data := url.Values{}
 	data.Set("client_id", clientID)
 	data.Set("client_secret", clientSecret)
 	data.Set("refresh_token", refreshToken)
-
-	// Create request
-	req, err := http.NewRequest("POST", logoutURL, bytes.NewBufferString(data.Encode()))
+	req, err := http.NewRequest("POST", revokeURL, bytes.NewBufferString(data.Encode()))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// Send request
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -398,11 +401,8 @@ func revokeOIDCRefreshToken(refreshToken, clientID, clientSecret string) error {
 		return fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
-
-	// Check response status
 	if resp.StatusCode >= 300 || resp.StatusCode <= 200 {
 		return fmt.Errorf("logout failed, status: %d", resp.StatusCode)
 	}
-
 	return nil
 }

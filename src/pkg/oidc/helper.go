@@ -52,8 +52,9 @@ type providerHelper struct {
 	creationTime time.Time
 }
 
-var EndSessionClaims struct {
+var EndpointsClaims struct {
 	EndSessionURL string `json:"end_session_endpoint"`
+	RevokeURL     string `json:"revocation_endpoint"`
 }
 
 func (p *providerHelper) get(ctx context.Context) (*gooidc.Provider, error) {
@@ -87,7 +88,7 @@ func (p *providerHelper) create(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create OIDC provider, error: %v", err)
 	}
-	err = provider.Claims(&EndSessionClaims)
+	err = provider.Claims(&EndpointsClaims)
 	if err != nil {
 		return err
 	}
