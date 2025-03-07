@@ -396,6 +396,14 @@ func revokeOIDCRefreshToken(revokeURL, refreshToken, clientID, clientSecret stri
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 	}
+	// Log the request before sending
+	payload := data.Encode()
+	fmt.Println("Sending HTTP Request:")
+	fmt.Printf("URL: %s\n", req.URL)
+	fmt.Printf("Method: %s\n", req.Method)
+	fmt.Printf("Headers: %v\n", req.Header)
+	fmt.Printf("Body: %s\n", payload)
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
