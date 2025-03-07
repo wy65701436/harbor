@@ -17,11 +17,11 @@ func TestSecretVerifyError(t *testing.T) {
 
 func TestGetEncryptKey(t *testing.T) {
 	kl := &keyGetter{}
-	k, err := kl.EncryptKey()
+	k, err := kl.encryptKey()
 	assert.Nil(t, err)
 	assert.Equal(t, "naa4JtarA1Zsc3uY", k)
 	kl2 := &keyGetter{key: "oldkey"}
-	k2, err := kl2.EncryptKey()
+	k2, err := kl2.encryptKey()
 	assert.Nil(t, err)
 	assert.Equal(t, "oldkey", k2)
 }

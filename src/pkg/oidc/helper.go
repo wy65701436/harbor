@@ -237,9 +237,9 @@ func clientCtx(ctx context.Context, verifyCert bool) context.Context {
 	return gooidc.ClientContext(ctx, client)
 }
 
-// RefreshToken tries to refresh the token if it's expired, if it doesn't the
+// refreshToken tries to refresh the token if it's expired, if it doesn't the
 // original one will be returned.
-func RefreshToken(ctx context.Context, token *Token) (*Token, error) {
+func refreshToken(ctx context.Context, token *Token) (*Token, error) {
 	oauthCfg, err := getOauthConf(ctx)
 	if err != nil {
 		return nil, err
