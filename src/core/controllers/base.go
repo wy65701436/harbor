@@ -135,7 +135,7 @@ func (cc *CommonController) LogOut() {
 				cc.CustomAbort(http.StatusUnauthorized, "")
 			}
 			url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
-			log.Debugf("Redirect user %s to logout page of OIDC provider")
+			log.Debugf("Redirect user %s to logout page of OIDC provider", u.Username)
 			// Return a json to UI with status code 403, as it cannot handle status 302
 			cc.Ctx.Output.Status = http.StatusForbidden
 			err = cc.Ctx.Output.JSON(struct {

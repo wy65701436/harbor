@@ -392,11 +392,11 @@ func getSessionType(refreshToken string) (string, error) {
 	}
 	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
-		return "", errors.Errorf("failed to decode refresh token: %w", err)
+		return "", errors.Errorf("failed to decode refresh token: %v", err)
 	}
 	var claims map[string]interface{}
 	if err := json.Unmarshal(payload, &claims); err != nil {
-		return "", errors.Errorf("failed to unmarshal refresh token: %w", err)
+		return "", errors.Errorf("failed to unmarshal refresh token: %v", err)
 	}
 	typ, ok := claims["typ"].(string)
 	if !ok {
@@ -413,7 +413,7 @@ func revokeOIDCRefreshToken(revokeURL, refreshToken, clientID, clientSecret stri
 	auth := base64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
 	req, err := http.NewRequest("POST", revokeURL, bytes.NewBufferString(data.Encode()))
 	if err != nil {
-		return errors.Errorf("failed to create request: %w", err)
+		return errors.Errorf("failed to create request: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic "+auth)
@@ -424,7 +424,7 @@ func revokeOIDCRefreshToken(revokeURL, refreshToken, clientID, clientSecret stri
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return errors.Errorf("request failed: %w", err)
+		return errors.Errorf("request failed: %v", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 || resp.StatusCode < 200 {
