@@ -215,33 +215,56 @@ func (oc *OIDCController) Callback() {
 }
 
 func (oc *OIDCController) RedirectLogout() {
-	tk := oc.GetSession(tokenKey).([]byte)
-	token := oidc.Token{}
-
-	if err := json.Unmarshal(tk, &token); err != nil {
-		log.Errorf("Error occurred in Unmarshal: %v", err)
-		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+	sessionData := oc.GetSession(tokenKey)
+	if sessionData == nil {
+		log.Error("OIDC session token not found.")
+		oc.SendInternalServerError(fmt.Errorf("OIDC session token not found"))
+		return
 	}
-
 	if err := oc.DestroySession(); err != nil {
 		log.Errorf("Error occurred in LogOut: %v", err)
-		oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+		oc.SendInternalServerError(err)
+		return
 	}
-
+	if oidc.EndpointsClaims.EndSessionURL == "" {
+		log.Errorf("Unable to logout session since the 'end_session_point' is not set.")
+		return
+	}
+	tk, ok := sessionData.([]byte)
+	if !ok {
+		log.Error("Invalid OIDC session data format.")
+		oc.SendInternalServerError(fmt.Errorf("invalid OIDC session data format"))
+		return
+	}
+	token := oidc.Token{}
+	if err := json.Unmarshal(tk, &token); err != nil {
+		log.Errorf("Error occurred in Unmarshal: %v", err)
+		oc.SendInternalServerError(err)
+		return
+	}
 	if token.RefreshToken != "" {
 		ty, err := getSessionType(token.RefreshToken)
 		if err != nil {
 			log.Errorf("Error occurred in getSessionType: %v", err)
+			oc.SendInternalServerError(err)
+			return
 		}
 		if strings.ToLower(ty) == "offline" {
 			oidcSettings, err := config.OIDCSetting(oc.Ctx.Request.Context())
 			if err != nil {
 				log.Errorf("Failed to get OIDC settings: %v", err)
-				oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+				oc.SendInternalServerError(err)
+				return
+			}
+			if oidcSettings == nil || oidc.EndpointsClaims.RevokeURL == "" {
+				log.Error("OIDC settings or revoke URL is missing.")
+				oc.SendInternalServerError(fmt.Errorf("OIDC settings or revoke URL is missing"))
+				return
 			}
 			if err := revokeOIDCRefreshToken(oidc.EndpointsClaims.RevokeURL, token.RefreshToken, oidcSettings.ClientID, oidcSettings.ClientSecret); err != nil {
 				log.Errorf("Failed to revoke the offline session: %v", err)
-				oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+				oc.SendInternalServerError(err)
+				return
 			}
 		}
 	}
@@ -250,7 +273,9 @@ func (oc *OIDCController) RedirectLogout() {
 		endSessionURL := oidc.EndpointsClaims.EndSessionURL
 		baseUrl, err := config.ExtEndpoint()
 		if err != nil {
-			oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+			log.Errorf("Failed to get external endpoint: %v", err)
+			oc.SendInternalServerError(err)
+			return
 		}
 		postLogoutRedirectURI := fmt.Sprintf("%s/harbor/projects", baseUrl)
 		logoutURL := fmt.Sprintf(
@@ -363,15 +388,15 @@ func secretAndToken(tokenBytes []byte) (string, string, error) {
 func getSessionType(refreshToken string) (string, error) {
 	parts := strings.Split(refreshToken, ".")
 	if len(parts) != 3 {
-		return "", fmt.Errorf("invalid refresh token")
+		return "", errors.Errorf("invalid refresh token")
 	}
 	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
-		return "", fmt.Errorf("failed to decode refresh token: %w", err)
+		return "", errors.Errorf("failed to decode refresh token: %w", err)
 	}
 	var claims map[string]interface{}
 	if err := json.Unmarshal(payload, &claims); err != nil {
-		return "", fmt.Errorf("failed to unmarshal refresh token: %w", err)
+		return "", errors.Errorf("failed to unmarshal refresh token: %w", err)
 	}
 	typ, ok := claims["typ"].(string)
 	if !ok {
@@ -388,7 +413,7 @@ func revokeOIDCRefreshToken(revokeURL, refreshToken, clientID, clientSecret stri
 	auth := base64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
 	req, err := http.NewRequest("POST", revokeURL, bytes.NewBufferString(data.Encode()))
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return errors.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic "+auth)
@@ -399,11 +424,11 @@ func revokeOIDCRefreshToken(revokeURL, refreshToken, clientID, clientSecret stri
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("request failed: %w", err)
+		return errors.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 || resp.StatusCode < 200 {
-		return fmt.Errorf("logout failed, status: %d", resp.StatusCode)
+		return errors.Errorf("logout failed, status: %d", resp.StatusCode)
 	}
 	return nil
 }
