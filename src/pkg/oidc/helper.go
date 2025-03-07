@@ -52,6 +52,10 @@ type providerHelper struct {
 	creationTime time.Time
 }
 
+var EndSessionClaims struct {
+	EndSessionURL string `json:"end_session_endpoint"`
+}
+
 func (p *providerHelper) get(ctx context.Context) (*gooidc.Provider, error) {
 	if p.instance.Load() != nil {
 		if time.Since(p.creationTime) > 3*time.Second {
@@ -82,6 +86,10 @@ func (p *providerHelper) create(ctx context.Context) error {
 	provider, err := gooidc.NewProvider(c, s.Endpoint)
 	if err != nil {
 		return fmt.Errorf("failed to create OIDC provider, error: %v", err)
+	}
+	err = provider.Claims(&wellKnownClaims)
+	if err != nil {
+		return err
 	}
 	p.instance.Store(provider)
 	p.creationTime = time.Now()
@@ -160,7 +168,6 @@ func AuthCodeURL(ctx context.Context, state string) (string, error) {
 	for k, v := range setting.ExtraRedirectParms {
 		options = append(options, oauth2.SetAuthURLParam(k, v))
 	}
-	options = append(options, oauth2.AccessTypeOnline)
 	if strings.HasPrefix(conf.Endpoint.AuthURL, googleEndpoint) { // make sure the refresh token will be returned
 		options = append(options, oauth2.AccessTypeOffline)
 		options = append(options, oauth2.SetAuthURLParam("prompt", "consent"))

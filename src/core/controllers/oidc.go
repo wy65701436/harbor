@@ -232,13 +232,12 @@ func (oc *OIDCController) RedirectLogout() {
 		ty, err := getSessionType(token.RefreshToken)
 		if err != nil {
 			log.Errorf("Error occurred in getSessionType: %v", err)
-			oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
 		}
 		log.Info(ty)
 	}
 
 	if token.RawIDToken != "" {
-		keycloakLogoutURL := "https://10.164.143.185:8443/realms/myrealm/protocol/openid-connect/logout"
+		endSessionURL := oidc.EndSessionClaims.EndSessionURL
 		baseUrl, err := config.ExtEndpoint()
 		if err != nil {
 			oc.CustomAbort(http.StatusInternalServerError, "Internal error.")
@@ -246,11 +245,11 @@ func (oc *OIDCController) RedirectLogout() {
 		postLogoutRedirectURI := fmt.Sprintf("%s/harbor/projects", baseUrl)
 		logoutURL := fmt.Sprintf(
 			"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
-			keycloakLogoutURL,
+			endSessionURL,
 			url.QueryEscape(token.RawIDToken),
 			url.QueryEscape(postLogoutRedirectURI),
 		)
-		log.Info("3 Redirecting user to OIDC logout:", logoutURL)
+		log.Info("Redirecting user to OIDC logout:", logoutURL)
 		oc.Controller.Redirect(logoutURL, http.StatusFound)
 	}
 }
@@ -356,22 +355,18 @@ func getSessionType(refreshToken string) (string, error) {
 	if len(parts) != 3 {
 		return "", fmt.Errorf("invalid refresh token")
 	}
-
 	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
 		return "", fmt.Errorf("failed to decode refresh token: %w", err)
 	}
-
 	var claims map[string]interface{}
 	if err := json.Unmarshal(payload, &claims); err != nil {
 		return "", fmt.Errorf("failed to unmarshal refresh token: %w", err)
 	}
-
 	typ, ok := claims["typ"].(string)
 	if !ok {
 		return "", errors.New("missing 'typ' claim in refresh token")
 	}
-
 	return typ, nil
 }
 
