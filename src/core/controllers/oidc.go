@@ -383,27 +383,20 @@ func getSessionType(refreshToken string) (string, error) {
 // revokeOIDCRefreshToken revokes an offline session using the refresh token
 func revokeOIDCRefreshToken(revokeURL, refreshToken, clientID, clientSecret string) error {
 	data := url.Values{}
-	data.Set("client_id", clientID)
-	data.Set("client_secret", clientSecret)
-	data.Set("refresh_token", refreshToken)
+	data.Set("token", refreshToken)
+	data.Set("token_type_hint", "refresh_token")
+	auth := base64.StdEncoding.EncodeToString([]byte(clientID + ":" + clientSecret))
 	req, err := http.NewRequest("POST", revokeURL, bytes.NewBufferString(data.Encode()))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", "Basic "+auth)
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 	}
-	// Log the request before sending
-	payload := data.Encode()
-	fmt.Println("Sending HTTP Request:")
-	fmt.Printf("URL: %s\n", req.URL)
-	fmt.Printf("Method: %s\n", req.Method)
-	fmt.Printf("Headers: %v\n", req.Header)
-	fmt.Printf("Body: %s\n", payload)
-
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
