@@ -239,6 +239,7 @@ func (oc *OIDCController) RedirectLogout() {
 		return
 	}
 	if !oidcSettings.Logout {
+		oc.Controller.Redirect("/", http.StatusFound)
 		return
 	}
 	tk, ok := sessionData.([]byte)
