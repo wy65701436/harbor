@@ -240,6 +240,9 @@ func (oc *OIDCController) RedirectLogout() {
 		return
 	}
 	if token.RefreshToken != "" {
+		log.Info("=========")
+		log.Info(token.RefreshToken)
+		log.Info("=========")
 		ty, err := getSessionType(token.RefreshToken)
 		if err != nil {
 			log.Errorf("Error occurred in getSessionType: %v", err)
