@@ -216,6 +216,7 @@ func (oc *OIDCController) Callback() {
 
 func (oc *OIDCController) RedirectLogout() {
 	sessionData := oc.GetSession(tokenKey)
+	ctx := oc.Ctx.Request.Context()
 	if sessionData == nil {
 		log.Error("OIDC session token not found.")
 		oc.SendInternalServerError(fmt.Errorf("OIDC session token not found"))
@@ -245,43 +246,57 @@ func (oc *OIDCController) RedirectLogout() {
 			oc.SendInternalServerError(err)
 			return
 		}
+		// as for the offline type session, call the revocation_endpoint to logout the offline session.
 		if strings.ToLower(ty) == "offline" {
-			oidcSettings, err := config.OIDCSetting(oc.Ctx.Request.Context())
+			oidcSettings, err := config.OIDCSetting(ctx)
 			if err != nil {
 				log.Errorf("Failed to get OIDC settings: %v", err)
 				oc.SendInternalServerError(err)
 				return
 			}
-			if oidcSettings == nil || oidc.EndpointsClaims.RevokeURL == "" {
-				log.Error("OIDC settings or revoke URL is missing.")
-				oc.SendInternalServerError(fmt.Errorf("OIDC settings or revoke URL is missing"))
+			if oidcSettings == nil {
+				log.Error("OIDC settings is missing.")
+				oc.SendInternalServerError(fmt.Errorf("OIDC settings is missing"))
 				return
 			}
-			if err := revokeOIDCRefreshToken(oidc.EndpointsClaims.RevokeURL, token.RefreshToken, oidcSettings.ClientID, oidcSettings.ClientSecret); err != nil {
-				log.Errorf("Failed to revoke the offline session: %v", err)
-				oc.SendInternalServerError(err)
-				return
+			if oidc.EndpointsClaims.RevokeURL != "" {
+				if err := revokeOIDCRefreshToken(oidc.EndpointsClaims.RevokeURL, token.RefreshToken, oidcSettings.ClientID, oidcSettings.ClientSecret); err != nil {
+					log.Errorf("Failed to revoke the offline session: %v", err)
+					oc.SendInternalServerError(err)
+					return
+				}
+			} else {
+				log.Warning("Unable to logout OIDC offline session since the 'revoke_endpoint' is not set.")
 			}
 		}
 	}
 
 	if token.RawIDToken != "" {
-		endSessionURL := oidc.EndpointsClaims.EndSessionURL
-		baseUrl, err := config.ExtEndpoint()
+		_, err := oidc.VerifyToken(ctx, token.RawIDToken)
 		if err != nil {
-			log.Errorf("Failed to get external endpoint: %v", err)
 			oc.SendInternalServerError(err)
 			return
 		}
-		postLogoutRedirectURI := fmt.Sprintf("%s/harbor/projects", baseUrl)
-		logoutURL := fmt.Sprintf(
-			"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
-			endSessionURL,
-			url.QueryEscape(token.RawIDToken),
-			url.QueryEscape(postLogoutRedirectURI),
-		)
-		log.Info("Redirecting user to OIDC logout:", logoutURL)
-		oc.Controller.Redirect(logoutURL, http.StatusFound)
+		if oidc.EndpointsClaims.EndSessionURL != "" {
+			endSessionURL := oidc.EndpointsClaims.EndSessionURL
+			baseUrl, err := config.ExtEndpoint()
+			if err != nil {
+				log.Errorf("Failed to get external endpoint: %v", err)
+				oc.SendInternalServerError(err)
+				return
+			}
+			postLogoutRedirectURI := fmt.Sprintf("%s/harbor/projects", baseUrl)
+			logoutURL := fmt.Sprintf(
+				"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
+				endSessionURL,
+				url.QueryEscape(token.RawIDToken),
+				url.QueryEscape(postLogoutRedirectURI),
+			)
+			log.Info("Redirecting user to OIDC logout:", logoutURL)
+			oc.Controller.Redirect(logoutURL, http.StatusFound)
+		} else {
+			log.Debug("Unable to logout OIDC session since the 'end_session_point' is not set.")
+		}
 	}
 }
 

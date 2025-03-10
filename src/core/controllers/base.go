@@ -16,7 +16,6 @@ package controllers
 
 import (
 	"context"
-	"github.com/goharbor/harbor/src/pkg/oidc"
 	"net/http"
 	"os"
 	"strings"
@@ -113,43 +112,39 @@ func (cc *CommonController) Login() {
 func (cc *CommonController) LogOut() {
 	// redirect for OIDC logout, excludes the admin user.
 	if lib.GetAuthMode(cc.Context()) == common.OIDCAuth {
-		if oidc.EndpointsClaims.EndSessionURL != "" {
-			securityCtx, ok := security.FromContext(cc.Context())
-			if !ok {
-				log.Error("Failed to get security context")
-				cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-			}
-			if securityCtx.GetUsername() == "" {
-				return
-			}
-			u, err := user.Ctl.GetByName(cc.Context(), securityCtx.GetUsername())
+		securityCtx, ok := security.FromContext(cc.Context())
+		if !ok {
+			log.Error("Failed to get security context")
+			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+		}
+		if securityCtx.GetUsername() == "" {
+			return
+		}
+		u, err := user.Ctl.GetByName(cc.Context(), securityCtx.GetUsername())
+		if err != nil {
+			log.Errorf("Failed to get user by name: %s, error: %v", securityCtx.GetUsername(), err)
+			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+		}
+		if u == nil {
+			cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+		}
+		if u.UserID != 1 {
+			ep, err := config.ExtEndpoint()
 			if err != nil {
-				log.Errorf("Failed to get user by name: %s, error: %v", securityCtx.GetUsername(), err)
-				cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+				log.Errorf("Failed to get the external endpoint, error: %v", err)
+				cc.CustomAbort(http.StatusUnauthorized, "")
 			}
-			if u == nil {
-				cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+			url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
+			log.Debugf("Redirect user %s to logout page of OIDC provider", u.Username)
+			// Return a json to UI with status code 403, as it cannot handle status 302
+			cc.Ctx.Output.Status = http.StatusForbidden
+			err = cc.Ctx.Output.JSON(struct {
+				Locatioon string `json:"redirect_location"`
+			}{url}, false, false)
+			if err != nil {
+				log.Errorf("Failed to write json to response body, error: %v", err)
 			}
-			if u.UserID != 1 {
-				ep, err := config.ExtEndpoint()
-				if err != nil {
-					log.Errorf("Failed to get the external endpoint, error: %v", err)
-					cc.CustomAbort(http.StatusUnauthorized, "")
-				}
-				url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
-				log.Debugf("Redirect user %s to logout page of OIDC provider", u.Username)
-				// Return a json to UI with status code 403, as it cannot handle status 302
-				cc.Ctx.Output.Status = http.StatusForbidden
-				err = cc.Ctx.Output.JSON(struct {
-					Locatioon string `json:"redirect_location"`
-				}{url}, false, false)
-				if err != nil {
-					log.Errorf("Failed to write json to response body, error: %v", err)
-				}
-				return
-			}
-		} else {
-			log.Info("Unable to logout OIDC session since the 'end_session_point' is not set.")
+			return
 		}
 	}
 
