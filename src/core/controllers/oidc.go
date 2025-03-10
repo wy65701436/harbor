@@ -254,66 +254,56 @@ func (oc *OIDCController) RedirectLogout() {
 		oc.SendInternalServerError(err)
 		return
 	}
-	if oidcSettings.LogoutOffline {
-		if token.RefreshToken != "" {
-			ty, err := getSessionType(token.RefreshToken)
-			if err == nil {
-				// as for the offline type session, call the revocation_endpoint to logout the offline session.
-				if strings.ToLower(ty) == "offline" {
-					oidcSettings, err := config.OIDCSetting(ctx)
-					if err != nil {
-						log.Errorf("Failed to get OIDC settings: %v", err)
+	if oidcSettings.LogoutOffline && token.RefreshToken != "" {
+		sessionType, err := getSessionType(token.RefreshToken)
+		if err == nil {
+			// If the session is offline, revoke the refresh token
+			if strings.ToLower(sessionType) == "offline" {
+				if oidc.EndpointsClaims.RevokeURL != "" {
+					if err := revokeOIDCRefreshToken(oidc.EndpointsClaims.RevokeURL, token.RefreshToken, oidcSettings.ClientID, oidcSettings.ClientSecret); err != nil {
+						log.Errorf("Failed to revoke the offline session: %v", err)
 						oc.SendInternalServerError(err)
 						return
 					}
-					if oidcSettings == nil {
-						log.Error("OIDC settings is missing.")
-						oc.SendInternalServerError(fmt.Errorf("OIDC settings is missing"))
-						return
-					}
-					if oidc.EndpointsClaims.RevokeURL != "" {
-						if err := revokeOIDCRefreshToken(oidc.EndpointsClaims.RevokeURL, token.RefreshToken, oidcSettings.ClientID, oidcSettings.ClientSecret); err != nil {
-							log.Errorf("Failed to revoke the offline session: %v", err)
-							oc.SendInternalServerError(err)
-							return
-						}
-					} else {
-						log.Warning("Unable to logout OIDC offline session since the 'revoke_endpoint' is not set.")
-					}
+				} else {
+					log.Warning("Unable to logout OIDC offline session since the 'revoke_endpoint' is not set.")
 				}
-			} else {
-				log.Warningf("Unable to logout OIDC offline session since invalid refresh token: %s err: %v", token.RefreshToken, err)
 			}
+		} else {
+			log.Warningf("Invalid refresh token for offline session: %s, error: %v", token.RefreshToken, err)
 		}
 	}
 
-	if token.RawIDToken != "" {
-		_, err := oidc.VerifyToken(ctx, token.RawIDToken)
-		if err != nil {
-			oc.SendInternalServerError(err)
-			return
-		}
-		if oidc.EndpointsClaims.EndSessionURL != "" {
-			endSessionURL := oidc.EndpointsClaims.EndSessionURL
-			baseUrl, err := config.ExtEndpoint()
-			if err != nil {
-				log.Errorf("Failed to get external endpoint: %v", err)
-				oc.SendInternalServerError(err)
-				return
-			}
-			postLogoutRedirectURI := fmt.Sprintf("%s/harbor/projects", baseUrl)
-			logoutURL := fmt.Sprintf(
-				"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
-				endSessionURL,
-				url.QueryEscape(token.RawIDToken),
-				url.QueryEscape(postLogoutRedirectURI),
-			)
-			log.Info("Redirecting user to OIDC logout:", logoutURL)
-			oc.Controller.Redirect(logoutURL, http.StatusFound)
-		} else {
-			log.Debug("Unable to logout OIDC session since the 'end_session_point' is not set.")
-		}
+	if token.RawIDToken == "" {
+		log.Warning("Empty ID token for offline session.")
+		oc.Controller.Redirect(".", http.StatusFound)
+		return
 	}
+	if _, err := oidc.VerifyToken(ctx, token.RawIDToken); err != nil {
+		oc.SendInternalServerError(err)
+		return
+	}
+	if oidc.EndpointsClaims.EndSessionURL == "" {
+		log.Warning("Unable to logout OIDC session since the 'end_session_point' is not set.")
+		oc.Controller.Redirect("/", http.StatusFound)
+		return
+	}
+	endSessionURL := oidc.EndpointsClaims.EndSessionURL
+	baseUrl, err := config.ExtEndpoint()
+	if err != nil {
+		log.Errorf("Failed to get external endpoint: %v", err)
+		oc.SendInternalServerError(err)
+		return
+	}
+	postLogoutRedirectURI := fmt.Sprintf("%s/harbor/projects", baseUrl)
+	logoutURL := fmt.Sprintf(
+		"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
+		endSessionURL,
+		url.QueryEscape(token.RawIDToken),
+		url.QueryEscape(postLogoutRedirectURI),
+	)
+	log.Info("Redirecting user to OIDC logout:", logoutURL)
+	oc.Controller.Redirect(logoutURL, http.StatusFound)
 }
 
 func userOnboard(ctx context.Context, oc *OIDCController, info *oidc.UserInfo, username string, tokenBytes []byte) (*models.User, bool) {
