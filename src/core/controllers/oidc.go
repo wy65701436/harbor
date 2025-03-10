@@ -226,10 +226,6 @@ func (oc *OIDCController) RedirectLogout() {
 		oc.SendInternalServerError(err)
 		return
 	}
-	if oidc.EndpointsClaims.EndSessionURL == "" {
-		log.Errorf("Unable to logout session since the 'end_session_point' is not set.")
-		return
-	}
 	tk, ok := sessionData.([]byte)
 	if !ok {
 		log.Error("Invalid OIDC session data format.")
