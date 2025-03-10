@@ -227,6 +227,20 @@ func (oc *OIDCController) RedirectLogout() {
 		oc.SendInternalServerError(err)
 		return
 	}
+	oidcSettings, err := config.OIDCSetting(ctx)
+	if err != nil {
+		log.Errorf("Failed to get OIDC settings: %v", err)
+		oc.SendInternalServerError(err)
+		return
+	}
+	if oidcSettings == nil {
+		log.Error("OIDC settings is missing.")
+		oc.SendInternalServerError(fmt.Errorf("OIDC settings is missing"))
+		return
+	}
+	if !oidcSettings.Logout {
+		return
+	}
 	tk, ok := sessionData.([]byte)
 	if !ok {
 		log.Error("Invalid OIDC session data format.")
@@ -239,34 +253,36 @@ func (oc *OIDCController) RedirectLogout() {
 		oc.SendInternalServerError(err)
 		return
 	}
-	if token.RefreshToken != "" {
-		ty, err := getSessionType(token.RefreshToken)
-		if err == nil {
-			// as for the offline type session, call the revocation_endpoint to logout the offline session.
-			if strings.ToLower(ty) == "offline" {
-				oidcSettings, err := config.OIDCSetting(ctx)
-				if err != nil {
-					log.Errorf("Failed to get OIDC settings: %v", err)
-					oc.SendInternalServerError(err)
-					return
-				}
-				if oidcSettings == nil {
-					log.Error("OIDC settings is missing.")
-					oc.SendInternalServerError(fmt.Errorf("OIDC settings is missing"))
-					return
-				}
-				if oidc.EndpointsClaims.RevokeURL != "" {
-					if err := revokeOIDCRefreshToken(oidc.EndpointsClaims.RevokeURL, token.RefreshToken, oidcSettings.ClientID, oidcSettings.ClientSecret); err != nil {
-						log.Errorf("Failed to revoke the offline session: %v", err)
+	if oidcSettings.LogoutOffline {
+		if token.RefreshToken != "" {
+			ty, err := getSessionType(token.RefreshToken)
+			if err == nil {
+				// as for the offline type session, call the revocation_endpoint to logout the offline session.
+				if strings.ToLower(ty) == "offline" {
+					oidcSettings, err := config.OIDCSetting(ctx)
+					if err != nil {
+						log.Errorf("Failed to get OIDC settings: %v", err)
 						oc.SendInternalServerError(err)
 						return
 					}
-				} else {
-					log.Warning("Unable to logout OIDC offline session since the 'revoke_endpoint' is not set.")
+					if oidcSettings == nil {
+						log.Error("OIDC settings is missing.")
+						oc.SendInternalServerError(fmt.Errorf("OIDC settings is missing"))
+						return
+					}
+					if oidc.EndpointsClaims.RevokeURL != "" {
+						if err := revokeOIDCRefreshToken(oidc.EndpointsClaims.RevokeURL, token.RefreshToken, oidcSettings.ClientID, oidcSettings.ClientSecret); err != nil {
+							log.Errorf("Failed to revoke the offline session: %v", err)
+							oc.SendInternalServerError(err)
+							return
+						}
+					} else {
+						log.Warning("Unable to logout OIDC offline session since the 'revoke_endpoint' is not set.")
+					}
 				}
+			} else {
+				log.Warningf("Unable to logout OIDC offline session since invalid refresh token: %s err: %v", token.RefreshToken, err)
 			}
-		} else {
-			log.Warningf("Unable to logout OIDC offline session since invalid refresh token: %s err: %v", token.RefreshToken, err)
 		}
 	}
 
