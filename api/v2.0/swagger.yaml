@@ -9334,6 +9334,16 @@ definitions:
         description: Extra parameters to add when redirect request to OIDC provider
         x-omitempty: true
         x-isnullable: true
+      oidc_logout:
+        type: boolean
+        description: Logout OIDC user session
+        x-omitempty: true
+        x-isnullable: true
+      oidc_logout_offline:
+        type: boolean
+        description: Logout OIDC user offline session
+        x-omitempty: true
+        x-isnullable: true
       robot_token_duration:
         type: integer
         description: The robot account token duration in days
