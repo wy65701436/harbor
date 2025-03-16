@@ -16,7 +16,11 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/goharbor/harbor/src/pkg/oidc"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -110,44 +114,95 @@ func (cc *CommonController) Login() {
 
 // LogOut Harbor UI
 func (cc *CommonController) LogOut() {
-	// redirect for OIDC logout, excludes the admin user.
-	securityCtx, ok := security.FromContext(cc.Context())
-	if !ok {
-		log.Error("Failed to get security context")
-		cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+	sessionData := cc.GetSession(tokenKey)
+	ctx := cc.Ctx.Request.Context()
+	if sessionData == nil {
+		log.Error("OIDC session token not found.")
+		cc.SendInternalServerError(fmt.Errorf("OIDC session token not found"))
+		return
 	}
-	principal := securityCtx.GetUsername()
-	if principal != "" {
-		if redirectForOIDC(cc.Ctx.Request.Context(), principal) {
-			u, err := user.Ctl.GetByName(cc.Context(), principal)
-			if err != nil {
-				log.Errorf("Failed to get user by name: %s, error: %v", principal, err)
-				cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-			}
-			if u == nil {
-				cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-			}
-			if u.UserID != 1 {
-				ep, err := config.ExtEndpoint()
-				if err != nil {
-					log.Errorf("Failed to get the external endpoint, error: %v", err)
-					cc.CustomAbort(http.StatusUnauthorized, "")
+	if err := cc.DestroySession(); err != nil {
+		log.Errorf("Error occurred in LogOut: %v", err)
+		cc.SendInternalServerError(err)
+		return
+	}
+	oidcSettings, err := config.OIDCSetting(ctx)
+	if err != nil {
+		log.Errorf("Failed to get OIDC settings: %v", err)
+		cc.SendInternalServerError(err)
+		return
+	}
+	if oidcSettings == nil {
+		log.Error("OIDC settings is missing.")
+		cc.SendInternalServerError(fmt.Errorf("OIDC settings is missing"))
+		return
+	}
+	if !oidcSettings.Logout {
+		cc.Controller.Redirect("/", http.StatusFound)
+		return
+	}
+	tk, ok := sessionData.([]byte)
+	if !ok {
+		log.Error("Invalid OIDC session data format.")
+		cc.SendInternalServerError(fmt.Errorf("invalid OIDC session data format"))
+		return
+	}
+	token := oidc.Token{}
+	if err := json.Unmarshal(tk, &token); err != nil {
+		log.Errorf("Error occurred in Unmarshal: %v", err)
+		cc.SendInternalServerError(err)
+		return
+	}
+	if oidcSettings.LogoutOffline && token.RefreshToken != "" {
+		sessionType, err := getSessionType(token.RefreshToken)
+		if err == nil {
+			// If the session is offline, revoke the refresh token
+			if strings.ToLower(sessionType) == "offline" {
+				if oidc.EndpointsClaims.RevokeURL != "" {
+					if err := revokeOIDCRefreshToken(oidc.EndpointsClaims.RevokeURL, token.RefreshToken, oidcSettings.ClientID, oidcSettings.ClientSecret); err != nil {
+						log.Errorf("Failed to revoke the offline session: %v", err)
+						cc.SendInternalServerError(err)
+						return
+					}
+				} else {
+					log.Warning("Unable to logout OIDC offline session since the 'revoke_endpoint' is not set.")
 				}
-				url := strings.TrimSuffix(ep, "/") + common.OIDCLoginoutPath
-				log.Debugf("Redirect user %s to logout page of OIDC provider", u.Username)
-				// Return a json to UI with status code 403, as it cannot handle status 302
-				cc.Ctx.Output.Status = http.StatusForbidden
-				err = cc.Ctx.Output.JSON(struct {
-					Location string `json:"redirect_location"`
-				}{url}, false, false)
-				if err != nil {
-					log.Errorf("Failed to write json to response body, error: %v", err)
-				}
-				return
 			}
+		} else {
+			log.Warningf("Invalid refresh token for offline session: %s, error: %v", token.RefreshToken, err)
 		}
 	}
 
+	if token.RawIDToken == "" {
+		log.Warning("Empty ID token for offline session.")
+		cc.Controller.Redirect(".", http.StatusFound)
+		return
+	}
+	if _, err := oidc.VerifyToken(ctx, token.RawIDToken); err != nil {
+		cc.SendInternalServerError(err)
+		return
+	}
+	if oidc.EndpointsClaims.EndSessionURL == "" {
+		log.Warning("Unable to logout OIDC session since the 'end_session_point' is not set.")
+		cc.Controller.Redirect("/", http.StatusFound)
+		return
+	}
+	endSessionURL := oidc.EndpointsClaims.EndSessionURL
+	baseURL, err := config.ExtEndpoint()
+	if err != nil {
+		log.Errorf("Failed to get external endpoint: %v", err)
+		cc.SendInternalServerError(err)
+		return
+	}
+	postLogoutRedirectURI := fmt.Sprintf("%s/harbor/projects", baseURL)
+	logoutURL := fmt.Sprintf(
+		"%s?id_token_hint=%s&post_logout_redirect_uri=%s",
+		endSessionURL,
+		url.QueryEscape(token.RawIDToken),
+		url.QueryEscape(postLogoutRedirectURI),
+	)
+	log.Info("Redirecting user to OIDC logout:", logoutURL)
+	cc.Controller.Redirect(logoutURL, http.StatusFound)
 	if err := cc.DestroySession(); err != nil {
 		log.Errorf("Error occurred in LogOut: %v", err)
 		cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
