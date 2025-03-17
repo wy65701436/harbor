@@ -202,7 +202,7 @@ func (cc *CommonController) LogOut() {
 		url.QueryEscape(postLogoutRedirectURI),
 	)
 	log.Info("Redirecting user to OIDC logout:", logoutURL)
-	cc.Controller.Redirect(logoutURL, http.StatusFound)
+	cc.Controller.Redirect(logoutURL, http.StatusForbidden)
 	return
 	//if err := cc.DestroySession(); err != nil {
 	//	log.Errorf("Error occurred in LogOut: %v", err)
