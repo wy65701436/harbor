@@ -203,10 +203,11 @@ func (cc *CommonController) LogOut() {
 	)
 	log.Info("Redirecting user to OIDC logout:", logoutURL)
 	cc.Controller.Redirect(logoutURL, http.StatusFound)
-	if err := cc.DestroySession(); err != nil {
-		log.Errorf("Error occurred in LogOut: %v", err)
-		cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
-	}
+	return
+	//if err := cc.DestroySession(); err != nil {
+	//	log.Errorf("Error occurred in LogOut: %v", err)
+	//	cc.CustomAbort(http.StatusInternalServerError, "Internal error.")
+	//}
 }
 
 // UserExists checks if user exists when user input value in sign in form.
