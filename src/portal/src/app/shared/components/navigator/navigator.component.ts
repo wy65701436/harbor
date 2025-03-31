@@ -208,6 +208,19 @@ export class NavigatorComponent implements OnInit {
 
     // Log out system
     logOut(): void {
+        // Naviagte to the sign in router-guard
+        // Appending 'signout' means destroy session cache
+        let signout = true;
+        let redirect_url = this.location.pathname;
+        let navigatorExtra: NavigationExtras = {
+            queryParams: { signout, redirect_url },
+        };
+        this.router.navigate([CommonRoutes.EMBEDDED_SIGN_IN], navigatorExtra);
+        // Confirm search result panel is close
+        this.searchTrigger.closeSearch(true);
+    }
+    
+    logOutBK(): void {
         // Call the service to send out the http request
         this.session.signOff().subscribe(
             () => {
