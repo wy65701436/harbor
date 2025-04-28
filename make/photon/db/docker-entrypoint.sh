@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+chown -R postgres:postgres /docker-healthcheck.sh /docker-entrypoint-initdb.d /initdb.sh /upgrade.sh
+chmod u+x /initdb.sh /upgrade.sh /docker-healthcheck.sh
+
 source $PWD/initdb.sh
 
 CUR=$PWD

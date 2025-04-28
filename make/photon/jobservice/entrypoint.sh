@@ -2,6 +2,9 @@
 
 set -e
 
+chown -R harbor:harbor /etc/pki/tls/certs /harbor
+chmod u+x /harbor/install_cert.sh /harbor/harbor_jobservice
+
 /harbor/install_cert.sh
 
 exec /harbor/harbor_jobservice -c /etc/jobservice/config.yml
