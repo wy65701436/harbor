@@ -32,37 +32,7 @@ on:
       - '!tests/apitests/**'
       - '!tests/ci/**'
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
-
-  AWS:
-    runs-on:
-      - ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          path: src/github.com/goharbor/harbor
-
-      - name: Configure AWS credentials
-        shell: bash
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          mkdir -p "${HOME}/.aws"
-          cat > "${HOME}/.aws/credentials" <<EOF
-          [default]
-          aws_access_key_id=${AWS_ACCESS_KEY_ID}
-          aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
-          EOF
-          chmod -R go-rwx "${HOME}/.aws"
-          aws s3 ls
-          echo "test" > test.txt
-          aws s3 cp test.txt s3://harbor-ci-logs
-          aws s3 ls s3://harbor-ci-logs
 
   UTTEST:
     env:
@@ -141,8 +111,15 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: src/github.com/goharbor/harbor
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
       - name: setup env
         run: |
+          aws --version
           cd src/github.com/goharbor/harbor
           pwd
           go env
@@ -196,6 +173,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: src/github.com/goharbor/harbor
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
       - name: setup env
         run: |
           cd src/github.com/goharbor/harbor
@@ -251,6 +234,12 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: src/github.com/goharbor/harbor
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
       - name: setup env
         run: |
           cd src/github.com/goharbor/harbor
