@@ -16,6 +16,7 @@ package registry
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -182,7 +183,20 @@ func putManifest(w http.ResponseWriter, req *http.Request) {
 	}
 
 	buffer := lib.NewResponseBuffer(w)
+
 	// proxy the req to the backend docker registry
+	// replace the tag with digest
+	if _, err = digest.Parse(reference); err != nil {
+		data, err := io.ReadAll(req.Body)
+		if err != nil {
+			lib_http.SendError(w, err)
+			return
+		}
+		dgst := digest.FromBytes(data)
+		req = req.Clone(req.Context())
+		req.URL.Path = strings.TrimSuffix(req.URL.Path, reference) + dgst.String()
+		req.URL.RawPath = req.URL.EscapedPath()
+	}
 	proxy.ServeHTTP(buffer, req)
 	if !buffer.Success() {
 		if _, err := buffer.Flush(); err != nil {
