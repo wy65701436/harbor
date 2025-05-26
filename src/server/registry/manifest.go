@@ -185,10 +185,7 @@ func putManifest(w http.ResponseWriter, req *http.Request) {
 	buffer := lib.NewResponseBuffer(w)
 
 	// proxy the req to the backend docker registry
-	// replace the tag with digest
-	fmt.Println("====================================")
-	fmt.Println(reference)
-	fmt.Println("====================================")
+	// replace the tag with digest, doesn't land the tag in the backend registry storage.
 	if _, err = digest.Parse(reference); err != nil {
 		data, err := io.ReadAll(req.Body)
 		if err != nil {
@@ -199,9 +196,6 @@ func putManifest(w http.ResponseWriter, req *http.Request) {
 		req = req.Clone(req.Context())
 		req.URL.Path = strings.TrimSuffix(req.URL.Path, reference) + dgst.String()
 		req.URL.RawPath = req.URL.EscapedPath()
-		fmt.Println("====================================")
-		fmt.Println(req)
-		fmt.Println("====================================")
 	}
 	proxy.ServeHTTP(buffer, req)
 	if !buffer.Success() {
