@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"strconv"
@@ -243,6 +244,12 @@ func (c *client) listTags(url string) ([]string, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
+
+	fmt.Println("===================================")
+	dumped, _ := httputil.DumpRequest(req, true)
+	fmt.Println(string(dumped))
+	fmt.Println("===================================")
+
 	resp, err := c.do(req)
 	if err != nil {
 		return nil, "", err
