@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 
 	"github.com/goharbor/harbor/src/lib"
@@ -65,6 +66,12 @@ func (a *authorizer) Modify(req *http.Request) error {
 	if token != nil && len(token.Token) > 0 {
 		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token.Token))
 	}
+
+	fmt.Println("===================================")
+	dumped, _ := httputil.DumpRequest(req, true)
+	fmt.Println(string(dumped))
+	fmt.Println("===================================")
+
 	return nil
 }
 
