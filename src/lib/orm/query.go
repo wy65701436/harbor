@@ -153,10 +153,6 @@ func QuerySetterForCount(ctx context.Context, model any, query *q.Query, _ ...st
 // set filters according to the query
 func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *metadata) orm.QuerySeter {
 	for key, value := range query.Keywords {
-		fmt.Println("==================================")
-		fmt.Println(key)
-		fmt.Println(value)
-		fmt.Println("==================================")
 		// The "strings.SplitN()" here is a workaround for the incorrect usage of query which should be avoided
 		// e.g. use the query with the knowledge of underlying ORM implementation, the "OrList" should be used instead:
 		// https://github.com/goharbor/harbor/blob/v2.2.0/src/controller/project/controller.go#L348
@@ -166,23 +162,6 @@ func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *me
 			continue
 		}
 		fieldKey := keyPieces[0]
-		if len(keyPieces) == 2 {
-			operator := orm.ExprSep + keyPieces[1]
-			allowedOperators := map[string]struct{}{
-				"__icontains": {},
-				"__gte":       {},
-				"__lte":       {},
-				"__in":        {},
-				"__gt":        {},
-				"__lt":        {},
-				"__exact":     {},
-			}
-			if _, ok := allowedOperators[operator]; !ok {
-				log.Warningf("the operator '%s' in query parameter '%s' is not supported, the query will be skipped.", operator, key)
-				continue
-			}
-			fieldKey = key
-		}
 		mk, filterable := meta.Filterable(fieldKey)
 		if !filterable {
 			// This is a workaround for the unsuitable usage of query, the keyword format for field and method should be consistent
@@ -193,32 +172,51 @@ func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *me
 				continue
 			}
 		}
+
+		// only accept the below operators
+		if len(keyPieces) == 2 {
+			operator := orm.ExprSep + keyPieces[1]
+			allowedOperators := map[string]struct{}{
+				"__icontains": {},
+				"__in":        {},
+				"__gte":       {},
+				"__lte":       {},
+				"__gt":        {},
+				"__lt":        {},
+				"__exact":     {},
+			}
+			if _, ok := allowedOperators[operator]; !ok {
+				log.Warningf("the operator '%s' in query parameter '%s' is not supported, the query will be skipped.", operator, key)
+				continue
+			}
+		}
+
 		// filter function defined, use it directly
 		if mk.FilterFunc != nil {
-			qs = mk.FilterFunc(ctx, qs, fieldKey, value)
+			qs = mk.FilterFunc(ctx, qs, key, value)
 			continue
 		}
 		// fuzzy match
 		if f, ok := value.(*q.FuzzyMatchValue); ok {
-			qs = qs.Filter(fieldKey+"__icontains", Escape(f.Value))
+			qs = qs.Filter(key+"__icontains", Escape(f.Value))
 			continue
 		}
 		// range
 		if r, ok := value.(*q.Range); ok {
 			if r.Min != nil {
-				qs = qs.Filter(fieldKey+"__gte", r.Min)
+				qs = qs.Filter(key+"__gte", r.Min)
 			}
 			if r.Max != nil {
-				qs = qs.Filter(fieldKey+"__lte", r.Max)
+				qs = qs.Filter(key+"__lte", r.Max)
 			}
 			continue
 		}
 		// or list
 		if ol, ok := value.(*q.OrList); ok {
 			if ol == nil || len(ol.Values) == 0 {
-				qs = qs.Filter(fieldKey+"__in", nil)
+				qs = qs.Filter(key+"__in", nil)
 			} else {
-				qs = qs.Filter(fieldKey+"__in", ol.Values...)
+				qs = qs.Filter(key+"__in", ol.Values...)
 			}
 			continue
 		}
@@ -228,7 +226,7 @@ func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *me
 			continue
 		}
 		// exact match
-		qs = qs.Filter(fieldKey, value)
+		qs = qs.Filter(key, value)
 	}
 	return qs
 }
