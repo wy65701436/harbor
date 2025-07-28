@@ -153,6 +153,10 @@ func QuerySetterForCount(ctx context.Context, model any, query *q.Query, _ ...st
 // set filters according to the query
 func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *metadata) orm.QuerySeter {
 	for key, value := range query.Keywords {
+		fmt.Println("==================================")
+		fmt.Println(key)
+		fmt.Println(value)
+		fmt.Println("==================================")
 		// The "strings.SplitN()" here is a workaround for the incorrect usage of query which should be avoided
 		// e.g. use the query with the knowledge of underlying ORM implementation, the "OrList" should be used instead:
 		// https://github.com/goharbor/harbor/blob/v2.2.0/src/controller/project/controller.go#L348
