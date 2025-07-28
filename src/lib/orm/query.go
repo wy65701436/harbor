@@ -152,10 +152,6 @@ func QuerySetterForCount(ctx context.Context, model any, query *q.Query, _ ...st
 
 // set filters according to the query
 func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *metadata) orm.QuerySeter {
-
-	fmt.Println("k ==========================")
-
-	fmt.Println("k ==========================")
 	for key, value := range query.Keywords {
 		// The "strings.SplitN()" here is a workaround for the incorrect usage of query which should be avoided
 		// e.g. use the query with the knowledge of underlying ORM implementation, the "OrList" should be used instead:
@@ -166,6 +162,20 @@ func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *me
 			continue
 		}
 		fieldKey := keyPieces[0]
+		if len(keyPieces) == 2 {
+			operator := orm.ExprSep + keyPieces[1]
+			allowedOperators := map[string]struct{}{
+				"__icontains": {},
+				"__gte":       {},
+				"__lte":       {},
+				"__in":        {},
+			}
+			if _, ok := allowedOperators[operator]; !ok {
+				log.Warningf("the operator '%s' in query parameter '%s' is not supported, the query will be skipped.", operator, key)
+				continue
+			}
+			fieldKey = key
+		}
 		mk, filterable := meta.Filterable(fieldKey)
 		if !filterable {
 			// This is a workaround for the unsuitable usage of query, the keyword format for field and method should be consistent
@@ -178,16 +188,12 @@ func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *me
 		}
 		// filter function defined, use it directly
 		if mk.FilterFunc != nil {
-			qs = mk.FilterFunc(ctx, qs, key, value)
+			qs = mk.FilterFunc(ctx, qs, fieldKey, value)
 			continue
 		}
 		// fuzzy match
-		fmt.Println("=================================")
-		fmt.Println(fieldKey)
-		fmt.Println(value)
 		if f, ok := value.(*q.FuzzyMatchValue); ok {
 			qs = qs.Filter(fieldKey+"__icontains", Escape(f.Value))
-			fmt.Println("=================================")
 			continue
 		}
 		// range
