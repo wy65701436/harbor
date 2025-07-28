@@ -169,6 +169,9 @@ func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *me
 				"__gte":       {},
 				"__lte":       {},
 				"__in":        {},
+				"__gt":        {},
+				"__lt":        {},
+				"__exact":     {},
 			}
 			if _, ok := allowedOperators[operator]; !ok {
 				log.Warningf("the operator '%s' in query parameter '%s' is not supported, the query will be skipped.", operator, key)
