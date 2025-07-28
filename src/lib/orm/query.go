@@ -178,8 +178,13 @@ func setFilters(ctx context.Context, qs orm.QuerySeter, query *q.Query, meta *me
 			continue
 		}
 		// fuzzy match
+		fmt.Println("=================================")
+		fmt.Println(key)
+		fmt.Println(value)
 		if f, ok := value.(*q.FuzzyMatchValue); ok {
 			qs = qs.Filter(key+"__icontains", Escape(f.Value))
+
+			fmt.Println("=================================")
 			continue
 		}
 		// range
