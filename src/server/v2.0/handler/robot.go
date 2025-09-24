@@ -31,10 +31,8 @@ import (
 	"github.com/goharbor/harbor/src/common/utils"
 	"github.com/goharbor/harbor/src/controller/robot"
 	"github.com/goharbor/harbor/src/lib"
-	"github.com/goharbor/harbor/src/lib/config"
 	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/lib/log"
-	"github.com/goharbor/harbor/src/lib/q"
 	"github.com/goharbor/harbor/src/pkg/permission/types"
 	pkg "github.com/goharbor/harbor/src/pkg/robot/model"
 	"github.com/goharbor/harbor/src/server/v2.0/handler/model"
@@ -78,11 +76,9 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 		ProjectNameOrID: params.Robot.Permissions[0].Namespace,
 	}
 
-	fmt.Println("=========================00000000")
 	if err := rAPI.requireAccess(ctx, r, rbac.ActionCreate); err != nil {
 		return rAPI.SendError(ctx, err)
 	}
-	fmt.Println("=========================00000000")
 
 	var creatorRef int64
 	switch s := sc.(type) {
@@ -105,20 +101,12 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 	}
 
 	if _, ok := sc.(*robotSc.SecurityContext); ok {
-		creatorRobots, err := rAPI.robotCtl.List(ctx, q.New(q.KeyWords{
-			"name":       strings.TrimPrefix(sc.GetUsername(), config.RobotPrefix(ctx)),
-			"project_id": r.ProjectID,
-		}), &robot.Option{
-			WithPermission: true,
-		})
-		if err != nil {
-			return rAPI.SendError(ctx, err)
-		}
-		if len(creatorRobots) == 0 {
+		creatorRobot := sc.(*robotSc.SecurityContext).User()
+		if creatorRobot == nil {
 			return rAPI.SendError(ctx, errors.DeniedError(nil))
 		}
 
-		if !isValidPermissionScope(params.Robot.Permissions, creatorRobots[0].Permissions) {
+		if !isValidPermissionScope(params.Robot.Permissions, creatorRobot.Permissions) {
 			return rAPI.SendError(ctx, errors.New(nil).WithMessagef("permission scope is invalid. It must be equal to or more restrictive than the creator robot's permissions: %s", creatorRobots[0].Name).WithCode(errors.DENIED))
 		}
 	}
