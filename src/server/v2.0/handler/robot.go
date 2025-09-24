@@ -107,7 +107,7 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 		}
 
 		if !isValidPermissionScope(params.Robot.Permissions, creatorRobot.Permissions) {
-			return rAPI.SendError(ctx, errors.New(nil).WithMessagef("permission scope is invalid. It must be equal to or more restrictive than the creator robot's permissions: %s", creatorRobots[0].Name).WithCode(errors.DENIED))
+			return rAPI.SendError(ctx, errors.New(nil).WithMessagef("permission scope is invalid. It must be equal to or more restrictive than the creator robot's permissions: %s", creatorRobot.Name).WithCode(errors.DENIED))
 		}
 	}
 
