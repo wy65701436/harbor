@@ -101,10 +101,10 @@ func (b *BaseAPI) HasProjectPermission(ctx context.Context, projectIDOrName any,
 	}
 
 	resource := rbac_project.NewNamespace(projectID).Resource(subresource...)
-	fmt.Printf("###########################")
+	fmt.Println("###########################")
 	fmt.Printf("%v", resource)
 	fmt.Printf("%v", projectID)
-	fmt.Printf("###########################")
+	fmt.Println("###########################")
 	return b.HasPermission(ctx, action, resource), nil
 }
 
@@ -125,8 +125,6 @@ func (b *BaseAPI) RequireProjectAccess(ctx context.Context, projectIDOrName any,
 	if !secCtx.IsAuthenticated() {
 		return errors.UnauthorizedError(nil)
 	}
-	fmt.Printf("###########################2222")
-	fmt.Printf("###########################2222")
 	return errors.ForbiddenError(nil)
 }
 

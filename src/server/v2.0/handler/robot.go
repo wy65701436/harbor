@@ -78,11 +78,11 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 		ProjectNameOrID: params.Robot.Permissions[0].Namespace,
 	}
 
-	fmt.Println("=========================")
+	fmt.Println("=========================00000000")
 	if err := rAPI.requireAccess(ctx, r, rbac.ActionCreate); err != nil {
 		return rAPI.SendError(ctx, err)
 	}
-	fmt.Println("=========================")
+	fmt.Println("=========================00000000")
 
 	var creatorRef int64
 	switch s := sc.(type) {
@@ -317,10 +317,6 @@ func (rAPI *robotAPI) RefreshSec(ctx context.Context, params operation.RefreshSe
 }
 
 func (rAPI *robotAPI) requireAccess(ctx context.Context, r *robot.Robot, action rbac.Action) error {
-	fmt.Printf("###########################")
-	fmt.Printf("%v", r)
-	fmt.Printf("###########################")
-
 	if r.Level == robot.LEVELSYSTEM {
 		return rAPI.RequireSystemAccess(ctx, action, rbac.ResourceRobot)
 	} else if r.Level == robot.LEVELPROJECT {
@@ -335,8 +331,6 @@ func (rAPI *robotAPI) requireAccess(ctx context.Context, r *robot.Robot, action 
 		return rAPI.RequireProjectAccess(ctx, ns, action, rbac.ResourceRobot)
 	}
 
-	fmt.Printf("###########################1111")
-	fmt.Printf("###########################1111")
 	return errors.ForbiddenError(nil)
 }
 
