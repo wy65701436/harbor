@@ -18,7 +18,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -101,10 +100,6 @@ func (b *BaseAPI) HasProjectPermission(ctx context.Context, projectIDOrName any,
 	}
 
 	resource := rbac_project.NewNamespace(projectID).Resource(subresource...)
-	fmt.Println("###########################")
-	fmt.Printf("%v", resource)
-	fmt.Printf("%v", projectID)
-	fmt.Println("###########################")
 	return b.HasPermission(ctx, action, resource), nil
 }
 

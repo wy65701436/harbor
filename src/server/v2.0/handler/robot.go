@@ -81,10 +81,17 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 	}
 
 	var creatorRef int64
+	var creatorRobot *robot.Robot
 	switch s := sc.(type) {
 	case *local.SecurityContext:
 		creatorRef = int64(s.User().UserID)
 	case *robotSc.SecurityContext:
+		if s.User() == nil {
+			return rAPI.SendError(ctx, errors.New(nil).WithMessage("invalid security context: empty robot account"))
+		}
+		if !isValidPermissionScope(params.Robot.Permissions, s.User().Permissions) {
+			return rAPI.SendError(ctx, errors.New(nil).WithMessagef("permission scope is invalid. It must be equal to or more restrictive than the creator robot's permissions: %s", creatorRobot.Name).WithCode(errors.DENIED))
+		}
 		creatorRef = s.User().ID
 	default:
 		return rAPI.SendError(ctx, errors.New(nil).WithMessage("invalid security context"))
@@ -98,17 +105,6 @@ func (rAPI *robotAPI) CreateRobot(ctx context.Context, params operation.CreateRo
 
 	if err := robot.SetProject(ctx, r); err != nil {
 		return rAPI.SendError(ctx, err)
-	}
-
-	if _, ok := sc.(*robotSc.SecurityContext); ok {
-		creatorRobot := sc.(*robotSc.SecurityContext).User()
-		if creatorRobot == nil {
-			return rAPI.SendError(ctx, errors.DeniedError(nil))
-		}
-
-		if !isValidPermissionScope(params.Robot.Permissions, creatorRobot.Permissions) {
-			return rAPI.SendError(ctx, errors.New(nil).WithMessagef("permission scope is invalid. It must be equal to or more restrictive than the creator robot's permissions: %s", creatorRobot.Name).WithCode(errors.DENIED))
-		}
 	}
 
 	rid, pwd, err := rAPI.robotCtl.Create(ctx, r)
