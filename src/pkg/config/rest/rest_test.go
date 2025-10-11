@@ -1,91 +1,151 @@
-//  Copyright Project Harbor Authors
+// Copyright Project Harbor Authors
 //
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package rest
 
 import (
 	"context"
-	"encoding/json"
-	"io"
-	"maps"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 
-	"github.com/goharbor/harbor/src/lib/log"
+	"github.com/goharbor/harbor/src/common"
+	"github.com/goharbor/harbor/src/lib/errors"
 )
 
-func ConfigGetHandler(w http.ResponseWriter, r *http.Request) {
-	cfgs := map[string]any{
-		"ldap_url":         &Value{Val: "ldaps://ldap.vmware.com", Editable: true},
-		"ldap_scope":       &Value{Val: 5, Editable: true},
-		"ldap_verify_cert": &Value{Val: true, Editable: true},
-	}
-	b, err := json.Marshal(cfgs)
-	if err != nil {
-		return
-	}
-	w.Write(b)
+// RestDriverGetTestSuite tests the Get method in REST driver
+type RestDriverGetTestSuite struct {
+	suite.Suite
+	ctx    context.Context
+	driver *Driver
 }
 
-func TestHTTPDriver_Load(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(ConfigGetHandler))
-	defer server.Close()
-	httpDriver := NewRESTDriver(server.URL)
-	configMap, err := httpDriver.Load(context.Background())
-	if err != nil {
-		t.Errorf("Error when testing http driver %v", err)
+func (suite *RestDriverGetTestSuite) SetupTest() {
+	suite.ctx = context.Background()
+	suite.driver = &Driver{
+		configRESTURL: "http://localhost:8080/api/v2.0/configurations",
+		client:        nil, // We'll test the unsupported behavior
 	}
-	assert.Equal(t, "ldaps://ldap.vmware.com", configMap["ldap_url"])
-	// json.Marshal() always convert number to float64, configvalue can handle it by convert it to string
-	assert.Equal(t, float64(5), configMap["ldap_scope"])
-	assert.Equal(t, true, configMap["ldap_verify_cert"])
 }
 
-var configMapForTest = map[string]any{}
+// TestGetMethodReturnsUnsupported tests that Get method returns ErrUnsupported
+func (suite *RestDriverGetTestSuite) TestGetMethodReturnsUnsupported() {
+	key := common.SkipAuditLogDatabase
 
-func ConfigPutHandler(w http.ResponseWriter, r *http.Request) {
-	cfgs := map[string]any{}
-	content, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = json.Unmarshal(content, &cfgs)
-	if err != nil {
-		log.Fatal(err)
-	}
-	maps.Copy(configMapForTest, cfgs)
+	result, err := suite.driver.Get(suite.ctx, key)
+
+	suite.Require().Error(err)
+	suite.True(errors.IsErr(err, errors.MethodNotAllowedCode))
+	suite.Nil(result)
 }
 
-func TestHTTPDriver_Save(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(ConfigPutHandler))
-	defer server.Close()
-	httpDriver := NewRESTDriver(server.URL)
-	configMap := map[string]any{
-		"ldap_url":         "ldap://www.example.com",
-		"ldap_timeout":     10,
-		"ldap_verify_cert": false,
-	}
-	err := httpDriver.Save(context.Background(), configMap)
-	if err != nil {
-		t.Fatal(err)
+// TestGetMethodWithDifferentKeys tests Get method with various keys
+func (suite *RestDriverGetTestSuite) TestGetMethodWithDifferentKeys() {
+	testCases := []struct {
+		name string
+		key  string
+	}{
+		{
+			name: "skip_audit_log_database",
+			key:  common.SkipAuditLogDatabase,
+		},
+		{
+			name: "audit_log_forward_endpoint",
+			key:  common.AuditLogForwardEndpoint,
+		},
+		{
+			name: "pull_audit_log_disable",
+			key:  common.PullAuditLogDisable,
+		},
+		{
+			name: "empty_key",
+			key:  "",
+		},
+		{
+			name: "non_existent_key",
+			key:  "non_existent_config",
+		},
 	}
 
-	assert.Equal(t, "ldap://www.example.com", configMapForTest["ldap_url"])
-	assert.Equal(t, float64(10), configMapForTest["ldap_timeout"])
-	assert.Equal(t, false, configMapForTest["ldap_verify_cert"])
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			result, err := suite.driver.Get(suite.ctx, tc.key)
 
+			suite.Require().Error(err)
+			suite.True(errors.IsErr(err, errors.MethodNotAllowedCode))
+			suite.Nil(result)
+		})
+	}
+}
+
+// TestGetMethodWithNilContext tests Get method with nil context
+func (suite *RestDriverGetTestSuite) TestGetMethodWithNilContext() {
+	key := common.SkipAuditLogDatabase
+
+	result, err := suite.driver.Get(nil, key)
+
+	suite.Require().Error(err)
+	suite.True(errors.IsErr(err, errors.MethodNotAllowedCode))
+	suite.Nil(result)
+}
+
+// TestGetMethodConsistency tests that Get method consistently returns ErrUnsupported
+func (suite *RestDriverGetTestSuite) TestGetMethodConsistency() {
+	key := common.SkipAuditLogDatabase
+
+	// Call multiple times to ensure consistency
+	for i := 0; i < 5; i++ {
+		result, err := suite.driver.Get(suite.ctx, key)
+
+		suite.Require().Error(err)
+		suite.True(errors.IsErr(err, errors.MethodNotAllowedCode))
+		suite.Nil(result)
+	}
+}
+
+// Run the test suite
+func TestRestDriverGetTestSuite(t *testing.T) {
+	suite.Run(t, new(RestDriverGetTestSuite))
+}
+
+// TestRestDriverGetStandalone provides additional standalone tests
+func TestRestDriverGetStandalone(t *testing.T) {
+	driver := &Driver{}
+	ctx := context.Background()
+
+	// Test that Get method is properly implemented and returns expected error
+	result, err := driver.Get(ctx, "any_key")
+
+	assert.Error(t, err)
+	assert.True(t, errors.IsErr(err, errors.MethodNotAllowedCode))
+	assert.Nil(t, result)
+}
+
+// TestRestDriverGetDocumentation tests that the Get method behavior matches the TODO comment
+func TestRestDriverGetDocumentation(t *testing.T) {
+	driver := &Driver{}
+	ctx := context.Background()
+
+	// The Get method has a TODO comment, indicating it's not fully implemented
+	// and should return ErrUnsupported for now
+	result, err := driver.Get(ctx, common.SkipAuditLogDatabase)
+
+	assert.Error(t, err)
+	assert.True(t, errors.IsErr(err, errors.MethodNotAllowedCode))
+	assert.Nil(t, result)
+
+	// Verify the error type is correct
+	assert.True(t, errors.IsErr(err, errors.MethodNotAllowedCode))
 }

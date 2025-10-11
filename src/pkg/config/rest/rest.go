@@ -65,5 +65,5 @@ func (h *Driver) Save(_ context.Context, cfg map[string]any) error {
 
 // TODO
 func (d *Driver) Get(ctx context.Context, key string) (map[string]any, error) {
-	return nil, errors.ErrUnsupported
+	return nil, errors.New("operation not supported").WithCode(errors.MethodNotAllowedCode)
 }
