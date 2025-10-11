@@ -16,12 +16,12 @@ package inmemory
 
 import (
 	"context"
-	"errors"
 	"maps"
 	"sync"
 
 	"github.com/goharbor/harbor/src/common"
 	libCfg "github.com/goharbor/harbor/src/lib/config"
+	"github.com/goharbor/harbor/src/lib/errors"
 	"github.com/goharbor/harbor/src/pkg/config"
 	"github.com/goharbor/harbor/src/pkg/config/store"
 )
