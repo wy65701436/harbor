@@ -1,48 +1,33 @@
 /*
-Initialize skip_audit_log_database configuration based on existing audit log usage - Only insert the configuration if it doesn't already exist
-1. If audit logs exist in the system (either in audit_log or audit_log_ext tables),
-   set skip_audit_log_database to false
-2. If no audit logs exist but the tables show evidence of previous usage
-   set skip_audit_log_database to false
-3. If tables exist but show no evidence of usage, don't create the configuration record
+Initialize skip_audit_log_database configuration based on existing audit log usage.
 
+Logic:
+1. Skip if configuration already exists
+2. Set to 'false' if:
+   - Any audit logs exist in audit_log or audit_log_ext tables, OR
+   - Tables show evidence of previous usage (sequence value > 1)
+3. Otherwise, don't create the configuration (defaults to true in code)
 */
 DO $$
 DECLARE
-    audit_log_count INTEGER := 0;
-    audit_log_ext_count INTEGER := 0;
-    total_audit_logs INTEGER := 0;
-    config_exists INTEGER := 0;
-    audit_log_seq_value BIGINT := 0;
-    audit_log_ext_seq_value BIGINT := 0;
-    audit_log_table_used BOOLEAN := FALSE;
-    audit_log_ext_table_used BOOLEAN := FALSE;
-    should_set_config BOOLEAN := FALSE;
-    skip_audit_value TEXT := 'false';
+    has_audit_logs BOOLEAN;
+    has_table_usage BOOLEAN;
 BEGIN
-    SELECT COUNT(*) INTO config_exists
-    FROM properties
-    WHERE k = 'skip_audit_log_database';
+    -- Exit early if configuration already exists
+    IF EXISTS (SELECT 1 FROM properties WHERE k = 'skip_audit_log_database') THEN
+        RETURN;
+    END IF;
 
-    IF config_exists = 0 THEN
-        SELECT COUNT(*) INTO audit_log_count FROM audit_log;
-        SELECT last_value INTO audit_log_seq_value FROM audit_log_id_seq;
-        audit_log_table_used := (audit_log_seq_value > 1);
+    -- Check if any audit logs exist
+    has_audit_logs := EXISTS (SELECT 1 FROM audit_log LIMIT 1) 
+                   OR EXISTS (SELECT 1 FROM audit_log_ext LIMIT 1);
 
-        SELECT COUNT(*) INTO audit_log_ext_count FROM audit_log_ext;
-        SELECT last_value INTO audit_log_ext_seq_value FROM audit_log_ext_id_seq;
-        audit_log_ext_table_used := (audit_log_ext_seq_value > 1);
+    -- Check if tables have been used (sequence value > 1 indicates usage)
+    has_table_usage := (SELECT last_value FROM audit_log_id_seq) > 1
+                    OR (SELECT last_value FROM audit_log_ext_id_seq) > 1;
 
-        total_audit_logs := audit_log_count + audit_log_ext_count;
-
-        IF total_audit_logs > 0 THEN
-            should_set_config := TRUE;
-        ELSIF audit_log_table_used OR audit_log_ext_table_used THEN
-            should_set_config := TRUE;
-        END IF;
-
-        IF should_set_config THEN
-            INSERT INTO properties (k, v) VALUES ('skip_audit_log_database', skip_audit_value);
-        END IF;
+    -- Insert configuration only if audit logs exist or tables have been used
+    IF has_audit_logs OR has_table_usage THEN
+        INSERT INTO properties (k, v) VALUES ('skip_audit_log_database', 'false');
     END IF;
 END $$;
