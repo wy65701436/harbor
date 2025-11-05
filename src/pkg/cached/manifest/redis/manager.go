@@ -18,7 +18,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/goharbor/harbor/src/lib/cache/tiered"
 	"github.com/goharbor/harbor/src/lib/config"
+	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/retry"
 	"github.com/goharbor/harbor/src/pkg/cached"
 )
@@ -67,7 +69,16 @@ func (m *Manager) Save(ctx context.Context, digest string, manifest []byte) erro
 		return err
 	}
 
-	return m.CacheClient(ctx).Save(ctx, key, manifest, m.lifetime)
+	// Use tiered cache with appropriate TTL for manifests
+	// Manifests referenced by digest are immutable, cache longer
+	ttl := m.lifetime
+	if tc, ok := m.CacheClient(ctx).(*tiered.TieredCache); ok {
+		// Digest-based manifests are immutable, use longer TTL
+		ttl = tc.GetTTLForContentType(tiered.ContentTypeManifest, true)
+		log.Debugf("Saving manifest to tiered cache: digest=%s, ttl=%v", digest, ttl)
+	}
+
+	return m.CacheClient(ctx).Save(ctx, key, manifest, ttl)
 }
 
 func (m *Manager) Get(ctx context.Context, digest string) ([]byte, error) {
@@ -78,9 +89,11 @@ func (m *Manager) Get(ctx context.Context, digest string) ([]byte, error) {
 
 	var manifest []byte
 	if err = m.CacheClient(ctx).Fetch(ctx, key, &manifest); err == nil {
+		log.Debugf("Manifest cache hit: digest=%s", digest)
 		return manifest, nil
 	}
 
+	log.Debugf("Manifest cache miss: digest=%s", digest)
 	return nil, err
 }
 

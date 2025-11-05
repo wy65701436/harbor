@@ -18,6 +18,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/goharbor/harbor/src/lib/cache/tiered"
 	"github.com/goharbor/harbor/src/lib/config"
 	"github.com/goharbor/harbor/src/lib/log"
 	"github.com/goharbor/harbor/src/lib/q"
@@ -89,17 +90,24 @@ func (m *Manager) Get(ctx context.Context, id int64) (*artifact.Artifact, error)
 
 	art := &artifact.Artifact{}
 	if err = m.CacheClient(ctx).Fetch(ctx, key, art); err == nil {
+		log.Debugf("Artifact cache hit: id=%d", id)
 		return art, nil
 	}
 
-	log.Debugf("get artifact %d from cache error: %v, will query from database.", id, err)
+	log.Debugf("Artifact cache miss: id=%d, error: %v, querying database", id, err)
 
 	art, err = m.delegator.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = m.CacheClient(ctx).Save(ctx, key, art, m.lifetime); err != nil {
+	// Use tiered cache with artifact-specific TTL
+	ttl := m.lifetime
+	if tc, ok := m.CacheClient(ctx).(*tiered.TieredCache); ok {
+		ttl = tc.GetTTLForContentType(tiered.ContentTypeArtifact, false)
+	}
+
+	if err = m.CacheClient(ctx).Save(ctx, key, art, ttl); err != nil {
 		// log error if save to cache failed
 		log.Debugf("save artifact %s to cache error: %v", art.String(), err)
 	}
@@ -115,15 +123,24 @@ func (m *Manager) GetByDigest(ctx context.Context, repository, digest string) (*
 
 	art := &artifact.Artifact{}
 	if err = m.CacheClient(ctx).Fetch(ctx, key, art); err == nil {
+		log.Debugf("Artifact cache hit: repository=%s, digest=%s", repository, digest)
 		return art, nil
 	}
+
+	log.Debugf("Artifact cache miss: repository=%s, digest=%s", repository, digest)
 
 	art, err = m.delegator.GetByDigest(ctx, repository, digest)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = m.CacheClient(ctx).Save(ctx, key, art, m.lifetime); err != nil {
+	// Use tiered cache with artifact-specific TTL
+	ttl := m.lifetime
+	if tc, ok := m.CacheClient(ctx).(*tiered.TieredCache); ok {
+		ttl = tc.GetTTLForContentType(tiered.ContentTypeArtifact, false)
+	}
+
+	if err = m.CacheClient(ctx).Save(ctx, key, art, ttl); err != nil {
 		// log error if save to cache failed
 		log.Debugf("save artifact %s to cache error: %v", art.String(), err)
 	}
