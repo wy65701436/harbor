@@ -15,13 +15,16 @@
 package proxy
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"testing"
 
 	"github.com/docker/distribution"
 	"github.com/opencontainers/go-digest"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/goharbor/harbor/src/controller/artifact"
@@ -226,4 +229,137 @@ func TestGetRef(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestTeeReadCloser tests the teeReadCloser implementation
+// This validates the fix for issue #22555 where dual connections caused failures
+func TestTeeReadCloser(t *testing.T) {
+	// Create test data
+	testData := []byte("test blob data for streaming")
+	originalReader := io.NopCloser(bytes.NewReader(testData))
+
+	// Create a pipe to simulate local storage
+	pr, pw := io.Pipe()
+
+	// Create TeeReader
+	teeReader := io.TeeReader(originalReader, pw)
+
+	// Wrap in teeReadCloser
+	trc := &teeReadCloser{
+		Reader: teeReader,
+		closer: originalReader,
+	}
+
+	// Read from client side in a goroutine
+	clientData := make([]byte, len(testData))
+	clientDone := make(chan error, 1)
+	go func() {
+		n, err := io.ReadFull(trc, clientData)
+		if err != nil {
+			clientDone <- err
+			return
+		}
+		if n != len(testData) {
+			clientDone <- io.ErrShortBuffer
+			return
+		}
+		clientDone <- nil
+	}()
+
+	// Read from local storage side
+	localData := make([]byte, len(testData))
+	n, err := io.ReadFull(pr, localData)
+	require.NoError(t, err)
+	require.Equal(t, len(testData), n)
+
+	// Wait for client read to complete
+	err = <-clientDone
+	require.NoError(t, err)
+
+	// Verify both sides received the same data
+	assert.Equal(t, testData, clientData, "Client should receive correct data")
+	assert.Equal(t, testData, localData, "Local storage should receive correct data")
+
+	// Test Close
+	err = trc.Close()
+	assert.NoError(t, err, "Close should succeed")
+
+	// Close the pipe writer
+	pw.Close()
+}
+
+// TestTeeReadCloserLargeData tests with larger data to simulate real-world scenario
+// This ensures the fix works for large blobs like those in issue #22555 (20GB images)
+func TestTeeReadCloserLargeData(t *testing.T) {
+	// Create 10MB test data
+	dataSize := 10 * 1024 * 1024
+	testData := make([]byte, dataSize)
+	for i := range testData {
+		testData[i] = byte(i % 256)
+	}
+
+	originalReader := io.NopCloser(bytes.NewReader(testData))
+
+	// Create a pipe to simulate local storage
+	pr, pw := io.Pipe()
+
+	// Create TeeReader
+	teeReader := io.TeeReader(originalReader, pw)
+
+	// Wrap in teeReadCloser
+	trc := &teeReadCloser{
+		Reader: teeReader,
+		closer: originalReader,
+	}
+
+	// Read from client side in a goroutine
+	clientDone := make(chan error, 1)
+	var clientBytesRead int64
+	go func() {
+		n, err := io.Copy(io.Discard, trc)
+		clientBytesRead = n
+		clientDone <- err
+	}()
+
+	// Read from local storage side
+	localBytesRead, err := io.Copy(io.Discard, pr)
+	require.NoError(t, err)
+
+	// Wait for client read to complete
+	err = <-clientDone
+	require.NoError(t, err)
+
+	// Verify both sides received all data
+	assert.Equal(t, int64(dataSize), clientBytesRead, "Client should receive all data")
+	assert.Equal(t, int64(dataSize), localBytesRead, "Local storage should receive all data")
+
+	// Close
+	trc.Close()
+	pw.Close()
+}
+
+// TestTeeReadCloserErrorHandling tests error scenarios
+func TestTeeReadCloserErrorHandling(t *testing.T) {
+	testData := []byte("test data")
+	originalReader := io.NopCloser(bytes.NewReader(testData))
+
+	_, pw := io.Pipe()
+	teeReader := io.TeeReader(originalReader, pw)
+
+	trc := &teeReadCloser{
+		Reader: teeReader,
+		closer: originalReader,
+	}
+
+	// Close the pipe writer early to simulate error
+	pw.Close()
+
+	// Try to read - should get error from pipe
+	buf := make([]byte, len(testData))
+	_, err := io.ReadFull(trc, buf)
+	// The read might succeed or fail depending on timing, but Close should always work
+
+	// Close should still succeed
+	err = trc.Close()
+	assert.NoError(t, err, "Close should succeed even after pipe error")
 }

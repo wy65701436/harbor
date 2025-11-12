@@ -47,6 +47,17 @@ const (
 	manifestListCacheInterval = 7 * 24 * 60 * 60 * time.Second
 )
 
+// teeReadCloser wraps an io.Reader (from TeeReader) and provides Close() method
+// This allows us to split a stream to multiple destinations while maintaining proper cleanup
+type teeReadCloser struct {
+	io.Reader
+	closer io.Closer
+}
+
+func (t *teeReadCloser) Close() error {
+	return t.closer.Close()
+}
+
 var (
 	// Ctl is a global proxy controller instance
 	ctl  Controller
@@ -301,13 +312,25 @@ func (c *controller) ProxyBlob(ctx context.Context, p *proModels.Project, art li
 		return 0, nil, err
 	}
 	desc := distribution.Descriptor{Size: size, Digest: digest.Digest(art.Digest)}
+
+	// Use TeeReader to split the stream: one to client, one to local storage
+	// This avoids opening a second connection to the remote registry
+	pr, pw := io.Pipe()
+	teeReader := io.TeeReader(bReader, pw)
+
 	go func() {
-		err := c.putBlobToLocal(remoteRepo, art.Repository, desc, rHelper)
+		defer pw.Close()
+		err := c.local.PushBlob(art.Repository, desc, pr)
 		if err != nil {
 			log.Errorf("error while putting blob to local repo, %v", err)
 		}
 	}()
-	return size, bReader, nil
+
+	// Return a reader that streams to both client and local storage simultaneously
+	return size, &teeReadCloser{
+		Reader: teeReader,
+		closer: bReader,
+	}, nil
 }
 
 func (c *controller) putBlobToLocal(remoteRepo string, localRepo string, desc distribution.Descriptor, r RemoteInterface) error {
