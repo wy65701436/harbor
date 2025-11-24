@@ -471,18 +471,104 @@ func extractExecIDVendorFromKey(key string) (int64, string, error) {
 }
 
 func (e *executionDAO) AsyncRefreshStatus(ctx context.Context, id int64, vendor string) (err error) {
-	key := buildExecStatusOutdateKey(id, vendor)
-	if cache.Default().Contains(ctx, key) {
-		// return earlier if already have the key
-		return nil
+	// Use the new execution queue instead of individual keys
+	// This reduces Redis memory usage and improves scan performance
+	queue, err := NewExecutionQueue()
+	if err != nil {
+		// Fallback to old behavior if queue initialization fails
+		log.Warningf("failed to initialize execution queue, falling back to legacy mode: %v", err)
+		key := buildExecStatusOutdateKey(id, vendor)
+		if cache.Default().Contains(ctx, key) {
+			return nil
+		}
+		return cache.Default().Save(ctx, key, "")
 	}
-	// save the key to redis, the value is useless so set it to empty
-	return cache.Default().Save(ctx, key, "")
+
+	return queue.Add(ctx, id, vendor)
 }
 
 // scanAndRefreshOutdateStatus scans the outdate execution status from redis and then refresh the status to db,
 // do not want to expose to external use so keep it as private.
 func scanAndRefreshOutdateStatus(ctx context.Context) {
+	// Initialize the execution queue
+	queue, err := NewExecutionQueue()
+	if err != nil {
+		log.Errorf("failed to initialize execution queue: %v", err)
+		// Fallback to legacy scan mode
+		scanAndRefreshOutdateStatusLegacy(ctx)
+		return
+	}
+
+	// Initialize instance coordinator for consistent hashing
+	coordinator := NewInstanceCoordinator()
+	instanceID, totalInstances := coordinator.GetInstanceInfo()
+
+	// Get all executions from the queue
+	items, err := queue.GetAll(ctx)
+	if err != nil {
+		log.Errorf("failed to get executions from queue: %v", err)
+		return
+	}
+
+	// return earlier if no items found
+	if len(items) == 0 {
+		log.Debug("skip to refresh, no outdate execution status found")
+		return
+	}
+
+	log.Infof("instance %d/%d: found %d executions in queue, will process assigned subset",
+		instanceID, totalInstances, len(items))
+
+	var succeed, failed, skipped int64
+
+	// Process only the executions assigned to this instance
+	for _, item := range items {
+		// Use consistent hashing to determine if this instance should process this execution
+		if !coordinator.ShouldProcess(item.ExecutionID) {
+			skipped++
+			continue
+		}
+
+		// Process this execution
+		statusChanged, currentStatus, err := ExecDAO.RefreshStatus(ctx, item.ExecutionID)
+		if err != nil {
+			// no need to refresh and should clean cache if the execution is not found
+			if errors.IsNotFoundErr(err) {
+				if err = queue.Remove(ctx, item.ExecutionID, item.Vendor); err != nil {
+					log.Errorf("failed to remove execution %d from queue, error: %v", item.ExecutionID, err)
+				}
+				succeed++
+				continue
+			}
+			log.Errorf("failed to refresh the status of execution %d, error: %v", item.ExecutionID, err)
+			failed++
+			continue
+		}
+
+		succeed++
+		log.Debugf("refresh the status of execution %d successfully, new status: %s", item.ExecutionID, currentStatus)
+
+		// run the status change post function
+		// just print error log, not return error for post action
+		if fc, exist := executionStatusChangePostFuncRegistry[item.Vendor]; exist && statusChanged {
+			if err = fc(ctx, item.ExecutionID, currentStatus); err != nil {
+				logger.Errorf("failed to run the execution status change post function for execution %d, error: %v", item.ExecutionID, err)
+			}
+		}
+
+		// Remove from queue after successful processing
+		if err = queue.Remove(ctx, item.ExecutionID, item.Vendor); err != nil {
+			log.Errorf("failed to remove execution %d from queue, error: %v", item.ExecutionID, err)
+		}
+	}
+
+	log.Infof("instance %d/%d: refresh outdate execution status done, %d succeed, %d failed, %d skipped (assigned to other instances)",
+		instanceID, totalInstances, succeed, failed, skipped)
+}
+
+// scanAndRefreshOutdateStatusLegacy is the legacy implementation using SCAN
+// This is kept as a fallback for compatibility
+func scanAndRefreshOutdateStatusLegacy(ctx context.Context) {
 	iter, err := cache.Default().Scan(ctx, "execution:id:*vendor:*status_outdate")
 	if err != nil {
 		log.Errorf("failed to scan the outdate executions, error: %v", err)
@@ -498,10 +584,7 @@ func scanAndRefreshOutdateStatus(ctx context.Context) {
 		log.Debug("skip to refresh, no outdate execution status found")
 		return
 	}
-	// TODO: refactor
-	// shuffle the keys to avoid the conflict and improve efficiency when multiple core instance existed,
-	// but currently if multiple instances get the same set of keys at the same time, then eventually everyone
-	// will still need to repeat the same work(refresh same execution), which needs to be optimized later.
+	// shuffle the keys to avoid the conflict and improve efficiency when multiple core instance existed
 	lib.ShuffleStringSlice(keys)
 
 	log.Infof("scanned out %d executions with outdate status, refresh status to db", len(keys))
