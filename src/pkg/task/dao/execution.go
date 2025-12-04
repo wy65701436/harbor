@@ -41,6 +41,10 @@ func init() {
 	// register the execution status refresh task if enable the async update
 	if interval := config.GetExecutionStatusRefreshIntervalSeconds(); interval > 0 {
 		gtask.DefaultPool().AddTask(scanAndRefreshOutdateStatus, time.Duration(interval)*time.Second)
+
+		// register stale execution recovery task (runs every minute)
+		// this recovers work from crashed instances
+		gtask.DefaultPool().AddTask(recoverStaleExecutions, time.Minute)
 	}
 }
 
@@ -471,12 +475,11 @@ func extractExecIDVendorFromKey(key string) (int64, string, error) {
 }
 
 func (e *executionDAO) AsyncRefreshStatus(ctx context.Context, id int64, vendor string) (err error) {
-	// Use the new execution queue instead of individual keys
-	// This reduces Redis memory usage and improves scan performance
-	queue, err := NewExecutionQueue()
+	// Use V2 queue with atomic work claiming (zero configuration needed)
+	queue, err := NewExecutionQueueV2()
 	if err != nil {
 		// Fallback to old behavior if queue initialization fails
-		log.Warningf("failed to initialize execution queue, falling back to legacy mode: %v", err)
+		log.Warningf("failed to initialize execution queue V2, falling back to legacy mode: %v", err)
 		key := buildExecStatusOutdateKey(id, vendor)
 		if cache.Default().Contains(ctx, key) {
 			return nil
@@ -490,57 +493,52 @@ func (e *executionDAO) AsyncRefreshStatus(ctx context.Context, id int64, vendor 
 // scanAndRefreshOutdateStatus scans the outdate execution status from redis and then refresh the status to db,
 // do not want to expose to external use so keep it as private.
 func scanAndRefreshOutdateStatus(ctx context.Context) {
-	// Initialize the execution queue
-	queue, err := NewExecutionQueue()
+	// Use V2 queue with atomic work claiming (zero configuration)
+	queue, err := NewExecutionQueueV2()
 	if err != nil {
-		log.Errorf("failed to initialize execution queue: %v", err)
+		log.Errorf("failed to initialize execution queue V2: %v", err)
 		// Fallback to legacy scan mode
 		scanAndRefreshOutdateStatusLegacy(ctx)
 		return
 	}
 
-	// Initialize instance coordinator for consistent hashing
-	coordinator := NewInstanceCoordinator()
-	instanceID, totalInstances := coordinator.GetInstanceInfo()
-
-	// Get all executions from the queue
-	items, err := queue.GetAll(ctx)
+	// Atomically claim a batch of executions to process
+	// Each instance claims different items - no coordination needed!
+	batchSize := 100 // Process 100 executions per cycle
+	items, err := queue.ClaimBatch(ctx, batchSize)
 	if err != nil {
-		log.Errorf("failed to get executions from queue: %v", err)
+		log.Errorf("failed to claim batch from queue: %v", err)
 		return
 	}
 
-	// return earlier if no items found
+	// return earlier if no items claimed
 	if len(items) == 0 {
 		log.Debug("skip to refresh, no outdate execution status found")
 		return
 	}
 
-	log.Infof("instance %d/%d: found %d executions in queue, will process assigned subset",
-		instanceID, totalInstances, len(items))
+	log.Infof("Claimed %d executions for processing", len(items))
 
-	var succeed, failed, skipped int64
+	var succeed, failed int64
 
-	// Process only the executions assigned to this instance
+	// Process claimed executions
 	for _, item := range items {
-		// Use consistent hashing to determine if this instance should process this execution
-		if !coordinator.ShouldProcess(item.ExecutionID) {
-			skipped++
-			continue
-		}
-
 		// Process this execution
 		statusChanged, currentStatus, err := ExecDAO.RefreshStatus(ctx, item.ExecutionID)
 		if err != nil {
 			// no need to refresh and should clean cache if the execution is not found
 			if errors.IsNotFoundErr(err) {
-				if err = queue.Remove(ctx, item.ExecutionID, item.Vendor); err != nil {
-					log.Errorf("failed to remove execution %d from queue, error: %v", item.ExecutionID, err)
+				if err = queue.MarkComplete(ctx, item.ExecutionID, item.Vendor); err != nil {
+					log.Errorf("failed to mark execution %d as complete, error: %v", item.ExecutionID, err)
 				}
 				succeed++
 				continue
 			}
 			log.Errorf("failed to refresh the status of execution %d, error: %v", item.ExecutionID, err)
+			// Return to queue for retry
+			if err = queue.MarkFailed(ctx, item.ExecutionID, item.Vendor); err != nil {
+				log.Errorf("failed to mark execution %d as failed, error: %v", item.ExecutionID, err)
+			}
 			failed++
 			continue
 		}
@@ -556,14 +554,33 @@ func scanAndRefreshOutdateStatus(ctx context.Context) {
 			}
 		}
 
-		// Remove from queue after successful processing
-		if err = queue.Remove(ctx, item.ExecutionID, item.Vendor); err != nil {
-			log.Errorf("failed to remove execution %d from queue, error: %v", item.ExecutionID, err)
+		// Mark as complete after successful processing
+		if err = queue.MarkComplete(ctx, item.ExecutionID, item.Vendor); err != nil {
+			log.Errorf("failed to mark execution %d as complete, error: %v", item.ExecutionID, err)
 		}
 	}
 
-	log.Infof("instance %d/%d: refresh outdate execution status done, %d succeed, %d failed, %d skipped (assigned to other instances)",
-		instanceID, totalInstances, succeed, failed, skipped)
+	log.Infof("Refresh outdate execution status done, %d succeed, %d failed", succeed, failed)
+}
+
+// recoverStaleExecutions recovers executions that have been processing for too long
+// This handles cases where an instance crashed while processing
+func recoverStaleExecutions(ctx context.Context) {
+	queue, err := NewExecutionQueueV2()
+	if err != nil {
+		log.Debugf("failed to initialize execution queue V2 for recovery: %v", err)
+		return
+	}
+
+	recovered, err := queue.RecoverStaleProcessing(ctx)
+	if err != nil {
+		log.Errorf("failed to recover stale executions: %v", err)
+		return
+	}
+
+	if recovered > 0 {
+		log.Infof("Recovered %d stale executions from crashed instances", recovered)
+	}
 }
 
 // scanAndRefreshOutdateStatusLegacy is the legacy implementation using SCAN

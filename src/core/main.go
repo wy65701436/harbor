@@ -18,6 +18,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -85,6 +86,103 @@ import (
 const (
 	adminUserID = 1
 )
+
+package main
+
+import (
+"context"
+"fmt"
+"io"
+"log"
+"net/http"
+"os"
+"strings"
+"time"
+
+"github.com/caarlos0/env/v10"
+"github.com/joho/godotenv"
+
+"github-vcf.devops.broadcom.net/vcf/release-machinery/relm/pkg/ci"
+"github-vcf.devops.broadcom.net/vcf/release-machinery/relm/pkg/relmci"
+)
+
+var relMachCtx = "relmach/ci"
+
+func main() {
+	log.SetPrefix(relMachCtx)
+	log.SetFlags(0)
+
+	// ----------------------
+	// Stage 1: Build this cayman project in gobuild VM
+	// ----------------------
+	log.Println("build cayman harbor started")
+	gobuildTarget := "cayman_docker_distribution" // same as the one found at support/gobuild/__init__.py
+
+	// Note: There are multiple levels of timeout
+	// - Jenkins is configured to timeout if
+	//
+	//Job execution exceeds 4 hours
+	// - This execution of ci.go file times out if it exceeds 1 hour
+	// - Cayman projects such as `Harbor` & `Antrea` need more than an hour
+	// - Somewhere around 1 hour 30 minutes to execute ci.go logic of above projects
+	timeout := time.Hour
+
+	bw, makeErr := ci.MakeBuildwebBuildOptions()
+	if makeErr != nil {
+		log.Println("ERROR:", makeErr)
+		os.Exit(1)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	// Trigger the build
+	buildResult, buildErr := bw.BuildwebBuild(ctx, gobuildTarget)
+	// log build results irrespective of success or failures
+	if buildErr != nil {
+		log.Println("ERROR:", buildErr, buildResult.String())
+		os.Exit(1)
+	}
+
+	log.Println(buildResult.String())         // log at jenkins pipeline
+	relmci.PostToGithub(buildResult.BuildURL) // post buildweb url of this build as a comment against the gitlab MR
+
+	os.Exit(0)
+}
+
+type buildOptions struct {
+	BuildBase      bool `env:"BUILD_BASE"`
+	BuildInstaller bool `env:"BUILD_INSTALLER"`
+}
+
+func getBuildOptions(fileurl string) (*buildOptions, error) {
+	// Download build.config files from build web
+	resp, err := http.Get(fileurl)
+	if err != nil {
+		return nil, fmt.Errorf("Download build.config file failed: %e", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Bad status: %s", resp.Status)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Read error:", err)
+		return nil, fmt.Errorf("Read buildoptions content failed: %s", err)
+	}
+	envMap, err := godotenv.Parse(strings.NewReader(string(body)))
+	if err != nil {
+		return nil, fmt.Errorf("parse error: %w", err)
+	}
+
+	opts := buildOptions{}
+	if err := env.ParseWithOptions(&opts, env.Options{Environment: envMap}); err != nil {
+		return nil, fmt.Errorf("env struct parse error: %w", err)
+	}
+
+	return &opts, nil
+}
+
 
 func updateInitPassword(ctx context.Context, userID int, password string) error {
 	userMgr := pkguser.Mgr
