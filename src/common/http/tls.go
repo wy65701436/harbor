@@ -64,9 +64,14 @@ func GetInternalTLSConfig() (*tls.Config, error) {
 func NewServerTLSConfig() *tls.Config {
 	return &tls.Config{
 		PreferServerCipherSuites: true,
+		// X25519MLKEM768 is the hybrid post-quantum key exchange (X25519 + ML-KEM-768,
+		// NIST FIPS 203) used by TLS 1.3. It is listed first so that clients supporting
+		// it get quantum-resistant key establishment, while the classical curves remain
+		// as fallback for older clients. See issue #23709.
 		CurvePreferences: []tls.CurveID{
-			tls.CurveP256,
+			tls.X25519MLKEM768,
 			tls.X25519,
+			tls.CurveP256,
 		},
 		MinVersion: tls.VersionTLS12,
 		CipherSuites: []uint16{
